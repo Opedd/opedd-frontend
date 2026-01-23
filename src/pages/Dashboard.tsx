@@ -1,106 +1,194 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Plus, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { LayoutDashboard, Plus, Search, MoreHorizontal, Trash2 } from "lucide-react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { MetricCard } from "@/components/dashboard/MetricCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { AddAssetDialog } from "@/components/dashboard/AddAssetDialog";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface Asset {
+  id: string;
+  title: string;
+  licenseType: "human" | "ai" | "both";
+  status: "active" | "pending" | "minted";
+  revenue: number;
+  createdAt: string;
+}
+
+const mockAssets: Asset[] = [
+  { id: "1", title: "The Future of AI Governance", licenseType: "both", status: "active", revenue: 124.50, createdAt: "2025-01-20" },
+  { id: "2", title: "Understanding Machine Learning", licenseType: "ai", status: "minted", revenue: 89.99, createdAt: "2025-01-18" },
+  { id: "3", title: "Content Monetization Strategies", licenseType: "human", status: "pending", revenue: 0, createdAt: "2025-01-15" },
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [assets, setAssets] = useState<Array<{ title: string; description: string; licenseType: string }>>([]);
+  const [assets, setAssets] = useState<Asset[]>(mockAssets);
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (!user) return null;
 
-  const handleAddAsset = async (data: { title: string; description: string; licenseType: string }) => {
-    // TODO: Integrate with backend API
-    setAssets((prev) => [...prev, data]);
+  const handleDelete = (id: string) => {
+    setAssets((prev) => prev.filter((a) => a.id !== id));
     toast({
-      title: "Asset Registered",
-      description: `"${data.title}" has been added to your Smart Library`,
+      title: "Asset Removed",
+      description: "The asset has been deleted from your library",
     });
   };
 
+  const filteredAssets = assets.filter((a) =>
+    a.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalRevenue = assets.reduce((sum, a) => sum + a.revenue, 0);
+  const activeCount = assets.filter((a) => a.status === "active").length;
+
+  const getLicenseLabel = (type: Asset["licenseType"]) => {
+    switch (type) {
+      case "human": return "Human";
+      case "ai": return "AI";
+      case "both": return "Human + AI";
+    }
+  };
+
+  const getStatusColor = (status: Asset["status"]) => {
+    switch (status) {
+      case "active": return "bg-emerald-100 text-emerald-700";
+      case "pending": return "bg-amber-100 text-amber-700";
+      case "minted": return "bg-[#4A26ED]/10 text-[#4A26ED]";
+    }
+  };
+
   return (
-    <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden selection:bg-[#4A26ED]/20">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
       <DashboardSidebar />
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-y-auto">
         <DashboardHeader />
 
-        <div className="p-8 max-w-7xl w-full mx-auto space-y-8">
+        <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
           {/* Page Title & Action */}
-          <div className="flex items-end justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-3 text-[#4A26ED]">
-                <LayoutDashboard size={28} strokeWidth={2} />
-                <h1 className="text-3xl font-bold tracking-tight text-[#040042]">
-                  Smart Library
-                </h1>
-              </div>
-              <p className="text-[#040042]/60 font-medium">
-                Manage your content assets and licensing
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <LayoutDashboard size={22} className="text-[#4A26ED]" />
+              <h1 className="text-xl font-bold text-[#040042]">Smart Library</h1>
             </div>
 
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-[#D1009A] hover:bg-[#B8008A] text-white h-14 px-8 rounded-2xl font-semibold shadow-lg shadow-[#D1009A]/25 flex items-center gap-3 transition-all hover:-translate-y-0.5 active:scale-[0.98]"
+            <Link
+              to="/add-asset"
+              className="bg-[#040042] hover:bg-[#0A0066] text-white h-10 px-5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
             >
-              <Plus size={20} />
-              Add New Asset
-            </button>
+              <Plus size={18} />
+              Add Asset
+            </Link>
           </div>
 
-          {/* Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <MetricCard label="Total Assets" value={assets.length.toString()} />
-            <MetricCard label="Active Licenses" value="0" accentColor="oxford" />
-            <MetricCard label="Total Revenue" value="$0.00" accentColor="plum" />
+          {/* Compact Metrics */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">{assets.length}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+              <p className="text-[#4A26ED] text-xs font-medium uppercase tracking-wide">Active Licenses</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">{activeCount}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+              <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
+            </div>
           </div>
 
           {/* Search */}
-          <div className="relative group max-w-2xl">
-            <Search
-              className="absolute left-5 top-1/2 -translate-y-1/2 text-[#040042]/40 group-focus-within:text-[#4A26ED] transition-colors"
-              size={20}
-            />
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40" size={18} />
             <input
               type="text"
               placeholder="Search assets..."
-              className="w-full bg-white border border-[#040042]/10 rounded-2xl py-4 pl-14 pr-6 text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]/40 transition-all shadow-md"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-[#E8F2FB] rounded-xl py-2.5 pl-11 pr-4 text-sm text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]/40 transition-all"
             />
           </div>
 
           {/* Content Area */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Asset List or Empty State */}
+            {/* Asset Table */}
             <div className="lg:col-span-2">
-              {assets.length === 0 ? (
-                <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
+              {filteredAssets.length === 0 && assets.length === 0 ? (
+                <EmptyState onAddClick={() => {}} />
+              ) : filteredAssets.length === 0 ? (
+                <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
+                  <p className="text-[#040042]/60 text-sm">No assets match your search</p>
+                </div>
               ) : (
-                <div className="space-y-4">
-                  {assets.map((asset, index) => (
-                    <div
-                      key={index}
-                      className="bg-white border border-[#040042]/5 p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      <h3 className="text-[#040042] font-semibold text-lg">{asset.title}</h3>
-                      <p className="text-[#040042]/60 text-sm mt-1">{asset.description || "No description"}</p>
-                      <div className="mt-4 flex items-center gap-2">
-                        <span className="px-3 py-1 bg-[#F2F9FF] text-[#4A26ED] text-xs font-medium rounded-full">
-                          {asset.licenseType}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-[#E8F2FB] bg-[#F2F9FF]/50">
+                        <TableHead className="text-[#040042]/60 text-xs font-medium">Asset Name</TableHead>
+                        <TableHead className="text-[#040042]/60 text-xs font-medium">License</TableHead>
+                        <TableHead className="text-[#040042]/60 text-xs font-medium">Status</TableHead>
+                        <TableHead className="text-[#040042]/60 text-xs font-medium text-right">Revenue</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAssets.map((asset) => (
+                        <TableRow key={asset.id} className="border-[#E8F2FB] hover:bg-[#F2F9FF]/50">
+                          <TableCell className="font-medium text-[#040042] text-sm">{asset.title}</TableCell>
+                          <TableCell>
+                            <span className="text-xs font-medium text-[#040042]/70">{getLicenseLabel(asset.licenseType)}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${getStatusColor(asset.status)}`}>
+                              {asset.status}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span className={`text-sm font-semibold ${asset.revenue > 0 ? "text-[#D1009A]" : "text-[#040042]/40"}`}>
+                              ${asset.revenue.toFixed(2)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="p-1.5 rounded-lg hover:bg-[#F2F9FF] transition-colors">
+                                  <MoreHorizontal size={16} className="text-[#040042]/40" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-white border-[#E8F2FB]">
+                                <DropdownMenuItem
+                                  className="text-red-600 cursor-pointer"
+                                  onClick={() => handleDelete(asset.id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </div>
@@ -112,13 +200,6 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
-
-      {/* Add Asset Dialog */}
-      <AddAssetDialog
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        onSubmit={handleAddAsset}
-      />
     </div>
   );
 }
