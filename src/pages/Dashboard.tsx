@@ -1,145 +1,121 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { licensesApi } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-
-interface License {
-  id: string;
-  title: string;
-  description: string;
-  licenseType: string;
-  publisherId: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-}
+import Header from "@/components/Header";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [licenses, setLicenses] = useState<License[]>([]);
+  const [licenses, setLicenses] = useState([]);
+  const [publisher, setPublisher] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchLicenses = async () => {
-      if (!accessToken) {
-        console.log("[Dashboard] No access token, skipping fetch");
-        setIsLoading(false);
-        return;
-      }
+    const fetchData = async () => {
+      if (!user) return;
 
       try {
-        console.log("[Dashboard] Fetching licenses...");
-        const data = await licensesApi.list<License[]>(accessToken);
-        console.log("[Dashboard] Licenses received:", data);
-        // Safety: ensure data is an array before setting
-        setLicenses(Array.isArray(data) ? data : []);
+        // 1. Get the Publisher profile first
+        const { data: pubData, error: pubError } = await supabase
+          .from("publishers")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (pubError) throw pubError;
+        setPublisher(pubData);
+
+        // 2. Get licenses linked to that Publisher
+        const { data: licData, error: licError } = await supabase
+          .from("licenses")
+          .select("*")
+          .eq("publisher_id", pubData.id);
+
+        if (licError) throw licError;
+        setLicenses(licData || []);
       } catch (err) {
-        console.error("[Dashboard] Error fetching licenses:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch licenses");
+        console.error("[Dashboard] Fetch error:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchLicenses();
-  }, [accessToken]);
+    fetchData();
+  }, [user]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card>
-          <CardContent className="p-6">
-            <p>
-              Please{" "}
-              <a href="/login" className="text-blue-600 underline">
-                login
-              </a>{" "}
-              to view your dashboard.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <Button variant="outline" onClick={handleLogout}>
+    <div className="min-h-screen bg-[#0B0D17] text-white">
+      <Header />
+      <main className="max-w-6xl mx-auto pt-32 pb-12 px-4">
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h1 className="text-4xl font-bold">Console</h1>
+            {publisher && <p className="text-blue-400 mt-1">Publisher: {publisher.name}</p>}
+          </div>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              await logout();
+              navigate("/login");
+            }}
+          >
             Logout
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          <Card>
+        <div className="grid gap-6 md:grid-cols-2 mb-10">
+          <Card className="bg-[#161B22] border-white/10 text-white">
             <CardHeader>
-              <CardTitle>User Info</CardTitle>
+              <CardTitle className="text-sm text-gray-400 uppercase">Account Email</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>
-                <strong>Email:</strong> {user?.email}
-              </p>
-              <p>
-                <strong>ID:</strong> {user?.id}
-              </p>
+              <p className="text-xl font-medium">{user.email}</p>
             </CardContent>
           </Card>
 
-          {publisher && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Publisher</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>
-                  <strong>Name:</strong> {publisher.name}
-                </p>
-                <p>
-                  <strong>ID:</strong> {publisher.id}
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card className="bg-[#161B22] border-white/10 text-white">
+            <CardHeader>
+              <CardTitle className="text-sm text-gray-400 uppercase">Total Licenses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xl font-medium">{licenses.length}</p>
+            </CardContent>
+          </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Licenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <p className="text-gray-500">Loading licenses...</p>
-            ) : error ? (
-              <p className="text-red-500">{error}</p>
-            ) : licenses.length === 0 ? (
-              <p className="text-gray-500">No licenses found.</p>
-            ) : (
-              <div className="space-y-4">
-                {licenses.map((license) => (
-                  <div key={license.id} className="border rounded-lg p-4">
-                    <h3 className="font-semibold">{license.title}</h3>
-                    <p className="text-sm text-gray-600">{license.description}</p>
-                    <div className="mt-2 flex gap-4 text-xs text-gray-500">
-                      <span>Type: {license.licenseType}</span>
-                      <span>Created: {new Date(license.createdAt).toLocaleDateString()}</span>
-                    </div>
+        <h2 className="text-2xl font-semibold mb-6">Active Licenses</h2>
+        {isLoading ? (
+          <p className="text-gray-500">Syncing with database...</p>
+        ) : licenses.length === 0 ? (
+          <div className="p-12 text-center border border-dashed border-white/10 rounded-xl">
+            <p className="text-gray-500">No licenses found for this publisher.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {licenses.map((lic) => (
+              <Card
+                key={lic.id}
+                className="bg-[#161B22] border-white/10 text-white hover:border-blue-500/50 transition-all"
+              >
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-lg">{lic.title}</h3>
+                    <span className="text-[10px] uppercase bg-blue-500/10 text-blue-400 px-2 py-1 rounded">
+                      {lic.license_type}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  <p className="text-sm text-gray-400">{lic.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   );
 }
