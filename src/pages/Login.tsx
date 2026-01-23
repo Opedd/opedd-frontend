@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
+import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -38,18 +37,51 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0D17]">
-      <Header />
-      <div className="flex items-center justify-center min-h-screen px-4 pt-20">
-        <Card className="w-full max-w-md bg-[#161B22]/80 border-white/10 backdrop-blur-xl text-white">
-          <CardHeader>
-            <CardTitle className="text-2xl text-white">Login to Opedd</CardTitle>
-            <CardDescription className="text-gray-400">Enter your credentials to access your account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+    <div className="min-h-screen bg-[#040042] flex">
+      {/* Left Panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-[#040042] to-[#0A0066]">
+        <Link to="/">
+          <img src={opeddLogo} alt="Opedd" className="h-10" />
+        </Link>
+        <div className="space-y-6">
+          <h1 className="text-4xl font-bold text-white leading-tight">
+            Your Content is Valuable.
+            <br />
+            <span className="text-[#D1009A]">Make it Sovereign.</span>
+          </h1>
+          <p className="text-white/60 text-lg max-w-md">
+            Access your Publisher Portal to manage assets, track revenue, and control AI licensing.
+          </p>
+        </div>
+        <p className="text-white/40 text-sm">© 2025 Opedd. All rights reserved.</p>
+      </div>
+
+      {/* Right Panel - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#F2F9FF]">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden mb-8">
+            <Link to="/">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-[#4A26ED] rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">o</span>
+                </div>
+                <span className="text-[#040042] text-2xl font-bold">opedd</span>
+              </div>
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-[#040042]/5">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-[#040042]">Welcome Back</h2>
+              <p className="text-[#040042]/60 mt-1">Sign in to your publisher account</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-[#040042]/80 font-medium">
+                  Email Address
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -57,11 +89,13 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-[#0B0D17] border-white/10 text-white"
+                  className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-[#040042]/80 font-medium">
+                  Password
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -69,19 +103,28 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-[#0B0D17] border-white/10 text-white"
+                  className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="w-full h-14 bg-[#D1009A] text-white rounded-xl font-semibold hover:bg-[#B8008A] disabled:opacity-50 transition-all active:scale-[0.98]"
               >
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? "Signing in..." : "Sign In"}
               </button>
             </form>
-          </CardContent>
-        </Card>
+
+            <div className="mt-6 text-center">
+              <p className="text-[#040042]/50 text-sm">
+                Don't have an account?{" "}
+                <Link to="/" className="text-[#4A26ED] font-medium hover:underline">
+                  Request Access
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
