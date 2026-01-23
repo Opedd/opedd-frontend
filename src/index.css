@@ -1,0 +1,212 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Smooth scroll with moderate speed */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Opedd.io Design System - Content Sovereignty Infrastructure */
+
+@layer base {
+  :root {
+    /* Primary Brand Colors - Deep Navy */
+    --background: 244 100% 8%;
+    --foreground: 210 100% 99%;
+
+    /* Cards with glassmorphism base */
+    --card: 244 100% 10%;
+    --card-foreground: 210 100% 99%;
+
+    /* Popover - Solid Deep Navy for dropdowns */
+    --popover: 244 100% 8%;
+    --popover-foreground: 210 100% 99%;
+
+    /* Oxford Blue - Primary CTA color */
+    --primary: 245 83% 54%;
+    --primary-foreground: 210 100% 99%;
+
+    /* Alice Gray - Secondary surfaces */
+    --secondary: 210 100% 97%;
+    --secondary-foreground: 244 100% 8%;
+
+    /* Muted - Soft Navy */
+    --muted: 244 50% 18%;
+    --muted-foreground: 210 60% 80%;
+
+    /* Accent - Plum Magenta for hover effects */
+    --accent: 322 100% 41%;
+    --accent-foreground: 210 100% 99%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 100% 99%;
+
+    /* Borders & Inputs */
+    --border: 210 100% 99% / 0.15;
+    --input: 244 40% 20%;
+    --ring: 245 83% 54%;
+
+    --radius: 0.75rem;
+
+    /* Custom Opedd tokens */
+    --navy-deep: 244 100% 8%;
+    --navy-darker: 244 100% 5%;
+    --violet-gray: 220 18% 27%;
+    --oxford-blue: 245 83% 54%;
+    --oxford-blue-glow: 245 83% 62%;
+    --plum: 322 100% 41%;
+    --plum-glow: 322 100% 50%;
+    --soft-white: 210 100% 99%;
+    --alice-gray: 210 100% 97%;
+    --sky-blue: 190 100% 50%;
+    --aqua-teal: 174 100% 45%;
+
+    /* Glassmorphism */
+    --glass-bg: 244 100% 12% / 0.8;
+    --glass-border: 210 100% 99% / 0.1;
+    --glass-blur: 20px;
+
+    /* Shadows & Glows */
+    --shadow-soft: 0 4px 30px hsl(244 100% 5% / 0.4);
+    --shadow-glow: 0 0 40px hsl(322 100% 41% / 0.2);
+    --shadow-card: 0 8px 32px hsl(244 100% 5% / 0.5);
+
+    /* Sidebar - kept for compatibility */
+    --sidebar-background: 244 100% 8%;
+    --sidebar-foreground: 210 100% 99%;
+    --sidebar-primary: 245 83% 54%;
+    --sidebar-primary-foreground: 210 100% 99%;
+    --sidebar-accent: 244 50% 18%;
+    --sidebar-accent-foreground: 210 100% 99%;
+    --sidebar-border: 210 100% 99% / 0.15;
+    --sidebar-ring: 245 83% 54%;
+  }
+
+  .dark {
+    /* Dark mode matches our default navy theme */
+    --background: 244 100% 8%;
+    --foreground: 210 100% 99%;
+    --card: 244 100% 10%;
+    --card-foreground: 210 100% 99%;
+    --popover: 244 100% 8%;
+    --popover-foreground: 210 100% 99%;
+    --primary: 245 83% 54%;
+    --primary-foreground: 210 100% 99%;
+    --secondary: 244 50% 18%;
+    --secondary-foreground: 210 100% 99%;
+    --muted: 244 50% 18%;
+    --muted-foreground: 210 60% 80%;
+    --accent: 322 100% 41%;
+    --accent-foreground: 210 100% 99%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 100% 99%;
+    --border: 210 100% 99% / 0.15;
+    --input: 244 40% 20%;
+    --ring: 245 83% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Card */
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--navy-deep) / 0.7) 0%,
+      hsl(var(--navy-darker) / 0.5) 100%
+    );
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--soft-white) / 0.05) 0%,
+      transparent 50%
+    );
+    pointer-events: none;
+  }
+
+  /* Plum Glow Effect - Reserved only for subtle hover states */
+  .glow-plum {
+    box-shadow: 0 0 10px hsl(var(--plum) / 0.15),
+                0 0 20px hsl(var(--plum) / 0.08);
+  }
+
+  /* Oxford Blue Glow for primary elements */
+  .glow-oxford {
+    box-shadow: 0 0 15px hsl(var(--oxford-blue) / 0.25),
+                0 0 30px hsl(var(--oxford-blue) / 0.12);
+  }
+
+  .hover-glow {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 15px hsl(var(--oxford-blue) / 0.2),
+                0 0 30px hsl(var(--oxford-blue) / 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Gradient Text - Now Oxford Blue based for professional look */
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--soft-white)) 0%,
+      hsl(var(--oxford-blue)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Subtle grid background */
+  .grid-pattern {
+    background-image: 
+      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 15px hsl(var(--oxford-blue) / 0.2); }
+    50% { box-shadow: 0 0 25px hsl(var(--oxford-blue) / 0.35); }
+  }
+}
