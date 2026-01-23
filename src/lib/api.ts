@@ -2,12 +2,15 @@ const EDGE_FUNCTION_BASE = 'https://djdzcciayennqchjgybx.supabase.co/functions/v
 
 export const API = {
   baseUrl: EDGE_FUNCTION_BASE,
-  
+
   // Auth endpoints
   login: EDGE_FUNCTION_BASE + '/auth-login',
   logout: EDGE_FUNCTION_BASE + '/auth-logout',
   authCheck: EDGE_FUNCTION_BASE + '/auth-check',
-  
+
+  // Direct Edge Function endpoints
+  licenses: EDGE_FUNCTION_BASE + '/licenses',
+
   // API proxy - append path as query param
   proxy: (path: string) => EDGE_FUNCTION_BASE + '/api-proxy?path=' + encodeURIComponent(path),
 };
@@ -65,19 +68,64 @@ export async function apiFetch<T>(
   return data.data as T;
 }
 
-// Convenience methods
+// Direct Edge Function fetch (bypasses proxy)
+export async function edgeFetch<T>(
+  url: string,
+  options: RequestInit = {},
+  accessToken?: string | null
+): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  if (accessToken) {
+    headers['Authorization'] = 'Bearer ' + accessToken;
+  }
+
+  console.log('[API] Edge fetch:', url);
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  console.log('[API] Edge response status:', response.status);
+
+  const data = await safeParseJson(response) as { success?: boolean; data?: T; error?: { message: string } };
+
+  if (!data.success) {
+    throw new Error(data.error?.message || 'API request failed');
+  }
+
+  return data.data as T;
+}
+
+// Convenience methods (via proxy)
 export const api = {
-  get: <T>(path: string, token?: string | null) => 
+  get: <T>(path: string, token?: string | null) =>
     apiFetch<T>(path, { method: 'GET' }, token),
-    
+
   post: <T>(path: string, body: unknown, token?: string | null) =>
     apiFetch<T>(path, { method: 'POST', body: JSON.stringify(body) }, token),
-    
+
   put: <T>(path: string, body: unknown, token?: string | null) =>
     apiFetch<T>(path, { method: 'PUT', body: JSON.stringify(body) }, token),
-    
+
   delete: <T>(path: string, token?: string | null) =>
     apiFetch<T>(path, { method: 'DELETE' }, token),
+};
+
+// Licenses API (direct Edge Function)
+export const licensesApi = {
+  list: <T>(token?: string | null) =>
+    edgeFetch<T>(API.licenses, { method: 'GET' }, token),
+
+  create: <T>(body: { title: string; description?: string; licenseType?: string; metadata?: Record<string, unknown> }, token?: string | null) =>
+    edgeFetch<T>(API.licenses, { method: 'POST', body: JSON.stringify(body) }, token),
+
+  delete: (id: string, token?: string | null) =>
+    edgeFetch<{ message: string }>(API.licenses + '?id=' + encodeURIComponent(id), { method: 'DELETE' }, token),
 };
 
 export default api;

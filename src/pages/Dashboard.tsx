@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
+import { licensesApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ interface License {
   description: string;
   licenseType: string;
   publisherId: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -31,9 +32,10 @@ export default function Dashboard() {
 
       try {
         console.log('[Dashboard] Fetching licenses...');
-        const data = await api.get<License[]>('licenses/me', accessToken);
+        const data = await licensesApi.list<License[]>(accessToken);
         console.log('[Dashboard] Licenses received:', data);
-        setLicenses(data);
+        // Safety: ensure data is an array before setting
+        setLicenses(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('[Dashboard] Error fetching licenses:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch licenses');
