@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { licensesApi } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { licensesApi } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 interface License {
   id: string;
@@ -16,7 +16,7 @@ interface License {
 }
 
 export default function Dashboard() {
-  const { user, publisher, accessToken, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,20 +25,20 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchLicenses = async () => {
       if (!accessToken) {
-        console.log('[Dashboard] No access token, skipping fetch');
+        console.log("[Dashboard] No access token, skipping fetch");
         setIsLoading(false);
         return;
       }
 
       try {
-        console.log('[Dashboard] Fetching licenses...');
+        console.log("[Dashboard] Fetching licenses...");
         const data = await licensesApi.list<License[]>(accessToken);
-        console.log('[Dashboard] Licenses received:', data);
+        console.log("[Dashboard] Licenses received:", data);
         // Safety: ensure data is an array before setting
         setLicenses(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error('[Dashboard] Error fetching licenses:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch licenses');
+        console.error("[Dashboard] Error fetching licenses:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch licenses");
       } finally {
         setIsLoading(false);
       }
@@ -49,7 +49,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   if (!user) {
@@ -57,7 +57,13 @@ export default function Dashboard() {
       <div className="min-h-screen flex items-center justify-center">
         <Card>
           <CardContent className="p-6">
-            <p>Please <a href="/login" className="text-blue-600 underline">login</a> to view your dashboard.</p>
+            <p>
+              Please{" "}
+              <a href="/login" className="text-blue-600 underline">
+                login
+              </a>{" "}
+              to view your dashboard.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -69,17 +75,23 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <Button variant="outline" onClick={handleLogout}>Logout</Button>
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
-        
+
         <div className="grid gap-6 md:grid-cols-2 mb-8">
           <Card>
             <CardHeader>
               <CardTitle>User Info</CardTitle>
             </CardHeader>
             <CardContent>
-              <p><strong>Email:</strong> {user?.email}</p>
-              <p><strong>ID:</strong> {user?.id}</p>
+              <p>
+                <strong>Email:</strong> {user?.email}
+              </p>
+              <p>
+                <strong>ID:</strong> {user?.id}
+              </p>
             </CardContent>
           </Card>
 
@@ -89,8 +101,12 @@ export default function Dashboard() {
                 <CardTitle>Publisher</CardTitle>
               </CardHeader>
               <CardContent>
-                <p><strong>Name:</strong> {publisher.name}</p>
-                <p><strong>ID:</strong> {publisher.id}</p>
+                <p>
+                  <strong>Name:</strong> {publisher.name}
+                </p>
+                <p>
+                  <strong>ID:</strong> {publisher.id}
+                </p>
               </CardContent>
             </Card>
           )}
