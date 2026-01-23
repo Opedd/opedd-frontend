@@ -5,23 +5,23 @@ import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const navItems = [
   { title: "Assets", path: "/dashboard", icon: LayoutDashboard },
-  { title: "Ledger", path: "/dashboard/ledger", icon: Wallet },
-  { title: "Integrations", path: "/dashboard/integrations", icon: Zap },
-  { title: "Settings", path: "/dashboard/settings", icon: Settings },
+  { title: "Ledger", path: "/ledger", icon: Wallet },
+  { title: "Integrations", path: "/integrations", icon: Zap },
+  { title: "Settings", path: "/settings", icon: Settings },
 ];
 
 export function DashboardSidebar() {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-[#040042] border-r border-white/5 flex flex-col shrink-0 min-h-screen">
+    <aside className="w-60 bg-[#040042] border-r border-white/5 flex flex-col shrink-0 min-h-screen">
       {/* Logo */}
-      <div className="p-6 pb-8">
-        <img src={opeddLogo} alt="Opedd" className="h-10" />
+      <div className="p-5 pb-6 border-b border-white/5">
+        <img src={opeddLogo} alt="Opedd" className="h-8" />
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
@@ -30,10 +30,10 @@ export function DashboardSidebar() {
             <NavLink
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
                 isActive
-                  ? "bg-white/10 text-soft-white border border-white/10"
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                  ? "bg-white/10 text-[#FDFEFF]"
+                  : "text-white/50 hover:bg-white/5 hover:text-white/80"
               }`}
             >
               <Icon size={20} strokeWidth={1.5} />
@@ -45,7 +45,7 @@ export function DashboardSidebar() {
 
       {/* Footer */}
       <div className="p-4 border-t border-white/5">
-        <p className="text-white/40 text-xs text-center">© 2025 Opedd</p>
+        <p className="text-white/30 text-xs text-center">© 2025 Opedd</p>
       </div>
     </aside>
   );

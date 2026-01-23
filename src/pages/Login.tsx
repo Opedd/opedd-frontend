@@ -109,7 +109,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-14 bg-[#D1009A] text-white rounded-xl font-semibold hover:bg-[#B8008A] disabled:opacity-50 transition-all active:scale-[0.98]"
+                className="w-full h-14 bg-[#040042] text-white rounded-xl font-semibold hover:bg-[#0A0066] disabled:opacity-50 transition-all active:scale-[0.98]"
               >
                 {isLoading ? "Signing in..." : "Sign In"}
               </button>
