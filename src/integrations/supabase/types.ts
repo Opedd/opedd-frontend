@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      assets: {
+        Row: {
+          ai_licenses_sold: number | null
+          ai_price: number | null
+          content: string | null
+          created_at: string | null
+          description: string | null
+          human_licenses_sold: number | null
+          human_price: number | null
+          id: string
+          licensing_enabled: boolean | null
+          published_at: string | null
+          source_url: string | null
+          thumbnail_url: string | null
+          title: string
+          total_revenue: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_licenses_sold?: number | null
+          ai_price?: number | null
+          content?: string | null
+          created_at?: string | null
+          description?: string | null
+          human_licenses_sold?: number | null
+          human_price?: number | null
+          id?: string
+          licensing_enabled?: boolean | null
+          published_at?: string | null
+          source_url?: string | null
+          thumbnail_url?: string | null
+          title: string
+          total_revenue?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_licenses_sold?: number | null
+          ai_price?: number | null
+          content?: string | null
+          created_at?: string | null
+          description?: string | null
+          human_licenses_sold?: number | null
+          human_price?: number | null
+          id?: string
+          licensing_enabled?: boolean | null
+          published_at?: string | null
+          source_url?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          total_revenue?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company_name: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      rss_sources: {
+        Row: {
+          article_count: number | null
+          created_at: string | null
+          feed_url: string
+          id: string
+          last_synced_at: string | null
+          name: string
+          platform: string | null
+          sync_status: string | null
+          user_id: string
+        }
+        Insert: {
+          article_count?: number | null
+          created_at?: string | null
+          feed_url: string
+          id?: string
+          last_synced_at?: string | null
+          name: string
+          platform?: string | null
+          sync_status?: string | null
+          user_id: string
+        }
+        Update: {
+          article_count?: number | null
+          created_at?: string | null
+          feed_url?: string
+          id?: string
+          last_synced_at?: string | null
+          name?: string
+          platform?: string | null
+          sync_status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           created_at: string | null
@@ -32,6 +158,45 @@ export type Database = {
           email?: string
           id?: string
           role?: string
+        }
+        Relationships: []
+      }
+      widget_settings: {
+        Row: {
+          accent_color: string | null
+          created_at: string | null
+          custom_css: string | null
+          embed_key: string | null
+          id: string
+          show_ai_pricing: boolean | null
+          show_human_pricing: boolean | null
+          theme: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accent_color?: string | null
+          created_at?: string | null
+          custom_css?: string | null
+          embed_key?: string | null
+          id?: string
+          show_ai_pricing?: boolean | null
+          show_human_pricing?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accent_color?: string | null
+          created_at?: string | null
+          custom_css?: string | null
+          embed_key?: string | null
+          id?: string
+          show_ai_pricing?: boolean | null
+          show_human_pricing?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
