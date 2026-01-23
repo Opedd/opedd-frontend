@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,6 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -20,11 +19,21 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      console.log('[Login] Calling login()...');
-      await login(email, password);
-      console.log('[Login] About to navigate to: /dashboard');
+      console.log('[Login] Calling supabase.auth.signInWithPassword...');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('[Login] Success, user:', data.user?.email);
+      console.log('[Login] Navigating to /dashboard');
       navigate('/dashboard');
     } catch (error) {
+      console.error('[Login] Error:', error);
       toast({
         title: 'Login Failed',
         description: error instanceof Error ? error.message : 'An error occurred',
