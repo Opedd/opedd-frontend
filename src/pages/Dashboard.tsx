@@ -1,26 +1,13 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { LayoutDashboard, Plus, Search, MoreHorizontal, Trash2 } from "lucide-react";
+import { LayoutDashboard, Plus, Search } from "lucide-react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { SmartLibraryTable } from "@/components/dashboard/SmartLibraryTable";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface Asset {
   id: string;
@@ -59,22 +46,6 @@ export default function Dashboard() {
 
   const totalRevenue = assets.reduce((sum, a) => sum + a.revenue, 0);
   const activeCount = assets.filter((a) => a.status === "active").length;
-
-  const getLicenseLabel = (type: Asset["licenseType"]) => {
-    switch (type) {
-      case "human": return "Human";
-      case "ai": return "AI";
-      case "both": return "Human + AI";
-    }
-  };
-
-  const getStatusColor = (status: Asset["status"]) => {
-    switch (status) {
-      case "active": return "bg-emerald-100 text-emerald-700";
-      case "pending": return "bg-amber-100 text-amber-700";
-      case "minted": return "bg-[#4A26ED]/10 text-[#4A26ED]";
-    }
-  };
 
   return (
     <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
@@ -139,57 +110,7 @@ export default function Dashboard() {
                   <p className="text-[#040042]/60 text-sm">No assets match your search</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-[#E8F2FB] bg-[#F2F9FF]/50">
-                        <TableHead className="text-[#040042]/60 text-xs font-medium">Asset Name</TableHead>
-                        <TableHead className="text-[#040042]/60 text-xs font-medium">License</TableHead>
-                        <TableHead className="text-[#040042]/60 text-xs font-medium">Status</TableHead>
-                        <TableHead className="text-[#040042]/60 text-xs font-medium text-right">Revenue</TableHead>
-                        <TableHead className="w-10"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredAssets.map((asset) => (
-                        <TableRow key={asset.id} className="border-[#E8F2FB] hover:bg-[#F2F9FF]/50">
-                          <TableCell className="font-medium text-[#040042] text-sm">{asset.title}</TableCell>
-                          <TableCell>
-                            <span className="text-xs font-medium text-[#040042]/70">{getLicenseLabel(asset.licenseType)}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${getStatusColor(asset.status)}`}>
-                              {asset.status}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className={`text-sm font-semibold ${asset.revenue > 0 ? "text-[#D1009A]" : "text-[#040042]/40"}`}>
-                              ${asset.revenue.toFixed(2)}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button className="p-1.5 rounded-lg hover:bg-[#F2F9FF] transition-colors">
-                                  <MoreHorizontal size={16} className="text-[#040042]/40" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-white border-[#E8F2FB]">
-                                <DropdownMenuItem
-                                  className="text-red-600 cursor-pointer"
-                                  onClick={() => handleDelete(asset.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <SmartLibraryTable assets={filteredAssets} onDelete={handleDelete} />
               )}
             </div>
 
