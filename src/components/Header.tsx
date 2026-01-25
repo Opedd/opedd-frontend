@@ -70,9 +70,8 @@ const Header = () => {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            {/* FIXED LOGIN BUTTON */}
             <Link to="/login">
-              <Button variant="ghost-oxford" size="sm">
+              <Button variant="ghost" size="sm" className="text-soft-white hover:text-oxford border border-soft-white/30 hover:border-oxford">
                 Login
               </Button>
             </Link>
@@ -105,9 +104,8 @@ const Header = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-soft-white/10">
-                {/* FIXED MOBILE LOGIN BUTTON */}
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="ghost-oxford" size="sm" className="w-full">
+                  <Button variant="ghost" size="sm" className="w-full text-soft-white hover:text-oxford border border-soft-white/30 hover:border-oxford">
                     Login
                   </Button>
                 </Link>
