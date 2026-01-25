@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
 import { LayoutDashboard, Plus, Search } from "lucide-react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { SmartLibraryTable } from "@/components/dashboard/SmartLibraryTable";
+import { AddAssetModal } from "@/components/dashboard/AddAssetModal";
 import { useToast } from "@/hooks/use-toast";
 
 interface Asset {
@@ -29,6 +29,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [assets, setAssets] = useState<Asset[]>(mockAssets);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   if (!user) return null;
 
@@ -62,13 +63,13 @@ export default function Dashboard() {
               <h1 className="text-xl font-bold text-[#040042]">Smart Library</h1>
             </div>
 
-            <Link
-              to="/add-asset"
+            <button
+              onClick={() => setIsAddModalOpen(true)}
               className="bg-[#040042] hover:bg-[#0A0066] text-white h-10 px-5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
             >
               <Plus size={18} />
               Add Asset
-            </Link>
+            </button>
           </div>
 
           {/* Compact Metrics */}
@@ -104,7 +105,7 @@ export default function Dashboard() {
             {/* Asset Table */}
             <div className="lg:col-span-2">
               {filteredAssets.length === 0 && assets.length === 0 ? (
-                <EmptyState onAddClick={() => {}} />
+                <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
               ) : filteredAssets.length === 0 ? (
                 <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
                   <p className="text-[#040042]/60 text-sm">No assets match your search</p>
@@ -121,6 +122,19 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      {/* Add Asset Modal */}
+      <AddAssetModal 
+        open={isAddModalOpen} 
+        onOpenChange={setIsAddModalOpen}
+        onSuccess={() => {
+          // TODO: Refresh assets from backend
+          toast({
+            title: "Asset Added",
+            description: "Your content has been registered successfully",
+          });
+        }}
+      />
     </div>
   );
 }
