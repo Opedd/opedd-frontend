@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,9 @@ import {
   Clipboard,
   Check,
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  File
 } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
@@ -39,6 +41,7 @@ type ModalState = "form" | "success";
 
 export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalProps) {
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [modalState, setModalState] = useState<ModalState>("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredAssetId, setRegisteredAssetId] = useState<string | null>(null);
@@ -50,8 +53,10 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
   const [rssUrl, setRssUrl] = useState("");
   const [title, setTitle] = useState("");
   const [pastedContent, setPastedContent] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
-  // Licensing Rules
+  // Licensing Rules - maps to human_price and ai_price in Supabase
   const [humanPrice, setHumanPrice] = useState("4.99");
   const [aiPrice, setAiPrice] = useState("49.99");
   const [attributionRequired, setAttributionRequired] = useState(true);
@@ -62,6 +67,7 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
     setRssUrl("");
     setTitle("");
     setPastedContent("");
+    setUploadedFile(null);
     setHumanPrice("4.99");
     setAiPrice("49.99");
     setAttributionRequired(true);
@@ -73,6 +79,42 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
   const handleClose = () => {
     resetForm();
     onOpenChange(false);
+  };
+
+  // File handling
+  const handleFileSelect = (file: File) => {
+    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a PDF or DOCX file",
+        variant: "destructive",
+      });
+      return;
+    }
+    setUploadedFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileSelect(file);
   };
 
   // Generate distribution links
@@ -129,6 +171,7 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
 
     try {
       // TODO: Integrate with Supabase backend
+      // Will map humanPrice -> human_price and aiPrice -> ai_price columns
       await new Promise((r) => setTimeout(r, 2500));
 
       // Generate a mock asset ID for demo
@@ -294,9 +337,9 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
   // FORM STATE VIEW
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-slate-50 border-none text-[#040042] sm:max-w-3xl rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="bg-white border-none text-[#040042] sm:max-w-2xl rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Branded Header */}
-        <div className="bg-[#040042] px-6 py-5">
+        <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img src={opeddLogo} alt="Opedd" className="h-8" />
@@ -315,34 +358,34 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
           </div>
         </div>
 
-        {/* Two-Column Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-          {/* Left Column: Source */}
-          <div className="p-6 bg-white border-r border-slate-200">
-            <h2 className="text-lg font-bold text-[#040042] mb-1">Content Source</h2>
-            <p className="text-sm text-slate-500 mb-5">Choose how to register your work</p>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Source Section */}
+          <div className="p-6 bg-white border-b border-slate-100">
+            <h2 className="text-base font-bold text-[#040042] mb-1">Content Source</h2>
+            <p className="text-sm text-slate-500 mb-4">Choose how to register your work</p>
 
             {/* Source Type Toggle Cards */}
-            <div className="flex gap-2 mb-5">
+            <div className="flex gap-3 mb-5">
               <button
                 type="button"
                 onClick={() => setSourceType("publication")}
-                className={`flex-1 p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                className={`flex-1 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
                   sourceType === "publication"
                     ? "border-[#4A26ED] bg-[#4A26ED]/5"
                     : "border-slate-200 bg-white hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                     sourceType === "publication" 
                       ? "bg-[#4A26ED] text-white" 
                       : "bg-slate-100 text-slate-500"
                   }`}>
-                    <Rss size={18} />
+                    <Rss size={20} />
                   </div>
                   <div>
-                    <p className={`text-sm font-semibold ${sourceType === "publication" ? "text-[#040042]" : "text-slate-700"}`}>
+                    <p className={`text-sm font-bold ${sourceType === "publication" ? "text-[#040042]" : "text-slate-700"}`}>
                       Publication Feed
                     </p>
                     <p className="text-xs text-slate-400">RSS / Atom</p>
@@ -353,25 +396,25 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
               <button
                 type="button"
                 onClick={() => setSourceType("individual")}
-                className={`flex-1 p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                className={`flex-1 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
                   sourceType === "individual"
                     ? "border-[#4A26ED] bg-[#4A26ED]/5"
                     : "border-slate-200 bg-white hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                     sourceType === "individual" 
                       ? "bg-[#4A26ED] text-white" 
                       : "bg-slate-100 text-slate-500"
                   }`}>
-                    <FileText size={18} />
+                    <FileText size={20} />
                   </div>
                   <div>
-                    <p className={`text-sm font-semibold ${sourceType === "individual" ? "text-[#040042]" : "text-slate-700"}`}>
+                    <p className={`text-sm font-bold ${sourceType === "individual" ? "text-[#040042]" : "text-slate-700"}`}>
                       Individual Work
                     </p>
-                    <p className="text-xs text-slate-400">PDF / Text</p>
+                    <p className="text-xs text-slate-400">PDF / DOCX</p>
                   </div>
                 </div>
               </button>
@@ -379,29 +422,27 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
 
             {/* Context-Aware Input */}
             {sourceType === "publication" ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rss-url" className="text-[#040042] font-semibold text-sm">
-                    RSS Feed URL
-                  </Label>
-                  <div className="relative">
-                    <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <Input
-                      id="rss-url"
-                      type="url"
-                      placeholder="https://your-publication.substack.com/feed"
-                      value={rssUrl}
-                      onChange={(e) => setRssUrl(e.target.value)}
-                      className="bg-slate-50 border-slate-200 h-11 rounded-xl pl-10 text-[#040042] placeholder:text-slate-400 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
-                    />
-                  </div>
-                  <p className="text-xs text-slate-400">Supports Substack, Ghost, Medium, WordPress & more</p>
+              <div className="space-y-2">
+                <Label htmlFor="rss-url" className="text-[#040042] font-bold text-sm">
+                  RSS Feed URL
+                </Label>
+                <div className="relative">
+                  <Link2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="rss-url"
+                    type="url"
+                    placeholder="https://your-publication.substack.com/feed"
+                    value={rssUrl}
+                    onChange={(e) => setRssUrl(e.target.value)}
+                    className="bg-slate-50 border-slate-200 h-12 rounded-xl pl-10 text-[#040042] placeholder:text-slate-400 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                  />
                 </div>
+                <p className="text-xs text-slate-400">Supports Substack, Ghost, Medium, WordPress & more</p>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-[#040042] font-semibold text-sm">
+                  <Label htmlFor="title" className="text-[#040042] font-bold text-sm">
                     Work Title
                   </Label>
                   <Input
@@ -409,41 +450,104 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
                     placeholder="The Future of AI Governance"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="bg-slate-50 border-slate-200 h-11 rounded-xl text-[#040042] placeholder:text-slate-400 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                    className="bg-slate-50 border-slate-200 h-12 rounded-xl text-[#040042] placeholder:text-slate-400 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
                   />
                 </div>
+
+                {/* File Upload Area */}
                 <div className="space-y-2">
-                  <Label htmlFor="content" className="text-[#040042] font-semibold text-sm">
-                    Content or URL
+                  <Label className="text-[#040042] font-bold text-sm">
+                    Upload Document
+                  </Label>
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                      isDragOver
+                        ? "border-[#4A26ED] bg-[#4A26ED]/5"
+                        : uploadedFile
+                        ? "border-emerald-300 bg-emerald-50"
+                        : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                    />
+                    {uploadedFile ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                          <File size={20} className="text-emerald-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-[#040042]">{uploadedFile.name}</p>
+                          <p className="text-xs text-slate-400">{(uploadedFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUploadedFile(null);
+                          }}
+                          className="ml-2 w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center"
+                        >
+                          <X size={12} className="text-slate-600" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload size={28} className="mx-auto text-slate-400 mb-2" />
+                        <p className="text-sm font-semibold text-[#040042]">
+                          Drag & Drop PDF or DOCX
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          or click to browse files
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content" className="text-[#040042] font-bold text-sm">
+                    Or Paste Content / URL
                   </Label>
                   <Textarea
                     id="content"
                     placeholder="Paste your article text or a direct URL to the work..."
                     value={pastedContent}
                     onChange={(e) => setPastedContent(e.target.value)}
-                    className="bg-slate-50 border-slate-200 rounded-xl min-h-[100px] text-[#040042] placeholder:text-slate-400 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 resize-none"
+                    className="bg-slate-50 border-slate-200 rounded-xl min-h-[80px] text-[#040042] placeholder:text-slate-400 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 resize-none"
                   />
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right Column: Licensing Engine */}
+          {/* Sovereign Licensing Terms Section */}
           <div className="p-6 bg-slate-50">
-            <h2 className="text-lg font-bold text-[#040042] mb-1">Commercial Terms</h2>
-            <p className="text-sm text-slate-500 mb-5">Define how your IP can be licensed</p>
+            <div className="flex items-center gap-2 mb-1">
+              <Shield size={18} className="text-[#4A26ED]" />
+              <h2 className="text-base font-bold text-[#040042]">Sovereign Licensing Terms</h2>
+            </div>
+            <p className="text-sm text-slate-500 mb-5">Define how your intellectual property can be licensed</p>
 
-            {/* Pricing Grid */}
-            <div className="space-y-4">
-              {/* Human Fee */}
+            {/* Pricing Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {/* Human Republication Fee */}
               <div className="p-4 rounded-xl border border-slate-200 bg-white">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
-                    <Users size={18} className="text-[#4A26ED]" />
+                  <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
+                    <Users size={20} className="text-[#4A26ED]" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#040042]">Human Fee</p>
-                    <p className="text-xs text-slate-400">Republication & citation</p>
+                    <Label className="text-sm font-bold text-[#040042]">Human Republication Fee</Label>
+                    <p className="text-xs text-slate-500">What you charge people to cite or reuse this work</p>
                   </div>
                 </div>
                 <div className="relative">
@@ -455,20 +559,20 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
                     min="0"
                     value={humanPrice}
                     onChange={(e) => setHumanPrice(e.target.value)}
-                    className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-9 text-[#040042] font-semibold focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                    className="bg-slate-50 border-slate-200 h-11 rounded-lg pl-9 text-[#040042] font-bold focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
                   />
                 </div>
               </div>
 
-              {/* AI Fee */}
+              {/* AI Ingestion Fee */}
               <div className="p-4 rounded-xl border border-slate-200 bg-white">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-lg bg-[#D1009A]/10 flex items-center justify-center">
-                    <Bot size={18} className="text-[#D1009A]" />
+                  <div className="w-10 h-10 rounded-lg bg-[#D1009A]/10 flex items-center justify-center">
+                    <Bot size={20} className="text-[#D1009A]" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#040042]">AI Fee</p>
-                    <p className="text-xs text-slate-400">LLM training & ingestion</p>
+                    <Label className="text-sm font-bold text-[#040042]">AI Ingestion Fee</Label>
+                    <p className="text-xs text-slate-500">One-time fee for LLM training or data scraping rights</p>
                   </div>
                 </div>
                 <div className="relative">
@@ -480,36 +584,36 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
                     min="0"
                     value={aiPrice}
                     onChange={(e) => setAiPrice(e.target.value)}
-                    className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-9 text-[#040042] font-semibold focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                    className="bg-slate-50 border-slate-200 h-11 rounded-lg pl-9 text-[#040042] font-bold focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
                   />
                 </div>
               </div>
+            </div>
 
-              {/* Attribution Toggle */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center">
-                      <Shield size={18} className="text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#040042]">Require Canonical Attribution</p>
-                      <p className="text-xs text-slate-400">Licensees must credit you as the source</p>
-                    </div>
+            {/* Attribution Toggle */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <Shield size={20} className="text-emerald-600" />
                   </div>
-                  <Switch
-                    checked={attributionRequired}
-                    onCheckedChange={setAttributionRequired}
-                    className="data-[state=checked]:bg-[#4A26ED]"
-                  />
+                  <div>
+                    <p className="text-sm font-bold text-[#040042]">Require Canonical Attribution</p>
+                    <p className="text-xs text-slate-500">Licensees must credit you as the original source</p>
+                  </div>
                 </div>
+                <Switch
+                  checked={attributionRequired}
+                  onCheckedChange={setAttributionRequired}
+                  className="data-[state=checked]:bg-[#4A26ED]"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer with Actions */}
-        <div className="p-5 bg-white border-t border-slate-200 flex gap-3">
+        {/* Fixed Footer with Actions */}
+        <div className="p-5 bg-white border-t border-slate-200 flex gap-3 flex-shrink-0">
           <Button
             type="button"
             onClick={handleClose}
