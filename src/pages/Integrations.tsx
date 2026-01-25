@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { ContentSourceModal } from "@/components/dashboard/ContentSourceModal";
-import { Zap, Bot, CreditCard, Link2, CheckCircle2, Rss, FileText, Ghost } from "lucide-react";
+import { Zap, Bot, CreditCard, Link2, CheckCircle2, Circle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
@@ -88,39 +87,6 @@ export default function Integrations() {
   const paymentIntegrations = integrations.filter((i) => i.category === "payments");
   const web3Integrations = integrations.filter((i) => i.category === "web3");
 
-  // Content source modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<{
-    id: "substack" | "ghost" | "rss";
-    name: string;
-  } | null>(null);
-
-  const contentSources = [
-    {
-      id: "substack" as const,
-      name: "Substack",
-      description: "Import your Substack newsletter archive",
-      icon: <FileText size={24} />,
-    },
-    {
-      id: "ghost" as const,
-      name: "Ghost",
-      description: "Connect your Ghost publication",
-      icon: <Ghost size={24} />,
-    },
-    {
-      id: "rss" as const,
-      name: "RSS Feed",
-      description: "Sync any RSS or Atom feed",
-      icon: <Rss size={24} />,
-    },
-  ];
-
-  const handleSourceClick = (source: typeof contentSources[0]) => {
-    setSelectedPlatform({ id: source.id, name: source.name });
-    setModalOpen(true);
-  };
-
   const IntegrationCard = ({ integration }: { integration: Integration }) => (
     <div className="bg-white rounded-xl border border-[#E8F2FB] p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
@@ -170,33 +136,6 @@ export default function Integrations() {
             </div>
           </div>
 
-          {/* Automated Content Sources Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Rss size={18} className="text-[#4A26ED]" />
-              <h2 className="font-semibold text-[#040042]">Automated Content Sources</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {contentSources.map((source) => (
-                <button
-                  key={source.id}
-                  onClick={() => handleSourceClick(source)}
-                  className="bg-white rounded-xl border border-[#E8F2FB] p-5 shadow-sm hover:shadow-md hover:border-[#4A26ED]/30 transition-all text-left group"
-                >
-                  <div className="flex flex-col gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 text-[#4A26ED] flex items-center justify-center group-hover:bg-[#4A26ED] group-hover:text-white transition-colors">
-                      {source.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[#040042]">{source.name}</h3>
-                      <p className="text-sm text-[#040042]/60 mt-1">{source.description}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* AI Connect Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -236,16 +175,6 @@ export default function Integrations() {
             </div>
           </div>
         </div>
-
-        {/* Content Source Modal */}
-        {selectedPlatform && (
-          <ContentSourceModal
-            open={modalOpen}
-            onOpenChange={setModalOpen}
-            platform={selectedPlatform.id}
-            platformName={selectedPlatform.name}
-          />
-        )}
       </main>
     </div>
   );
