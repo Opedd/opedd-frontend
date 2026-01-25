@@ -110,7 +110,7 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
         <div className="bg-[#040042] px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img src={opeddLogo} alt="Opedd" className="h-7" />
+              <img src={opeddLogo} alt="Opedd" className="h-8" />
               <div className="h-6 w-px bg-white/20" />
               <div>
                 <h1 className="text-white font-bold text-lg leading-tight">Register Intellectual Property</h1>
@@ -319,13 +319,21 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
           </div>
         </div>
 
-        {/* Footer with Primary Action */}
-        <div className="p-5 bg-white border-t border-slate-200">
+        {/* Footer with Actions */}
+        <div className="p-5 bg-white border-t border-slate-200 flex gap-3">
+          <Button
+            type="button"
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="h-12 px-6 rounded-xl bg-transparent border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 font-medium transition-all disabled:opacity-60"
+          >
+            Cancel
+          </Button>
           <Button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full h-12 rounded-xl bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold text-base shadow-lg shadow-[#4A26ED]/25 transition-all disabled:opacity-60"
+            className="flex-1 h-12 rounded-xl bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold text-base shadow-lg shadow-[#4A26ED]/25 transition-all disabled:opacity-60"
           >
             {isSubmitting ? (
               <>
