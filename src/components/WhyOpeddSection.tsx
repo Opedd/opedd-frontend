@@ -26,7 +26,7 @@ const reasons = [
 
 const WhyOpeddSection = () => {
   return (
-    <section id="why-opedd" className="py-24 lg:py-32 relative overflow-hidden scroll-mt-24">
+    <section id="why-opedd" className="py-24 lg:py-32 relative overflow-hidden scroll-mt-24 bg-navy-deep">
       {/* Subtle background glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-blue/5 rounded-full blur-[100px]" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-aqua-teal/5 rounded-full blur-[100px]" />

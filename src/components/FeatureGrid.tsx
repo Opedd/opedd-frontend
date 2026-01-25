@@ -24,7 +24,7 @@ const features = [
 
 const FeatureGrid = () => {
   return (
-    <section id="products" className="py-24 lg:py-32 relative scroll-mt-24">
+    <section id="products" className="py-24 lg:py-32 relative scroll-mt-24 bg-navy-deep">
       <div className="container mx-auto px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

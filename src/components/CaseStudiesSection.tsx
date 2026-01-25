@@ -41,7 +41,7 @@ const caseStudies = [
 
 const CaseStudiesSection = () => {
   return (
-    <section className="py-24 lg:py-32 relative overflow-hidden">
+    <section className="py-24 lg:py-32 relative overflow-hidden bg-navy-deep">
       {/* Background */}
       <div className="absolute inset-0 grid-pattern opacity-10" />
       
