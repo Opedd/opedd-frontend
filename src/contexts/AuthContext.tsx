@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { API } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -30,93 +31,121 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for stored token on mount
-    const storedToken = localStorage.getItem('accessToken');
-    const storedUser = localStorage.getItem('user');
-    const storedPublisher = localStorage.getItem('publisher');
-    
-    if (storedToken && storedUser) {
-      setAccessToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      if (storedPublisher) {
-        setPublisher(JSON.parse(storedPublisher));
+  // Fetch publisher data for a user
+  const fetchPublisher = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('publishers')
+        .select('id, name')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.log('[Auth] No publisher found for user:', userId);
+        return null;
       }
+
+      console.log('[Auth] Publisher found:', data);
+      return data as Publisher;
+    } catch (err) {
+      console.error('[Auth] Error fetching publisher:', err);
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  // Handle session changes
+  const handleSession = async (session: Session | null) => {
+    if (session?.user) {
+      const supabaseUser = session.user;
+      const mappedUser: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.user_metadata?.name,
+      };
+
+      setUser(mappedUser);
+      setAccessToken(session.access_token);
+
+      // Fetch publisher data
+      const publisherData = await fetchPublisher(supabaseUser.id);
+      setPublisher(publisherData);
+
+      console.log('[Auth] Session active for:', mappedUser.email);
+    } else {
+      setUser(null);
+      setPublisher(null);
+      setAccessToken(null);
+      console.log('[Auth] No active session');
+    }
+  };
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
+      setIsLoading(false);
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        console.log('[Auth] Auth state changed:', _event);
+        await handleSession(session);
+      }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch(API.login, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    console.log('[Auth] Attempting login for:', email);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    const result = await response.json();
-    console.log('[Auth] Login response received:', JSON.stringify(result));
-
-    if (!result.success) {
-      throw new Error(result.error?.message || 'Login failed');
+    if (error) {
+      console.error('[Auth] Login error:', error.message);
+      throw new Error(error.message);
     }
 
-    // Extract user with priority: result.data?.user || result.data?.publisher || result.user || result.publisher
-    const extractedUser = result.data?.user || result.user;
-    const extractedPublisher = result.data?.publisher || result.publisher;
-    const token = result.data?.accessToken || result.accessToken;
-
-    console.log('[Auth] Setting user:', extractedUser);
-
-    setUser(extractedUser);
-    setPublisher(extractedPublisher);
-    setAccessToken(token);
-
-    // Persist to localStorage
-    localStorage.setItem('accessToken', token);
-    localStorage.setItem('user', JSON.stringify(extractedUser));
-    if (extractedPublisher) {
-      localStorage.setItem('publisher', JSON.stringify(extractedPublisher));
-    }
+    console.log('[Auth] Login successful for:', data.user?.email);
   };
 
   const signup = async (email: string, password: string, name: string) => {
-    const response = await fetch(API.proxy('auth/signup'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
+    console.log('[Auth] Attempting signup for:', email);
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+      },
     });
 
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error?.message || 'Signup failed');
+    if (error) {
+      console.error('[Auth] Signup error:', error.message);
+      throw new Error(error.message);
     }
 
-    // Auto-login after signup
-    await login(email, password);
+    console.log('[Auth] Signup successful for:', data.user?.email);
   };
 
   const logout = async () => {
-    if (accessToken) {
-      try {
-        await fetch(API.logout, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + accessToken,
-          },
-        });
-      } catch (error) {
-        console.error('Logout error:', error);
-      }
+    console.log('[Auth] Logging out...');
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error('[Auth] Logout error:', error.message);
+      throw new Error(error.message);
     }
 
-    setUser(null);
-    setPublisher(null);
-    setAccessToken(null);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('publisher');
+    console.log('[Auth] Logout successful');
   };
 
   return (

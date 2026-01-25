@@ -17,20 +17,23 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[Login] Form submitted with email:', email);
     setIsLoading(true);
 
     try {
       console.log('[Login] Calling login()...');
       await login(email, password);
-      console.log('[Login] About to navigate to: /dashboard');
+      console.log('[Login] Login successful, navigating to /dashboard');
       navigate('/dashboard');
     } catch (error) {
+      console.error('[Login] Login failed:', error);
       toast({
         title: 'Login Failed',
         description: error instanceof Error ? error.message : 'An error occurred',
         variant: 'destructive',
       });
     } finally {
+      console.log('[Login] Setting isLoading to false');
       setIsLoading(false);
     }
   };
@@ -66,7 +69,12 @@ export default function Login() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+              onClick={() => console.log('[Login] Button clicked, isLoading:', isLoading)}
+            >
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
