@@ -4,17 +4,15 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { 
   Shield, 
-  Copy, 
-  Check, 
   Rss,
   Plug,
-  Code2
+  Palette
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ConnectCMSModal } from "@/components/integrations/ConnectCMSModal";
+import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
 
 interface CMSSource {
   id: string;
@@ -94,9 +92,6 @@ export default function Integrations() {
   const [selectedSource, setSelectedSource] = useState<CMSSource | null>(null);
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   
-  // Widget State
-  const [codeCopied, setCodeCopied] = useState(false);
-  
   // AI Policy State
   const [aiDefenseEnabled, setAiDefenseEnabled] = useState(true);
 
@@ -146,18 +141,6 @@ export default function Integrations() {
       case "medium": return <MediumLogo className="w-6 h-6" />;
       default: return <Rss size={24} />;
     }
-  };
-
-  const widgetCode = `<script src="https://opedd.io/widget.js" data-publisher="${user.id?.slice(0, 8)}"></script>`;
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(widgetCode);
-    setCodeCopied(true);
-    toast({
-      title: "Copied!",
-      description: "Widget code copied to clipboard.",
-    });
-    setTimeout(() => setCodeCopied(false), 2000);
   };
 
   const connectedCount = sources.filter(s => s.connected).length;
@@ -254,84 +237,14 @@ export default function Integrations() {
             </div>
           </section>
 
-          {/* Section 2: The Opedd Widget (Outbound) */}
+          {/* Section 2: Widget Customizer */}
           <section className="space-y-4">
             <div className="flex items-center gap-2">
-              <Code2 size={18} className="text-[#D1009A]" />
-              <h2 className="font-bold text-[#040042]">Site-Wide Protection Widget</h2>
+              <Palette size={18} className="text-[#D1009A]" />
+              <h2 className="font-bold text-[#040042]">Widget Customizer</h2>
             </div>
             
-            <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden">
-              <div className="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#E8F2FB]">
-                {/* Live Preview */}
-                <div className="p-6">
-                  <Label className="text-sm font-semibold text-[#040042] block mb-4">Live Preview</Label>
-                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-8 min-h-[200px] flex flex-col items-center justify-center">
-                    {/* Simulated Article Content */}
-                    <div className="bg-white rounded-lg shadow-sm p-6 w-full max-w-sm">
-                      <div className="h-2.5 w-20 bg-slate-200 rounded mb-3" />
-                      <div className="h-4 w-4/5 bg-slate-300 rounded mb-2" />
-                      <div className="space-y-1.5 mb-5">
-                        <div className="h-2 w-full bg-slate-100 rounded" />
-                        <div className="h-2 w-full bg-slate-100 rounded" />
-                        <div className="h-2 w-3/4 bg-slate-100 rounded" />
-                      </div>
-                      
-                      {/* The Widget Button - Purple Pill */}
-                      <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                        <button className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-[#4A26ED]/25 hover:shadow-xl hover:shadow-[#4A26ED]/30 transition-all hover:-translate-y-0.5">
-                          <Shield size={15} />
-                          License with Opedd
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Trust Badge */}
-                    <div className="mt-5 flex items-center gap-2 text-xs text-slate-400">
-                      <Shield size={12} className="text-[#4A26ED]" />
-                      <span>IP Rights Protected • Story Protocol</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Code Block */}
-                <div className="p-6">
-                  <Label className="text-sm font-semibold text-[#040042] block mb-4">Embed Code</Label>
-                  <p className="text-sm text-[#040042]/60 mb-4">
-                    Add this script to your website's <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono">&lt;head&gt;</code> or before the closing <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono">&lt;/body&gt;</code> tag.
-                  </p>
-                  
-                  <div className="relative">
-                    <pre className="bg-[#040042] text-slate-100 p-5 rounded-xl text-sm overflow-x-auto font-mono leading-relaxed">
-                      <code className="text-emerald-400">{widgetCode}</code>
-                    </pre>
-                    <Button
-                      size="sm"
-                      onClick={handleCopyCode}
-                      className="absolute top-3 right-3 bg-white/10 hover:bg-white/20 text-white border-0 h-8"
-                    >
-                      {codeCopied ? (
-                        <>
-                          <Check size={14} className="mr-1.5" />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={14} className="mr-1.5" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-[#4A26ED]/5 rounded-lg border border-[#4A26ED]/10">
-                    <p className="text-xs text-[#040042]/70">
-                      <strong className="text-[#4A26ED]">Pro tip:</strong> The widget automatically detects content on the page and displays licensing options to visitors.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <WidgetCustomizer publisherId={user.id?.slice(0, 8) || "publisher"} />
           </section>
 
           {/* Section 3: AI Defense Policy */}
