@@ -140,6 +140,50 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          asset_id: string
+          buyer_email: string | null
+          created_at: string
+          id: string
+          license_type: string
+          publisher_id: string
+          status: string
+          story_protocol_hash: string | null
+        }
+        Insert: {
+          amount?: number
+          asset_id: string
+          buyer_email?: string | null
+          created_at?: string
+          id?: string
+          license_type?: string
+          publisher_id: string
+          status?: string
+          story_protocol_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          asset_id?: string
+          buyer_email?: string | null
+          created_at?: string
+          id?: string
+          license_type?: string
+          publisher_id?: string
+          status?: string
+          story_protocol_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist: {
         Row: {
           created_at: string | null
