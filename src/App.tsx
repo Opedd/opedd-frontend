@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import UpdatePassword from "./pages/UpdatePassword";
 import Dashboard from "./pages/Dashboard";
+import Insights from "./pages/Insights";
 import Ledger from "./pages/Ledger";
 import Integrations from "./pages/Integrations";
 import Settings from "./pages/Settings";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/insights" element={<Insights />} />
             <Route path="/ledger" element={<Ledger />} />
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/settings" element={<Settings />} />

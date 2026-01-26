@@ -1,10 +1,11 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3 } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const navItems = [
   { title: "Registry", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Insights", path: "/insights", icon: BarChart3 },
   { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Integrations", path: "/integrations", icon: Zap },
   { title: "Settings", path: "/settings", icon: Settings },
