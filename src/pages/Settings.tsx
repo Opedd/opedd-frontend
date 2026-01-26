@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -7,25 +8,23 @@ import {
   User, 
   Building2, 
   Globe, 
-  Key, 
-  Bell, 
   Users, 
   CreditCard,
-  Code,
   Shield,
   Plus,
   Check,
   Copy,
-  Webhook,
-  Clock
+  Lock,
+  Mail,
+  FileText,
+  ExternalLink
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Table,
   TableBody,
@@ -54,18 +53,35 @@ import { useToast } from "@/hooks/use-toast";
 
 // Mock team data
 const initialTeamMembers = [
-  { id: "1", name: "Sarah Chen", email: "sarah@publisher.com", role: "Admin", status: "Active" },
-  { id: "2", name: "Marcus Johnson", email: "marcus@publisher.com", role: "Editor", status: "Active" },
-  { id: "3", name: "Emily Roberts", email: "emily@publisher.com", role: "Viewer", status: "Pending" },
+  { id: "1", name: "Sarah Chen", email: "sarah@publisher.com", role: "Admin", status: "Active" as const },
+  { id: "2", name: "Marcus Johnson", email: "marcus@publisher.com", role: "Editor", status: "Active" as const },
+  { id: "3", name: "Emily Roberts", email: "emily@publisher.com", role: "Viewer", status: "Pending" as const },
 ];
+
+// Animation variants for tab content
+const tabContentVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -10,
+    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] as const }
+  }
+};
 
 export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
 
   // Profile state
-  const [displayName, setDisplayName] = useState("Publisher Name");
+  const [publisherName, setPublisherName] = useState("Alex Chen");
+  const [bio, setBio] = useState("Independent journalist and content creator focused on AI ethics and technology policy.");
   const [companyName, setCompanyName] = useState("Opedd Publishing Co.");
   const [websiteUrl, setWebsiteUrl] = useState("https://example.com");
 
@@ -75,15 +91,12 @@ export default function Settings() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("Viewer");
 
-  // Payout state
+  // Stripe state
   const [stripeConnected, setStripeConnected] = useState(false);
-  const [payoutFrequency, setPayoutFrequency] = useState<"weekly" | "monthly" | "manual">("weekly");
-  const [autoPayouts, setAutoPayouts] = useState(true);
 
   // Developer state
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [aiDetectionAlerts, setAiDetectionAlerts] = useState(true);
-  const [apiKeyCopied, setApiKeyCopied] = useState(false);
+  const [publisherIdCopied, setPublisherIdCopied] = useState(false);
+  const publisherId = user?.id || "pub_demo_1234567890";
 
   if (!user) return null;
 
@@ -107,7 +120,7 @@ export default function Settings() {
       name: inviteEmail.split("@")[0],
       email: inviteEmail,
       role: inviteRole,
-      status: "Pending",
+      status: "Pending" as const,
     };
     setTeamMembers([...teamMembers, newMember]);
     setInviteEmail("");
@@ -123,18 +136,43 @@ export default function Settings() {
     setStripeConnected(true);
     toast({
       title: "Stripe Connected",
-      description: "Your bank account has been verified successfully",
+      description: "Your account has been linked successfully",
     });
   };
 
-  const handleCopyApiKey = () => {
-    navigator.clipboard.writeText("op_live_sk_1234567890abcdefghijklmnop");
-    setApiKeyCopied(true);
-    setTimeout(() => setApiKeyCopied(false), 2000);
-    toast({
-      title: "API Key Copied",
-      description: "Your API key has been copied to clipboard",
-    });
+  const handleCopyPublisherId = async () => {
+    try {
+      await navigator.clipboard.writeText(publisherId);
+      setPublisherIdCopied(true);
+      setTimeout(() => setPublisherIdCopied(false), 2000);
+      toast({
+        title: "Copied!",
+        description: "Publisher ID copied to clipboard",
+      });
+    } catch {
+      toast({
+        title: "Copy Failed",
+        description: "Please copy manually",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getRoleBadgeStyle = (role: string) => {
+    switch (role) {
+      case "Admin":
+        return "border-[#4A26ED] text-[#4A26ED] bg-[#4A26ED]/5";
+      case "Editor":
+        return "border-[#040042] text-[#040042] bg-[#040042]/5";
+      default:
+        return "border-[#040042]/50 text-[#040042]/70 bg-transparent";
+    }
+  };
+
+  const getStatusBadgeStyle = (status: string) => {
+    return status === "Active"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : "bg-amber-50 text-amber-700 border-amber-200";
   };
 
   return (
@@ -151,445 +189,412 @@ export default function Settings() {
               Organization / <span className="text-[#040042]/70">{companyName}</span>
             </p>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#040042]/5 rounded-xl flex items-center justify-center">
-                <SettingsIcon size={24} className="text-[#040042]" />
+              <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center border border-[#4A26ED]/20">
+                <SettingsIcon size={24} className="text-[#4A26ED]" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-[#040042]">Settings</h1>
-                <p className="text-[#040042]/60 text-sm">Manage your account, team, and billing preferences</p>
+                <p className="text-[#040042]/60 text-sm">Manage your profile, team, and payouts</p>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white border border-[#E8F2FB] rounded-xl p-1 h-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-white border border-[#E8F2FB] rounded-xl p-1.5 h-auto shadow-sm">
               <TabsTrigger 
                 value="profile" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-[#040042] data-[state=active]:text-white rounded-lg transition-all"
+                className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
               >
                 <User size={16} />
-                <span className="hidden sm:inline">Profile</span>
+                <span>Profile</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="team" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-[#040042] data-[state=active]:text-white rounded-lg transition-all"
+                className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
               >
                 <Users size={16} />
-                <span className="hidden sm:inline">Team</span>
+                <span>Team</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="billing" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-[#040042] data-[state=active]:text-white rounded-lg transition-all"
+                value="payouts" 
+                className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
               >
                 <CreditCard size={16} />
-                <span className="hidden sm:inline">Billing & Payouts</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="developer" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-[#040042] data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <Code size={16} />
-                <span className="hidden sm:inline">Developer</span>
+                <span>Payouts</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* TAB 1: Profile */}
-            <TabsContent value="profile" className="space-y-6 mt-6">
-              {/* Publisher Profile */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-6">
-                  <User size={18} className="text-[#4A26ED]" />
-                  <h2 className="font-semibold text-[#040042]">Publisher Profile</h2>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-[#040042]/70 text-sm">Display Name</Label>
-                    <Input
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="bg-[#F2F9FF] border-[#E8F2FB] h-12 rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[#040042]/70 text-sm">Email Address</Label>
-                    <Input
-                      value={user.email || ""}
-                      disabled
-                      className="bg-[#F2F9FF] border-[#E8F2FB] h-12 rounded-xl opacity-60"
-                    />
-                    <p className="text-xs text-[#040042]/50">Contact support to change your email</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Company Information */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-6">
-                  <Building2 size={18} className="text-[#4A26ED]" />
-                  <h2 className="font-semibold text-[#040042]">Company Information</h2>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-[#040042]/70 text-sm">Company Name</Label>
-                    <Input
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      className="bg-[#F2F9FF] border-[#E8F2FB] h-12 rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[#040042]/70 text-sm">Website URL</Label>
-                    <div className="relative">
-                      <Globe size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40" />
-                      <Input
-                        value={websiteUrl}
-                        onChange={(e) => setWebsiteUrl(e.target.value)}
-                        className="bg-[#F2F9FF] border-[#E8F2FB] h-12 rounded-xl pl-12"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="w-full h-14 bg-[#040042] text-white rounded-xl font-semibold hover:bg-[#0A0066] disabled:opacity-50 transition-all"
-              >
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </TabsContent>
-
-            {/* TAB 2: Team & Permissions */}
-            <TabsContent value="team" className="space-y-6 mt-6">
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <Users size={18} className="text-[#4A26ED]" />
-                    <h2 className="font-semibold text-[#040042]">Team Management</h2>
-                  </div>
-                  <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-[#4A26ED] hover:bg-[#3a1ebd] text-white gap-2">
-                        <Plus size={16} />
-                        Invite Member
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-white border-[#E8F2FB]">
-                      <DialogHeader>
-                        <DialogTitle className="text-[#040042]">Invite Team Member</DialogTitle>
-                        <DialogDescription className="text-[#040042]/60">
-                          Send an invitation to join your publisher team.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
+            <AnimatePresence mode="wait">
+              {/* TAB 1: Profile */}
+              <TabsContent value="profile" className="mt-6" forceMount={activeTab === "profile" ? true : undefined}>
+                {activeTab === "profile" && (
+                  <motion.div
+                    key="profile"
+                    variants={tabContentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    {/* Publisher Profile Card */}
+                    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                      <div className="flex items-center gap-2 mb-6">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+                          <User size={16} className="text-[#4A26ED]" />
+                        </div>
+                        <h2 className="font-bold text-[#040042]">Publisher Profile</h2>
+                      </div>
+                      <div className="grid gap-5">
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[#040042] font-bold text-sm">Publisher Name</Label>
+                            <Input
+                              value={publisherName}
+                              onChange={(e) => setPublisherName(e.target.value)}
+                              placeholder="Your display name"
+                              className="bg-slate-50 border-slate-200 h-12 rounded-xl focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[#040042] font-bold text-sm">Email Address</Label>
+                            <div className="relative">
+                              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                              <Input
+                                value={user.email || ""}
+                                disabled
+                                className="bg-slate-100 border-slate-200 h-12 rounded-xl pl-11 opacity-70 cursor-not-allowed"
+                              />
+                            </div>
+                          </div>
+                        </div>
                         <div className="space-y-2">
-                          <Label className="text-[#040042]/70 text-sm">Email Address</Label>
+                          <Label className="text-[#040042] font-bold text-sm">Bio</Label>
+                          <Textarea
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                            placeholder="Tell us about yourself and your work..."
+                            className="bg-slate-50 border-slate-200 rounded-xl min-h-[100px] resize-none focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                          />
+                          <p className="text-xs text-slate-400">Displayed on your public licensing page</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Company Information Card */}
+                    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                      <div className="flex items-center gap-2 mb-6">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+                          <Building2 size={16} className="text-[#4A26ED]" />
+                        </div>
+                        <h2 className="font-bold text-[#040042]">Company Information</h2>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[#040042] font-bold text-sm">Company Name</Label>
                           <Input
-                            type="email"
-                            placeholder="colleague@company.com"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                            className="bg-[#F2F9FF] border-[#E8F2FB] h-12 rounded-xl"
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
+                            className="bg-slate-50 border-slate-200 h-12 rounded-xl focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[#040042]/70 text-sm">Role</Label>
-                          <Select value={inviteRole} onValueChange={setInviteRole}>
-                            <SelectTrigger className="bg-[#F2F9FF] border-[#E8F2FB] h-12 rounded-xl">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border-[#E8F2FB]">
-                              <SelectItem value="Admin">Admin</SelectItem>
-                              <SelectItem value="Editor">Editor</SelectItem>
-                              <SelectItem value="Viewer">Viewer</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Label className="text-[#040042] font-bold text-sm">Website URL</Label>
+                          <div className="relative">
+                            <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Input
+                              value={websiteUrl}
+                              onChange={(e) => setWebsiteUrl(e.target.value)}
+                              className="bg-slate-50 border-slate-200 h-12 rounded-xl pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                            />
+                          </div>
                         </div>
                       </div>
-                      <DialogFooter>
-                        <Button 
-                          onClick={handleInviteMember}
-                          className="bg-[#040042] hover:bg-[#0A0066] text-white"
+                    </div>
+
+                    {/* Developer Section - Publisher ID */}
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 shadow-lg">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                          <FileText size={16} className="text-white" />
+                        </div>
+                        <div>
+                          <h2 className="font-bold text-white">Developer</h2>
+                          <p className="text-slate-400 text-xs">Use this ID in the WidgetCustomizer script</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 overflow-hidden">
+                          <code className="text-sm text-emerald-400 font-mono truncate block">
+                            {publisherId}
+                          </code>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={handleCopyPublisherId}
+                          className="h-11 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium flex-shrink-0 transition-all"
                         >
-                          Send Invitation
+                          {publisherIdCopied ? (
+                            <>
+                              <Check size={14} className="mr-2" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} className="mr-2" />
+                              Copy ID
+                            </>
+                          )}
                         </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                <div className="rounded-xl border border-[#E8F2FB] overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-[#F2F9FF] hover:bg-[#F2F9FF]">
-                        <TableHead className="text-[#040042] font-semibold">Name</TableHead>
-                        <TableHead className="text-[#040042] font-semibold">Email</TableHead>
-                        <TableHead className="text-[#040042] font-semibold">Role</TableHead>
-                        <TableHead className="text-[#040042] font-semibold">Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {teamMembers.map((member) => (
-                        <TableRow key={member.id} className="hover:bg-[#F2F9FF]/50">
-                          <TableCell className="font-medium text-[#040042]">{member.name}</TableCell>
-                          <TableCell className="text-[#040042]/70">{member.email}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className={
-                                member.role === "Admin" 
-                                  ? "border-[#4A26ED] text-[#4A26ED] bg-[#4A26ED]/5" 
-                                  : member.role === "Editor"
-                                  ? "border-[#040042] text-[#040042] bg-[#040042]/5"
-                                  : "border-[#040042]/50 text-[#040042]/70"
-                              }
-                            >
-                              {member.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              className={
-                                member.status === "Active" 
-                                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" 
-                                  : "bg-amber-100 text-amber-700 hover:bg-amber-100"
-                              }
-                            >
-                              {member.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* TAB 3: Billing & Payouts */}
-            <TabsContent value="billing" className="space-y-6 mt-6">
-              {/* Stripe Featured Card */}
-              <div className="bg-gradient-to-br from-[#635BFF] to-[#8B5CF6] rounded-xl p-6 text-white">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      <CreditCard size={24} />
-                    </div>
-                    <div>
-                      <h2 className="font-semibold text-lg">Payment Processing by Stripe</h2>
-                      <p className="text-white/80 text-sm">Enterprise-grade payment infrastructure</p>
-                    </div>
-                  </div>
-                  {/* Stripe Logo */}
-                  <div className="bg-white rounded-lg px-3 py-2">
-                    <span className="text-[#635BFF] font-bold text-lg tracking-tight">stripe</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Connection Status */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-6">
-                  <CreditCard size={18} className="text-[#4A26ED]" />
-                  <h2 className="font-semibold text-[#040042]">Bank Account</h2>
-                </div>
-
-                {stripeConnected ? (
-                  <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
-                        <Check size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-emerald-800">Account Verified</p>
-                        <p className="text-sm text-emerald-600">Chase Business •••• 6789</p>
                       </div>
                     </div>
-                    <Button variant="outline" className="border-emerald-300 text-emerald-700 hover:bg-emerald-100">
-                      Update
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between p-4 bg-[#F2F9FF] rounded-xl">
-                    <div>
-                      <p className="font-medium text-[#040042]">No bank account connected</p>
-                      <p className="text-sm text-[#040042]/60">Connect your bank to receive payouts</p>
-                    </div>
-                    <Button 
-                      onClick={handleConnectStripe}
-                      className="bg-[#635BFF] hover:bg-[#5851db] text-white gap-2"
+
+                    {/* Save Button */}
+                    <Button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl font-semibold text-base shadow-lg shadow-[#4A26ED]/25 disabled:opacity-50 transition-all active:scale-[0.98]"
                     >
-                      <CreditCard size={16} />
-                      Connect Bank Account
+                      {isSaving ? "Saving..." : "Save Changes"}
                     </Button>
-                  </div>
+                  </motion.div>
                 )}
-              </div>
+              </TabsContent>
 
-              {/* Payout Frequency */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-6">
-                  <Clock size={18} className="text-[#4A26ED]" />
-                  <h2 className="font-semibold text-[#040042]">Payout Frequency</h2>
-                </div>
+              {/* TAB 2: Team Management */}
+              <TabsContent value="team" className="mt-6" forceMount={activeTab === "team" ? true : undefined}>
+                {activeTab === "team" && (
+                  <motion.div
+                    key="team"
+                    variants={tabContentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+                            <Users size={16} className="text-[#4A26ED]" />
+                          </div>
+                          <div>
+                            <h2 className="font-bold text-[#040042]">Team Management</h2>
+                            <p className="text-xs text-slate-500">{teamMembers.length} members</p>
+                          </div>
+                        </div>
+                        <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
+                          <DialogTrigger asChild>
+                            <Button className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white gap-2 rounded-xl shadow-lg shadow-[#4A26ED]/20 transition-all active:scale-[0.98]">
+                              <Plus size={16} />
+                              Invite Member
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="bg-white border-[#E8F2FB] rounded-2xl">
+                            <DialogHeader>
+                              <DialogTitle className="text-[#040042] font-bold">Invite Team Member</DialogTitle>
+                              <DialogDescription className="text-[#040042]/60">
+                                Send an invitation to join your publisher team.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <Label className="text-[#040042] font-bold text-sm">Email Address</Label>
+                                <Input
+                                  type="email"
+                                  placeholder="colleague@company.com"
+                                  value={inviteEmail}
+                                  onChange={(e) => setInviteEmail(e.target.value)}
+                                  className="bg-slate-50 border-slate-200 h-12 rounded-xl focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-[#040042] font-bold text-sm">Role</Label>
+                                <Select value={inviteRole} onValueChange={setInviteRole}>
+                                  <SelectTrigger className="bg-slate-50 border-slate-200 h-12 rounded-xl">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white border-[#E8F2FB] rounded-xl">
+                                    <SelectItem value="Admin">Admin - Full access</SelectItem>
+                                    <SelectItem value="Editor">Editor - Manage assets</SelectItem>
+                                    <SelectItem value="Viewer">Viewer - Read only</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button 
+                                onClick={handleInviteMember}
+                                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+                              >
+                                Send Invitation
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-[#F2F9FF] rounded-xl">
-                    <div>
-                      <p className="font-medium text-[#040042]">Automatic Payouts</p>
-                      <p className="text-sm text-[#040042]/60">Receive funds on a schedule</p>
+                      {/* Team Table - SmartLibraryTable Styling */}
+                      <div className="rounded-xl border border-[#E8F2FB] overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="border-[#E8F2FB] bg-[#F2F9FF]/50 hover:bg-[#F2F9FF]/50">
+                              <TableHead className="text-[#040042]/60 text-xs font-medium pl-5">Member Name</TableHead>
+                              <TableHead className="text-[#040042]/60 text-xs font-medium">Email</TableHead>
+                              <TableHead className="text-[#040042]/60 text-xs font-medium">Role</TableHead>
+                              <TableHead className="text-[#040042]/60 text-xs font-medium">Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {teamMembers.map((member) => (
+                              <TableRow 
+                                key={member.id} 
+                                className="group border-[#E8F2FB] transition-all duration-200 hover:bg-[#F8FAFF] hover:shadow-[0_0_0_1px_rgba(74,38,237,0.1),0_4px_12px_-4px_rgba(74,38,237,0.15)]"
+                              >
+                                <TableCell className="pl-5">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#4A26ED] to-[#7C3AED] flex items-center justify-center text-white font-bold text-sm">
+                                      {member.name.charAt(0)}
+                                    </div>
+                                    <span className="font-medium text-[#040042] text-sm">{member.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-[#040042]/70 text-sm">{member.email}</TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full border ${getRoleBadgeStyle(member.role)}`}
+                                  >
+                                    {member.role}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant="outline"
+                                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full border ${getStatusBadgeStyle(member.status)}`}
+                                  >
+                                    {member.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
-                    <Switch 
-                      checked={autoPayouts} 
-                      onCheckedChange={setAutoPayouts}
-                    />
-                  </div>
+                  </motion.div>
+                )}
+              </TabsContent>
 
-                  {autoPayouts && (
-                    <RadioGroup 
-                      value={payoutFrequency} 
-                      onValueChange={(v) => setPayoutFrequency(v as typeof payoutFrequency)}
-                      className="grid grid-cols-2 gap-4"
-                    >
-                      <div className="relative">
-                        <RadioGroupItem value="weekly" id="weekly" className="peer sr-only" />
-                        <Label
-                          htmlFor="weekly"
-                          className="flex flex-col items-center justify-center p-4 border-2 border-[#E8F2FB] rounded-xl cursor-pointer transition-all peer-data-[state=checked]:border-[#4A26ED] peer-data-[state=checked]:bg-[#4A26ED]/5 hover:border-[#4A26ED]/50"
+              {/* TAB 3: Payouts */}
+              <TabsContent value="payouts" className="mt-6" forceMount={activeTab === "payouts" ? true : undefined}>
+                {activeTab === "payouts" && (
+                  <motion.div
+                    key="payouts"
+                    variants={tabContentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    {/* Stripe Connect Card */}
+                    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm overflow-hidden relative">
+                      {/* Glassmorphism accent */}
+                      <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-[#635BFF]/20 to-[#8B5CF6]/10 rounded-full blur-3xl pointer-events-none" />
+                      
+                      <div className="flex items-start justify-between mb-6 relative">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-[#635BFF] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-lg shadow-[#635BFF]/25">
+                            <CreditCard size={24} className="text-white" />
+                          </div>
+                          <div>
+                            <h2 className="font-bold text-[#040042] text-lg">Stripe Connect</h2>
+                            <p className="text-slate-500 text-sm">Receive payouts directly to your bank</p>
+                          </div>
+                        </div>
+                        <Badge 
+                          variant="outline"
+                          className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                            stripeConnected 
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }`}
                         >
-                          <span className="font-semibold text-[#040042]">Weekly</span>
-                          <span className="text-xs text-[#040042]/60">Every Friday</span>
-                        </Label>
+                          {stripeConnected ? "Connected" : "Disconnected"}
+                        </Badge>
                       </div>
-                      <div className="relative">
-                        <RadioGroupItem value="monthly" id="monthly" className="peer sr-only" />
-                        <Label
-                          htmlFor="monthly"
-                          className="flex flex-col items-center justify-center p-4 border-2 border-[#E8F2FB] rounded-xl cursor-pointer transition-all peer-data-[state=checked]:border-[#4A26ED] peer-data-[state=checked]:bg-[#4A26ED]/5 hover:border-[#4A26ED]/50"
-                        >
-                          <span className="font-semibold text-[#040042]">Monthly</span>
-                          <span className="text-xs text-[#040042]/60">1st of each month</span>
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  )}
 
-                  {!autoPayouts && (
-                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-                      <p className="text-sm text-amber-800">
-                        <strong>Manual Mode:</strong> You'll need to request withdrawals from your dashboard. 
-                        Minimum withdrawal amount is $50.
+                      {stripeConnected ? (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+                              <Check size={20} className="text-white" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-emerald-800">Account Verified</p>
+                              <p className="text-sm text-emerald-600">Chase Business •••• 6789</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
+                                <Shield size={18} className="text-slate-500" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-[#040042] text-sm">Secure Payment Processing</p>
+                                <p className="text-xs text-slate-500 mt-1">
+                                  Connect your Stripe account to receive payouts from content licensing. 
+                                  Your financial data is encrypted and never stored on our servers.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Button
+                            onClick={handleConnectStripe}
+                            className="w-full h-14 bg-gradient-to-r from-[#635BFF] to-[#8B5CF6] hover:from-[#5649e6] hover:to-[#7c3aed] text-white rounded-xl font-semibold text-base shadow-lg shadow-[#635BFF]/25 transition-all active:scale-[0.98]"
+                          >
+                            <Lock size={18} className="mr-2" />
+                            Connect Stripe Account
+                            <ExternalLink size={14} className="ml-2 opacity-70" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Payout Info */}
+                    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+                          <CreditCard size={16} className="text-[#4A26ED]" />
+                        </div>
+                        <h2 className="font-bold text-[#040042]">Payout Schedule</h2>
+                      </div>
+                      <p className="text-sm text-slate-500 mb-4">
+                        Payouts are processed automatically on the 1st and 15th of each month for balances over $50.
                       </p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
+                          <p className="text-2xl font-bold text-[#040042]">$0.00</p>
+                          <p className="text-xs text-slate-500 mt-1">Pending</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
+                          <p className="text-2xl font-bold text-[#040042]">$0.00</p>
+                          <p className="text-xs text-slate-500 mt-1">This Month</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
+                          <p className="text-2xl font-bold text-[#040042]">$0.00</p>
+                          <p className="text-xs text-slate-500 mt-1">All Time</p>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Security Badge */}
-              <div className="flex items-center gap-3 p-4 bg-[#040042]/5 rounded-xl">
-                <Shield size={20} className="text-[#4A26ED]" />
-                <p className="text-sm text-[#040042]/70">
-                  <strong className="text-[#040042]">Payments secured and processed by Stripe.</strong> Opedd does not store your bank credentials.
-                </p>
-              </div>
-            </TabsContent>
-
-            {/* TAB 4: Developer */}
-            <TabsContent value="developer" className="space-y-6 mt-6">
-              {/* API Keys */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-6">
-                  <Key size={18} className="text-[#4A26ED]" />
-                  <h2 className="font-semibold text-[#040042]">API Keys</h2>
-                </div>
-                <div className="space-y-4">
-                  <div className="p-4 bg-[#F2F9FF] rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-[#040042]">Live API Key</p>
-                      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Active</Badge>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <code className="flex-1 bg-white px-4 py-3 rounded-lg text-sm font-mono text-[#040042]/70 border border-[#E8F2FB]">
-                        op_live_sk_****************************mnop
-                      </code>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleCopyApiKey}
-                        className="gap-2 border-[#E8F2FB] text-[#040042] hover:bg-[#F2F9FF]"
-                      >
-                        {apiKeyCopied ? <Check size={14} /> : <Copy size={14} />}
-                        {apiKeyCopied ? "Copied" : "Copy"}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-[#F2F9FF] rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-[#040042]">Test API Key</p>
-                      <Badge variant="outline" className="border-[#040042]/30 text-[#040042]/70">Test Mode</Badge>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <code className="flex-1 bg-white px-4 py-3 rounded-lg text-sm font-mono text-[#040042]/70 border border-[#E8F2FB]">
-                        op_test_sk_****************************xyz
-                      </code>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="gap-2 border-[#E8F2FB] text-[#040042] hover:bg-[#F2F9FF]"
-                      >
-                        <Copy size={14} />
-                        Copy
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Webhooks */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <Webhook size={18} className="text-[#4A26ED]" />
-                    <h2 className="font-semibold text-[#040042]">Webhooks</h2>
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-2 border-[#E8F2FB] text-[#040042]">
-                    <Plus size={14} />
-                    Add Endpoint
-                  </Button>
-                </div>
-                <div className="p-8 bg-[#F2F9FF] rounded-xl text-center">
-                  <Webhook size={32} className="mx-auto mb-3 text-[#040042]/30" />
-                  <p className="text-[#040042]/60 text-sm">No webhook endpoints configured</p>
-                  <p className="text-[#040042]/40 text-xs mt-1">Receive real-time notifications for licensing events</p>
-                </div>
-              </div>
-
-              {/* Notifications */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-6">
-                  <Bell size={18} className="text-[#4A26ED]" />
-                  <h2 className="font-semibold text-[#040042]">Notifications</h2>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-[#F2F9FF] rounded-xl">
-                    <div>
-                      <p className="font-medium text-[#040042] text-sm">Email Notifications</p>
-                      <p className="text-xs text-[#040042]/50">Receive updates about royalties and licenses</p>
-                    </div>
-                    <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-[#F2F9FF] rounded-xl">
-                    <div>
-                      <p className="font-medium text-[#040042] text-sm">AI Detection Alerts</p>
-                      <p className="text-xs text-[#040042]/50">Get notified when AI models access your content</p>
-                    </div>
-                    <Switch checked={aiDetectionAlerts} onCheckedChange={setAiDetectionAlerts} />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+                  </motion.div>
+                )}
+              </TabsContent>
+            </AnimatePresence>
           </Tabs>
         </div>
       </main>
