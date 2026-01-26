@@ -10,10 +10,9 @@ import {
 } from "@/components/ui/tooltip";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { SmartLibraryTable } from "@/components/dashboard/SmartLibraryTable";
-import { AddAssetModal } from "@/components/dashboard/AddAssetModal";
+import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -216,7 +215,7 @@ export default function Dashboard() {
               className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-10 px-5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-[#4A26ED]/20"
             >
               <Plus size={18} />
-              Add Asset
+              Register Content
             </button>
           </div>
 
@@ -317,55 +316,47 @@ export default function Dashboard() {
             </DropdownMenu>
           </div>
 
-          {/* Content Area */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Asset Table with Help Icon */}
-            <div className="lg:col-span-2 space-y-3">
-              <TooltipProvider>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#040042]">Licensing Hub</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button className="w-5 h-5 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
-                          <HelpCircle size={12} className="text-[#040042]/50" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-[220px] text-xs">
-                        <p>Your registered content assets. Enable licensing to monetize from human citations and AI model access.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
+          {/* Content Area - Full Width Table */}
+          <div className="space-y-3">
+            <TooltipProvider>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-[#040042]">Licensing Hub</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="w-5 h-5 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
+                        <HelpCircle size={12} className="text-[#040042]/50" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[220px] text-xs">
+                      <p>Your registered content assets. Enable licensing to monetize from human citations and AI model access.</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-              </TooltipProvider>
-              {filteredAssets.length === 0 && assets.length > 0 && !isLoading ? (
-                <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
-                  <p className="text-[#040042]/60 text-sm">
-                    {searchQuery ? "No assets match your search" : "No assets match this filter"}
-                  </p>
-                </div>
-              ) : (
-                <SmartLibraryTable 
-                  assets={filteredAssets} 
-                  onDelete={handleDelete}
-                  onBulkDelete={handleBulkDelete}
-                  isLoading={isLoading}
-                  onAddClick={() => setIsAddModalOpen(true)}
-                  showPulse={assets.length === 0 && !isLoading}
-                />
-              )}
-            </div>
-
-            {/* Activity Feed */}
-            <div className="lg:col-span-1">
-              <ActivityFeed />
-            </div>
+              </div>
+            </TooltipProvider>
+            {filteredAssets.length === 0 && assets.length > 0 && !isLoading ? (
+              <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
+                <p className="text-[#040042]/60 text-sm">
+                  {searchQuery ? "No assets match your search" : "No assets match this filter"}
+                </p>
+              </div>
+            ) : (
+              <SmartLibraryTable 
+                assets={filteredAssets} 
+                onDelete={handleDelete}
+                onBulkDelete={handleBulkDelete}
+                isLoading={isLoading}
+                onAddClick={() => setIsAddModalOpen(true)}
+                showPulse={assets.length === 0 && !isLoading}
+              />
+            )}
           </div>
         </div>
       </main>
 
-      {/* Add Asset Modal */}
-      <AddAssetModal 
+      {/* Register Content Modal */}
+      <RegisterContentModal 
         open={isAddModalOpen} 
         onOpenChange={setIsAddModalOpen}
         onSuccess={() => {

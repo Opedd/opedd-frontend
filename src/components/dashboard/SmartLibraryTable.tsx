@@ -284,10 +284,9 @@ export function SmartLibraryTable({
           {isShowingDemo && (
             <OnboardingCards 
               onSyncClick={() => {
-                if (onSyncClick) {
-                  onSyncClick();
-                } else {
-                  navigate("/integrations");
+                // Open the unified modal - it has both options
+                if (onAddClick) {
+                  onAddClick();
                 }
               }}
               onRegisterClick={() => {
@@ -317,18 +316,17 @@ export function SmartLibraryTable({
                 />
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium">
-                Asset
+                Title
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium">
-                License
-              </TableHead>
-              <TableHead className="text-[#040042]/60 text-xs font-medium">
-                Status
+                License Type
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium text-right">
                 Revenue
               </TableHead>
-              <TableHead className="w-24"></TableHead>
+              <TableHead className="w-36 text-[#040042]/60 text-xs font-medium text-center">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -382,30 +380,20 @@ export function SmartLibraryTable({
                     </div>
                   </TableCell>
 
-                  {/* License Type */}
+                  {/* License Type with badges */}
                   <TableCell>
-                    <span className="text-xs font-medium text-[#040042]/70">
-                      {getLicenseLabel(asset.licenseType)}
-                    </span>
-                  </TableCell>
-
-                  {/* Status Badge with Tooltip */}
-                  <TableCell>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs font-medium px-2.5 py-0.5 rounded-full border cursor-help ${statusConfig.className}`}
-                          >
-                            {statusConfig.label}
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[200px] text-xs">
-                          <p>{statusConfig.tooltip}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div className="flex items-center gap-1.5">
+                      {(asset.licenseType === "human" || asset.licenseType === "both") && (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
+                          Human
+                        </Badge>
+                      )}
+                      {(asset.licenseType === "ai" || asset.licenseType === "both") && (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20">
+                          AI
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
 
                   {/* Revenue with Sparkline */}
@@ -424,36 +412,44 @@ export function SmartLibraryTable({
                     </div>
                   </TableCell>
 
-                  {/* Action Menu - Manage Button on Hover */}
-                  <TableCell className="pr-5">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="opacity-0 group-hover:opacity-100 px-3 py-1.5 rounded-lg bg-[#040042] text-white text-xs font-medium transition-all duration-200 hover:bg-[#0A0066] active:scale-[0.98]">
-                          Manage
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="bg-white border-[#E8F2FB] shadow-lg"
+                  {/* Action Buttons */}
+                  <TableCell className="pr-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleManageClick(asset)}
+                        className="px-3 py-1.5 rounded-lg bg-[#4A26ED]/10 text-[#4A26ED] text-xs font-medium transition-all hover:bg-[#4A26ED] hover:text-white"
                       >
-                        <DropdownMenuItem
-                          className="cursor-pointer focus:bg-slate-50"
-                          onClick={() => handleManageClick(asset)}
+                        Share License
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
+                            <Settings size={16} />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="bg-white border-[#E8F2FB] shadow-lg"
                         >
-                          <Settings className="mr-2 h-4 w-4 text-[#4A26ED]" />
-                          Asset Settings
-                        </DropdownMenuItem>
-                        {!isShowingDemo && (
                           <DropdownMenuItem
-                            className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50"
-                            onClick={() => onDelete(asset.id)}
+                            className="cursor-pointer focus:bg-slate-50"
+                            onClick={() => handleManageClick(asset)}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            <Settings className="mr-2 h-4 w-4 text-[#4A26ED]" />
+                            Asset Settings
                           </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          {!isShowingDemo && (
+                            <DropdownMenuItem
+                              className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50"
+                              onClick={() => onDelete(asset.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
