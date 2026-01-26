@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Mail, CheckCircle } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
+import opeddLogoColor from "@/assets/opedd-logo.png";
 
 type ViewMode = "login" | "forgot-password" | "reset-sent";
 
@@ -256,9 +257,9 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center p-8 bg-[#F2F9FF]">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden mb-8">
-            <Link to="/" className="inline-block bg-[#040042] rounded-xl px-4 py-2">
-              <img src={opeddLogo} alt="Opedd" className="h-8" />
+          <div className="lg:hidden mb-8 flex justify-center">
+            <Link to="/">
+              <img src={opeddLogoColor} alt="Opedd" className="h-10" />
             </Link>
           </div>
 
