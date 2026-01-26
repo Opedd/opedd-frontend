@@ -19,7 +19,10 @@ import {
   Copy, 
   CheckCircle2,
   Link2,
-  Shield
+  Shield,
+  Bot,
+  Cpu,
+  Hash
 } from "lucide-react";
 import { useState } from "react";
 
@@ -36,6 +39,10 @@ interface Transaction {
   storyProtocolHash?: string;
   licenseeEmail?: string;
   licenseTerms?: string;
+  // AI Lab specific fields
+  aiLabName?: string;
+  aiModel?: string;
+  tokenVolume?: number;
 }
 
 interface TransactionReceiptDrawerProps {
@@ -201,6 +208,52 @@ export function TransactionReceiptDrawer({
                   Licensee
                 </p>
                 <p className="text-[#040042]">{transaction.licenseeEmail}</p>
+              </div>
+            )}
+
+            {/* AI Lab Specific Details */}
+            {transaction.type === "ai_ingestion" && (transaction.aiLabName || transaction.aiModel || transaction.tokenVolume) && (
+              <div className="bg-[#4A26ED]/5 rounded-xl p-4 space-y-3 border border-[#4A26ED]/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bot size={16} className="text-[#4A26ED]" />
+                  <span className="text-sm font-semibold text-[#040042]">AI Lab Details</span>
+                </div>
+                
+                {transaction.aiLabName && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
+                        <Bot size={12} className="text-[#4A26ED]" />
+                      </div>
+                      <span className="text-xs text-slate-500 uppercase tracking-wider">Lab</span>
+                    </div>
+                    <span className="text-sm font-medium text-[#040042]">{transaction.aiLabName}</span>
+                  </div>
+                )}
+                
+                {transaction.aiModel && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
+                        <Cpu size={12} className="text-[#4A26ED]" />
+                      </div>
+                      <span className="text-xs text-slate-500 uppercase tracking-wider">Model</span>
+                    </div>
+                    <span className="text-sm font-medium text-[#040042]">{transaction.aiModel}</span>
+                  </div>
+                )}
+                
+                {transaction.tokenVolume && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
+                        <Hash size={12} className="text-[#4A26ED]" />
+                      </div>
+                      <span className="text-xs text-slate-500 uppercase tracking-wider">Token Volume</span>
+                    </div>
+                    <span className="text-sm font-medium text-[#040042]">{transaction.tokenVolume.toLocaleString()} Tokens</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

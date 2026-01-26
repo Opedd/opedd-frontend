@@ -46,7 +46,19 @@ interface Transaction {
   storyProtocolHash?: string;
   licenseeEmail?: string;
   licenseTerms?: string;
+  // AI Lab specific fields
+  aiLabName?: string;
+  aiModel?: string;
+  tokenVolume?: number;
 }
+
+// AI Labs for realistic transaction simulation
+const AI_LABS = [
+  { name: "OpenAI", model: "GPT-4o Fine-tuning", tokens: 120000 },
+  { name: "Anthropic", model: "Claude 3.5 Training", tokens: 85000 },
+  { name: "Google DeepMind", model: "Gemini Pro", tokens: 210000 },
+  { name: "Perplexity AI", model: "pplx-online", tokens: 45000 },
+];
 
 // Sample transactions for demo mode
 const sampleTransactions: Transaction[] = [
@@ -61,7 +73,10 @@ const sampleTransactions: Transaction[] = [
     assetId: "sample-001",
     storyProtocolHash: "0x7f9fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91385",
     licenseeEmail: "training@openai.com",
-    licenseTerms: "Non-exclusive license for AI model training. Valid for 12 months from date of purchase."
+    licenseTerms: "Non-exclusive license for AI model training. Valid for 12 months from date of purchase.",
+    aiLabName: "OpenAI",
+    aiModel: "GPT-4o Fine-tuning",
+    tokenVolume: 120000
   },
   { 
     id: "DEMO-002", 
@@ -88,7 +103,10 @@ const sampleTransactions: Transaction[] = [
     assetId: "sample-003",
     storyProtocolHash: "0x9a1fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91456",
     licenseeEmail: "data@anthropic.com",
-    licenseTerms: "Non-exclusive license for AI model training. Pending confirmation."
+    licenseTerms: "Non-exclusive license for AI model training. Pending confirmation.",
+    aiLabName: "Anthropic",
+    aiModel: "Claude 3.5 Training",
+    tokenVolume: 85000
   },
 ];
 
@@ -166,23 +184,32 @@ export default function Ledger() {
           setTransactions([]);
         } else if (data && data.length > 0) {
           // Map database transactions to UI format
-          const mappedTransactions: Transaction[] = data.map((tx: any) => ({
-            id: tx.id,
-            type: tx.license_type === "ai" ? "ai_ingestion" : "human_license",
-            description: tx.license_type === "ai" 
-              ? `AI Training License` 
-              : `Human Republication License`,
-            amount: Number(tx.amount),
-            date: new Date(tx.created_at).toISOString().split("T")[0],
-            status: tx.status === "settled" ? "settled" : tx.status === "disputed" ? "disputed" : "processing",
-            assetTitle: tx.assets?.title || "Unknown Asset",
-            assetId: tx.asset_id,
-            storyProtocolHash: tx.story_protocol_hash,
-            licenseeEmail: tx.buyer_email,
-            licenseTerms: tx.license_type === "ai" 
-              ? "Non-exclusive license for AI model training. Valid for 12 months."
-              : "Single-use republication license. Attribution required."
-          }));
+          const mappedTransactions: Transaction[] = data.map((tx: any, index: number) => {
+            const isAI = tx.license_type === "ai";
+            const aiLab = isAI ? AI_LABS[index % AI_LABS.length] : null;
+            
+            return {
+              id: tx.id,
+              type: isAI ? "ai_ingestion" : "human_license",
+              description: isAI 
+                ? `AI Training License - ${aiLab?.name || 'AI Lab'}` 
+                : `Human Republication License`,
+              amount: Number(tx.amount),
+              date: new Date(tx.created_at).toISOString().split("T")[0],
+              status: tx.status === "settled" ? "settled" : tx.status === "disputed" ? "disputed" : "processing",
+              assetTitle: tx.assets?.title || "Unknown Asset",
+              assetId: tx.asset_id,
+              storyProtocolHash: tx.story_protocol_hash,
+              licenseeEmail: tx.buyer_email,
+              licenseTerms: isAI 
+                ? "Non-exclusive license for AI model training. Valid for 12 months."
+                : "Single-use republication license. Attribution required.",
+              // AI Lab specific fields
+              aiLabName: aiLab?.name,
+              aiModel: aiLab?.model,
+              tokenVolume: aiLab?.tokens
+            };
+          });
           setTransactions(mappedTransactions);
         } else {
           setTransactions([]);

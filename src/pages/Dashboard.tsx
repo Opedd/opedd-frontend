@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2 } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle } from "lucide-react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
@@ -215,7 +215,7 @@ export default function Dashboard() {
           </div>
 
           {/* Compact Metrics */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
               <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
               <p className="text-2xl font-bold text-[#040042] mt-1">{assets.length}</p>
@@ -227,6 +227,20 @@ export default function Dashboard() {
             <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
               <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
               <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
+            </div>
+            {/* Unlicensed AI Scrapes Card */}
+            <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors cursor-pointer">
+              <div className="absolute top-2 right-2">
+                <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <Bot size={14} className="text-amber-600" />
+                </div>
+              </div>
+              <p className="text-amber-600 text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                <AlertTriangle size={10} />
+                Unlicensed AI Scrapes
+              </p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">142</p>
+              <p className="text-[10px] text-amber-500/70 mt-1">This week</p>
             </div>
           </div>
 
