@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle, HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
@@ -215,37 +221,49 @@ export default function Dashboard() {
           </div>
 
           {/* Compact Metrics */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
-              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
-              <p className="text-2xl font-bold text-[#040042] mt-1">{assets.length}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
-              <p className="text-[#4A26ED] text-xs font-medium uppercase tracking-wide">Active Licenses</p>
-              <p className="text-2xl font-bold text-[#040042] mt-1">{activeCount}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
-              <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
-              <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
-            </div>
-            {/* Unlicensed AI Scrapes Card */}
-            <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors cursor-pointer">
-              <div className="absolute top-2 right-2">
-                <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <Bot size={14} className="text-amber-600" />
-                </div>
+          <TooltipProvider>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+                <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">{assets.length}</p>
               </div>
-              <p className="text-amber-600 text-xs font-medium uppercase tracking-wide flex items-center gap-1">
-                <AlertTriangle size={10} />
-                Unlicensed AI Scrapes
-              </p>
-              <p className="text-2xl font-bold text-amber-600 mt-1">142</p>
-              <p className="text-[10px] text-amber-500/70 mt-1">This week</p>
+              <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+                <p className="text-[#4A26ED] text-xs font-medium uppercase tracking-wide">Active Licenses</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">{activeCount}</p>
+              </div>
+              <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+                <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
+              </div>
+              {/* Unlicensed AI Scrapes Card with Help Tooltip */}
+              <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors cursor-pointer">
+                <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="w-5 h-5 rounded-full bg-amber-100/80 flex items-center justify-center hover:bg-amber-200 transition-colors">
+                        <HelpCircle size={12} className="text-amber-600" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[200px] text-xs">
+                      <p>This shows revenue lost to unlicensed AI scraping. Mint your assets to enable billing.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <Bot size={14} className="text-amber-600" />
+                  </div>
+                </div>
+                <p className="text-amber-600 text-xs font-medium uppercase tracking-wide flex items-center gap-1">
+                  <AlertTriangle size={10} />
+                  Unlicensed AI Scrapes
+                </p>
+                <p className="text-2xl font-bold text-amber-600 mt-1">142</p>
+                <p className="text-[10px] text-amber-500/70 mt-1">This week</p>
+              </div>
             </div>
-          </div>
+          </TooltipProvider>
 
           {/* Search & Filter Bar */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40" size={18} />
@@ -301,8 +319,25 @@ export default function Dashboard() {
 
           {/* Content Area */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Asset Table */}
-            <div className="lg:col-span-2">
+            {/* Asset Table with Help Icon */}
+            <div className="lg:col-span-2 space-y-3">
+              <TooltipProvider>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-[#040042]">Smart Library</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="w-5 h-5 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
+                          <HelpCircle size={12} className="text-[#040042]/50" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[220px] text-xs">
+                        <p>Your registered content assets. Enable licensing to monetize from human citations and AI model access.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              </TooltipProvider>
               {filteredAssets.length === 0 && assets.length > 0 && !isLoading ? (
                 <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
                   <p className="text-[#040042]/60 text-sm">
@@ -316,6 +351,7 @@ export default function Dashboard() {
                   onBulkDelete={handleBulkDelete}
                   isLoading={isLoading}
                   onAddClick={() => setIsAddModalOpen(true)}
+                  showPulse={assets.length === 0 && !isLoading}
                 />
               )}
             </div>

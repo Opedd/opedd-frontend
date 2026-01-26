@@ -20,8 +20,15 @@ import {
   Download,
   Trophy,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  HelpCircle
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -416,7 +423,21 @@ export default function Ledger() {
                 <Wallet size={24} className="text-[#4A26ED]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-[#040042]">Revenue Ledger</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold text-[#040042]">Revenue Ledger</h1>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="w-6 h-6 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
+                          <HelpCircle size={14} className="text-[#040042]/50" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[220px] text-xs">
+                        <p>Track all your IP licensing revenue and Story Protocol settlements in one place.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <p className="text-[#040042]/60 text-sm">IP licensing revenue & Story Protocol settlements</p>
               </div>
             </div>
