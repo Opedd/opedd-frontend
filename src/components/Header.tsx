@@ -75,7 +75,11 @@ const Header = () => {
                 Login
               </Button>
             </Link>
-            <Button variant="oxford" size="sm">
+            <Button 
+              variant="oxford" 
+              size="sm"
+              onClick={(e) => handleSmoothScroll(e as unknown as React.MouseEvent<HTMLAnchorElement>, "#waitlist-form")}
+            >
               Join Waitlist
             </Button>
           </div>
@@ -109,7 +113,12 @@ const Header = () => {
                     Login
                   </Button>
                 </Link>
-                <Button variant="oxford" size="sm" className="w-full">
+                <Button 
+                  variant="oxford" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={(e) => handleSmoothScroll(e as unknown as React.MouseEvent<HTMLAnchorElement>, "#waitlist-form")}
+                >
                   Join Waitlist
                 </Button>
               </div>
