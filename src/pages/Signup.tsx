@@ -4,24 +4,50 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, Eye, EyeOff, User } from "lucide-react";
+import { Mail, Eye, EyeOff, User, Building2 } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import opeddLogoColor from "@/assets/opedd-logo.png";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ViewMode = "signup" | "verify-email";
 
+const organizationTypes = [
+  "Independent Creator / Newsletter",
+  "Media & Publishing House",
+  "Academic & Research Institute",
+  "Corporate Content Studio",
+  "Creative Agency",
+  "Other",
+];
+
 export default function Signup() {
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [organizationType, setOrganizationType] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("signup");
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   const validateForm = (): string | null => {
-    if (!fullName.trim()) {
-      return "Please enter your full name";
+    if (!firstName.trim()) {
+      return "Please enter your first name";
+    }
+
+    if (!lastName.trim()) {
+      return "Please enter your last name";
+    }
+
+    if (!organizationType) {
+      return "Please select your organization type";
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,7 +84,10 @@ export default function Signup() {
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            full_name: fullName,
+            first_name: firstName,
+            last_name: lastName,
+            full_name: `${firstName} ${lastName}`.trim(),
+            organization_type: organizationType,
           },
         },
       });
@@ -100,21 +129,70 @@ export default function Signup() {
       </div>
 
       <form onSubmit={handleSignup} className="space-y-5">
+        {/* First Name & Last Name - Side by Side */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="firstName" className="text-[#040042]/80 font-medium">
+              First Name
+            </Label>
+            <div className="relative">
+              <Input
+                id="firstName"
+                type="text"
+                placeholder="John"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pl-11"
+              />
+              <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/30" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName" className="text-[#040042]/80 font-medium">
+              Last Name
+            </Label>
+            <div className="relative">
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Doe"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pl-11"
+              />
+              <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/30" />
+            </div>
+          </div>
+        </div>
+
+        {/* Organization Type Dropdown */}
         <div className="space-y-2">
-          <Label htmlFor="fullName" className="text-[#040042]/80 font-medium">
-            Full Name
+          <Label htmlFor="organizationType" className="text-[#040042]/80 font-medium">
+            Organization Type
           </Label>
           <div className="relative">
-            <Input
-              id="fullName"
-              type="text"
-              placeholder="John Doe"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pl-11"
-            />
-            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/30" />
+            <Select value={organizationType} onValueChange={setOrganizationType} required>
+              <SelectTrigger 
+                id="organizationType"
+                className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] h-12 rounded-xl pl-11 focus:ring-[#4A26ED] focus:ring-2 [&>span]:text-left"
+              >
+                <SelectValue placeholder="Select your organization type" className="text-[#040042]/40" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-[#040042]/10 shadow-lg rounded-xl z-50">
+                {organizationTypes.map((type) => (
+                  <SelectItem 
+                    key={type} 
+                    value={type}
+                    className="text-[#040042] cursor-pointer focus:bg-[#4A26ED] focus:text-white hover:bg-[#4A26ED]/10 rounded-lg my-0.5"
+                  >
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Building2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/30 pointer-events-none z-10" />
           </div>
         </div>
 
@@ -233,7 +311,9 @@ export default function Signup() {
             setViewMode("signup");
             setEmail("");
             setPassword("");
-            setFullName("");
+            setFirstName("");
+            setLastName("");
+            setOrganizationType("");
           }}
           className="w-full h-12 border border-[#040042]/10 text-[#040042] rounded-xl font-medium hover:bg-[#F2F9FF] transition-all"
         >
