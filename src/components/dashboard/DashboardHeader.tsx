@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Settings, LogOut, ExternalLink } from "lucide-react";
+import { Settings, LogOut, ExternalLink, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
 
 export function DashboardHeader() {
   const { user, logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   const getInitial = () => {
     if (user?.email) {
@@ -29,16 +30,24 @@ export function DashboardHeader() {
         </span>
       </div>
 
-      {/* Profile Dropdown - Avatar Only */}
-      <DropdownMenu>
+      {/* Profile Dropdown - Avatar + Chevron */}
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center justify-center w-9 h-9 rounded-full bg-[#4A26ED] hover:bg-[#3a1ebd] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/30 focus:ring-offset-2">
-            <span className="text-sm font-bold text-white">
-              {getInitial()}
-            </span>
+          <button className="flex items-center gap-1.5 px-1 py-1 rounded-full hover:bg-[#F2F9FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:ring-offset-2 group">
+            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#4A26ED] group-hover:bg-[#3a1ebd] transition-colors">
+              <span className="text-sm font-bold text-white">
+                {getInitial()}
+              </span>
+            </div>
+            <ChevronDown 
+              size={14} 
+              className={`text-slate-400 group-hover:text-[#040042] transition-all duration-200 ${
+                isOpen ? "rotate-180" : "rotate-0"
+              }`}
+            />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48 bg-white border-[#E8F2FB]">
+        <DropdownMenuContent align="end" className="w-48 bg-white border-[#E8F2FB] shadow-lg">
           <DropdownMenuItem asChild className="cursor-pointer text-[#040042] hover:text-[#040042] text-sm py-2.5">
             <Link to="/settings" className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
