@@ -49,8 +49,8 @@ export function OnboardingCards({ onSyncClick, onRegisterClick }: OnboardingCard
           className="group relative bg-white border border-[#E8F2FB] rounded-2xl p-6 text-left hover:border-[#4A26ED]/40 hover:shadow-lg hover:shadow-[#4A26ED]/5 transition-all duration-300"
         >
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#D1009A]/10 to-[#4A26ED]/10 flex items-center justify-center shrink-0 group-hover:from-[#D1009A]/20 group-hover:to-[#4A26ED]/20 transition-colors">
-              <FileUp size={26} className="text-[#D1009A]" />
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center shrink-0 group-hover:from-[#4A26ED]/20 group-hover:to-[#7C3AED]/20 transition-colors">
+              <FileUp size={26} className="text-[#4A26ED]" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2">
@@ -68,7 +68,7 @@ export function OnboardingCards({ onSyncClick, onRegisterClick }: OnboardingCard
             </div>
           </div>
           {/* Subtle gradient overlay on hover */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#D1009A]/0 to-[#4A26ED]/0 group-hover:from-[#D1009A]/[0.02] group-hover:to-[#4A26ED]/[0.02] transition-all duration-300 pointer-events-none" />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#4A26ED]/0 to-[#7C3AED]/0 group-hover:from-[#4A26ED]/[0.02] group-hover:to-[#7C3AED]/[0.02] transition-all duration-300 pointer-events-none" />
         </button>
       </div>
     </motion.div>

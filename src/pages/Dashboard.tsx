@@ -74,6 +74,23 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single">("choice");
+
+  // Handlers to open specific modal views
+  const openPublicationSync = () => {
+    setModalInitialView("publication");
+    setIsAddModalOpen(true);
+  };
+
+  const openSingleWork = () => {
+    setModalInitialView("single");
+    setIsAddModalOpen(true);
+  };
+
+  const openRegisterModal = () => {
+    setModalInitialView("choice");
+    setIsAddModalOpen(true);
+  };
 
   // Fetch assets from Supabase
   const fetchAssets = async () => {
@@ -211,7 +228,7 @@ export default function Dashboard() {
             </div>
 
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={openRegisterModal}
               className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-10 px-5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-[#4A26ED]/20"
             >
               <Plus size={18} />
@@ -347,7 +364,9 @@ export default function Dashboard() {
                 onDelete={handleDelete}
                 onBulkDelete={handleBulkDelete}
                 isLoading={isLoading}
-                onAddClick={() => setIsAddModalOpen(true)}
+                onAddClick={openRegisterModal}
+                onSyncClick={openPublicationSync}
+                onRegisterClick={openSingleWork}
                 showPulse={assets.length === 0 && !isLoading}
               />
             )}
@@ -359,6 +378,7 @@ export default function Dashboard() {
       <RegisterContentModal 
         open={isAddModalOpen} 
         onOpenChange={setIsAddModalOpen}
+        initialView={modalInitialView}
         onSuccess={() => {
           fetchAssets();
           toast({
