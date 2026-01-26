@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RegistryView } from "./RegistryView";
+import { OnboardingCards } from "./OnboardingCards";
 import {
   Table,
   TableBody,
@@ -66,6 +68,7 @@ interface SmartLibraryTableProps {
   onBulkDelete?: (ids: string[]) => void;
   isLoading?: boolean;
   onAddClick?: () => void;
+  onSyncClick?: () => void;
   showPulse?: boolean;
 }
 
@@ -137,8 +140,10 @@ export function SmartLibraryTable({
   onBulkDelete, 
   isLoading = false,
   onAddClick,
+  onSyncClick,
   showPulse = false
 }: SmartLibraryTableProps) {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -274,34 +279,23 @@ export function SmartLibraryTable({
           )}
         </div>
 
-        {/* Demo Mode Banner - Only show in table view */}
+        {/* Onboarding Cards - Only show when no real assets */}
         <TabsContent value="table" className="mt-0">
           {isShowingDemo && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4 bg-gradient-to-r from-[#040042]/5 to-[#4A26ED]/5 border border-[#4A26ED]/20 rounded-xl p-4 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
-                  <AlertCircle size={20} className="text-[#4A26ED]" />
-                </div>
-                <div>
-                  <p className="text-[#040042] font-semibold text-sm">Viewing Demo Data</p>
-                  <p className="text-[#040042]/60 text-xs">Add your first asset to start tracking real transactions.</p>
-                </div>
-              </div>
-              {onAddClick && (
-                <Button
-                  onClick={onAddClick}
-                  className={`bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20 ${
-                    showPulse ? 'animate-pulse' : ''
-                  }`}
-                >
-                  Add Your First Asset
-                </Button>
-              )}
-            </motion.div>
+            <OnboardingCards 
+              onSyncClick={() => {
+                if (onSyncClick) {
+                  onSyncClick();
+                } else {
+                  navigate("/integrations");
+                }
+              }}
+              onRegisterClick={() => {
+                if (onAddClick) {
+                  onAddClick();
+                }
+              }}
+            />
           )}
 
           <div className={`bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-75' : ''}`}>

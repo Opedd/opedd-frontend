@@ -22,7 +22,7 @@ export function EmptyState({ onAddClick }: EmptyStateProps) {
       </div>
 
       <h3 className="text-[#040042] font-semibold text-lg mb-2">
-        Your Smart Library is Empty
+        Your Licensing Hub is Empty
       </h3>
       <p className="text-[#040042]/50 text-sm max-w-sm text-center">
         Register your first content asset to start earning from human citations and AI model access

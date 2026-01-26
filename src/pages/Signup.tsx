@@ -180,12 +180,12 @@ export default function Signup() {
               >
                 <SelectValue placeholder="Select your organization type" className="text-[#040042]/40" />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-[#040042]/10 shadow-lg rounded-xl z-50">
+              <SelectContent className="bg-white border border-[#E8F2FB] shadow-xl rounded-xl z-50">
                 {organizationTypes.map((type) => (
                   <SelectItem 
                     key={type} 
                     value={type}
-                    className="text-[#040042] cursor-pointer focus:bg-[#4A26ED] focus:text-white hover:bg-[#4A26ED]/10 rounded-lg my-0.5"
+                    className="text-[#040042] cursor-pointer data-[highlighted]:bg-[#4A26ED] data-[highlighted]:text-white hover:bg-[#F2F9FF] rounded-lg my-0.5 transition-colors"
                   >
                     {type}
                   </SelectItem>
