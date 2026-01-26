@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2 } from "lucide-react";
+import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -55,7 +55,37 @@ interface SmartLibraryTableProps {
   assets: Asset[];
   onDelete: (id: string) => void;
   onBulkDelete?: (ids: string[]) => void;
+  isLoading?: boolean;
+  onAddClick?: () => void;
 }
+
+// Sample data for demo mode
+const sampleAssets: Asset[] = [
+  {
+    id: "sample-1",
+    title: "The Future of AI Governance",
+    licenseType: "both",
+    status: "active",
+    revenue: 149.97,
+    createdAt: "2025-01-20",
+  },
+  {
+    id: "sample-2",
+    title: "Climate Policy Framework Analysis",
+    licenseType: "human",
+    status: "minted",
+    revenue: 24.95,
+    createdAt: "2025-01-18",
+  },
+  {
+    id: "sample-3",
+    title: "Machine Learning Case Studies",
+    licenseType: "ai",
+    status: "pending",
+    revenue: 0,
+    createdAt: "2025-01-15",
+  },
+];
 
 const getLicenseLabel = (type: Asset["licenseType"]) => {
   switch (type) {
@@ -88,7 +118,13 @@ const getStatusConfig = (status: Asset["status"]) => {
   }
 };
 
-export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibraryTableProps) {
+export function SmartLibraryTable({ 
+  assets, 
+  onDelete, 
+  onBulkDelete, 
+  isLoading = false,
+  onAddClick 
+}: SmartLibraryTableProps) {
   const { toast } = useToast();
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -105,24 +141,37 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
   const [bulkHumanPrice, setBulkHumanPrice] = useState("4.99");
   const [bulkAiPrice, setBulkAiPrice] = useState("49.99");
 
+  // Determine if showing demo data
+  const isShowingDemo = !isLoading && assets.length === 0;
+  const displayAssets = isShowingDemo ? sampleAssets : assets;
+
   const handleManageClick = (asset: Asset) => {
+    if (isShowingDemo) {
+      toast({
+        title: "Demo Mode",
+        description: "Add your first asset to manage real content.",
+      });
+      return;
+    }
     setSelectedAsset(asset);
     setIsSettingsOpen(true);
   };
 
-  // Selection handlers
-  const isAllSelected = assets.length > 0 && selectedIds.size === assets.length;
-  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < assets.length;
+  // Selection handlers - disabled for demo
+  const isAllSelected = !isShowingDemo && displayAssets.length > 0 && selectedIds.size === displayAssets.length;
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < displayAssets.length;
 
   const handleSelectAll = (checked: boolean) => {
+    if (isShowingDemo) return;
     if (checked) {
-      setSelectedIds(new Set(assets.map((a) => a.id)));
+      setSelectedIds(new Set(displayAssets.map((a) => a.id)));
     } else {
       setSelectedIds(new Set());
     }
   };
 
   const handleSelectOne = (id: string, checked: boolean) => {
+    if (isShowingDemo) return;
     const newSet = new Set(selectedIds);
     if (checked) {
       newSet.add(id);
@@ -169,9 +218,44 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
     setSelectedIds(new Set());
   };
 
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm p-12 flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-[#4A26ED]" />
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden">
+      {/* Demo Mode Banner */}
+      {isShowingDemo && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 bg-gradient-to-r from-[#040042]/5 to-[#4A26ED]/5 border border-[#4A26ED]/20 rounded-xl p-4 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
+              <AlertCircle size={20} className="text-[#4A26ED]" />
+            </div>
+            <div>
+              <p className="text-[#040042] font-semibold text-sm">Viewing Demo Data</p>
+              <p className="text-[#040042]/60 text-xs">Add your first asset to start tracking real transactions.</p>
+            </div>
+          </div>
+          {onAddClick && (
+            <Button
+              onClick={onAddClick}
+              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+            >
+              Add Your First Asset
+            </Button>
+          )}
+        </motion.div>
+      )}
+
+      <div className={`bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-75' : ''}`}>
         <Table>
           <TableHeader>
             <TableRow className="border-[#E8F2FB] bg-[#F2F9FF]/50 hover:bg-[#F2F9FF]/50">
@@ -179,6 +263,7 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
               <TableHead className="w-12 pl-4">
                 <Checkbox
                   checked={isAllSelected}
+                  disabled={isShowingDemo}
                   ref={(el) => {
                     if (el) {
                       (el as HTMLButtonElement & { indeterminate?: boolean }).indeterminate = isSomeSelected;
@@ -204,9 +289,10 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
             </TableRow>
           </TableHeader>
           <TableBody>
-            {assets.map((asset) => {
+            {displayAssets.map((asset) => {
               const statusConfig = getStatusConfig(asset.status);
               const isSelected = selectedIds.has(asset.id);
+              const isDemo = asset.id.startsWith('sample-');
               return (
                 <TableRow
                   key={asset.id}
@@ -219,6 +305,7 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
                   <TableCell className="pl-4">
                     <Checkbox
                       checked={isSelected}
+                      disabled={isShowingDemo}
                       onCheckedChange={(checked) => handleSelectOne(asset.id, !!checked)}
                       className="border-slate-300 data-[state=checked]:bg-[#4A26ED] data-[state=checked]:border-[#4A26ED]"
                     />
@@ -232,7 +319,7 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
                         <Image size={18} className="text-[#040042]/30" />
                       </div>
                       
-                      {/* Asset Name with Shield */}
+                      {/* Asset Name with Shield + Demo Badge */}
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-[#040042] text-sm">
                           {asset.title}
@@ -242,6 +329,11 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
                             size={14}
                             className="text-[#4A26ED] fill-[#4A26ED]/10"
                           />
+                        )}
+                        {isDemo && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#040042]/40 border-[#040042]/20">
+                            Demo
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -299,13 +391,15 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
                           <Settings className="mr-2 h-4 w-4 text-[#4A26ED]" />
                           Asset Settings
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50"
-                          onClick={() => onDelete(asset.id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
+                        {!isShowingDemo && (
+                          <DropdownMenuItem
+                            className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50"
+                            onClick={() => onDelete(asset.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -318,7 +412,7 @@ export function SmartLibraryTable({ assets, onDelete, onBulkDelete }: SmartLibra
 
       {/* Floating Bulk Action Bar */}
       <AnimatePresence>
-        {selectedIds.size > 0 && (
+        {selectedIds.size > 0 && !isShowingDemo && (
           <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { TransactionReceiptDrawer } from "@/components/dashboard/TransactionReceiptDrawer";
-import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Sparkline } from "@/components/dashboard/Sparkline";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Wallet, 
@@ -15,12 +15,12 @@ import {
   FileCheck, 
   Sparkles, 
   User, 
-  Link2,
   Shield,
   ArrowUpRight,
   Download,
   Trophy,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import {
   Table,
@@ -48,81 +48,47 @@ interface Transaction {
   licenseTerms?: string;
 }
 
-const mockTransactions: Transaction[] = [
+// Sample transactions for demo mode
+const sampleTransactions: Transaction[] = [
   { 
-    id: "TXN-001", 
+    id: "DEMO-001", 
     type: "ai_ingestion", 
     description: "AI Training License - OpenAI GPT-4", 
     amount: 49.99, 
     date: "2025-01-23", 
     status: "settled",
     assetTitle: "The Future of Quantum Computing",
-    assetId: "asset-001",
+    assetId: "sample-001",
     storyProtocolHash: "0x7f9fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91385",
     licenseeEmail: "training@openai.com",
-    licenseTerms: "Non-exclusive license for AI model training. Valid for 12 months from date of purchase. Includes rights to process, analyze, and learn from the content for machine learning purposes."
+    licenseTerms: "Non-exclusive license for AI model training. Valid for 12 months from date of purchase."
   },
   { 
-    id: "TXN-002", 
+    id: "DEMO-002", 
     type: "human_license", 
     description: "Human Republication - Academic Journal", 
     amount: 4.99, 
     date: "2025-01-22", 
     status: "settled",
     assetTitle: "Climate Policy Framework Analysis",
-    assetId: "asset-002",
+    assetId: "sample-002",
     fromDirectLink: true,
     storyProtocolHash: "0x3e8fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91123",
     licenseeEmail: "editor@nature.com",
-    licenseTerms: "Single-use republication license for academic purposes. Attribution required. Valid for one publication."
+    licenseTerms: "Single-use republication license for academic purposes."
   },
   { 
-    id: "TXN-003", 
-    type: "payout", 
-    description: "Monthly Payout to Stripe", 
-    amount: -250.00, 
-    date: "2025-01-20", 
-    status: "settled"
-  },
-  { 
-    id: "TXN-004", 
+    id: "DEMO-003", 
     type: "ai_ingestion", 
     description: "AI Training License - Anthropic Claude", 
     amount: 49.99, 
     date: "2025-01-19", 
     status: "processing",
     assetTitle: "Neural Network Architecture Patterns",
-    assetId: "asset-003",
+    assetId: "sample-003",
     storyProtocolHash: "0x9a1fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91456",
     licenseeEmail: "data@anthropic.com",
-    licenseTerms: "Non-exclusive license for AI model training. Pending confirmation from Story Protocol network."
-  },
-  { 
-    id: "TXN-005", 
-    type: "human_license", 
-    description: "Human Republication - News Outlet", 
-    amount: 4.99, 
-    date: "2025-01-18", 
-    status: "settled",
-    assetTitle: "Global Economic Outlook 2025",
-    assetId: "asset-004",
-    fromDirectLink: true,
-    storyProtocolHash: "0x2b4fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91789",
-    licenseeEmail: "licensing@reuters.com",
-    licenseTerms: "Single-use republication license for news distribution. Full attribution required."
-  },
-  { 
-    id: "TXN-006", 
-    type: "ai_ingestion", 
-    description: "AI Training License - Google DeepMind", 
-    amount: 99.99, 
-    date: "2025-01-17", 
-    status: "disputed",
-    assetTitle: "Reinforcement Learning Case Studies",
-    assetId: "asset-005",
-    storyProtocolHash: "0x5c7fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91abc",
-    licenseeEmail: "research@deepmind.com",
-    licenseTerms: "License under review due to usage scope clarification request."
+    licenseTerms: "Non-exclusive license for AI model training. Pending confirmation."
   },
 ];
 
@@ -162,19 +128,92 @@ export default function Ledger() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  // Fetch transactions from Supabase
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("transactions")
+          .select(`
+            id,
+            created_at,
+            asset_id,
+            amount,
+            license_type,
+            status,
+            story_protocol_hash,
+            buyer_email,
+            assets (
+              title
+            )
+          `)
+          .eq("publisher_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching transactions:", error);
+          toast({
+            title: "Connection Error",
+            description: "Unable to load transactions. Showing demo data.",
+            variant: "destructive",
+          });
+          setTransactions([]);
+        } else if (data && data.length > 0) {
+          // Map database transactions to UI format
+          const mappedTransactions: Transaction[] = data.map((tx: any) => ({
+            id: tx.id,
+            type: tx.license_type === "ai" ? "ai_ingestion" : "human_license",
+            description: tx.license_type === "ai" 
+              ? `AI Training License` 
+              : `Human Republication License`,
+            amount: Number(tx.amount),
+            date: new Date(tx.created_at).toISOString().split("T")[0],
+            status: tx.status === "settled" ? "settled" : tx.status === "disputed" ? "disputed" : "processing",
+            assetTitle: tx.assets?.title || "Unknown Asset",
+            assetId: tx.asset_id,
+            storyProtocolHash: tx.story_protocol_hash,
+            licenseeEmail: tx.buyer_email,
+            licenseTerms: tx.license_type === "ai" 
+              ? "Non-exclusive license for AI model training. Valid for 12 months."
+              : "Single-use republication license. Attribution required."
+          }));
+          setTransactions(mappedTransactions);
+        } else {
+          setTransactions([]);
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setTransactions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [user, toast]);
+
+  // Determine which data to display
+  const isShowingDemo = !isLoading && transactions.length === 0;
+  const displayTransactions = isShowingDemo ? sampleTransactions : transactions;
 
   // Calculate metrics
   const metrics = useMemo(() => {
-    const totalRevenue = mockTransactions
+    const totalRevenue = displayTransactions
       .filter(t => t.amount > 0)
       .reduce((sum, t) => sum + t.amount, 0);
     
-    const activeLicenses = mockTransactions.filter(t => 
+    const activeLicenses = displayTransactions.filter(t => 
       t.type !== "payout" && t.status === "settled"
     ).length;
 
     // Find top asset by revenue
-    const assetRevenue = mockTransactions
+    const assetRevenue = displayTransactions
       .filter(t => t.assetTitle && t.amount > 0)
       .reduce((acc, t) => {
         if (t.assetTitle) {
@@ -190,10 +229,10 @@ export default function Ledger() {
       activeLicenses,
       topAsset: topAsset ? { name: topAsset[0], revenue: topAsset[1] } : null
     };
-  }, []);
+  }, [displayTransactions]);
 
   // Check if there are any transactions (excluding payouts for empty state)
-  const hasTransactions = mockTransactions.filter(t => t.type !== "payout").length > 0;
+  const hasTransactions = displayTransactions.filter(t => t.type !== "payout").length > 0;
 
   if (!user) return null;
 
@@ -214,7 +253,7 @@ export default function Ledger() {
 
     // Create CSV content
     const headers = ["ID", "Type", "Asset Name", "Buyer Type", "Amount", "Date", "Status"];
-    const rows = mockTransactions.map(tx => [
+    const rows = displayTransactions.map(tx => [
       tx.id,
       tx.type,
       tx.assetTitle || "—",
@@ -236,7 +275,7 @@ export default function Ledger() {
     setIsExporting(false);
     toast({
       title: "Export complete!",
-      description: "Your transaction report has been downloaded.",
+      description: isShowingDemo ? "Demo data exported." : "Your transaction report has been downloaded.",
     });
   };
 
@@ -313,6 +352,20 @@ export default function Ledger() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
+        <DashboardSidebar />
+        <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+          <DashboardHeader />
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 size={40} className="animate-spin text-[#4A26ED]" />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
       <DashboardSidebar />
@@ -343,7 +396,7 @@ export default function Ledger() {
             
             <Button
               onClick={handleExportCSV}
-              disabled={isExporting || !hasTransactions}
+              disabled={isExporting}
               className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3d1ecc] hover:to-[#6b2ed4] text-white font-medium px-5 h-11 rounded-xl shadow-md hover:shadow-lg transition-all"
             >
               {isExporting ? (
@@ -360,6 +413,30 @@ export default function Ledger() {
             </Button>
           </motion.div>
 
+          {/* Demo Mode Banner */}
+          {isShowingDemo && (
+            <motion.div
+              variants={itemVariants}
+              className="bg-gradient-to-r from-[#040042]/5 to-[#4A26ED]/5 border border-[#4A26ED]/20 rounded-xl p-4 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
+                  <AlertCircle size={20} className="text-[#4A26ED]" />
+                </div>
+                <div>
+                  <p className="text-[#040042] font-semibold text-sm">Viewing Demo Data</p>
+                  <p className="text-[#040042]/60 text-xs">Add your first asset to start tracking real transactions.</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => navigate("/dashboard")}
+                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+              >
+                Go to Library
+              </Button>
+            </motion.div>
+          )}
+
           {/* Metric Cards Row */}
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-3 gap-6"
@@ -373,7 +450,7 @@ export default function Ledger() {
                   <TrendingUp size={24} className="text-white/80" />
                   <Sparkline value={metrics.totalRevenue} className="opacity-80" />
                 </div>
-                <p className="text-white/70 text-sm font-medium">Total Revenue</p>
+                <p className="text-white/70 text-sm font-medium">Total Revenue {isShowingDemo && "(Demo)"}</p>
                 <p className="text-3xl font-bold mt-1">${metrics.totalRevenue.toFixed(2)}</p>
               </div>
             </div>
@@ -386,16 +463,16 @@ export default function Ledger() {
                   Active
                 </Badge>
               </div>
-              <p className="text-[#040042]/60 text-sm font-medium">Active Licenses</p>
+              <p className="text-[#040042]/60 text-sm font-medium">Active Licenses {isShowingDemo && "(Demo)"}</p>
               <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.activeLicenses}</p>
               <div className="mt-2 flex items-center gap-4 text-sm">
                 <span className="flex items-center gap-1.5">
                   <Sparkles size={14} className="text-[#4A26ED]" />
-                  <span className="text-[#040042]/60">AI: {mockTransactions.filter(t => t.type === "ai_ingestion" && t.status === "settled").length}</span>
+                  <span className="text-[#040042]/60">AI: {displayTransactions.filter(t => t.type === "ai_ingestion" && t.status === "settled").length}</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <User size={14} className="text-[#D1009A]" />
-                  <span className="text-[#040042]/60">Human: {mockTransactions.filter(t => t.type === "human_license" && t.status === "settled").length}</span>
+                  <span className="text-[#040042]/60">Human: {displayTransactions.filter(t => t.type === "human_license" && t.status === "settled").length}</span>
                 </span>
               </div>
             </div>
@@ -408,7 +485,7 @@ export default function Ledger() {
                   Top Performer
                 </Badge>
               </div>
-              <p className="text-[#040042]/60 text-sm font-medium">Top Asset</p>
+              <p className="text-[#040042]/60 text-sm font-medium">Top Asset {isShowingDemo && "(Demo)"}</p>
               {metrics.topAsset ? (
                 <>
                   <p className="text-lg font-bold text-[#040042] mt-1 truncate" title={metrics.topAsset.name}>
@@ -426,10 +503,10 @@ export default function Ledger() {
 
           {/* Transaction History or Empty State */}
           <motion.div variants={itemVariants}>
-            {!hasTransactions ? (
+            {!hasTransactions && !isShowingDemo ? (
               <EmptyState onAddClick={() => navigate("/dashboard")} />
             ) : (
-              <div className="bg-white rounded-2xl border border-[#E8F2FB] shadow-sm overflow-hidden">
+              <div className={`bg-white rounded-2xl border border-[#E8F2FB] shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-90' : ''}`}>
                 <div className="p-6 border-b border-[#E8F2FB] flex items-center justify-between">
                   <div>
                     <h2 className="font-bold text-[#040042] text-lg">Transaction History</h2>
@@ -453,55 +530,57 @@ export default function Ledger() {
                   </TableHeader>
                   <TableBody>
                     <AnimatePresence>
-                      {mockTransactions.map((tx, index) => (
-                        <motion.tr
-                          key={tx.id}
-                          variants={rowVariants}
-                          initial="hidden"
-                          animate="visible"
-                          transition={{ delay: index * 0.05 }}
-                          className="border-[#E8F2FB] cursor-pointer hover:bg-slate-50/80 transition-colors group"
-                          onClick={() => handleRowClick(tx)}
-                        >
-                          <TableCell>
-                            {getTypeIcon(tx.type)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {tx.assetTitle ? (
-                                <span className="font-medium text-[#040042] text-sm group-hover:text-[#4A26ED] transition-colors">
-                                  {tx.assetTitle}
+                      {displayTransactions.map((tx, index) => {
+                        const isDemo = tx.id.startsWith('DEMO-');
+                        return (
+                          <motion.tr
+                            key={tx.id}
+                            variants={rowVariants}
+                            initial="hidden"
+                            animate="visible"
+                            transition={{ delay: index * 0.05 }}
+                            className="border-[#E8F2FB] cursor-pointer hover:bg-slate-50/80 transition-colors group"
+                            onClick={() => handleRowClick(tx)}
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                {getTypeIcon(tx.type)}
+                                <div>
+                                  <p className="font-medium text-[#040042] text-sm">{tx.description}</p>
+                                  {tx.fromDirectLink && (
+                                    <p className="text-[#040042]/40 text-xs">via Direct Link</p>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[#040042] font-medium text-sm">{tx.assetTitle || "—"}</span>
+                                {isDemo && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#040042]/40 border-[#040042]/20">
+                                    Demo
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>{getBuyerTypeBadge(tx.type)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Sparkline value={tx.amount > 0 ? tx.amount : 0} />
+                                <span className={`font-semibold tabular-nums ${
+                                  tx.amount > 0 ? "text-emerald-600" : "text-slate-600"
+                                }`}>
+                                  {tx.amount >= 0 ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
                                 </span>
-                              ) : (
-                                <span className="text-slate-400 text-sm">—</span>
-                              )}
-                              {tx.fromDirectLink && (
-                                <Badge className="bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-50 text-xs px-1.5 py-0 h-5">
-                                  <Link2 size={10} className="mr-1" />
-                                  Direct
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {getBuyerTypeBadge(tx.type)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <span className={`font-semibold text-sm ${
-                                tx.amount > 0 ? "text-emerald-600" : "text-[#040042]"
-                              }`}>
-                                {tx.amount > 0 ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
-                              </span>
-                              <Sparkline value={tx.amount > 0 ? tx.amount : 0} />
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-[#040042]/60 text-sm">{tx.date}</TableCell>
-                          <TableCell>
-                            {getStatusBadge(tx.status)}
-                          </TableCell>
-                        </motion.tr>
-                      ))}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-[#040042]/60 text-sm">{tx.date}</span>
+                            </TableCell>
+                            <TableCell>{getStatusBadge(tx.status)}</TableCell>
+                          </motion.tr>
+                        );
+                      })}
                     </AnimatePresence>
                   </TableBody>
                 </Table>
@@ -511,10 +590,11 @@ export default function Ledger() {
         </motion.div>
       </main>
 
+      {/* Transaction Receipt Drawer */}
       <TransactionReceiptDrawer
-        transaction={selectedTransaction}
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
+        transaction={selectedTransaction}
       />
     </div>
   );
