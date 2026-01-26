@@ -145,26 +145,31 @@ export default function Settings() {
         <DashboardHeader />
 
         <div className="p-8 max-w-4xl w-full mx-auto space-y-8">
-          {/* Page Header */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#040042]/5 rounded-xl flex items-center justify-center">
-              <SettingsIcon size={24} className="text-[#040042]" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-[#040042]">Account Settings</h1>
-              <p className="text-[#040042]/60 text-sm">Manage your publisher profile, team, and payouts</p>
+          {/* Page Header with Breadcrumb */}
+          <div>
+            <p className="text-sm text-[#040042]/50 mb-1">
+              Organization / <span className="text-[#040042]/70">{companyName}</span>
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-[#040042]/5 rounded-xl flex items-center justify-center">
+                <SettingsIcon size={24} className="text-[#040042]" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-[#040042]">Settings</h1>
+                <p className="text-[#040042]/60 text-sm">Manage your account, team, and billing preferences</p>
+              </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="general" className="w-full">
+          <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-white border border-[#E8F2FB] rounded-xl p-1 h-auto">
               <TabsTrigger 
-                value="general" 
+                value="profile" 
                 className="flex items-center gap-2 py-3 data-[state=active]:bg-[#040042] data-[state=active]:text-white rounded-lg transition-all"
               >
                 <User size={16} />
-                <span className="hidden sm:inline">General</span>
+                <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="team" 
@@ -174,23 +179,23 @@ export default function Settings() {
                 <span className="hidden sm:inline">Team</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="payouts" 
+                value="billing" 
                 className="flex items-center gap-2 py-3 data-[state=active]:bg-[#040042] data-[state=active]:text-white rounded-lg transition-all"
               >
                 <CreditCard size={16} />
-                <span className="hidden sm:inline">Payouts</span>
+                <span className="hidden sm:inline">Billing & Payouts</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="developers" 
+                value="developer" 
                 className="flex items-center gap-2 py-3 data-[state=active]:bg-[#040042] data-[state=active]:text-white rounded-lg transition-all"
               >
                 <Code size={16} />
-                <span className="hidden sm:inline">Developers</span>
+                <span className="hidden sm:inline">Developer</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* TAB 1: General & Profile */}
-            <TabsContent value="general" className="space-y-6 mt-6">
+            {/* TAB 1: Profile */}
+            <TabsContent value="profile" className="space-y-6 mt-6">
               {/* Publisher Profile */}
               <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-6">
@@ -363,8 +368,8 @@ export default function Settings() {
               </div>
             </TabsContent>
 
-            {/* TAB 3: Payouts */}
-            <TabsContent value="payouts" className="space-y-6 mt-6">
+            {/* TAB 3: Billing & Payouts */}
+            <TabsContent value="billing" className="space-y-6 mt-6">
               {/* Stripe Featured Card */}
               <div className="bg-gradient-to-br from-[#635BFF] to-[#8B5CF6] rounded-xl p-6 text-white">
                 <div className="flex items-center justify-between mb-4">
@@ -491,8 +496,8 @@ export default function Settings() {
               </div>
             </TabsContent>
 
-            {/* TAB 4: Developers */}
-            <TabsContent value="developers" className="space-y-6 mt-6">
+            {/* TAB 4: Developer */}
+            <TabsContent value="developer" className="space-y-6 mt-6">
               {/* API Keys */}
               <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-6">
