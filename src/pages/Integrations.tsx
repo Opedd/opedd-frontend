@@ -3,17 +3,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { 
-  Zap, 
   Shield, 
-  Palette, 
-  Link2, 
   Copy, 
   Check, 
-  ExternalLink,
   Rss,
   Globe,
-  FileText,
-  ChevronRight
+  Plug,
+  Code2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -27,38 +23,39 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-interface CMSPlatform {
+interface CMSSource {
   id: string;
   name: string;
-  icon: React.ReactNode;
+  logo: React.ReactNode;
   description: string;
   connected: boolean;
-  setupSteps: string[];
+  feedUrl?: string;
+  licensePrice?: string;
 }
 
-const WordPressIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+// High-quality brand logos as SVG components
+const SubstackLogo = () => (
+  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="#FF6719">
+    <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24l9.54-5.49L20.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/>
+  </svg>
+);
+
+const WordPressLogo = () => (
+  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="#21759B">
     <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zM3.443 12c0-.812.118-1.596.336-2.336l3.693 10.112A8.567 8.567 0 013.443 12zm8.557 8.557c-.936 0-1.836-.152-2.678-.43l2.844-8.26 2.912 7.984c.02.046.042.09.066.132a8.524 8.524 0 01-3.144.574zm1.301-12.54c.57-.03 1.084-.09 1.084-.09.51-.06.45-.81-.06-.78 0 0-1.534.12-2.524.12-.93 0-2.49-.12-2.49-.12-.51-.03-.57.75-.06.78 0 0 .48.06.99.09l1.47 4.032-2.064 6.192-3.434-10.224c.57-.03 1.084-.09 1.084-.09.51-.06.45-.81-.06-.78 0 0-1.534.12-2.524.12-.178 0-.388-.004-.612-.01A8.528 8.528 0 0112 3.443c2.274 0 4.348.888 5.89 2.336-.038-.002-.074-.008-.114-.008-.93 0-1.59.81-1.59 1.68 0 .78.45 1.44.93 2.22.36.63.78 1.44.78 2.61 0 .81-.312 1.752-.72 3.066l-.948 3.168-3.426-10.194zM15.033 19.2l2.892-8.352c.54-1.35.72-2.43.72-3.39 0-.348-.024-.672-.066-.978A8.544 8.544 0 0120.557 12a8.552 8.552 0 01-5.524 7.2z"/>
   </svg>
 );
 
-const GhostIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-    <path d="M12 2C7.582 2 4 5.582 4 10v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4v-8c0-4.418-3.582-8-8-8zm-3.5 14a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3.5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3.5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
+const GhostLogo = () => (
+  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="#15171A">
+    <path d="M12 2a8 8 0 00-8 8v8a4 4 0 004 4 2 2 0 002-2v-2a2 2 0 014 0v2a2 2 0 002 2 4 4 0 004-4v-8a8 8 0 00-8-8zm-3 11a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm6 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
   </svg>
 );
 
-const SubstackIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-    <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24l9.54-5.49L20.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/>
+const MediumLogo = () => (
+  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="#000000">
+    <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
   </svg>
 );
 
@@ -66,121 +63,92 @@ export default function Integrations() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // CMS State
-  const [platforms, setPlatforms] = useState<CMSPlatform[]>([
+  // CMS Sources State
+  const [sources, setSources] = useState<CMSSource[]>([
+    {
+      id: "substack",
+      name: "Substack",
+      logo: <SubstackLogo />,
+      description: "Import your newsletter archive automatically",
+      connected: true,
+      feedUrl: "alice-gray.substack.com",
+      licensePrice: "4.99"
+    },
     {
       id: "wordpress",
       name: "WordPress",
-      icon: <WordPressIcon />,
-      description: "Connect your WordPress site with our plugin",
+      logo: <WordPressLogo />,
+      description: "Sync posts from your WordPress blog",
       connected: false,
-      setupSteps: [
-        "Download the Opedd WordPress plugin from our dashboard",
-        "Go to Plugins → Add New → Upload Plugin in your WordPress admin",
-        "Activate the plugin and navigate to Settings → Opedd",
-        "Paste your Publisher API Key and click 'Connect'",
-        "Choose which post types to protect (posts, pages, custom types)"
-      ]
     },
     {
       id: "ghost",
       name: "Ghost",
-      icon: <GhostIcon />,
-      description: "Integrate with your Ghost publication",
+      logo: <GhostLogo />,
+      description: "Connect your Ghost publication",
       connected: false,
-      setupSteps: [
-        "Go to your Ghost Admin → Settings → Integrations",
-        "Click 'Add custom integration' and name it 'Opedd'",
-        "Copy the Content API Key and Admin API Key",
-        "Paste both keys in the fields below",
-        "Click 'Verify & Connect' to complete setup"
-      ]
     },
     {
-      id: "substack",
-      name: "Substack",
-      icon: <SubstackIcon />,
-      description: "Protect your Substack newsletter content",
-      connected: true,
-      setupSteps: [
-        "Copy your Substack publication URL (e.g., yourname.substack.com)",
-        "Paste the URL in the field below",
-        "We'll automatically sync your public posts",
-        "Add the Opedd verification token to your Substack About page",
-        "Click 'Verify Ownership' to complete the connection"
-      ]
-    },
-    {
-      id: "rss",
-      name: "RSS Feed",
-      icon: <Rss size={24} />,
-      description: "Connect any RSS-compatible platform",
+      id: "medium",
+      name: "Medium",
+      logo: <MediumLogo />,
+      description: "Import your Medium articles",
       connected: false,
-      setupSteps: [
-        "Locate your publication's RSS feed URL",
-        "Paste the feed URL in the field below",
-        "We'll parse and import your content automatically",
-        "Add our verification meta tag to your site's <head>",
-        "Articles will sync every 6 hours automatically"
-      ]
     }
   ]);
   
-  const [selectedPlatform, setSelectedPlatform] = useState<CMSPlatform | null>(null);
-  const [setupDialogOpen, setSetupDialogOpen] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<CMSSource | null>(null);
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false);
+  const [feedUrl, setFeedUrl] = useState("");
+  const [licensePrice, setLicensePrice] = useState("4.99");
   
-  // Widget Customizer State
-  const [widgetText, setWidgetText] = useState("License This Content");
-  const [widgetColor, setWidgetColor] = useState("#4A26ED");
+  // Widget State
   const [codeCopied, setCodeCopied] = useState(false);
   
   // AI Policy State
-  const [aiPolicyEnabled, setAiPolicyEnabled] = useState(true);
+  const [aiDefenseEnabled, setAiDefenseEnabled] = useState(true);
 
   if (!user) return null;
 
-  const handleConnect = (platform: CMSPlatform) => {
-    setSelectedPlatform(platform);
-    setSetupDialogOpen(true);
+  const handleConnect = (source: CMSSource) => {
+    setSelectedSource(source);
+    setFeedUrl(source.feedUrl || "");
+    setLicensePrice(source.licensePrice || "4.99");
+    setConnectDialogOpen(true);
   };
 
-  const handleCompleteSetup = () => {
-    if (selectedPlatform) {
-      setPlatforms(prev => 
-        prev.map(p => 
-          p.id === selectedPlatform.id 
-            ? { ...p, connected: true } 
-            : p
+  const handleSaveConnection = () => {
+    if (selectedSource) {
+      setSources(prev => 
+        prev.map(s => 
+          s.id === selectedSource.id 
+            ? { ...s, connected: true, feedUrl, licensePrice } 
+            : s
         )
       );
       toast({
-        title: "Connected Successfully",
-        description: `${selectedPlatform.name} has been connected to your account.`,
+        title: "Source Connected",
+        description: `${selectedSource.name} is now syncing your content.`,
       });
-      setSetupDialogOpen(false);
+      setConnectDialogOpen(false);
     }
   };
 
-  const handleDisconnect = (platformId: string) => {
-    setPlatforms(prev =>
-      prev.map(p =>
-        p.id === platformId
-          ? { ...p, connected: false }
-          : p
+  const handleDisconnect = (sourceId: string) => {
+    setSources(prev =>
+      prev.map(s =>
+        s.id === sourceId
+          ? { ...s, connected: false, feedUrl: undefined, licensePrice: undefined }
+          : s
       )
     );
-    const platform = platforms.find(p => p.id === platformId);
     toast({
       title: "Disconnected",
-      description: `${platform?.name} has been disconnected.`,
+      description: "Source has been removed from your account.",
     });
   };
 
-  const widgetCode = `<script src="https://opedd.io/widget.js" 
-  data-text="${widgetText}"
-  data-color="${widgetColor}"
-  data-publisher-id="${user.id?.slice(0, 8)}">
-</script>`;
+  const widgetCode = `<script src="https://opedd.io/widget.js" data-publisher="${user.id?.slice(0, 8)}"></script>`;
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(widgetCode);
@@ -192,13 +160,7 @@ export default function Integrations() {
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
-  const colorPresets = [
-    { name: "Oxford Blue", value: "#4A26ED" },
-    { name: "Deep Navy", value: "#040042" },
-    { name: "Plum", value: "#D1009A" },
-    { name: "Emerald", value: "#059669" },
-    { name: "Slate", value: "#475569" },
-  ];
+  const connectedCount = sources.filter(s => s.connected).length;
 
   return (
     <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
@@ -207,359 +169,313 @@ export default function Integrations() {
       <main className="flex-1 flex flex-col h-screen overflow-y-auto">
         <DashboardHeader />
 
-        <div className="p-8 max-w-5xl w-full mx-auto space-y-8">
+        <div className="p-8 max-w-5xl w-full mx-auto space-y-10">
           {/* Page Header */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#4A26ED]/10 rounded-xl flex items-center justify-center">
-              <Zap size={24} className="text-[#4A26ED]" />
+            <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg">
+              <Plug size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[#040042]">Publisher Tools</h1>
-              <p className="text-[#040042]/60 text-sm">Connect your CMS, customize your widget, and manage AI access</p>
+              <h1 className="text-2xl font-bold text-[#040042]">Publisher Automation Hub</h1>
+              <p className="text-[#040042]/60 text-sm">Connect your content sources and manage IP protection</p>
             </div>
           </div>
 
-          {/* Section 1: Connect your CMS */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Globe size={18} className="text-[#4A26ED]" />
-              <h2 className="font-bold text-[#040042]">Connect Your CMS</h2>
+          {/* Section 1: CMS Connectors (Inbound) */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Rss size={18} className="text-[#4A26ED]" />
+                <h2 className="font-bold text-[#040042]">Content Sources</h2>
+              </div>
+              <span className="text-sm text-[#040042]/50">
+                {connectedCount} of {sources.length} connected
+              </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {platforms.map((platform) => (
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {sources.map((source) => (
                 <div 
-                  key={platform.id}
-                  className="bg-white rounded-xl border border-[#E8F2FB] p-5 shadow-sm hover:shadow-md transition-all"
+                  key={source.id}
+                  className={`bg-white rounded-xl border p-5 transition-all hover:shadow-md ${
+                    source.connected 
+                      ? "border-[#4A26ED]/30 shadow-sm" 
+                      : "border-[#E8F2FB]"
+                  }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        platform.connected 
-                          ? "bg-[#4A26ED]/10 text-[#4A26ED]" 
-                          : "bg-slate-100 text-slate-400"
-                      }`}>
-                        {platform.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-[#040042]">{platform.name}</h3>
-                          {platform.connected && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 text-emerald-600 rounded-full">
-                              Connected
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-[#040042]/60 mt-1">{platform.description}</p>
-                      </div>
+                  <div className="flex flex-col items-center text-center space-y-3">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
+                      source.connected ? "bg-slate-50" : "bg-slate-100"
+                    }`}>
+                      {source.logo}
                     </div>
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    {platform.connected ? (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleConnect(platform)}
-                          className="text-[#040042]/70"
-                        >
-                          <FileText size={14} className="mr-1" />
-                          View Setup
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDisconnect(platform.id)}
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                        >
-                          Disconnect
-                        </Button>
-                      </>
+                    <div>
+                      <h3 className="font-semibold text-[#040042]">{source.name}</h3>
+                      <p className="text-xs text-[#040042]/50 mt-1">{source.description}</p>
+                    </div>
+                    
+                    {source.connected ? (
+                      <div className="w-full space-y-2">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                          <span className="text-xs font-medium text-emerald-600">Syncing</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleConnect(source)}
+                            className="flex-1 text-xs h-8"
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDisconnect(source.id)}
+                            className="text-xs h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
                     ) : (
                       <Button 
                         size="sm"
-                        onClick={() => handleConnect(platform)}
-                        className="bg-[#040042] hover:bg-[#040042]/90 text-white"
+                        onClick={() => handleConnect(source)}
+                        className="w-full bg-[#040042] hover:bg-[#040042]/90 text-white h-9"
                       >
                         Connect
-                        <ChevronRight size={14} className="ml-1" />
                       </Button>
                     )}
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Section 2: Web Widget Setup */}
-          <div className="space-y-4">
+          {/* Section 2: The Opedd Widget (Outbound) */}
+          <section className="space-y-4">
             <div className="flex items-center gap-2">
-              <Palette size={18} className="text-[#D1009A]" />
-              <h2 className="font-bold text-[#040042]">Web Widget Setup</h2>
+              <Code2 size={18} className="text-[#D1009A]" />
+              <h2 className="font-bold text-[#040042]">Site-Wide Protection Widget</h2>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Widget Controls */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm space-y-5">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#040042]">Button Text</Label>
-                  <Select value={widgetText} onValueChange={setWidgetText}>
-                    <SelectTrigger className="border-slate-200">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="License This Content">License This Content</SelectItem>
-                      <SelectItem value="Buy IP Rights">Buy IP Rights</SelectItem>
-                      <SelectItem value="Request License">Request License</SelectItem>
-                      <SelectItem value="Get Usage Rights">Get Usage Rights</SelectItem>
-                      <SelectItem value="Republish This">Republish This</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#040042]">Primary Color</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {colorPresets.map((color) => (
-                      <button
-                        key={color.value}
-                        onClick={() => setWidgetColor(color.value)}
-                        className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                          widgetColor === color.value 
-                            ? "border-[#040042] scale-110" 
-                            : "border-transparent hover:scale-105"
-                        }`}
-                        style={{ backgroundColor: color.value }}
-                        title={color.name}
-                      />
-                    ))}
-                    <Input
-                      type="color"
-                      value={widgetColor}
-                      onChange={(e) => setWidgetColor(e.target.value)}
-                      className="w-8 h-8 p-0 border-0 cursor-pointer"
-                    />
+            
+            <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden">
+              <div className="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#E8F2FB]">
+                {/* Live Preview */}
+                <div className="p-6">
+                  <Label className="text-sm font-semibold text-[#040042] block mb-4">Live Preview</Label>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-8 min-h-[200px] flex flex-col items-center justify-center">
+                    {/* Simulated Article Content */}
+                    <div className="bg-white rounded-lg shadow-sm p-6 w-full max-w-sm">
+                      <div className="h-2.5 w-20 bg-slate-200 rounded mb-3" />
+                      <div className="h-4 w-4/5 bg-slate-300 rounded mb-2" />
+                      <div className="space-y-1.5 mb-5">
+                        <div className="h-2 w-full bg-slate-100 rounded" />
+                        <div className="h-2 w-full bg-slate-100 rounded" />
+                        <div className="h-2 w-3/4 bg-slate-100 rounded" />
+                      </div>
+                      
+                      {/* The Widget Button - Purple Pill */}
+                      <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                        <button className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-[#4A26ED]/25 hover:shadow-xl hover:shadow-[#4A26ED]/30 transition-all hover:-translate-y-0.5">
+                          <Shield size={15} />
+                          License with Opedd
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Trust Badge */}
+                    <div className="mt-5 flex items-center gap-2 text-xs text-slate-400">
+                      <Shield size={12} className="text-[#4A26ED]" />
+                      <span>IP Rights Protected • Story Protocol</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#040042]">Embed Code</Label>
+                {/* Code Block */}
+                <div className="p-6">
+                  <Label className="text-sm font-semibold text-[#040042] block mb-4">Embed Code</Label>
+                  <p className="text-sm text-[#040042]/60 mb-4">
+                    Add this script to your website's <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono">&lt;head&gt;</code> or before the closing <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono">&lt;/body&gt;</code> tag.
+                  </p>
+                  
                   <div className="relative">
-                    <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg text-xs overflow-x-auto font-mono">
-                      <code>{widgetCode}</code>
+                    <pre className="bg-[#040042] text-slate-100 p-5 rounded-xl text-sm overflow-x-auto font-mono leading-relaxed">
+                      <code className="text-emerald-400">{widgetCode}</code>
                     </pre>
                     <Button
                       size="sm"
                       onClick={handleCopyCode}
-                      className="absolute top-2 right-2 bg-slate-700 hover:bg-slate-600 text-white h-8"
+                      className="absolute top-3 right-3 bg-white/10 hover:bg-white/20 text-white border-0 h-8"
                     >
                       {codeCopied ? (
                         <>
-                          <Check size={14} className="mr-1" />
+                          <Check size={14} className="mr-1.5" />
                           Copied
                         </>
                       ) : (
                         <>
-                          <Copy size={14} className="mr-1" />
+                          <Copy size={14} className="mr-1.5" />
                           Copy
                         </>
                       )}
                     </Button>
                   </div>
-                </div>
-              </div>
-
-              {/* Live Preview */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                <Label className="text-sm font-semibold text-[#040042] block mb-4">Live Preview</Label>
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 min-h-[280px] flex flex-col">
-                  {/* Simulated Article */}
-                  <div className="bg-white rounded-lg shadow-sm p-5 flex-1">
-                    <div className="h-3 w-24 bg-slate-200 rounded mb-3" />
-                    <div className="h-5 w-3/4 bg-slate-300 rounded mb-2" />
-                    <div className="space-y-2 mb-4">
-                      <div className="h-2 w-full bg-slate-100 rounded" />
-                      <div className="h-2 w-full bg-slate-100 rounded" />
-                      <div className="h-2 w-5/6 bg-slate-100 rounded" />
-                    </div>
-                    
-                    {/* Widget Preview */}
-                    <div className="border-t border-slate-100 pt-4 mt-auto">
-                      <div className="flex items-center gap-3">
-                        <button
-                          className="px-4 py-2.5 rounded-lg text-white text-sm font-semibold flex items-center gap-2 shadow-lg transition-all hover:scale-105"
-                          style={{ backgroundColor: widgetColor }}
-                        >
-                          <Shield size={16} />
-                          {widgetText}
-                        </button>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                          Protected by Opedd
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                   
-                  {/* Trust Badge */}
-                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
-                    <Shield size={12} className="text-[#4A26ED]" />
-                    <span>Verified IP Protection • Story Protocol Secured</span>
+                  <div className="mt-4 p-3 bg-[#4A26ED]/5 rounded-lg border border-[#4A26ED]/10">
+                    <p className="text-xs text-[#040042]/70">
+                      <strong className="text-[#4A26ED]">Pro tip:</strong> The widget automatically detects content on the page and displays licensing options to visitors.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Section 3: AI Crawler Policy */}
-          <div className="space-y-4">
+          {/* Section 3: AI Defense Policy */}
+          <section className="space-y-4">
             <div className="flex items-center gap-2">
               <Shield size={18} className="text-[#4A26ED]" />
-              <h2 className="font-bold text-[#040042]">AI Crawler Policy</h2>
+              <h2 className="font-bold text-[#040042]">AI Defense Policy</h2>
             </div>
-            <div className="bg-gradient-to-r from-[#040042] to-[#1a1a6c] rounded-xl p-6 shadow-lg">
+            
+            <div className="bg-gradient-to-br from-[#040042] via-[#0a0a5c] to-[#040042] rounded-xl p-6 shadow-xl">
               <div className="flex items-start justify-between gap-6">
                 <div className="flex gap-4">
-                  <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Shield size={28} className="text-white" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-[#4A26ED] to-[#7C3AED] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#4A26ED]/30">
+                    <Shield size={26} className="text-white" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-white">Enforce Story Protocol Licensing</h3>
-                    <p className="text-sm text-white/70 max-w-lg">
-                      Automatically notifies AI crawlers of your licensing fees and blocks unauthorized scraping. 
-                      Your content will only be used for AI training if models pay your specified ingestion fee.
+                    <h3 className="text-lg font-bold text-white">Global AI Rights Enforcement</h3>
+                    <p className="text-sm text-white/60 max-w-md leading-relaxed">
+                      When enabled, Opedd automatically updates your headers and robots.txt to block scrapers that do not pay your required licensing fees.
                     </p>
-                    <div className="flex items-center gap-4 pt-2">
-                      <div className="flex items-center gap-2 text-xs text-white/50">
-                        <span className="w-2 h-2 bg-emerald-400 rounded-full" />
-                        robots.txt updated
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-white/50">
-                        <span className="w-2 h-2 bg-emerald-400 rounded-full" />
-                        ai.txt configured
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-white/50">
-                        <span className="w-2 h-2 bg-emerald-400 rounded-full" />
-                        Story Protocol registered
-                      </div>
-                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
                   <Switch
-                    checked={aiPolicyEnabled}
+                    checked={aiDefenseEnabled}
                     onCheckedChange={(checked) => {
-                      setAiPolicyEnabled(checked);
+                      setAiDefenseEnabled(checked);
                       toast({
-                        title: checked ? "AI Protection Enabled" : "AI Protection Disabled",
+                        title: checked ? "AI Defense Activated" : "AI Defense Disabled",
                         description: checked 
                           ? "Your content is now protected from unauthorized AI scraping."
-                          : "AI crawlers can now access your content without licensing.",
+                          : "AI crawlers can access your content freely.",
                       });
                     }}
-                    className="data-[state=checked]:bg-emerald-500"
+                    className="data-[state=checked]:bg-emerald-500 scale-110"
                   />
-                  <span className="text-xs text-white/50">
-                    {aiPolicyEnabled ? "Protection Active" : "Protection Disabled"}
+                  <span className="text-xs text-white/40 mt-1">
+                    {aiDefenseEnabled ? "Active" : "Disabled"}
                   </span>
                 </div>
               </div>
               
-              {aiPolicyEnabled && (
-                <div className="mt-6 pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-white">47</div>
-                        <div className="text-xs text-white/50">Crawl Attempts</div>
-                      </div>
-                      <div className="w-px h-8 bg-white/10" />
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-emerald-400">$2,847</div>
-                        <div className="text-xs text-white/50">Fees Collected</div>
-                      </div>
-                      <div className="w-px h-8 bg-white/10" />
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-red-400">12</div>
-                        <div className="text-xs text-white/50">Blocked</div>
+              {aiDefenseEnabled && (
+                <div className="mt-6 pt-5 border-t border-white/10">
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full" />
+                      <div>
+                        <div className="text-xs text-white/40">robots.txt</div>
+                        <div className="text-sm font-semibold text-white">Updated</div>
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                    >
-                      <ExternalLink size={14} className="mr-2" />
-                      View Activity Log
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full" />
+                      <div>
+                        <div className="text-xs text-white/40">ai.txt headers</div>
+                        <div className="text-sm font-semibold text-white">Configured</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full" />
+                      <div>
+                        <div className="text-xs text-white/40">Story Protocol</div>
+                        <div className="text-sm font-semibold text-white">Registered</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </main>
 
-      {/* Setup Dialog */}
-      <Dialog open={setupDialogOpen} onOpenChange={setSetupDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+      {/* Connect Source Dialog */}
+      <Dialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-[#040042]">
-              {selectedPlatform && (
-                <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 text-[#4A26ED] flex items-center justify-center">
-                  {selectedPlatform.icon}
+              {selectedSource && (
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                  {selectedSource.logo}
                 </div>
               )}
-              Connect {selectedPlatform?.name}
+              Connect {selectedSource?.name}
             </DialogTitle>
             <DialogDescription>
-              Follow these steps to integrate Opedd with your {selectedPlatform?.name} publication.
+              Enter your feed URL and set a default license price for imported content.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            {selectedPlatform?.setupSteps.map((step, index) => (
-              <div key={index} className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#4A26ED]/10 text-[#4A26ED] flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                  {index + 1}
-                </div>
-                <p className="text-sm text-[#040042]/80 pt-0.5">{step}</p>
+          <div className="space-y-5 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-[#040042]">Feed URL</Label>
+              <Input 
+                value={feedUrl}
+                onChange={(e) => setFeedUrl(e.target.value)}
+                placeholder={
+                  selectedSource?.id === "substack" ? "yourname.substack.com" :
+                  selectedSource?.id === "medium" ? "medium.com/@yourname" :
+                  selectedSource?.id === "ghost" ? "yourblog.ghost.io" :
+                  "yoursite.com/feed"
+                }
+                className="border-slate-200 h-11"
+              />
+              <p className="text-xs text-[#040042]/50">
+                We'll automatically detect and sync your content
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-[#040042]">Global License Price</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#040042]/50 font-medium">$</span>
+                <Input 
+                  type="number"
+                  value={licensePrice}
+                  onChange={(e) => setLicensePrice(e.target.value)}
+                  placeholder="4.99"
+                  className="border-slate-200 h-11 pl-7"
+                  step="0.01"
+                  min="0"
+                />
               </div>
-            ))}
+              <p className="text-xs text-[#040042]/50">
+                Applied to all future posts from this source
+              </p>
+            </div>
           </div>
 
-          {/* Platform-specific input */}
-          {selectedPlatform && !selectedPlatform.connected && (
-            <div className="space-y-3 pt-2">
-              <Label className="text-sm font-semibold text-[#040042]">
-                {selectedPlatform.id === "rss" ? "RSS Feed URL" : 
-                 selectedPlatform.id === "substack" ? "Substack URL" :
-                 selectedPlatform.id === "ghost" ? "Ghost Admin URL" :
-                 "WordPress Site URL"}
-              </Label>
-              <Input 
-                placeholder={
-                  selectedPlatform.id === "rss" ? "https://yoursite.com/feed.xml" :
-                  selectedPlatform.id === "substack" ? "https://yourname.substack.com" :
-                  selectedPlatform.id === "ghost" ? "https://yourblog.ghost.io" :
-                  "https://yoursite.com"
-                }
-                className="border-slate-200"
-              />
-            </div>
-          )}
-
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <Button 
               variant="outline" 
-              onClick={() => setSetupDialogOpen(false)}
+              onClick={() => setConnectDialogOpen(false)}
               className="flex-1"
             >
               Cancel
             </Button>
             <Button 
-              onClick={handleCompleteSetup}
+              onClick={handleSaveConnection}
+              disabled={!feedUrl}
               className="flex-1 bg-[#040042] hover:bg-[#040042]/90 text-white"
             >
-              {selectedPlatform?.connected ? "Done" : "Complete Setup"}
+              {selectedSource?.connected ? "Save Changes" : "Connect Source"}
             </Button>
           </div>
         </DialogContent>
