@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Ledger from "./pages/Ledger";
 import Integrations from "./pages/Integrations";
 import Settings from "./pages/Settings";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/ledger" element={<Ledger />} />
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/checkout/:assetId" element={<Checkout />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
