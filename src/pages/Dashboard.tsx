@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2 } from "lucide-react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
@@ -24,36 +25,150 @@ interface Asset {
   createdAt: string;
 }
 
-const mockAssets: Asset[] = [
-  { id: "1", title: "The Future of AI Governance", licenseType: "both", status: "active", revenue: 124.50, createdAt: "2025-01-20" },
-  { id: "2", title: "Understanding Machine Learning", licenseType: "ai", status: "minted", revenue: 89.99, createdAt: "2025-01-18" },
-  { id: "3", title: "Content Monetization Strategies", licenseType: "human", status: "pending", revenue: 0, createdAt: "2025-01-15" },
-  { id: "4", title: "Web3 Publishing Standards", licenseType: "both", status: "active", revenue: 56.00, createdAt: "2025-01-12" },
-  { id: "5", title: "Digital Rights Management Guide", licenseType: "ai", status: "pending", revenue: 0, createdAt: "2025-01-10" },
-];
-
 type StatusFilter = "all" | "active" | "pending" | "minted";
+
+// Map database asset to UI asset format
+const mapDbAssetToUiAsset = (dbAsset: {
+  id: string;
+  title: string;
+  human_price: number | null;
+  ai_price: number | null;
+  licensing_enabled: boolean | null;
+  total_revenue: number | null;
+  created_at: string | null;
+}): Asset => {
+  // Determine license type based on pricing
+  let licenseType: "human" | "ai" | "both" = "both";
+  const hasHuman = (dbAsset.human_price ?? 0) > 0;
+  const hasAi = (dbAsset.ai_price ?? 0) > 0;
+  if (hasHuman && hasAi) licenseType = "both";
+  else if (hasHuman) licenseType = "human";
+  else if (hasAi) licenseType = "ai";
+
+  // Determine status
+  let status: "active" | "pending" | "minted" = "pending";
+  if (dbAsset.licensing_enabled) {
+    status = (dbAsset.total_revenue ?? 0) > 0 ? "minted" : "active";
+  }
+
+  return {
+    id: dbAsset.id,
+    title: dbAsset.title,
+    licenseType,
+    status,
+    revenue: dbAsset.total_revenue ?? 0,
+    createdAt: dbAsset.created_at?.split("T")[0] ?? "",
+  };
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [assets, setAssets] = useState<Asset[]>(mockAssets);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  if (!user) return null;
+  // Fetch assets from Supabase
+  const fetchAssets = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("assets")
+        .select("id, title, human_price, ai_price, licensing_enabled, total_revenue, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-  const handleDelete = (id: string) => {
-    setAssets((prev) => prev.filter((a) => a.id !== id));
-    toast({
-      title: "Asset Removed",
-      description: "The asset has been deleted from your library",
-    });
+      if (error) {
+        console.error("Error fetching assets:", error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to load assets from the database",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const mappedAssets = (data || []).map(mapDbAssetToUiAsset);
+      setAssets(mappedAssets);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast({
+        title: "Connection Error",
+        description: "Unable to reach the database. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleBulkDelete = (ids: string[]) => {
-    setAssets((prev) => prev.filter((a) => !ids.includes(a.id)));
+  useEffect(() => {
+    fetchAssets();
+  }, [user]);
+
+  if (!user) return null;
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("assets")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        toast({
+          title: "Delete Failed",
+          description: "Could not remove the asset. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAssets((prev) => prev.filter((a) => a.id !== id));
+      toast({
+        title: "Asset Removed",
+        description: "The asset has been deleted from your library",
+      });
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast({
+        title: "Connection Error",
+        description: "Unable to delete asset. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkDelete = async (ids: string[]) => {
+    try {
+      const { error } = await supabase
+        .from("assets")
+        .delete()
+        .in("id", ids)
+        .eq("user_id", user.id);
+
+      if (error) {
+        toast({
+          title: "Bulk Delete Failed",
+          description: "Could not remove the assets. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAssets((prev) => prev.filter((a) => !ids.includes(a.id)));
+      toast({
+        title: "Assets Removed",
+        description: `${ids.length} assets have been deleted`,
+      });
+    } catch (err) {
+      console.error("Bulk delete error:", err);
+    }
   };
 
   // Apply search and status filters
@@ -174,7 +289,11 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Asset Table */}
             <div className="lg:col-span-2">
-              {filteredAssets.length === 0 && assets.length === 0 ? (
+              {isLoading ? (
+                <div className="bg-white rounded-xl border border-[#E8F2FB] p-12 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#4A26ED]" />
+                </div>
+              ) : filteredAssets.length === 0 && assets.length === 0 ? (
                 <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
               ) : filteredAssets.length === 0 ? (
                 <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
@@ -204,10 +323,10 @@ export default function Dashboard() {
         open={isAddModalOpen} 
         onOpenChange={setIsAddModalOpen}
         onSuccess={() => {
-          // TODO: Refresh assets from backend
+          fetchAssets();
           toast({
-            title: "Asset Added",
-            description: "Your content has been registered successfully",
+            title: "Data Sync Successful",
+            description: "Your content has been registered and synced to the database",
           });
         }}
       />
