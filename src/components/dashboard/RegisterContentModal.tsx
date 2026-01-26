@@ -15,23 +15,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   Rss, 
   FileText, 
-  DollarSign,
   Loader2,
   Shield,
-  Users,
-  Bot,
   X,
   Link2,
   Code,
   Clipboard,
   Check,
   CheckCircle,
-  ExternalLink,
   Upload,
   File,
-  ArrowLeft
+  Globe,
+  Image as ImageIcon,
+  Copy
 } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
+
+// Platform logos
+import substackLogo from "@/assets/platforms/substack.svg";
+import ghostLogo from "@/assets/platforms/ghost.png";
+import wordpressLogo from "@/assets/platforms/wordpress.svg";
+import beehiivLogo from "@/assets/platforms/beehiiv.png";
 
 interface RegisterContentModalProps {
   open: boolean;
@@ -40,25 +44,49 @@ interface RegisterContentModalProps {
   initialView?: "choice" | "publication" | "single";
 }
 
-type ModalView = "choice" | "publication" | "single" | "syncing" | "success";
+type ModalView = "choice" | "publication" | "single" | "syncing" | "pub-success" | "success";
 
 interface MockArticle {
   title: string;
   status: "pending" | "syncing" | "complete";
 }
 
+// Detect platform from URL
+const detectPlatform = (url: string): { name: string; logo: string } | null => {
+  const lowerUrl = url.toLowerCase();
+  if (lowerUrl.includes("substack.com")) return { name: "Substack", logo: substackLogo };
+  if (lowerUrl.includes("ghost.io") || lowerUrl.includes("ghost.org")) return { name: "Ghost", logo: ghostLogo };
+  if (lowerUrl.includes("beehiiv.com")) return { name: "Beehiiv", logo: beehiivLogo };
+  if (lowerUrl.includes("wordpress.com") || lowerUrl.includes("wp.com")) return { name: "WordPress", logo: wordpressLogo };
+  return null;
+};
+
+// Generate verification code
+const generateVerificationCode = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `OPEDD-${code}`;
+};
+
 export function RegisterContentModal({ open, onOpenChange, onSuccess, initialView = "choice" }: RegisterContentModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   
   const [view, setView] = useState<ModalView>(initialView);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [copiedVerification, setCopiedVerification] = useState(false);
   
   // Update view when initialView changes or modal opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setView(initialView);
+      setVerificationCode(generateVerificationCode());
     }
   }, [open, initialView]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredAssetId, setRegisteredAssetId] = useState<string | null>(null);
   const [copiedWidget, setCopiedWidget] = useState(false);
@@ -67,7 +95,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   // Publication sync form
   const [feedUrl, setFeedUrl] = useState("");
   const [pubHumanPrice, setPubHumanPrice] = useState("4.99");
-  const [pubAiPrice, setPubAiPrice] = useState("49.99");
+  const [pubAiPrice, setPubAiPrice] = useState("");
   
   // Syncing state
   const [progress, setProgress] = useState(0);
@@ -82,24 +110,31 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   // Single work form
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [articleUrl, setArticleUrl] = useState("");
   const [humanPrice, setHumanPrice] = useState("4.99");
-  const [aiPrice, setAiPrice] = useState("49.99");
+  const [aiPrice, setAiPrice] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [inputMode, setInputMode] = useState<"file" | "url">("file");
+
+  const detectedPlatform = detectPlatform(feedUrl);
 
   const resetForm = () => {
     setView("choice");
     setFeedUrl("");
     setPubHumanPrice("4.99");
-    setPubAiPrice("49.99");
+    setPubAiPrice("");
     setTitle("");
     setDescription("");
+    setArticleUrl("");
     setHumanPrice("4.99");
-    setAiPrice("49.99");
+    setAiPrice("");
     setUploadedFile(null);
+    setInputMode("file");
     setRegisteredAssetId(null);
     setCopiedWidget(false);
     setCopiedLink(false);
+    setCopiedVerification(false);
     setProgress(0);
     setCurrentArticle(0);
     setArticles(prev => prev.map(a => ({ ...a, status: "pending" })));
@@ -118,7 +153,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval);
-          setTimeout(() => setView("success"), 500);
+          setTimeout(() => setView("pub-success"), 500);
           return 100;
         }
         return prev + 2;
@@ -164,6 +199,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       return;
     }
     setUploadedFile(file);
+    setInputMode("file");
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -191,19 +227,22 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     ? `<script src="https://opedd.io/widget.js" data-asset-id="${registeredAssetId}"></script>` 
     : "";
 
-  const handleCopy = async (text: string, type: "widget" | "link") => {
+  const handleCopy = async (text: string, type: "widget" | "link" | "verification") => {
     try {
       await navigator.clipboard.writeText(text);
       if (type === "widget") {
         setCopiedWidget(true);
         setTimeout(() => setCopiedWidget(false), 2000);
-      } else {
+      } else if (type === "link") {
         setCopiedLink(true);
         setTimeout(() => setCopiedLink(false), 2000);
+      } else {
+        setCopiedVerification(true);
+        setTimeout(() => setCopiedVerification(false), 2000);
       }
       toast({
         title: "Copied!",
-        description: type === "widget" ? "Widget code copied to clipboard" : "Direct link copied to clipboard",
+        description: type === "verification" ? "Verification code copied" : type === "widget" ? "Widget code copied to clipboard" : "Direct link copied to clipboard",
       });
     } catch {
       toast({
@@ -245,7 +284,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           title: `Publication: ${feedUrl}`,
           source_url: feedUrl,
           human_price: parseFloat(pubHumanPrice) || 4.99,
-          ai_price: parseFloat(pubAiPrice) || 49.99,
+          ai_price: pubAiPrice ? parseFloat(pubAiPrice) : null,
           licensing_enabled: true,
           total_revenue: 0,
           human_licenses_sold: 0,
@@ -294,8 +333,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           title: title,
           description: description || null,
           content: description || null,
+          source_url: articleUrl || null,
           human_price: parseFloat(humanPrice) || 4.99,
-          ai_price: parseFloat(aiPrice) || 49.99,
+          ai_price: aiPrice ? parseFloat(aiPrice) : null,
           licensing_enabled: true,
           total_revenue: 0,
           human_licenses_sold: 0,
@@ -337,6 +377,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         return <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" />;
     }
   };
+
+  // Platform icons for display
+  const platformIcons = [
+    { name: "Substack", logo: substackLogo },
+    { name: "Ghost", logo: ghostLogo },
+    { name: "Beehiiv", logo: beehiivLogo },
+    { name: "WordPress", logo: wordpressLogo },
+  ];
 
   // CHOICE VIEW
   if (view === "choice") {
@@ -428,8 +476,24 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
           {/* Form */}
           <div className="p-6 space-y-5">
+            {/* Platform Icons */}
+            <div className="flex items-center justify-center gap-4 pb-2">
+              {platformIcons.map((platform) => (
+                <div
+                  key={platform.name}
+                  className="flex flex-col items-center gap-1.5"
+                  title={platform.name}
+                >
+                  <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center p-1.5 hover:border-[#4A26ED]/40 transition-colors">
+                    <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">{platform.name}</span>
+                </div>
+              ))}
+            </div>
+
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-[#040042]">RSS Feed URL</Label>
+              <Label className="text-sm font-bold text-[#040042]">RSS Feed or Site URL</Label>
               <div className="relative">
                 <Rss size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <Input 
@@ -444,6 +508,32 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               </p>
             </div>
 
+            {/* Preview Card */}
+            {feedUrl.length > 10 && (
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="flex items-center gap-3">
+                  {detectedPlatform ? (
+                    <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center p-2">
+                      <img src={detectedPlatform.logo} alt={detectedPlatform.name} className="w-full h-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-slate-200 flex items-center justify-center">
+                      <Globe size={20} className="text-slate-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#040042] truncate">
+                      {detectedPlatform ? `${detectedPlatform.name} Publication` : "Custom Publication"}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate">{feedUrl}</p>
+                  </div>
+                  <div className="w-16 h-16 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
+                    <ImageIcon size={20} className="text-slate-400" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-slate-50 rounded-xl p-4 space-y-4">
               <div className="flex items-center gap-2">
                 <Shield size={16} className="text-[#4A26ED]" />
@@ -452,7 +542,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">Human Republication</Label>
+                  <Label className="text-xs font-semibold text-[#040042]">Human Republication *</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
                     <Input 
@@ -469,7 +559,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">AI Ingestion</Label>
+                  <Label className="text-xs font-semibold text-[#040042]">AI Ingestion <span className="text-slate-400 font-normal">(optional)</span></Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
                     <Input 
@@ -579,6 +669,92 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     );
   }
 
+  // PUBLICATION SUCCESS VIEW (with verification code)
+  if (view === "pub-success") {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+          {/* Header */}
+          <div className="bg-[#040042] px-6 py-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <img src={opeddLogo} alt="Opedd" className="h-8" />
+                <div className="h-6 w-px bg-white/20" />
+                <div>
+                  <h1 className="text-white font-bold text-lg leading-tight">Publication Linked!</h1>
+                  <p className="text-emerald-400 text-sm">One more step to finalize protection</p>
+                </div>
+              </div>
+              <button
+                onClick={handleClose}
+                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              >
+                <X size={16} className="text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Verification Content */}
+          <div className="p-6 space-y-5">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                <CheckCircle size={32} className="text-emerald-600" />
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-[#040042] mb-2">Verify Your Ownership</h3>
+              <p className="text-sm text-slate-600">
+                To finalize protection, please add the verification code below to your publication bio or site header.
+              </p>
+            </div>
+
+            {/* Verification Code Box */}
+            <div className="bg-[#F2F9FF] border-2 border-[#4A26ED]/20 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Verification Code</p>
+                  <p className="text-2xl font-mono font-bold text-[#4A26ED] tracking-wider">{verificationCode}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleCopy(verificationCode, "verification")}
+                  className="border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/10"
+                >
+                  {copiedVerification ? (
+                    <>
+                      <Check size={14} className="mr-1.5" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} className="mr-1.5" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm text-amber-800">
+                <strong>Where to add it:</strong> Add <code className="bg-amber-100 px-1 rounded">{verificationCode}</code> to your Substack bio, Ghost site description, or your website's header/footer.
+              </p>
+            </div>
+
+            <Button
+              onClick={handleClose}
+              className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // SINGLE WORK VIEW
   if (view === "single") {
     return (
@@ -618,58 +794,104 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-[#040042]">Content (Optional)</Label>
+              <Label className="text-sm font-bold text-[#040042]">Description <span className="text-slate-400 font-normal">(optional)</span></Label>
               <Textarea 
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Paste your article text here..."
-                rows={4}
+                placeholder="Brief summary of your work..."
+                rows={3}
                 className="border-slate-200 text-[#040042] resize-none focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
               />
             </div>
 
-            {/* File Upload */}
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
-                isDragOver 
-                  ? "border-[#4A26ED] bg-[#4A26ED]/5" 
-                  : uploadedFile
-                  ? "border-emerald-300 bg-emerald-50"
-                  : "border-slate-200 hover:border-slate-300"
-              }`}
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              <input
-                id="file-upload"
-                type="file"
-                accept=".pdf,.docx,.txt"
-                onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-                className="hidden"
-              />
-              {uploadedFile ? (
-                <div className="flex items-center justify-center gap-3">
-                  <File size={20} className="text-emerald-600" />
-                  <span className="text-sm font-medium text-emerald-700">{uploadedFile.name}</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setUploadedFile(null);
-                    }}
-                    className="text-slate-400 hover:text-slate-600"
+            {/* Input Mode Toggle */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-bold text-[#040042]">Content Source</Label>
+                <span className="text-xs text-slate-400">(choose one)</span>
+              </div>
+              
+              <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "file" | "url")} className="w-full">
+                <TabsList className="w-full bg-slate-100 p-1 rounded-xl h-10">
+                  <TabsTrigger 
+                    value="file" 
+                    className="flex-1 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm"
                   >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Upload size={24} className="mx-auto text-slate-400 mb-2" />
-                  <p className="text-sm text-slate-600">Drop a file here or click to upload</p>
-                  <p className="text-xs text-slate-400 mt-1">PDF, DOCX, or TXT</p>
-                </>
-              )}
+                    <Upload size={14} className="mr-2" />
+                    Upload File
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="url" 
+                    className="flex-1 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm"
+                  >
+                    <Link2 size={14} className="mr-2" />
+                    Article URL
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="file" className="mt-3">
+                  {/* File Upload */}
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
+                      isDragOver 
+                        ? "border-[#4A26ED] bg-[#4A26ED]/5" 
+                        : uploadedFile
+                        ? "border-emerald-300 bg-emerald-50"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
+                    <input
+                      id="file-upload"
+                      type="file"
+                      accept=".pdf,.docx,.txt"
+                      onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                      className="hidden"
+                    />
+                    {uploadedFile ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <File size={20} className="text-emerald-600" />
+                        <span className="text-sm font-medium text-emerald-700">{uploadedFile.name}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUploadedFile(null);
+                          }}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload size={24} className="mx-auto text-slate-400 mb-2" />
+                        <p className="text-sm text-slate-600">Drop a file here or click to upload</p>
+                        <p className="text-xs text-slate-400 mt-1">PDF, DOCX, or TXT</p>
+                      </>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="url" className="mt-3">
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Input 
+                        value={articleUrl}
+                        onChange={(e) => setArticleUrl(e.target.value)}
+                        placeholder="https://example.com/your-article"
+                        className="border-slate-200 h-12 pl-10 text-[#040042] focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Link to your published article, blog post, or research paper
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
 
             <div className="bg-slate-50 rounded-xl p-4 space-y-4">
@@ -680,7 +902,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">Human Republication</Label>
+                  <Label className="text-xs font-semibold text-[#040042]">Human Republication *</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
                     <Input 
@@ -696,7 +918,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">AI Ingestion</Label>
+                  <Label className="text-xs font-semibold text-[#040042]">AI Ingestion <span className="text-slate-400 font-normal">(optional)</span></Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
                     <Input 
@@ -739,7 +961,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     );
   }
 
-  // SUCCESS VIEW
+  // SUCCESS VIEW (for single work)
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-slate-50 border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
