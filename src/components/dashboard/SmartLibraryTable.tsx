@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List } from "lucide-react";
+import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RegistryView } from "./RegistryView";
 import {
@@ -35,6 +35,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -60,6 +66,7 @@ interface SmartLibraryTableProps {
   onBulkDelete?: (ids: string[]) => void;
   isLoading?: boolean;
   onAddClick?: () => void;
+  showPulse?: boolean;
 }
 
 // Sample data for demo mode
@@ -107,16 +114,19 @@ const getStatusConfig = (status: Asset["status"]) => {
       return {
         label: "Active",
         className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        tooltip: "Licensing is enabled. You can earn from human citations and AI model access.",
       };
     case "pending":
       return {
         label: "Pending",
         className: "bg-amber-50 text-amber-700 border-amber-200",
+        tooltip: "Awaiting review. Your asset will be active once verified.",
       };
     case "minted":
       return {
         label: "Minted",
         className: "bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20",
+        tooltip: "Registering your IP on the Story Protocol blockchain.",
       };
   }
 };
@@ -126,7 +136,8 @@ export function SmartLibraryTable({
   onDelete, 
   onBulkDelete, 
   isLoading = false,
-  onAddClick 
+  onAddClick,
+  showPulse = false
 }: SmartLibraryTableProps) {
   const { toast } = useToast();
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -283,7 +294,9 @@ export function SmartLibraryTable({
               {onAddClick && (
                 <Button
                   onClick={onAddClick}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+                  className={`bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20 ${
+                    showPulse ? 'animate-pulse' : ''
+                  }`}
                 >
                   Add Your First Asset
                 </Button>
@@ -382,14 +395,23 @@ export function SmartLibraryTable({
                     </span>
                   </TableCell>
 
-                  {/* Status Badge */}
+                  {/* Status Badge with Tooltip */}
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs font-medium px-2.5 py-0.5 rounded-full border ${statusConfig.className}`}
-                    >
-                      {statusConfig.label}
-                    </Badge>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs font-medium px-2.5 py-0.5 rounded-full border cursor-help ${statusConfig.className}`}
+                          >
+                            {statusConfig.label}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[200px] text-xs">
+                          <p>{statusConfig.tooltip}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
 
                   {/* Revenue with Sparkline */}
