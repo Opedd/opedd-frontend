@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Rss, 
   FileText, 
@@ -41,6 +43,7 @@ type ModalState = "form" | "success";
 
 export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [modalState, setModalState] = useState<ModalState>("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -167,16 +170,51 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to register assets",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // TODO: Integrate with Supabase backend
-      // Will map humanPrice -> human_price and aiPrice -> ai_price columns
-      await new Promise((r) => setTimeout(r, 2500));
+      // Prepare asset data for Supabase insert
+      const assetData = {
+        user_id: user.id,
+        title: sourceType === "publication" ? `RSS Feed: ${rssUrl}` : title,
+        description: pastedContent || null,
+        source_url: sourceType === "publication" ? rssUrl : null,
+        content: pastedContent || null,
+        human_price: parseFloat(humanPrice) || 4.99,
+        ai_price: parseFloat(aiPrice) || 49.99,
+        licensing_enabled: true,
+        total_revenue: 0,
+        human_licenses_sold: 0,
+        ai_licenses_sold: 0,
+      };
 
-      // Generate a mock asset ID for demo
-      const mockAssetId = crypto.randomUUID();
-      setRegisteredAssetId(mockAssetId);
+      const { data, error } = await supabase
+        .from("assets")
+        .insert(assetData)
+        .select("id")
+        .single();
+
+      if (error) {
+        console.error("Supabase insert error:", error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to save asset to the database. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Use the real asset ID from Supabase
+      setRegisteredAssetId(data.id);
       setModalState("success");
 
       toast({
@@ -186,6 +224,7 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
 
       onSuccess?.();
     } catch (error) {
+      console.error("Unexpected error:", error);
       toast({
         title: "Registration Failed",
         description: "Please try again",
