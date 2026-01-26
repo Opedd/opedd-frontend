@@ -69,6 +69,7 @@ interface SmartLibraryTableProps {
   isLoading?: boolean;
   onAddClick?: () => void;
   onSyncClick?: () => void;
+  onRegisterClick?: () => void;
   showPulse?: boolean;
 }
 
@@ -141,6 +142,7 @@ export function SmartLibraryTable({
   isLoading = false,
   onAddClick,
   onSyncClick,
+  onRegisterClick,
   showPulse = false
 }: SmartLibraryTableProps) {
   const navigate = useNavigate();
@@ -284,14 +286,13 @@ export function SmartLibraryTable({
           {isShowingDemo && (
             <OnboardingCards 
               onSyncClick={() => {
-                // Open the unified modal - it has both options
-                if (onAddClick) {
-                  onAddClick();
+                if (onSyncClick) {
+                  onSyncClick();
                 }
               }}
               onRegisterClick={() => {
-                if (onAddClick) {
-                  onAddClick();
+                if (onRegisterClick) {
+                  onRegisterClick();
                 }
               }}
             />

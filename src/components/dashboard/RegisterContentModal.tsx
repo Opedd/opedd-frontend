@@ -37,6 +37,7 @@ interface RegisterContentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  initialView?: "choice" | "publication" | "single";
 }
 
 type ModalView = "choice" | "publication" | "single" | "syncing" | "success";
@@ -46,11 +47,18 @@ interface MockArticle {
   status: "pending" | "syncing" | "complete";
 }
 
-export function RegisterContentModal({ open, onOpenChange, onSuccess }: RegisterContentModalProps) {
+export function RegisterContentModal({ open, onOpenChange, onSuccess, initialView = "choice" }: RegisterContentModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const [view, setView] = useState<ModalView>("choice");
+  const [view, setView] = useState<ModalView>(initialView);
+  
+  // Update view when initialView changes or modal opens
+  React.useEffect(() => {
+    if (open) {
+      setView(initialView);
+    }
+  }, [open, initialView]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredAssetId, setRegisteredAssetId] = useState<string | null>(null);
   const [copiedWidget, setCopiedWidget] = useState(false);
@@ -397,26 +405,23 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess }: Register
     return (
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
-          {/* Header */}
-          <div className="bg-[#040042] px-6 py-5">
+          {/* Light Header */}
+          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setView("choice")}
-                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                >
-                  <ArrowLeft size={16} className="text-white" />
-                </button>
+                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center">
+                  <Link2 size={24} className="text-[#4A26ED]" />
+                </div>
                 <div>
-                  <h1 className="text-white font-bold text-lg leading-tight">Sync Publication</h1>
-                  <p className="text-[#A78BFA] text-sm">Connect your RSS feed to auto-protect content</p>
+                  <h1 className="text-[#040042] font-bold text-lg leading-tight">Sync Publication</h1>
+                  <p className="text-[#040042]/60 text-sm">Connect your RSS feed to auto-protect content</p>
                 </div>
               </div>
               <button
                 onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
               >
-                <X size={16} className="text-white" />
+                <X size={16} className="text-[#040042]/60" />
               </button>
             </div>
           </div>
@@ -579,26 +584,23 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess }: Register
     return (
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-          {/* Header */}
-          <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
+          {/* Light Header */}
+          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setView("choice")}
-                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                >
-                  <ArrowLeft size={16} className="text-white" />
-                </button>
+                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center">
+                  <Upload size={24} className="text-[#4A26ED]" />
+                </div>
                 <div>
-                  <h1 className="text-white font-bold text-lg leading-tight">Register Single Work</h1>
-                  <p className="text-[#A78BFA] text-sm">Protect an article, PDF, or text</p>
+                  <h1 className="text-[#040042] font-bold text-lg leading-tight">Register Single Work</h1>
+                  <p className="text-[#040042]/60 text-sm">Protect an article, PDF, or text</p>
                 </div>
               </div>
               <button
                 onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
               >
-                <X size={16} className="text-white" />
+                <X size={16} className="text-[#040042]/60" />
               </button>
             </div>
           </div>
