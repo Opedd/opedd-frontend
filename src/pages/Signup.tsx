@@ -271,13 +271,8 @@ export default function Signup() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8">
-            <Link to="/">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-[#4A26ED] rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">o</span>
-                </div>
-                <span className="text-[#040042] text-2xl font-bold">opedd</span>
-              </div>
+            <Link to="/" className="inline-block bg-[#040042] rounded-xl px-4 py-2">
+              <img src={opeddLogo} alt="Opedd" className="h-8" />
             </Link>
           </div>
 
