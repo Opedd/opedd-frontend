@@ -16,10 +16,13 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
-// Mock asset data - in production, this would be fetched from the API
-const mockAssets: Record<string, {
+interface AssetData {
   id: string;
   title: string;
   publisher: string;
@@ -27,24 +30,8 @@ const mockAssets: Record<string, {
   humanPrice: number;
   aiPrice: number;
   thumbnailUrl?: string;
-}> = {
-  "1": {
-    id: "1",
-    title: "The Future of AI Governance",
-    publisher: "Opedd Publishing Co.",
-    description: "A comprehensive analysis of emerging regulatory frameworks for artificial intelligence, exploring the balance between innovation and ethical oversight in the age of machine learning.",
-    humanPrice: 4.99,
-    aiPrice: 49.99,
-  },
-  "2": {
-    id: "2",
-    title: "Understanding Machine Learning",
-    publisher: "Tech Insights Weekly",
-    description: "An accessible guide to the fundamentals of machine learning, covering neural networks, training methodologies, and real-world applications across industries.",
-    humanPrice: 3.99,
-    aiPrice: 39.99,
-  },
-};
+  publisherId: string;
+}
 
 type LicenseType = "human" | "ai";
 type CheckoutState = "selection" | "processing" | "success";
@@ -75,37 +62,158 @@ const cardHoverVariants = {
   hover: { scale: 1.02, boxShadow: "0 8px 30px rgba(74,38,237,0.15)" },
 };
 
+// Generate a mock Story Protocol hash
+const generateStoryProtocolHash = () => {
+  const chars = '0123456789abcdef';
+  let hash = '0x';
+  for (let i = 0; i < 64; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return hash;
+};
+
 export default function Checkout() {
   const { assetId } = useParams<{ assetId: string }>();
-  const [asset, setAsset] = useState<typeof mockAssets[string] | null>(null);
+  const { toast } = useToast();
+  const [asset, setAsset] = useState<AssetData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLicense, setSelectedLicense] = useState<LicenseType>("human");
   const [checkoutState, setCheckoutState] = useState<CheckoutState>("selection");
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [transactionHash, setTransactionHash] = useState("");
 
-  // Simulate fetching asset data
+  // Fetch asset data from Supabase
   useEffect(() => {
     const fetchAsset = async () => {
       setIsLoading(true);
-      // Simulate API delay
-      await new Promise((r) => setTimeout(r, 500));
       
-      if (assetId && mockAssets[assetId]) {
-        setAsset(mockAssets[assetId]);
-      } else {
-        // Default to first asset for demo
-        setAsset(mockAssets["1"]);
+      if (!assetId) {
+        setIsLoading(false);
+        return;
       }
-      setIsLoading(false);
+
+      try {
+        const { data, error } = await supabase
+          .from("assets")
+          .select("id, title, description, human_price, ai_price, thumbnail_url, user_id")
+          .eq("id", assetId)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching asset:", error);
+          toast({
+            title: "Error",
+            description: "Unable to load asset details.",
+            variant: "destructive",
+          });
+        } else if (data) {
+          setAsset({
+            id: data.id,
+            title: data.title,
+            publisher: "Opedd Publisher", // Could fetch from profiles table
+            description: data.description || "Premium licensed content available for human citation and AI training.",
+            humanPrice: Number(data.human_price) || 4.99,
+            aiPrice: Number(data.ai_price) || 49.99,
+            thumbnailUrl: data.thumbnail_url || undefined,
+            publisherId: data.user_id,
+          });
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchAsset();
-  }, [assetId]);
+  }, [assetId, toast]);
 
   const handlePurchase = async () => {
+    if (!asset) return;
+    
+    if (!buyerEmail || !buyerEmail.includes("@")) {
+      toast({
+        title: "Email Required",
+        description: "Please enter a valid email address to receive your license.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCheckoutState("processing");
-    // Simulate blockchain transaction
-    await new Promise((r) => setTimeout(r, 3000));
-    setCheckoutState("success");
+    
+    try {
+      // Generate transaction hash
+      const hash = generateStoryProtocolHash();
+      setTransactionHash(hash);
+      
+      // Simulate blockchain transaction delay
+      await new Promise((r) => setTimeout(r, 2000));
+      
+      // Insert transaction into database
+      const { error } = await supabase
+        .from("transactions")
+        .insert({
+          asset_id: asset.id,
+          publisher_id: asset.publisherId,
+          amount: selectedLicense === "human" ? asset.humanPrice : asset.aiPrice,
+          license_type: selectedLicense,
+          status: "settled",
+          story_protocol_hash: hash,
+          buyer_email: buyerEmail,
+        });
+
+      if (error) {
+        console.error("Transaction insert error:", error);
+        toast({
+          title: "Transaction Failed",
+          description: "Unable to complete the purchase. Please try again.",
+          variant: "destructive",
+        });
+        setCheckoutState("selection");
+        return;
+      }
+
+      // Update asset license counts
+      const updateField = selectedLicense === "human" ? "human_licenses_sold" : "ai_licenses_sold";
+      const priceField = selectedLicense === "human" ? asset.humanPrice : asset.aiPrice;
+      
+      // Fetch current values first
+      const { data: currentAsset } = await supabase
+        .from("assets")
+        .select("human_licenses_sold, ai_licenses_sold, total_revenue")
+        .eq("id", asset.id)
+        .maybeSingle();
+
+      if (currentAsset) {
+        const currentLicenses = selectedLicense === "human" 
+          ? (currentAsset.human_licenses_sold || 0) 
+          : (currentAsset.ai_licenses_sold || 0);
+        const currentRevenue = currentAsset.total_revenue || 0;
+
+        await supabase
+          .from("assets")
+          .update({
+            [updateField]: currentLicenses + 1,
+            total_revenue: Number(currentRevenue) + priceField,
+          })
+          .eq("id", asset.id);
+      }
+
+      setCheckoutState("success");
+      toast({
+        title: "License Secured!",
+        description: "Your transaction has been recorded on the blockchain.",
+      });
+    } catch (err) {
+      console.error("Purchase error:", err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+      setCheckoutState("selection");
+    }
   };
 
   const selectedPrice = selectedLicense === "human" ? asset?.humanPrice : asset?.aiPrice;
@@ -313,9 +421,24 @@ export default function Checkout() {
                   </RadioGroup>
                 </motion.div>
 
-                {/* Purchase Button */}
+                {/* Buyer Email & Purchase */}
                 <motion.div variants={itemVariants}>
                   <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                    {/* Email Input */}
+                    <div className="mb-6">
+                      <Label htmlFor="email" className="text-white/80 text-sm font-medium mb-2 block">
+                        Email Address
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email for license delivery"
+                        value={buyerEmail}
+                        onChange={(e) => setBuyerEmail(e.target.value)}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl focus:border-[#4A26ED] focus:ring-[#4A26ED]/30"
+                      />
+                    </div>
+
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
                       <div>
                         <p className="text-white/50 text-sm">Total Amount</p>
@@ -413,67 +536,60 @@ export default function Checkout() {
 
                 {/* Transaction Details */}
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 w-full max-w-md mb-6">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Transaction ID</span>
-                      <span className="text-white font-mono">0x7a3f...8c2d</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
                       <span className="text-white/50">License Type</span>
-                      <span className="text-white">{selectedLicense === "human" ? "Individual" : "AI Training"}</span>
+                      <span className="text-white font-medium">
+                        {selectedLicense === "human" ? "Individual / Human" : "AI Training"}
+                      </span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between items-center">
                       <span className="text-white/50">Amount Paid</span>
-                      <span className="text-white font-bold">${selectedPrice?.toFixed(2)}</span>
+                      <span className="text-white font-medium">${selectedPrice?.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Status</span>
-                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                        Confirmed
-                      </Badge>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/50">Email</span>
+                      <span className="text-white font-medium truncate max-w-[200px]">{buyerEmail}</span>
+                    </div>
+                    <hr className="border-white/10" />
+                    <div>
+                      <span className="text-white/50 text-sm block mb-1">Story Protocol TX</span>
+                      <code className="text-[#A78BFA] text-xs break-all">{transactionHash}</code>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
                   <Button
-                    className="flex-1 h-12 bg-white text-[#040042] hover:bg-white/90 rounded-xl font-semibold"
+                    variant="outline"
+                    className="flex-1 h-12 border-white/20 text-white bg-white/5 hover:bg-white/10 rounded-xl"
                   >
                     <Download size={18} className="mr-2" />
                     Download Receipt
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-12 border-white/20 text-white hover:bg-white/10 rounded-xl font-semibold"
+                  <a
+                    href={`https://explorer.story.foundation/tx/${transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1"
                   >
-                    <ExternalLink size={18} className="mr-2" />
-                    View on Explorer
-                  </Button>
+                    <Button
+                      className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl"
+                    >
+                      <ExternalLink size={18} className="mr-2" />
+                      View on Explorer
+                    </Button>
+                  </a>
                 </div>
 
-                <Link 
-                  to="/" 
-                  className="text-[#A78BFA] hover:text-white text-sm mt-8 transition-colors"
-                >
-                  Return to Opedd
+                <Link to="/" className="mt-8 text-white/50 hover:text-white text-sm transition-colors">
+                  Return to Opedd Home
                 </Link>
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
       </main>
-
-      {/* Footer */}
-      <footer className="relative z-10 py-6 px-6 border-t border-white/5">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/40">
-          <p>© 2025 Opedd. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition-colors">Terms</a>
-            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors">Support</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

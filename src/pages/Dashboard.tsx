@@ -289,13 +289,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Asset Table */}
             <div className="lg:col-span-2">
-              {isLoading ? (
-                <div className="bg-white rounded-xl border border-[#E8F2FB] p-12 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#4A26ED]" />
-                </div>
-              ) : filteredAssets.length === 0 && assets.length === 0 ? (
-                <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
-              ) : filteredAssets.length === 0 ? (
+              {filteredAssets.length === 0 && assets.length > 0 && !isLoading ? (
                 <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
                   <p className="text-[#040042]/60 text-sm">
                     {searchQuery ? "No assets match your search" : "No assets match this filter"}
@@ -306,6 +300,8 @@ export default function Dashboard() {
                   assets={filteredAssets} 
                   onDelete={handleDelete}
                   onBulkDelete={handleBulkDelete}
+                  isLoading={isLoading}
+                  onAddClick={() => setIsAddModalOpen(true)}
                 />
               )}
             </div>
