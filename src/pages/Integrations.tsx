@@ -237,12 +237,20 @@ export default function Integrations() {
             </div>
           </section>
 
-          {/* Section 2: Widget Customizer */}
+          {/* Section 2: Widget Customizer - Full Featured */}
           <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Palette size={18} className="text-[#D1009A]" />
-              <h2 className="font-bold text-[#040042]">Widget Customizer</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Palette size={18} className="text-[#D1009A]" />
+                <h2 className="font-bold text-[#040042]">Opedd Widget Customizer</h2>
+              </div>
+              <span className="text-xs text-[#040042]/50 bg-[#D1009A]/10 px-2 py-1 rounded-full">
+                Embed on your site
+              </span>
             </div>
+            <p className="text-sm text-[#040042]/60 -mt-2">
+              Design your licensing widget and get the embed code for your website.
+            </p>
             
             <WidgetCustomizer publisherId={user.id?.slice(0, 8) || "publisher"} />
           </section>
