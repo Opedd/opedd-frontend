@@ -4,7 +4,7 @@ import { LayoutDashboard, Wallet, Zap, Settings } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const navItems = [
-  { title: "Assets", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Registry", path: "/dashboard", icon: LayoutDashboard },
   { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Integrations", path: "/integrations", icon: Zap },
   { title: "Settings", path: "/settings", icon: Settings },

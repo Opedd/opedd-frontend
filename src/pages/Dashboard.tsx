@@ -208,7 +208,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <LayoutDashboard size={22} className="text-[#4A26ED]" />
-              <h1 className="text-xl font-bold text-[#040042]">Smart Library</h1>
+              <h1 className="text-xl font-bold text-[#040042]">Licensing Hub</h1>
             </div>
 
             <button
@@ -324,7 +324,7 @@ export default function Dashboard() {
               <TooltipProvider>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#040042]">Smart Library</span>
+                    <span className="text-sm font-semibold text-[#040042]">Licensing Hub</span>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button className="w-5 h-5 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
