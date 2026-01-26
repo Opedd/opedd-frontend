@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle } from "lucide-react";
+import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle, FileText, Rss } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RegistryView } from "./RegistryView";
 import { OnboardingCards } from "./OnboardingCards";
@@ -60,6 +60,8 @@ interface Asset {
   revenue: number;
   createdAt: string;
   storyProtocolHash?: string;
+  format?: "single" | "publication";
+  sourceUrl?: string;
 }
 
 interface SmartLibraryTableProps {
@@ -82,6 +84,7 @@ const sampleAssets: Asset[] = [
     status: "active",
     revenue: 149.97,
     createdAt: "2025-01-20",
+    format: "single",
   },
   {
     id: "sample-2",
@@ -90,6 +93,8 @@ const sampleAssets: Asset[] = [
     status: "minted",
     revenue: 24.95,
     createdAt: "2025-01-18",
+    format: "publication",
+    sourceUrl: "https://example.substack.com",
   },
   {
     id: "sample-3",
@@ -98,6 +103,7 @@ const sampleAssets: Asset[] = [
     status: "pending",
     revenue: 0,
     createdAt: "2025-01-15",
+    format: "single",
   },
 ];
 
@@ -320,6 +326,9 @@ export function SmartLibraryTable({
                 Title
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium">
+                Format
+              </TableHead>
+              <TableHead className="text-[#040042]/60 text-xs font-medium">
                 License Type
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium text-right">
@@ -378,6 +387,23 @@ export function SmartLibraryTable({
                           </Badge>
                         )}
                       </div>
+                    </div>
+                  </TableCell>
+
+                  {/* Format Column */}
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      {asset.format === "publication" || asset.sourceUrl?.includes("substack") || asset.sourceUrl?.includes("ghost") || asset.title.toLowerCase().startsWith("publication:") ? (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                          <Rss size={10} />
+                          Publication Post
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-slate-50 text-slate-600 border-slate-200 gap-1">
+                          <FileText size={10} />
+                          Single Work
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
 
