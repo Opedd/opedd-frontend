@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle } from "lucide-react";
+import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { RegistryView } from "./RegistryView";
 import {
   Table,
   TableBody,
@@ -49,6 +51,7 @@ interface Asset {
   status: "active" | "pending" | "minted";
   revenue: number;
   createdAt: string;
+  storyProtocolHash?: string;
 }
 
 interface SmartLibraryTableProps {
@@ -140,6 +143,9 @@ export function SmartLibraryTable({
   // Price form state
   const [bulkHumanPrice, setBulkHumanPrice] = useState("4.99");
   const [bulkAiPrice, setBulkAiPrice] = useState("49.99");
+  
+  // View mode state
+  const [viewMode, setViewMode] = useState<"table" | "registry">("table");
 
   // Determine if showing demo data
   const isShowingDemo = !isLoading && assets.length === 0;
@@ -228,35 +234,65 @@ export function SmartLibraryTable({
 
   return (
     <>
-      {/* Demo Mode Banner */}
-      {isShowingDemo && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 bg-gradient-to-r from-[#040042]/5 to-[#4A26ED]/5 border border-[#4A26ED]/20 rounded-xl p-4 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
-              <AlertCircle size={20} className="text-[#4A26ED]" />
-            </div>
-            <div>
-              <p className="text-[#040042] font-semibold text-sm">Viewing Demo Data</p>
-              <p className="text-[#040042]/60 text-xs">Add your first asset to start tracking real transactions.</p>
-            </div>
-          </div>
-          {onAddClick && (
-            <Button
-              onClick={onAddClick}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+      {/* View Toggle Tabs */}
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "table" | "registry")} className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <TabsList className="bg-[#F2F9FF] border border-[#E8F2FB] p-1 rounded-xl">
+            <TabsTrigger 
+              value="table" 
+              className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-4 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
             >
-              Add Your First Asset
-            </Button>
-          )}
-        </motion.div>
-      )}
+              <List size={16} />
+              Library
+            </TabsTrigger>
+            <TabsTrigger 
+              value="registry" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#7C3AED] data-[state=active]:to-[#4A26ED] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-[#7C3AED]/20 rounded-lg px-4 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
+            >
+              <LayoutGrid size={16} />
+              Registry View
+            </TabsTrigger>
+          </TabsList>
 
-      <div className={`bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-75' : ''}`}>
-        <Table>
+          {/* Demo Badge */}
+          {isShowingDemo && (
+            <div className="flex items-center gap-2 text-[#040042]/50 text-sm">
+              <AlertCircle size={14} />
+              <span>Demo Mode</span>
+            </div>
+          )}
+        </div>
+
+        {/* Demo Mode Banner - Only show in table view */}
+        <TabsContent value="table" className="mt-0">
+          {isShowingDemo && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 bg-gradient-to-r from-[#040042]/5 to-[#4A26ED]/5 border border-[#4A26ED]/20 rounded-xl p-4 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
+                  <AlertCircle size={20} className="text-[#4A26ED]" />
+                </div>
+                <div>
+                  <p className="text-[#040042] font-semibold text-sm">Viewing Demo Data</p>
+                  <p className="text-[#040042]/60 text-xs">Add your first asset to start tracking real transactions.</p>
+                </div>
+              </div>
+              {onAddClick && (
+                <Button
+                  onClick={onAddClick}
+                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+                >
+                  Add Your First Asset
+                </Button>
+              )}
+            </motion.div>
+          )}
+
+          <div className={`bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-75' : ''}`}>
+            <Table>
           <TableHeader>
             <TableRow className="border-[#E8F2FB] bg-[#F2F9FF]/50 hover:bg-[#F2F9FF]/50">
               {/* Select All Checkbox */}
@@ -407,10 +443,20 @@ export function SmartLibraryTable({
               );
             })}
           </TableBody>
-        </Table>
-      </div>
+            </Table>
+          </div>
+        </TabsContent>
 
-      {/* Floating Bulk Action Bar */}
+        {/* Registry View Tab */}
+        <TabsContent value="registry" className="mt-0">
+          <RegistryView 
+            assets={displayAssets} 
+            isLoading={isLoading} 
+            isDemo={isShowingDemo} 
+            onAddClick={onAddClick}
+          />
+        </TabsContent>
+      </Tabs>
       <AnimatePresence>
         {selectedIds.size > 0 && !isShowingDemo && (
           <motion.div

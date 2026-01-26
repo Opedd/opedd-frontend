@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Activity, DollarSign, FileText, Circle, Loader2, AlertCircle, Bot, CheckCircle2 } from "lucide-react";
+import { Activity, DollarSign, FileText, Circle, Loader2, AlertCircle, Bot, CheckCircle2, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ interface ActivityItem {
   assetTitle?: string;
   isLicensed?: boolean;
   tokenCount?: number;
+  storyProtocolHash?: string;
 }
 
 // AI Bot definitions for realistic detection simulation
@@ -63,13 +64,21 @@ const sampleActivities: ActivityItem[] = [
   },
   {
     id: "demo-4",
+    type: "mint",
+    title: "Asset Registered on Story Protocol",
+    description: "Climate Policy Framework • sp_tx_8829fa21...",
+    time: "45 min ago",
+    storyProtocolHash: "sp_tx_8829fa21b3c7e9d4",
+  },
+  {
+    id: "demo-5",
     type: "royalty",
     title: "Royalty Earned",
     description: "$12.50 from AI licensing",
     time: "1 hour ago",
   },
   {
-    id: "demo-5",
+    id: "demo-6",
     type: "license",
     title: "License Activated",
     description: "Human consumption license sold",
@@ -83,7 +92,7 @@ const getStatusDot = (type: ActivityItem["type"], isLicensed?: boolean) => {
   }
   switch (type) {
     case "mint":
-      return <Circle size={8} className="fill-[#4A26ED] text-[#4A26ED]" />;
+      return <Circle size={8} className="fill-[#7C3AED] text-[#7C3AED]" />;
     case "ai_scrape":
       return <Circle size={8} className="fill-[#4A26ED] text-[#4A26ED]" />;
     case "royalty":
@@ -101,7 +110,7 @@ const getIcon = (type: ActivityItem["type"], isLicensed?: boolean) => {
   }
   switch (type) {
     case "mint":
-      return <FileText size={14} className="text-[#4A26ED]" />;
+      return <Shield size={14} className="text-[#7C3AED]" />;
     case "royalty":
       return <DollarSign size={14} className="text-emerald-500" />;
     case "license":
@@ -203,15 +212,18 @@ export function ActivityFeed() {
           });
         }
 
-        // Map assets to mint activities
+        // Map assets to mint activities with Story Protocol hash
         if (assets && assets.length > 0) {
           assets.forEach((asset: any) => {
+            // Generate a mock Story Protocol hash for the activity
+            const mockHash = `sp_tx_${asset.id.replace(/-/g, '').slice(0, 8)}${Date.now().toString(16).slice(-4)}`;
             combinedActivities.push({
               id: `asset-${asset.id}`,
               type: "mint",
-              title: "Asset Registered",
-              description: asset.title,
+              title: "Asset Registered on Story Protocol",
+              description: `${asset.title} • ${mockHash.slice(0, 12)}...`,
               time: formatTimeAgo(asset.created_at),
+              storyProtocolHash: mockHash,
             });
           });
         }
@@ -307,6 +319,14 @@ export function ActivityFeed() {
                   <div className="flex items-center gap-2 flex-wrap">
                     {getStatusDot(activity.type, activity.isLicensed)}
                     <p className="text-[#040042] font-medium text-sm">{activity.title}</p>
+                    
+                    {/* Story Protocol Badge for minted assets */}
+                    {activity.type === "mint" && activity.storyProtocolHash && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-[#7C3AED] bg-[#7C3AED]/10 px-1.5 py-0.5 rounded-full font-medium border border-[#7C3AED]/20">
+                        <Shield size={10} />
+                        Story IP
+                      </span>
+                    )}
                     
                     {/* IP Verified Badge for licensed AI activity */}
                     {isAIScrape && activity.isLicensed && (
