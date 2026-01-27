@@ -456,7 +456,7 @@ export function SmartLibraryTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-white border border-slate-200 shadow-xl rounded-lg min-w-[160px]"
+                          className="bg-slate-50 border-2 border-slate-300 shadow-2xl rounded-lg min-w-[160px]"
                         >
                           <DropdownMenuItem
                             className="cursor-pointer text-[#040042] hover:bg-[#F2F9FF] focus:bg-[#F2F9FF] focus:text-[#040042]"

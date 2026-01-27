@@ -396,21 +396,22 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
           {/* Header */}
-          <div className="bg-[#040042] px-6 py-5">
+          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <img src={opeddLogo} alt="Opedd" className="h-8" />
-                <div className="h-6 w-px bg-white/20" />
+                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center">
+                  <Shield size={24} className="text-[#4A26ED]" />
+                </div>
                 <div>
-                <h1 className="text-white font-bold text-lg leading-tight">Register Content</h1>
-                  <p className="text-[#A78BFA] text-sm">What are you licensing today?</p>
+                  <h1 className="text-[#040042] font-bold text-lg leading-tight">Register Content</h1>
+                  <p className="text-[#040042]/60 text-sm">What are you licensing today?</p>
                 </div>
               </div>
               <button
                 onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
               >
-                <X size={16} className="text-white" />
+                <X size={16} className="text-[#040042]/60" />
               </button>
             </div>
           </div>
@@ -427,22 +428,22 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 <div>
                   <h3 className="font-bold text-[#040042] text-base mb-1">Sync a Publication</h3>
-                <p className="text-sm text-slate-500">Connect a Newsletter, RSS, or Website to automatically import and license every new post.</p>
+                  <p className="text-sm text-slate-500">Connect a Newsletter, RSS, or Website to automatically import and license every new post.</p>
                 </div>
               </div>
             </button>
 
             <button
               onClick={() => setView("single")}
-              className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 text-left transition-all duration-200 group"
+              className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all duration-200 group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#4A26ED] group-hover:text-white transition-colors">
-                  <Upload size={24} className="text-[#4A26ED] group-hover:text-white" />
+                <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0 group-hover:bg-teal-500 group-hover:text-white transition-colors">
+                  <Upload size={24} className="text-teal-600 group-hover:text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-[#040042] text-base mb-1">Register Single Work</h3>
-                <p className="text-sm text-slate-500">Upload an article, PDF, or text to license a one-off piece of content.</p>
+                  <p className="text-sm text-slate-500">Upload an article, PDF, or text to license a one-off piece of content.</p>
                 </div>
               </div>
             </button>
@@ -500,12 +501,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             <div className="space-y-2">
               <Label className="text-sm font-bold text-[#040042]">RSS Feed or Site URL</Label>
               <div className="relative">
-                <Rss size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Rss size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
                 <Input 
                   value={feedUrl}
                   onChange={(e) => setFeedUrl(e.target.value)}
                   placeholder="https://yourname.substack.com/feed"
-                  className="border-slate-200 h-12 pl-10 text-[#040042] focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                  className="!bg-white !text-[#040042] border-slate-200 h-12 pl-10 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                  style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                 />
               </div>
               <p className="text-xs text-slate-500">
@@ -549,13 +551,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-[#040042]">Human Republication *</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
                     <Input 
                       type="number"
                       value={pubHumanPrice}
                       onChange={(e) => setPubHumanPrice(e.target.value)}
                       placeholder="4.99"
-                      className="border-slate-200 h-11 pl-7 bg-white focus:border-[#4A26ED]"
+                      className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
+                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                       step="0.01"
                       min="0"
                     />
@@ -566,13 +569,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-[#040042]">AI Ingestion <span className="text-slate-400 font-normal">(optional)</span></Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
                     <Input 
                       type="number"
                       value={pubAiPrice}
                       onChange={(e) => setPubAiPrice(e.target.value)}
                       placeholder="49.99"
-                      className="border-slate-200 h-11 pl-7 bg-white focus:border-[#4A26ED]"
+                      className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
+                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                       step="0.01"
                       min="0"
                     />
@@ -662,7 +666,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       {article.title}
                     </span>
                     {article.status === "complete" && (
-                      <span className="text-xs text-emerald-600 font-medium">Protected</span>
+                      <span className="text-xs text-emerald-600 font-medium">Licensed</span>
                     )}
                   </div>
                 ))}
@@ -769,8 +773,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center">
-                  <Upload size={24} className="text-[#4A26ED]" />
+                <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center">
+                  <Upload size={24} className="text-teal-600" />
                 </div>
                 <div>
                   <h1 className="text-[#040042] font-bold text-lg leading-tight">Register Single Work</h1>
@@ -794,7 +798,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., The Future of AI Governance"
-                className="border-slate-200 h-12 text-[#040042] focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
               />
             </div>
 
@@ -805,7 +810,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief summary of your work..."
                 rows={3}
-                className="border-slate-200 text-[#040042] resize-none focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                className="!bg-white !text-[#040042] border-slate-200 resize-none focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
               />
             </div>
 
@@ -883,12 +889,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <TabsContent value="url" className="mt-3">
                   <div className="space-y-2">
                     <div className="relative">
-                      <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
                       <Input 
                         value={articleUrl}
                         onChange={(e) => setArticleUrl(e.target.value)}
                         placeholder="https://example.com/your-article"
-                        className="border-slate-200 h-12 pl-10 text-[#040042] focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                        className="!bg-white !text-[#040042] border-slate-200 h-12 pl-10 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                        style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                       />
                     </div>
                     <p className="text-xs text-slate-500">
@@ -909,13 +916,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-[#040042]">Human Republication *</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
                     <Input 
                       type="number"
                       value={humanPrice}
                       onChange={(e) => setHumanPrice(e.target.value)}
                       placeholder="4.99"
-                      className="border-slate-200 h-11 pl-7 bg-white focus:border-[#4A26ED]"
+                      className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
+                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                       step="0.01"
                       min="0"
                     />
@@ -925,13 +933,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-[#040042]">AI Ingestion <span className="text-slate-400 font-normal">(optional)</span></Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
                     <Input 
                       type="number"
                       value={aiPrice}
                       onChange={(e) => setAiPrice(e.target.value)}
                       placeholder="49.99"
-                      className="border-slate-200 h-11 pl-7 bg-white focus:border-[#4A26ED]"
+                      className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
+                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                       step="0.01"
                       min="0"
                     />
@@ -956,7 +965,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               ) : (
                 <>
                   <Shield size={18} className="mr-2" />
-                  Mint & Protect
+                  Mint & License
                 </>
               )}
             </Button>

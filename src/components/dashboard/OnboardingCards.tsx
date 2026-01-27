@@ -46,10 +46,10 @@ export function OnboardingCards({ onSyncClick, onRegisterClick }: OnboardingCard
         {/* Card B: Register Single Work */}
         <button
           onClick={onRegisterClick}
-          className="group relative bg-white border border-[#E8F2FB] rounded-2xl p-6 text-left hover:border-[#4A26ED]/40 hover:shadow-lg hover:shadow-[#4A26ED]/5 transition-all duration-300"
+          className="group relative bg-white border border-[#E8F2FB] rounded-2xl p-6 text-left hover:border-teal-400 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300"
         >
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center shrink-0 group-hover:from-emerald-500 group-hover:to-teal-500 transition-all">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center shrink-0 group-hover:from-teal-500 group-hover:to-emerald-500 transition-all">
               <FileUp size={26} className="text-teal-600 group-hover:text-white transition-colors" />
             </div>
             <div className="flex-1 min-w-0">
