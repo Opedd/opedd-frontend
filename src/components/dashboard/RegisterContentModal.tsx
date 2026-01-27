@@ -378,13 +378,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     }
   };
 
-  // Platform icons for display
+  // Platform icons for display with placeholders
   const platformIcons = [
-    { name: "Substack", logo: substackLogo },
-    { name: "Ghost", logo: ghostLogo },
-    { name: "Beehiiv", logo: beehiivLogo },
-    { name: "WordPress", logo: wordpressLogo },
+    { name: "Substack", logo: substackLogo, placeholder: "yourname.substack.com/feed" },
+    { name: "Ghost", logo: ghostLogo, placeholder: "yoursite.ghost.io/rss" },
+    { name: "Beehiiv", logo: beehiivLogo, placeholder: "yourname.beehiiv.com/feed" },
+    { name: "WordPress", logo: wordpressLogo, placeholder: "yoursite.wordpress.com/feed" },
   ];
+
+  const handlePlatformClick = (placeholder: string) => {
+    setFeedUrl(`https://${placeholder}`);
+  };
 
   // CHOICE VIEW
   if (view === "choice") {
@@ -398,8 +402,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <img src={opeddLogo} alt="Opedd" className="h-8" />
                 <div className="h-6 w-px bg-white/20" />
                 <div>
-                  <h1 className="text-white font-bold text-lg leading-tight">Register Content</h1>
-                  <p className="text-[#A78BFA] text-sm">What are you protecting today?</p>
+                <h1 className="text-white font-bold text-lg leading-tight">Register Content</h1>
+                  <p className="text-[#A78BFA] text-sm">What are you licensing today?</p>
                 </div>
               </div>
               <button
@@ -423,7 +427,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 <div>
                   <h3 className="font-bold text-[#040042] text-base mb-1">Sync a Publication</h3>
-                  <p className="text-sm text-slate-500">Connect a Newsletter, RSS, or Website to automatically import and protect every new post.</p>
+                <p className="text-sm text-slate-500">Connect a Newsletter, RSS, or Website to automatically import and license every new post.</p>
                 </div>
               </div>
             </button>
@@ -438,7 +442,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 <div>
                   <h3 className="font-bold text-[#040042] text-base mb-1">Register Single Work</h3>
-                  <p className="text-sm text-slate-500">Upload an article, PDF, or text to protect a one-off piece of content.</p>
+                <p className="text-sm text-slate-500">Upload an article, PDF, or text to license a one-off piece of content.</p>
                 </div>
               </div>
             </button>
@@ -462,7 +466,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 <div>
                   <h1 className="text-[#040042] font-bold text-lg leading-tight">Sync Publication</h1>
-                  <p className="text-[#040042]/60 text-sm">Connect your RSS feed to auto-protect content</p>
+                  <p className="text-[#040042]/60 text-sm">Connect your RSS feed to auto-license content</p>
                 </div>
               </div>
               <button
@@ -476,19 +480,20 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
           {/* Form */}
           <div className="p-6 space-y-5">
-            {/* Platform Icons */}
-            <div className="flex items-center justify-center gap-4 pb-2">
+            {/* Platform Icons - Interactive Buttons */}
+            <div className="flex items-center justify-center gap-3 pb-2">
               {platformIcons.map((platform) => (
-                <div
+                <button
                   key={platform.name}
-                  className="flex flex-col items-center gap-1.5"
-                  title={platform.name}
+                  onClick={() => handlePlatformClick(platform.placeholder)}
+                  className="flex flex-col items-center gap-1.5 group"
+                  title={`Click to use ${platform.name} template`}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center p-1.5 hover:border-[#4A26ED]/40 transition-colors">
+                  <div className="w-12 h-12 rounded-xl bg-white border-2 border-slate-200 flex items-center justify-center p-2 hover:border-[#4A26ED] hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all cursor-pointer group-hover:scale-105">
                     <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
                   </div>
-                  <span className="text-[10px] text-slate-400 font-medium">{platform.name}</span>
-                </div>
+                  <span className="text-[10px] text-slate-400 font-medium group-hover:text-[#4A26ED] transition-colors">{platform.name}</span>
+                </button>
               ))}
             </div>
 
@@ -504,7 +509,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 />
               </div>
               <p className="text-xs text-slate-500">
-                We'll fetch and protect all articles from this feed
+                We'll fetch and license all articles from this feed
               </p>
             </div>
 
@@ -583,7 +588,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
             >
               <Shield size={18} className="mr-2" />
-              Connect & Protect Archive
+              Connect & License Archive
             </Button>
           </div>
         </DialogContent>
@@ -769,7 +774,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 <div>
                   <h1 className="text-[#040042] font-bold text-lg leading-tight">Register Single Work</h1>
-                  <p className="text-[#040042]/60 text-sm">Protect an article, PDF, or text</p>
+                  <p className="text-[#040042]/60 text-sm">License an article, PDF, or text</p>
                 </div>
               </div>
               <button
