@@ -394,7 +394,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   if (view === "choice") {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
           {/* Header */}
           <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
             <div className="flex items-center justify-between">
@@ -423,7 +423,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 text-left transition-all duration-200 group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#4A26ED] group-hover:text-white transition-colors">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A26ED]/20 to-[#7C3AED]/20 flex items-center justify-center flex-shrink-0 group-hover:from-[#4A26ED] group-hover:to-[#7C3AED] transition-all">
                   <Link2 size={24} className="text-[#4A26ED] group-hover:text-white" />
                 </div>
                 <div>
@@ -438,7 +438,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all duration-200 group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0 group-hover:bg-teal-500 group-hover:text-white transition-colors">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:from-teal-500 group-hover:to-emerald-500 transition-all">
                   <Upload size={24} className="text-teal-600 group-hover:text-white" />
                 </div>
                 <div>
@@ -457,12 +457,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   if (view === "publication") {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
           {/* Light Header */}
           <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A26ED]/20 to-[#7C3AED]/20 flex items-center justify-center">
                   <Link2 size={24} className="text-[#4A26ED]" />
                 </div>
                 <div>
@@ -604,7 +604,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   if (view === "syncing") {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
           {/* Header */}
           <div className="bg-[#040042] px-6 py-5">
             <div className="flex items-center justify-between">
@@ -682,7 +682,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   if (view === "pub-success") {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
           {/* Header */}
           <div className="bg-[#040042] px-6 py-5">
             <div className="flex items-center justify-between">
@@ -768,12 +768,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   if (view === "single") {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
           {/* Light Header */}
           <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center">
                   <Upload size={24} className="text-teal-600" />
                 </div>
                 <div>
@@ -978,7 +978,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   // SUCCESS VIEW (for single work)
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-slate-50 border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent hideCloseButton className="bg-slate-50 border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="bg-[#040042] px-6 py-5">
           <div className="flex items-center justify-between">
