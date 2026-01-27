@@ -393,13 +393,13 @@ export function SmartLibraryTable({
                   {/* Format Column */}
                   <TableCell>
                     <div className="flex items-center gap-1.5">
-                      {asset.format === "publication" || asset.sourceUrl?.includes("substack") || asset.sourceUrl?.includes("ghost") || asset.title.toLowerCase().startsWith("publication:") ? (
-                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                      {asset.format === "publication" || asset.sourceUrl?.includes("substack") || asset.sourceUrl?.includes("ghost") || asset.sourceUrl?.includes("beehiiv") || asset.sourceUrl?.includes("wordpress") || asset.title.toLowerCase().startsWith("publication:") ? (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 gap-1">
                           <Rss size={10} />
-                          Publication Post
+                          Publication
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-slate-50 text-slate-600 border-slate-200 gap-1">
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-teal-50 text-teal-700 border-teal-200 gap-1">
                           <FileText size={10} />
                           Single Work
                         </Badge>
@@ -456,10 +456,10 @@ export function SmartLibraryTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-white border-[#E8F2FB] shadow-lg"
+                          className="bg-white border border-slate-200 shadow-xl rounded-lg min-w-[160px]"
                         >
                           <DropdownMenuItem
-                            className="cursor-pointer focus:bg-slate-50"
+                            className="cursor-pointer text-[#040042] hover:bg-[#F2F9FF] focus:bg-[#F2F9FF] focus:text-[#040042]"
                             onClick={() => handleManageClick(asset)}
                           >
                             <Settings className="mr-2 h-4 w-4 text-[#4A26ED]" />
@@ -467,7 +467,7 @@ export function SmartLibraryTable({
                           </DropdownMenuItem>
                           {!isShowingDemo && (
                             <DropdownMenuItem
-                              className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50"
+                              className="text-red-600 cursor-pointer hover:bg-red-50 focus:text-red-600 focus:bg-red-50"
                               onClick={() => onDelete(asset.id)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
