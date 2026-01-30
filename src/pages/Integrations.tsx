@@ -171,13 +171,13 @@ export default function Integrations() {
   const connectedCount = sources.filter(s => s.connected).length;
 
   return (
-    <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
+    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
       <DashboardSidebar />
 
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
-        <div className="p-8 max-w-5xl w-full mx-auto space-y-10">
+        <div className="p-8 pt-20 lg:pt-8 max-w-5xl w-full mx-auto space-y-10">
           {/* Page Header */}
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg">

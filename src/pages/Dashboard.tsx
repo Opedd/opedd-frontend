@@ -177,7 +177,7 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
-        <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+        <div className="p-6 pt-20 lg:pt-6 max-w-7xl w-full mx-auto space-y-6">
           {/* Page Title & Action */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

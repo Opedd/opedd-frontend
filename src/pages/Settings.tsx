@@ -17,7 +17,11 @@ import {
   Lock,
   Mail,
   FileText,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Key
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,6 +101,12 @@ export default function Settings() {
   // Developer state
   const [publisherIdCopied, setPublisherIdCopied] = useState(false);
   const publisherId = user?.id || "pub_demo_1234567890";
+  
+  // API Key state
+  const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const apiKey = "opedd_sk_live_" + (user?.id?.slice(0, 24) || "abc123def456ghi789jkl012");
 
   if (!user) return null;
 
@@ -158,6 +168,37 @@ export default function Settings() {
     }
   };
 
+  const handleCopyApiKey = async () => {
+    try {
+      await navigator.clipboard.writeText(apiKey);
+      setApiKeyCopied(true);
+      setTimeout(() => setApiKeyCopied(false), 2000);
+      toast({
+        title: "API Key Copied!",
+        description: "Keep this key secure and never share it publicly.",
+      });
+    } catch {
+      toast({
+        title: "Copy Failed",
+        description: "Please copy manually",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRegenerateApiKey = async () => {
+    setIsRegenerating(true);
+    try {
+      await new Promise((r) => setTimeout(r, 1500));
+      toast({
+        title: "API Key Regenerated",
+        description: "Your old key has been invalidated. Update your integrations.",
+      });
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case "Admin":
@@ -176,13 +217,13 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
+    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
       <DashboardSidebar />
 
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
-        <div className="p-8 max-w-4xl w-full mx-auto space-y-8">
+        <div className="p-8 pt-20 lg:pt-8 max-w-4xl w-full mx-auto space-y-8">
           {/* Page Header with Breadcrumb */}
           <div>
             <p className="text-sm text-[#040042]/50 mb-1">
@@ -346,6 +387,84 @@ export default function Settings() {
                             </>
                           )}
                         </Button>
+                      </div>
+                    </div>
+
+                    {/* API Key Section */}
+                    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                      <div className="flex items-center gap-2 mb-6">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center border border-amber-500/20">
+                          <Key size={16} className="text-amber-600" />
+                        </div>
+                        <div>
+                          <h2 className="font-bold text-[#040042]">API Key</h2>
+                          <p className="text-slate-500 text-xs">For programmatic access to your Opedd account</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 overflow-hidden relative">
+                            <code className="text-sm text-[#040042] font-mono truncate block">
+                              {apiKeyRevealed 
+                                ? apiKey 
+                                : "opedd_sk_live_" + "•".repeat(24)
+                              }
+                            </code>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setApiKeyRevealed(!apiKeyRevealed)}
+                            className="h-11 px-3 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl transition-all"
+                            title={apiKeyRevealed ? "Hide API Key" : "Reveal API Key"}
+                          >
+                            {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleCopyApiKey}
+                            className="h-11 px-4 bg-[#040042] hover:bg-[#040042]/90 text-white rounded-xl font-medium transition-all"
+                          >
+                            {apiKeyCopied ? (
+                              <>
+                                <Check size={14} className="mr-2" />
+                                Copied
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={14} className="mr-2" />
+                                Copy
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                          <p className="text-xs text-slate-500">
+                            <Shield size={12} className="inline mr-1 text-amber-500" />
+                            Keep this key secret. Regenerating will invalidate the current key.
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleRegenerateApiKey}
+                            disabled={isRegenerating}
+                            className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium transition-all"
+                          >
+                            {isRegenerating ? (
+                              <>
+                                <RefreshCw size={14} className="mr-2 animate-spin" />
+                                Regenerating...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw size={14} className="mr-2" />
+                                Regenerate Key
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
