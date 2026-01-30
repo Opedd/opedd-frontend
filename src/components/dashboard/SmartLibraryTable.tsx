@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle, FileText, Rss, CheckCircle, Clock } from "lucide-react";
+import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle, FileText, Rss, CheckCircle, Clock, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RegistryView } from "./RegistryView";
 import { OnboardingCards } from "./OnboardingCards";
@@ -239,7 +239,7 @@ export function SmartLibraryTable({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm p-12 flex items-center justify-center">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex items-center justify-center">
         <Loader2 size={32} className="animate-spin text-[#4A26ED]" />
       </div>
     );
@@ -250,7 +250,7 @@ export function SmartLibraryTable({
       {/* View Toggle Tabs */}
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "table" | "registry")} className="w-full">
         <div className="flex items-center justify-between mb-4">
-          <TabsList className="bg-[#F2F9FF] border border-[#E8F2FB] p-1 rounded-xl">
+          <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-xl">
             <TabsTrigger 
               value="table" 
               className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-4 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
@@ -293,10 +293,10 @@ export function SmartLibraryTable({
             />
           )}
 
-          <div className={`bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-75' : ''}`}>
+          <div className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-75' : ''}`}>
             <Table>
           <TableHeader>
-            <TableRow className="border-[#E8F2FB] bg-[#F2F9FF]/50 hover:bg-[#F2F9FF]/50">
+            <TableRow className="border-gray-200 bg-gray-50 hover:bg-gray-50">
               {/* Select All Checkbox */}
               <TableHead className="w-12 pl-4">
                 <Checkbox
@@ -340,7 +340,7 @@ export function SmartLibraryTable({
                 <TableRow
                   key={asset.id}
                   data-selected={isSelected}
-                  className={`group border-[#E8F2FB] rounded-lg transition-all duration-200 hover:bg-[#F8FAFF] hover:shadow-[0_0_0_1px_rgba(74,38,237,0.1),0_4px_12px_-4px_rgba(74,38,237,0.15)] ${
+                  className={`group border-gray-100 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:shadow-sm ${
                     isSelected ? "bg-[#4A26ED]/5" : ""
                   }`}
                 >
@@ -358,7 +358,7 @@ export function SmartLibraryTable({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {/* Placeholder Icon Slot */}
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#F2F9FF] to-[#E8F2FB] border border-[#E8F2FB] flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
                         <Image size={18} className="text-[#040042]/30" />
                       </div>
                       
@@ -457,18 +457,28 @@ export function SmartLibraryTable({
                       >
                         Share License
                       </button>
+                      {/* View on Ledger - only show for assets with revenue */}
+                      {asset.revenue > 0 && (
+                        <button
+                          onClick={() => navigate("/ledger")}
+                          className="px-2 py-1.5 rounded-lg text-emerald-600 text-xs font-medium transition-all hover:bg-emerald-50 flex items-center gap-1"
+                          title="View transactions"
+                        >
+                          <Wallet size={14} />
+                        </button>
+                      )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
+                          <button className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
                             <Settings size={16} />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-slate-50 border-2 border-slate-300 shadow-2xl rounded-lg min-w-[160px]"
+                          className="bg-white border border-gray-200 shadow-xl rounded-lg min-w-[160px]"
                         >
                           <DropdownMenuItem
-                            className="cursor-pointer text-[#040042] hover:bg-[#F2F9FF] focus:bg-[#F2F9FF] focus:text-[#040042]"
+                            className="cursor-pointer text-[#040042] hover:bg-gray-100 focus:bg-gray-100 focus:text-[#040042]"
                             onClick={() => handleManageClick(asset)}
                           >
                             <Settings className="mr-2 h-4 w-4 text-[#4A26ED]" />
@@ -575,7 +585,7 @@ export function SmartLibraryTable({
 
       {/* Bulk Price Dialog */}
       <Dialog open={isPriceDialogOpen} onOpenChange={setIsPriceDialogOpen}>
-        <DialogContent className="bg-white border-[#E8F2FB] rounded-2xl">
+        <DialogContent className="bg-white border-gray-200 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-[#040042] font-bold">Set License Prices</DialogTitle>
             <DialogDescription className="text-[#040042]/60">
@@ -630,7 +640,7 @@ export function SmartLibraryTable({
 
       {/* Bulk Delete Confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white border-[#E8F2FB] rounded-2xl">
+        <AlertDialogContent className="bg-white border-gray-200 rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[#040042] font-bold">Delete {selectedIds.size} Asset(s)?</AlertDialogTitle>
             <AlertDialogDescription className="text-[#040042]/60">

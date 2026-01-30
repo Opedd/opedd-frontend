@@ -171,10 +171,10 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
+    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
       <DashboardSidebar />
 
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
         <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
@@ -197,15 +197,15 @@ export default function Dashboard() {
           {/* Compact Metrics */}
           <TooltipProvider>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
                 <p className="text-2xl font-bold text-[#040042] mt-1">{assets.length}</p>
               </div>
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-[#4A26ED] text-xs font-medium uppercase tracking-wide">Active Licenses</p>
                 <p className="text-2xl font-bold text-[#040042] mt-1">{activeCount}</p>
               </div>
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-4 shadow-sm">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
                 <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
               </div>
