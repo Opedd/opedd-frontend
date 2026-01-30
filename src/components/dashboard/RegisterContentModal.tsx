@@ -708,8 +708,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       {feedPreview.isLoading ? feedUrl : feedPreview.description}
                     </p>
                   </div>
-                  <div className={`w-16 h-16 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 ${feedPreview.isLoading ? 'animate-pulse' : ''}`}>
-                    <ImageIcon size={20} className="text-slate-400" />
+                  <div className={`w-16 h-16 rounded-lg bg-gradient-to-br from-[#040042] to-[#4A26ED] flex items-center justify-center flex-shrink-0 p-2 ${feedPreview.isLoading ? 'animate-pulse' : ''}`}>
+                    <img src={opeddLogo} alt="Opedd" className="w-full h-full object-contain" />
                   </div>
                 </div>
                 {!feedPreview.isLoading && (

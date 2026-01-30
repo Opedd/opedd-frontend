@@ -145,6 +145,10 @@ export const contentSourcesApi = {
   // Create a new content source
   create: <T>(body: { feed_url: string; name: string; human_price?: number; ai_price?: number }, token?: string | null) =>
     apiFetch<T>(API.contentSources, { method: 'POST', body: JSON.stringify(body) }, token),
+
+  // Verify ownership of a content source
+  verify: <T>(sourceId: string, token?: string | null) =>
+    apiFetch<T>(`${API.contentSources}/${sourceId}/verify`, { method: 'POST' }, token),
 };
 
 export default api;
