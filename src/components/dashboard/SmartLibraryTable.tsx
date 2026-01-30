@@ -203,9 +203,13 @@ export function SmartLibraryTable({
     setSelectedIds(new Set());
   };
 
-  // Handle verify ownership via backend API
+  // Handle verify ownership via Edge Function api-proxy
+  // Uses source_id (mapped from publication_id in DB) to call verification endpoint
   const handleVerifyOwnership = async (asset: Asset) => {
-    if (!asset.source_id) {
+    // source_id is mapped from publication_id in the DB
+    const sourceId = asset.source_id;
+    
+    if (!sourceId) {
       toast({
         title: "Verification Not Available",
         description: "Only publication posts can be verified",
@@ -220,14 +224,15 @@ export function SmartLibraryTable({
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
       
-      await contentSourcesApi.verify(asset.source_id, accessToken);
+      // Call the verify endpoint via api-proxy: /content-sources/:id/verify
+      await contentSourcesApi.verify(sourceId, accessToken);
       
       toast({
         title: "Verification Initiated",
         description: "We're checking your publication for the verification token",
       });
       
-      // Call parent handler if provided
+      // Call parent handler if provided to refresh the list
       onVerify?.(asset.id);
     } catch (error) {
       console.error("Verification error:", error);

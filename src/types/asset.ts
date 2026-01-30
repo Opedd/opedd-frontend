@@ -93,6 +93,7 @@ export const generateContentHash = (content: string): string => {
 };
 
 // Map database asset to UI asset format
+// Field mapping: publication_id (DB) → source_id (UI), assets table represents licenses
 export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
   // Determine license type based on access_type, license_type, or pricing
   let licenseType: AccessType = "human";
@@ -101,7 +102,7 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
   if (dbAsset.access_type === "both" || dbAsset.access_type === "human" || dbAsset.access_type === "ai") {
     licenseType = dbAsset.access_type;
   }
-  // Fall back to license_type (old schema)
+  // Fall back to license_type (current DB schema)
   else if (dbAsset.license_type === "both" || dbAsset.license_type === "human" || dbAsset.license_type === "ai") {
     licenseType = dbAsset.license_type;
   } else {
@@ -120,9 +121,11 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
   }
 
   // Determine format based on source_id or publication_id presence
+  // publication_id in DB maps to source_id in UI (content source reference)
   // If either exists, it's a "Publication Post" (part of a synced feed)
   // Otherwise, it's a "Single Work"
-  const hasSourceId = !!(dbAsset.source_id || dbAsset.publication_id);
+  const sourceId = dbAsset.source_id ?? dbAsset.publication_id ?? undefined;
+  const hasSourceId = !!sourceId;
   
   return {
     id: dbAsset.id,
@@ -133,7 +136,8 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     createdAt: dbAsset.created_at?.split("T")[0] ?? "",
     format: hasSourceId ? "publication" : "single",
     sourceUrl: dbAsset.source_url ?? undefined,
-    source_id: dbAsset.source_id ?? dbAsset.publication_id ?? undefined, // Prefer source_id, fallback to publication_id
+    // Map publication_id (DB) to source_id (UI) for consistency
+    source_id: sourceId,
     verification_token: dbAsset.verification_token ?? undefined,
     verification_status: (dbAsset.verification_status as "pending" | "verified") ?? "pending",
     content_hash: dbAsset.content_hash ?? undefined,

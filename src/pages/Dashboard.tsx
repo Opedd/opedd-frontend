@@ -51,36 +51,16 @@ export default function Dashboard() {
     setIsAddModalOpen(true);
   };
 
-  // Fetch assets from API (with Supabase fallback)
+  // Fetch licenses directly from Supabase assets table
+  // The table is named "assets" in the database but represents "licenses" in our domain
   const fetchAssets = async () => {
     if (!user) return;
     
     try {
       setIsLoading(true);
       
-      // Get the user's session token for API calls
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      
-      // Try to fetch from the new API endpoint first
-      try {
-        console.log("[Dashboard] Fetching from API /api/v1/content-sources/me/assets");
-        const apiAssets = await contentSourcesApi.listAssets<DbAsset[]>(accessToken);
-        
-        if (Array.isArray(apiAssets) && apiAssets.length > 0) {
-          console.log("[Dashboard] API returned", apiAssets.length, "assets");
-          const mappedAssets = apiAssets
-            .filter((item): item is NonNullable<typeof item> => item !== null)
-            .map((item) => mapDbAssetToUiAsset(item));
-          setAssets(mappedAssets);
-          return;
-        }
-        console.log("[Dashboard] API returned empty, falling back to Supabase");
-      } catch (apiError) {
-        console.log("[Dashboard] API fetch failed, falling back to Supabase:", apiError);
-      }
-      
-      // Fallback to direct Supabase query (using assets table with all columns)
+      // Fetch directly from Supabase assets table (which stores licenses)
+      // Field mapping: publication_id → source_id (in UI), asset_id → license_id (in transactions)
       const { data, error } = await supabase
         .from("assets")
         .select(`
@@ -106,18 +86,19 @@ export default function Dashboard() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching assets:", error);
+        console.error("Error fetching licenses:", error);
         toast({
           title: "Connection Error",
-          description: "Failed to load assets from the database",
+          description: "Failed to load licenses from the database",
           variant: "destructive",
         });
         return;
       }
 
-      console.log("[Dashboard] Supabase returned", data?.length || 0, "assets");
+      console.log("[Dashboard] Supabase returned", data?.length || 0, "licenses");
       
       // Map DB assets to UI format - filter out any null/undefined entries
+      // publication_id maps to source_id in the UI
       const mappedAssets = (data || [])
         .filter((item): item is NonNullable<typeof item> => item !== null)
         .map((item) => mapDbAssetToUiAsset(item as DbAsset));
@@ -142,6 +123,7 @@ export default function Dashboard() {
 
   const handleDelete = async (id: string) => {
     try {
+      // Delete from assets table (licenses)
       const { error } = await supabase
         .from("assets")
         .delete()
@@ -151,7 +133,7 @@ export default function Dashboard() {
       if (error) {
         toast({
           title: "Delete Failed",
-          description: "Could not remove the asset. Please try again.",
+          description: "Could not remove the license. Please try again.",
           variant: "destructive",
         });
         return;
@@ -159,14 +141,14 @@ export default function Dashboard() {
 
       setAssets((prev) => prev.filter((a) => a.id !== id));
       toast({
-        title: "Asset Removed",
-        description: "The asset has been deleted from your library",
+        title: "License Removed",
+        description: "The license has been deleted from your library",
       });
     } catch (err) {
       console.error("Delete error:", err);
       toast({
         title: "Connection Error",
-        description: "Unable to delete asset. Please try again.",
+        description: "Unable to delete license. Please try again.",
         variant: "destructive",
       });
     }

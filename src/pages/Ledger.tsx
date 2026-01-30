@@ -157,12 +157,14 @@ export default function Ledger() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // Fetch transactions from Supabase
+  // Field mapping: asset_id in DB represents license_id in our domain
   useEffect(() => {
     const fetchTransactions = async () => {
       if (!user) return;
       
       setIsLoading(true);
       try {
+        // Query transactions table - asset_id references the licenses (assets table)
         const { data, error } = await supabase
           .from("transactions")
           .select(`
@@ -191,6 +193,7 @@ export default function Ledger() {
           setTransactions([]);
         } else if (data && data.length > 0) {
           // Map database transactions to UI format
+          // asset_id in DB = license_id in domain terminology
           const mappedTransactions: Transaction[] = data.map((tx: any, index: number) => {
             const isAI = tx.license_type === "ai";
             const aiLab = isAI ? AI_LABS[index % AI_LABS.length] : null;
@@ -204,8 +207,8 @@ export default function Ledger() {
               amount: Number(tx.amount),
               date: new Date(tx.created_at).toISOString().split("T")[0],
               status: tx.status === "settled" ? "settled" : tx.status === "disputed" ? "disputed" : "processing",
-              assetTitle: tx.assets?.title || "Unknown Asset",
-              assetId: tx.asset_id,
+              assetTitle: tx.assets?.title || "Unknown License",
+              assetId: tx.asset_id, // This is license_id in domain terms
               storyProtocolHash: tx.story_protocol_hash,
               licenseeEmail: tx.buyer_email,
               licenseTerms: isAI 

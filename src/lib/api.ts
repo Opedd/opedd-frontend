@@ -12,10 +12,11 @@ export const API = {
   licenses: EDGE_FUNCTION_BASE + '/licenses',
 
   // Content Sources (new schema) - for fetching user's licensed assets
-  contentSourcesAssets: '/api/v1/content-sources/me/assets',
-  contentSources: '/api/v1/content-sources',
+  // These paths are passed to the api-proxy edge function
+  contentSourcesAssets: '/content-sources/me/assets',
+  contentSources: '/content-sources',
 
-  // API proxy - append path as query param
+  // API proxy - append path as query param (path should NOT include /api/v1 prefix)
   proxy: (path: string) => EDGE_FUNCTION_BASE + '/api-proxy?path=' + encodeURIComponent(path),
 };
 
