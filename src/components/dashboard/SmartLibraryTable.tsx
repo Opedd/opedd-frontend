@@ -64,37 +64,7 @@ interface SmartLibraryTableProps {
   showPulse?: boolean;
 }
 
-// Sample data for demo mode
-const sampleAssets: Asset[] = [
-  {
-    id: "sample-1",
-    title: "The Future of AI Governance",
-    licenseType: "both",
-    status: "active",
-    revenue: 149.97,
-    createdAt: "2025-01-20",
-    format: "single",
-  },
-  {
-    id: "sample-2",
-    title: "Climate Policy Framework Analysis",
-    licenseType: "human",
-    status: "minted",
-    revenue: 24.95,
-    createdAt: "2025-01-18",
-    format: "publication",
-    sourceUrl: "https://example.substack.com",
-  },
-  {
-    id: "sample-3",
-    title: "Machine Learning Case Studies",
-    licenseType: "ai",
-    status: "pending",
-    revenue: 0,
-    createdAt: "2025-01-15",
-    format: "single",
-  },
-];
+// Demo mode removed - showing real data only
 
 const getLicenseLabel = (type: Asset["licenseType"]) => {
   switch (type) {
@@ -325,7 +295,7 @@ export function SmartLibraryTable({
             {displayAssets.map((asset) => {
               const statusConfig = getStatusConfig(asset.status);
               const isSelected = selectedIds.has(asset.id);
-              const isDemo = asset.id.startsWith('sample-');
+              
               return (
                 <TableRow
                   key={asset.id}
@@ -361,11 +331,6 @@ export function SmartLibraryTable({
                             size={14}
                             className="text-[#4A26ED] fill-[#4A26ED]/10"
                           />
-                        )}
-                        {isDemo && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#040042]/40 border-[#040042]/20">
-                            Demo
-                          </Badge>
                         )}
                       </div>
                     </div>
