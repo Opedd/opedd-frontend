@@ -373,13 +373,35 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       
       // Get the publication name from preview or URL
       const pubName = feedPreview?.title || feedUrl;
+      const cleanPubName = pubName.startsWith('Publication:') ? pubName.replace('Publication: ', '') : pubName;
       
-      // Create asset with correct DB column names
+      // Step 1: Create rss_sources entry first (content_sources)
+      const { data: sourceData, error: sourceError } = await supabase
+        .from("rss_sources")
+        .insert({
+          user_id: user.id,
+          name: cleanPubName,
+          feed_url: feedUrl,
+          platform: platform?.name?.toLowerCase() || "rss",
+          sync_status: "pending",
+          article_count: 0,
+        })
+        .select("id")
+        .single();
+
+      if (sourceError) {
+        console.error("Error creating rss_source:", sourceError);
+        throw sourceError;
+      }
+      
+      console.log("[RegisterContentModal] Created rss_source:", sourceData.id);
+      
+      // Step 2: Create asset linked to the source via publication_id
       const { data, error } = await supabase
         .from("assets")
         .insert({
           user_id: user.id,
-          title: pubName.startsWith('Publication:') ? pubName : `Publication: ${pubName}`,
+          title: `Publication: ${cleanPubName}`,
           description: `Synced publication from ${platform?.name || 'RSS feed'}`,
           source_url: feedUrl,
           human_price: parseFloat(pubHumanPrice) || 4.99,
@@ -388,14 +410,16 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           total_revenue: 0,
           human_licenses_sold: 0,
           ai_licenses_sold: 0,
-          license_type: accessType, // DB column is license_type, not access_type
+          license_type: accessType,
           content_hash: contentHash,
           verification_token: token,
           verification_status: "pending",
+          publication_id: sourceData.id, // Link to the rss_source
           metadata: {
             url: feedUrl,
             type: "publication",
             platform: platform?.name?.toLowerCase() || "rss",
+            source_id: sourceData.id,
           },
         })
         .select("id")
@@ -419,8 +443,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         
         // Import contentSourcesApi dynamically to trigger sync
         const { contentSourcesApi } = await import('@/lib/api');
-        await contentSourcesApi.sync(data.id, accessToken);
-        console.log("[RegisterContentModal] RSS sync triggered for source:", data.id);
+        await contentSourcesApi.sync(sourceData.id, accessToken);
+        console.log("[RegisterContentModal] RSS sync triggered for source:", sourceData.id);
       } catch (syncError) {
         console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
         // Non-critical - the sync will happen when backend is ready
@@ -430,13 +454,11 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     } catch (error) {
       console.error("Error syncing publication:", error);
       setIsConnecting(false);
-      // Still show success for demo purposes
-      setView("syncing");
-      setRegisteredAssetId("demo-" + Date.now());
-      const token = generateVerificationCode();
-      setVerificationToken(token);
-      setVerificationCode(token);
-      onSuccess?.();
+      toast({
+        title: "Sync Failed",
+        description: "Could not sync publication. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
