@@ -16,41 +16,23 @@ import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { supabase } from "@/integrations/supabase/client";
 
+// Platform logos (high-fidelity brand assets)
+import substackLogo from "@/assets/platforms/substack.svg";
+import wordpressLogo from "@/assets/platforms/wordpress.svg";
+import ghostLogo from "@/assets/platforms/ghost.png";
+import beehiivLogo from "@/assets/platforms/beehiiv.png";
+import mediumLogo from "@/assets/platforms/medium.svg";
+
 interface CMSSource {
   id: string;
   name: string;
-  logo: React.ReactNode;
+  logo: string;
   description: string;
   connected: boolean;
   feedUrl?: string;
   humanPrice?: string;
   aiPrice?: string;
 }
-
-// High-quality brand logos as SVG components
-const SubstackLogo = ({ className = "w-8 h-8" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="#FF6719">
-    <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24l9.54-5.49L20.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/>
-  </svg>
-);
-
-const WordPressLogo = ({ className = "w-8 h-8" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="#21759B">
-    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zM3.443 12c0-.812.118-1.596.336-2.336l3.693 10.112A8.567 8.567 0 013.443 12zm8.557 8.557c-.936 0-1.836-.152-2.678-.43l2.844-8.26 2.912 7.984c.02.046.042.09.066.132a8.524 8.524 0 01-3.144.574zm1.301-12.54c.57-.03 1.084-.09 1.084-.09.51-.06.45-.81-.06-.78 0 0-1.534.12-2.524.12-.93 0-2.49-.12-2.49-.12-.51-.03-.57.75-.06.78 0 0 .48.06.99.09l1.47 4.032-2.064 6.192-3.434-10.224c.57-.03 1.084-.09 1.084-.09.51-.06.45-.81-.06-.78 0 0-1.534.12-2.524.12-.178 0-.388-.004-.612-.01A8.528 8.528 0 0112 3.443c2.274 0 4.348.888 5.89 2.336-.038-.002-.074-.008-.114-.008-.93 0-1.59.81-1.59 1.68 0 .78.45 1.44.93 2.22.36.63.78 1.44.78 2.61 0 .81-.312 1.752-.72 3.066l-.948 3.168-3.426-10.194zM15.033 19.2l2.892-8.352c.54-1.35.72-2.43.72-3.39 0-.348-.024-.672-.066-.978A8.544 8.544 0 0120.557 12a8.552 8.552 0 01-5.524 7.2z"/>
-  </svg>
-);
-
-const GhostLogo = ({ className = "w-8 h-8" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="#15171A">
-    <path d="M12 2a8 8 0 00-8 8v8a4 4 0 004 4 2 2 0 002-2v-2a2 2 0 014 0v2a2 2 0 002 2 4 4 0 004-4v-8a8 8 0 00-8-8zm-3 11a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm6 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>
-  </svg>
-);
-
-const MediumLogo = ({ className = "w-8 h-8" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="#000000">
-    <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
-  </svg>
-);
 
 export default function Integrations() {
   const { user } = useAuth();
@@ -61,7 +43,7 @@ export default function Integrations() {
     {
       id: "substack",
       name: "Substack",
-      logo: <SubstackLogo />,
+      logo: substackLogo,
       description: "Import your newsletter archive automatically",
       connected: true,
       feedUrl: "alice-gray.substack.com",
@@ -71,21 +53,28 @@ export default function Integrations() {
     {
       id: "wordpress",
       name: "WordPress",
-      logo: <WordPressLogo />,
+      logo: wordpressLogo,
       description: "Sync posts from your WordPress blog",
       connected: false,
     },
     {
       id: "ghost",
       name: "Ghost",
-      logo: <GhostLogo />,
+      logo: ghostLogo,
       description: "Connect your Ghost publication",
+      connected: false,
+    },
+    {
+      id: "beehiiv",
+      name: "Beehiiv",
+      logo: beehiivLogo,
+      description: "Import your Beehiiv newsletters",
       connected: false,
     },
     {
       id: "medium",
       name: "Medium",
-      logo: <MediumLogo />,
+      logo: mediumLogo,
       description: "Import your Medium articles",
       connected: false,
     }
@@ -176,13 +165,7 @@ export default function Integrations() {
 
   const getLogoForModal = () => {
     if (!selectedSource) return null;
-    switch (selectedSource.id) {
-      case "substack": return <SubstackLogo className="w-6 h-6" />;
-      case "wordpress": return <WordPressLogo className="w-6 h-6" />;
-      case "ghost": return <GhostLogo className="w-6 h-6" />;
-      case "medium": return <MediumLogo className="w-6 h-6" />;
-      default: return <Rss size={24} />;
-    }
+    return <img src={selectedSource.logo} alt={selectedSource.name} className="w-6 h-6 object-contain" />;
   };
 
   const connectedCount = sources.filter(s => s.connected).length;
@@ -229,10 +212,10 @@ export default function Integrations() {
                   }`}
                 >
                   <div className="flex flex-col items-center text-center space-y-3">
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center p-3 ${
                       source.connected ? "bg-slate-50" : "bg-slate-100"
                     }`}>
-                      {source.logo}
+                      <img src={source.logo} alt={source.name} className="w-full h-full object-contain" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-[#040042]">{source.name}</h3>
