@@ -23,7 +23,7 @@ export default function Insights() {
       <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
-        <div className="p-6 max-w-4xl w-full mx-auto space-y-6">
+        <div className="p-6 pt-20 lg:pt-6 max-w-4xl w-full mx-auto space-y-6">
           {/* Page Title */}
           <div className="flex items-center gap-3">
             <Shield size={22} className="text-[#4A26ED]" />

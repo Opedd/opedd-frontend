@@ -408,7 +408,7 @@ export default function Ledger() {
         <DashboardHeader />
 
         <motion.div 
-          className="p-8 max-w-7xl w-full mx-auto space-y-8"
+          className="p-8 pt-20 lg:pt-8 max-w-7xl w-full mx-auto space-y-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
