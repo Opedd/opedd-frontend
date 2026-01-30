@@ -154,6 +154,47 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   const [inputMode, setInputMode] = useState<"file" | "url">("file");
 
   const detectedPlatform = detectPlatform(feedUrl);
+  
+  // Feed preview state
+  const [feedPreview, setFeedPreview] = useState<{
+    title: string;
+    description: string;
+    isLoading: boolean;
+    error: string | null;
+  } | null>(null);
+
+  // Simulate fetching feed metadata when URL changes
+  useEffect(() => {
+    if (feedUrl.length > 15 && feedUrl.includes('.')) {
+      setFeedPreview({ title: '', description: '', isLoading: true, error: null });
+      
+      // Simulate fetching feed metadata
+      const timer = setTimeout(() => {
+        const platform = detectPlatform(feedUrl);
+        // Extract publication name from URL
+        let pubName = 'Your Publication';
+        try {
+          const url = new URL(feedUrl.startsWith('http') ? feedUrl : `https://${feedUrl}`);
+          pubName = url.hostname.split('.')[0];
+          if (pubName === 'www') pubName = url.hostname.split('.')[1] || 'Your Publication';
+          pubName = pubName.charAt(0).toUpperCase() + pubName.slice(1);
+        } catch {
+          // Use default
+        }
+        
+        setFeedPreview({
+          title: platform ? `${pubName} on ${platform.name}` : pubName,
+          description: `Articles from ${feedUrl}`,
+          isLoading: false,
+          error: null,
+        });
+      }, 800);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setFeedPreview(null);
+    }
+  }, [feedUrl]);
 
   const resetForm = () => {
     setView("choice");
@@ -633,7 +674,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </div>
 
             {/* URL Preview Card with Fetching State */}
-            {feedUrl.length > 10 && (
+            {feedPreview && (
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
                 <div className="flex items-center gap-3">
                   {detectedPlatform ? (
@@ -647,24 +688,36 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-[#040042] truncate">
-                        {detectedPlatform ? `${detectedPlatform.name} Publication` : "Custom Publication"}
-                      </p>
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#4A26ED]/10 text-[#4A26ED]">
-                        <Loader2 size={10} className="animate-spin" />
-                        <span className="text-[10px] font-medium">Validating...</span>
-                      </div>
+                      {feedPreview.isLoading ? (
+                        <>
+                          <p className="text-sm font-semibold text-[#040042] truncate">
+                            {detectedPlatform ? `${detectedPlatform.name} Publication` : "Publication"}
+                          </p>
+                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#4A26ED]/10 text-[#4A26ED]">
+                            <Loader2 size={10} className="animate-spin" />
+                            <span className="text-[10px] font-medium">Validating...</span>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm font-semibold text-[#040042] truncate">
+                          {feedPreview.title}
+                        </p>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-500 truncate">{feedUrl}</p>
+                    <p className="text-xs text-slate-500 truncate">
+                      {feedPreview.isLoading ? feedUrl : feedPreview.description}
+                    </p>
                   </div>
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 animate-pulse">
+                  <div className={`w-16 h-16 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 ${feedPreview.isLoading ? 'animate-pulse' : ''}`}>
                     <ImageIcon size={20} className="text-slate-400" />
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-slate-200 flex items-center gap-2">
-                  <CheckCircle size={12} className="text-emerald-500" />
-                  <span className="text-xs text-slate-600">Feed detected • Ready to sync articles</span>
-                </div>
+                {!feedPreview.isLoading && (
+                  <div className="mt-3 pt-3 border-t border-slate-200 flex items-center gap-2">
+                    <CheckCircle size={12} className="text-emerald-500" />
+                    <span className="text-xs text-slate-600">Feed detected • Ready to sync articles</span>
+                  </div>
+                )}
               </div>
             )}
 
