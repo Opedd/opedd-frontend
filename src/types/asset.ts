@@ -11,10 +11,20 @@ export interface Asset {
   storyProtocolHash?: string;
   format?: "single" | "publication";
   sourceUrl?: string;
-  // New field from backend - links to publication if asset is part of a synced feed
+  // Links to parent publication if asset is part of a synced feed
   publication_id?: string;
-  // Verification token returned when licensing a publication
+  // Verification token for publication ownership verification
   verification_token?: string;
+  // Verification status from backend: 'pending' or 'verified'
+  verification_status?: "pending" | "verified";
+  // Content hash for license schema alignment
+  content_hash?: string;
+  // Additional metadata (JSONB)
+  metadata?: Record<string, unknown>;
+  // Explicit license type
+  license_type?: string;
+  // Description field
+  description?: string;
 }
 
 // Database asset structure (matches Supabase schema)
@@ -31,7 +41,40 @@ export interface DbAsset {
   content?: string | null;
   user_id: string;
   publication_id?: string | null;
+  verification_token?: string | null;
+  verification_status?: string | null;
+  content_hash?: string | null;
+  metadata?: Record<string, unknown> | null;
+  license_type?: string | null;
 }
+
+// License registration payload (aligned with backend schema)
+export interface LicensePayload {
+  title: string;
+  description?: string;
+  licenseType: "human" | "ai" | "both";
+  contentHash?: string;
+  metadata?: {
+    url?: string;
+    type?: "article" | "publication" | "document";
+    platform?: string;
+    [key: string]: unknown;
+  };
+  human_price?: number;
+  ai_price?: number;
+}
+
+// Generate a content hash from content string
+export const generateContentHash = (content: string): string => {
+  // Simple hash for demo - in production use crypto.subtle.digest
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return `0x${Math.abs(hash).toString(16).padStart(16, '0')}`;
+};
 
 // Map database asset to UI asset format
 export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
@@ -49,7 +92,7 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     status = (dbAsset.total_revenue ?? 0) > 0 ? "minted" : "active";
   }
 
-  // Determine format based on publication_id presence (new logic)
+  // Determine format based on publication_id presence
   // If publication_id exists, it's a "Publication Post" (part of a synced feed)
   // Otherwise, it's a "Single Work"
   const hasPublicationId = !!dbAsset.publication_id;
@@ -64,6 +107,11 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     format: hasPublicationId ? "publication" : "single",
     sourceUrl: dbAsset.source_url ?? undefined,
     publication_id: dbAsset.publication_id ?? undefined,
+    verification_token: dbAsset.verification_token ?? undefined,
+    verification_status: (dbAsset.verification_status as "pending" | "verified") ?? "pending",
+    content_hash: dbAsset.content_hash ?? undefined,
+    metadata: dbAsset.metadata ?? undefined,
+    license_type: dbAsset.license_type ?? undefined,
+    description: dbAsset.description ?? undefined,
   };
 };
-

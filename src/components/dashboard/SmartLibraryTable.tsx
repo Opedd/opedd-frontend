@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle, FileText, Rss } from "lucide-react";
+import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle, FileText, Rss, CheckCircle, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RegistryView } from "./RegistryView";
 import { OnboardingCards } from "./OnboardingCards";
@@ -318,6 +318,9 @@ export function SmartLibraryTable({
                 Format
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium">
+                Status
+              </TableHead>
+              <TableHead className="text-[#040042]/60 text-xs font-medium">
                 License Type
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium text-right">
@@ -391,6 +394,23 @@ export function SmartLibraryTable({
                         <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-teal-50 text-teal-700 border-teal-200 gap-1">
                           <FileText size={10} />
                           Single Work
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+
+                  {/* Verification Status Badge */}
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      {asset.verification_status === "verified" ? (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200 gap-1">
+                          <CheckCircle size={10} />
+                          Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-200 gap-1">
+                          <Clock size={10} />
+                          Pending
                         </Badge>
                       )}
                     </div>

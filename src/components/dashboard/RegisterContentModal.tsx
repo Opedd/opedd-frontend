@@ -61,7 +61,7 @@ const detectPlatform = (url: string): { name: string; logo: string } | null => {
   return null;
 };
 
-// Generate verification code
+// Generate verification code/token
 const generateVerificationCode = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "";
@@ -69,6 +69,17 @@ const generateVerificationCode = () => {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return `OPEDD-${code}`;
+};
+
+// Generate content hash from content string
+const generateContentHash = (content: string): string => {
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return `0x${Math.abs(hash).toString(16).padStart(16, '0')}`;
 };
 
 export function RegisterContentModal({ open, onOpenChange, onSuccess, initialView = "choice" }: RegisterContentModalProps) {
@@ -278,13 +289,28 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setView("syncing");
 
     try {
-      // Create an asset representing the publication source
-      // Uses standardized naming: human_price, ai_price
+      // Generate verification token
+      const token = generateVerificationCode();
+      
+      // Detect platform from URL for metadata
+      const platform = detectPlatform(feedUrl);
+      
+      // Generate content hash from feed URL
+      const contentHash = generateContentHash(feedUrl);
+      
+      // Determine license type based on pricing
+      const hasHuman = parseFloat(pubHumanPrice) > 0;
+      const hasAi = pubAiPrice && parseFloat(pubAiPrice) > 0;
+      const licenseType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
+      
+      // Create asset with aligned license schema:
+      // title, description, licenseType, contentHash, metadata
       const { data, error } = await supabase
         .from("assets")
         .insert({
           user_id: user.id,
           title: `Publication: ${feedUrl}`,
+          description: `Synced publication from ${platform?.name || 'RSS feed'}`,
           source_url: feedUrl,
           human_price: parseFloat(pubHumanPrice) || 4.99,
           ai_price: pubAiPrice ? parseFloat(pubAiPrice) : null,
@@ -292,6 +318,16 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           total_revenue: 0,
           human_licenses_sold: 0,
           ai_licenses_sold: 0,
+          // New aligned fields
+          license_type: licenseType,
+          content_hash: contentHash,
+          verification_token: token,
+          verification_status: "pending",
+          metadata: {
+            url: feedUrl,
+            type: "publication",
+            platform: platform?.name?.toLowerCase() || "rss",
+          },
         })
         .select("id")
         .single();
@@ -299,8 +335,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       if (error) throw error;
       
       setRegisteredAssetId(data.id);
-      // Generate and store verification token for the pending verification modal
-      const token = generateVerificationCode();
+      // Store verification token for display
       setVerificationToken(token);
       setVerificationCode(token);
       onSuccess?.();
@@ -337,7 +372,16 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setIsSubmitting(true);
 
     try {
-      // Uses standardized naming: human_price, ai_price
+      // Generate content hash from title + description
+      const contentHash = generateContentHash(`${title}${description || ''}`);
+      
+      // Determine license type based on pricing
+      const hasHuman = parseFloat(humanPrice) > 0;
+      const hasAi = aiPrice && parseFloat(aiPrice) > 0;
+      const licenseType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
+      
+      // Create asset with aligned license schema:
+      // title, description, licenseType, contentHash, metadata
       const { data, error } = await supabase
         .from("assets")
         .insert({
@@ -352,6 +396,15 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           total_revenue: 0,
           human_licenses_sold: 0,
           ai_licenses_sold: 0,
+          // New aligned fields
+          license_type: licenseType,
+          content_hash: contentHash,
+          verification_status: "verified", // Single works are auto-verified
+          metadata: {
+            url: articleUrl || null,
+            type: uploadedFile ? "document" : "article",
+            filename: uploadedFile?.name || null,
+          },
         })
         .select("id")
         .single();
