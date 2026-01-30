@@ -19,12 +19,16 @@ export type Database = {
           ai_licenses_sold: number | null
           ai_price: number | null
           content: string | null
+          content_hash: string | null
           created_at: string | null
           description: string | null
           human_licenses_sold: number | null
           human_price: number | null
           id: string
+          license_type: string | null
           licensing_enabled: boolean | null
+          metadata: Json | null
+          publication_id: string | null
           published_at: string | null
           source_url: string | null
           thumbnail_url: string | null
@@ -32,17 +36,23 @@ export type Database = {
           total_revenue: number | null
           updated_at: string | null
           user_id: string
+          verification_status: string | null
+          verification_token: string | null
         }
         Insert: {
           ai_licenses_sold?: number | null
           ai_price?: number | null
           content?: string | null
+          content_hash?: string | null
           created_at?: string | null
           description?: string | null
           human_licenses_sold?: number | null
           human_price?: number | null
           id?: string
+          license_type?: string | null
           licensing_enabled?: boolean | null
+          metadata?: Json | null
+          publication_id?: string | null
           published_at?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
@@ -50,17 +60,23 @@ export type Database = {
           total_revenue?: number | null
           updated_at?: string | null
           user_id: string
+          verification_status?: string | null
+          verification_token?: string | null
         }
         Update: {
           ai_licenses_sold?: number | null
           ai_price?: number | null
           content?: string | null
+          content_hash?: string | null
           created_at?: string | null
           description?: string | null
           human_licenses_sold?: number | null
           human_price?: number | null
           id?: string
+          license_type?: string | null
           licensing_enabled?: boolean | null
+          metadata?: Json | null
+          publication_id?: string | null
           published_at?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
@@ -68,8 +84,18 @@ export type Database = {
           total_revenue?: number | null
           updated_at?: string | null
           user_id?: string
+          verification_status?: string | null
+          verification_token?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "assets_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
