@@ -160,28 +160,20 @@ export function SmartLibraryTable({
   // View mode state
   const [viewMode, setViewMode] = useState<"table" | "registry">("table");
 
-  // Determine if showing demo data
-  const isShowingDemo = !isLoading && assets.length === 0;
-  const displayAssets = isShowingDemo ? sampleAssets : assets;
+  // Show empty state when no assets
+  const hasNoAssets = !isLoading && assets.length === 0;
+  const displayAssets = assets;
 
   const handleManageClick = (asset: Asset) => {
-    if (isShowingDemo) {
-      toast({
-        title: "Demo Mode",
-        description: "Add your first asset to manage real content.",
-      });
-      return;
-    }
     setSelectedAsset(asset);
     setIsSettingsOpen(true);
   };
 
-  // Selection handlers - disabled for demo
-  const isAllSelected = !isShowingDemo && displayAssets.length > 0 && selectedIds.size === displayAssets.length;
+  // Selection handlers
+  const isAllSelected = displayAssets.length > 0 && selectedIds.size === displayAssets.length;
   const isSomeSelected = selectedIds.size > 0 && selectedIds.size < displayAssets.length;
 
   const handleSelectAll = (checked: boolean) => {
-    if (isShowingDemo) return;
     if (checked) {
       setSelectedIds(new Set(displayAssets.map((a) => a.id)));
     } else {
@@ -190,7 +182,6 @@ export function SmartLibraryTable({
   };
 
   const handleSelectOne = (id: string, checked: boolean) => {
-    if (isShowingDemo) return;
     const newSet = new Set(selectedIds);
     if (checked) {
       newSet.add(id);
@@ -267,18 +258,17 @@ export function SmartLibraryTable({
             </TabsTrigger>
           </TabsList>
 
-          {/* Demo Badge */}
-          {isShowingDemo && (
+          {/* Asset count */}
+          {!hasNoAssets && (
             <div className="flex items-center gap-2 text-[#040042]/50 text-sm">
-              <AlertCircle size={14} />
-              <span>Demo Mode</span>
+              <span>{assets.length} asset{assets.length !== 1 ? 's' : ''}</span>
             </div>
           )}
         </div>
 
-        {/* Onboarding Cards - Only show when no real assets */}
+        {/* Onboarding Cards - Only show when no assets */}
         <TabsContent value="table" className="mt-0">
-          {isShowingDemo && (
+          {hasNoAssets && (
             <OnboardingCards 
               onSyncClick={() => {
                 if (onSyncClick) {
@@ -293,7 +283,7 @@ export function SmartLibraryTable({
             />
           )}
 
-          <div className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-75' : ''}`}>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <Table>
           <TableHeader>
             <TableRow className="border-gray-200 bg-gray-50 hover:bg-gray-50">
@@ -301,7 +291,7 @@ export function SmartLibraryTable({
               <TableHead className="w-12 pl-4">
                 <Checkbox
                   checked={isAllSelected}
-                  disabled={isShowingDemo}
+                  disabled={hasNoAssets}
                   ref={(el) => {
                     if (el) {
                       (el as HTMLButtonElement & { indeterminate?: boolean }).indeterminate = isSomeSelected;
@@ -348,7 +338,6 @@ export function SmartLibraryTable({
                   <TableCell className="pl-4">
                     <Checkbox
                       checked={isSelected}
-                      disabled={isShowingDemo}
                       onCheckedChange={(checked) => handleSelectOne(asset.id, !!checked)}
                       className="border-slate-300 data-[state=checked]:bg-[#4A26ED] data-[state=checked]:border-[#4A26ED]"
                     />
@@ -484,15 +473,13 @@ export function SmartLibraryTable({
                             <Settings className="mr-2 h-4 w-4 text-[#4A26ED]" />
                             Asset Settings
                           </DropdownMenuItem>
-                          {!isShowingDemo && (
-                            <DropdownMenuItem
-                              className="text-red-600 cursor-pointer hover:bg-red-50 focus:text-red-600 focus:bg-red-50"
-                              onClick={() => onDelete(asset.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          )}
+                          <DropdownMenuItem
+                            className="text-red-600 cursor-pointer hover:bg-red-50 focus:text-red-600 focus:bg-red-50"
+                            onClick={() => onDelete(asset.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -510,13 +497,13 @@ export function SmartLibraryTable({
           <RegistryView 
             assets={displayAssets} 
             isLoading={isLoading} 
-            isDemo={isShowingDemo} 
+            isDemo={hasNoAssets} 
             onAddClick={onAddClick}
           />
         </TabsContent>
       </Tabs>
       <AnimatePresence>
-        {selectedIds.size > 0 && !isShowingDemo && (
+        {selectedIds.size > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

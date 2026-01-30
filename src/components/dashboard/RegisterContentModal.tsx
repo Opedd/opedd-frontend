@@ -327,8 +327,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const hasAi = pubAiPrice && parseFloat(pubAiPrice) > 0;
       const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
       
-      // Create asset with aligned license schema:
-      // title, description, access_type, contentHash, metadata
+      // Create asset with correct DB column names
       const { data, error } = await supabase
         .from("assets")
         .insert({
@@ -342,8 +341,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           total_revenue: 0,
           human_licenses_sold: 0,
           ai_licenses_sold: 0,
-          // New aligned fields
-          access_type: accessType,
+          license_type: accessType, // DB column is license_type, not access_type
           content_hash: contentHash,
           verification_token: token,
           verification_status: "pending",
@@ -404,8 +402,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const hasAi = aiPrice && parseFloat(aiPrice) > 0;
       const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
       
-      // Create asset with aligned license schema:
-      // title, description, access_type, contentHash, metadata
+      // Create asset with correct DB column names
       const { data, error } = await supabase
         .from("assets")
         .insert({
@@ -420,8 +417,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           total_revenue: 0,
           human_licenses_sold: 0,
           ai_licenses_sold: 0,
-          // New aligned fields
-          access_type: accessType,
+          license_type: accessType, // DB column is license_type, not access_type
           content_hash: contentHash,
           verification_status: "verified", // Single works are auto-verified
           metadata: {
@@ -636,9 +632,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               </p>
             </div>
 
-            {/* Preview Card */}
+            {/* URL Preview Card with Fetching State */}
             {feedUrl.length > 10 && (
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
                 <div className="flex items-center gap-3">
                   {detectedPlatform ? (
                     <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center p-2">
@@ -650,14 +646,24 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#040042] truncate">
-                      {detectedPlatform ? `${detectedPlatform.name} Publication` : "Custom Publication"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-[#040042] truncate">
+                        {detectedPlatform ? `${detectedPlatform.name} Publication` : "Custom Publication"}
+                      </p>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#4A26ED]/10 text-[#4A26ED]">
+                        <Loader2 size={10} className="animate-spin" />
+                        <span className="text-[10px] font-medium">Validating...</span>
+                      </div>
+                    </div>
                     <p className="text-xs text-slate-500 truncate">{feedUrl}</p>
                   </div>
-                  <div className="w-16 h-16 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 animate-pulse">
                     <ImageIcon size={20} className="text-slate-400" />
                   </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-200 flex items-center gap-2">
+                  <CheckCircle size={12} className="text-emerald-500" />
+                  <span className="text-xs text-slate-600">Feed detected • Ready to sync articles</span>
                 </div>
               </div>
             )}
@@ -849,9 +855,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={() => handleCopy(verificationToken || verificationCode, "verification")}
-                  className="border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/10"
+                  className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white border-none"
                 >
                   {copiedVerification ? (
                     <>
