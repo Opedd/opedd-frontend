@@ -51,18 +51,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkline } from "./Sparkline";
 import { AssetSettingsModal } from "./AssetSettingsModal";
 import { useToast } from "@/hooks/use-toast";
-
-interface Asset {
-  id: string;
-  title: string;
-  licenseType: "human" | "ai" | "both";
-  status: "active" | "pending" | "minted";
-  revenue: number;
-  createdAt: string;
-  storyProtocolHash?: string;
-  format?: "single" | "publication";
-  sourceUrl?: string;
-}
+import { Asset } from "@/types/asset";
 
 interface SmartLibraryTableProps {
   assets: Asset[];
@@ -390,13 +379,13 @@ export function SmartLibraryTable({
                     </div>
                   </TableCell>
 
-                  {/* Format Column */}
+                  {/* Format Column - Now checks publication_id first */}
                   <TableCell>
                     <div className="flex items-center gap-1.5">
-                      {asset.format === "publication" || asset.sourceUrl?.includes("substack") || asset.sourceUrl?.includes("ghost") || asset.sourceUrl?.includes("beehiiv") || asset.sourceUrl?.includes("wordpress") || asset.title.toLowerCase().startsWith("publication:") ? (
+                      {asset.publication_id ? (
                         <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 gap-1">
                           <Rss size={10} />
-                          Publication
+                          Publication Post
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-teal-50 text-teal-700 border-teal-200 gap-1">
