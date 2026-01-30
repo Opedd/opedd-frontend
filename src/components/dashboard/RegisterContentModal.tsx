@@ -162,6 +162,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     isLoading: boolean;
     error: string | null;
   } | null>(null);
+  
+  // Connecting state (for triggering RSS import)
+  const [isConnecting, setIsConnecting] = useState(false);
 
   // Simulate fetching feed metadata when URL changes
   useEffect(() => {
@@ -350,8 +353,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       return;
     }
 
-    // Start the syncing animation
-    setView("syncing");
+    // Start connecting state then syncing animation
+    setIsConnecting(true);
 
     try {
       // Generate verification token
@@ -368,12 +371,15 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const hasAi = pubAiPrice && parseFloat(pubAiPrice) > 0;
       const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
       
+      // Get the publication name from preview or URL
+      const pubName = feedPreview?.title || feedUrl;
+      
       // Create asset with correct DB column names
       const { data, error } = await supabase
         .from("assets")
         .insert({
           user_id: user.id,
-          title: `Publication: ${feedUrl}`,
+          title: pubName.startsWith('Publication:') ? pubName : `Publication: ${pubName}`,
           description: `Synced publication from ${platform?.name || 'RSS feed'}`,
           source_url: feedUrl,
           human_price: parseFloat(pubHumanPrice) || 4.99,
@@ -397,14 +403,35 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
       if (error) throw error;
       
+      // Start the syncing animation after DB insert
+      setIsConnecting(false);
+      setView("syncing");
+      
       setRegisteredAssetId(data.id);
       // Store verification token for display
       setVerificationToken(token);
       setVerificationCode(token);
+      
+      // Trigger backend RSS import (non-blocking)
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+        
+        // Import contentSourcesApi dynamically to trigger sync
+        const { contentSourcesApi } = await import('@/lib/api');
+        await contentSourcesApi.sync(data.id, accessToken);
+        console.log("[RegisterContentModal] RSS sync triggered for source:", data.id);
+      } catch (syncError) {
+        console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
+        // Non-critical - the sync will happen when backend is ready
+      }
+      
       onSuccess?.();
     } catch (error) {
       console.error("Error syncing publication:", error);
+      setIsConnecting(false);
       // Still show success for demo purposes
+      setView("syncing");
       setRegisteredAssetId("demo-" + Date.now());
       const token = generateVerificationCode();
       setVerificationToken(token);
@@ -768,11 +795,25 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
             <Button 
               onClick={handlePublicationSync}
-              disabled={isSubmitting}
-              className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+              disabled={isSubmitting || isConnecting || !feedUrl.trim()}
+              className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Shield size={18} className="mr-2" />
-              Connect & License Archive
+              {isConnecting ? (
+                <>
+                  <Loader2 size={18} className="mr-2 animate-spin" />
+                  Connecting...
+                </>
+              ) : feedPreview?.isLoading ? (
+                <>
+                  <Loader2 size={18} className="mr-2 animate-spin" />
+                  Validating URL...
+                </>
+              ) : (
+                <>
+                  <Shield size={18} className="mr-2" />
+                  Connect & License Archive
+                </>
+              )}
             </Button>
           </div>
           )}

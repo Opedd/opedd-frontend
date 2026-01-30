@@ -64,23 +64,44 @@ export default function Dashboard() {
       
       // Try to fetch from the new API endpoint first
       try {
+        console.log("[Dashboard] Fetching from API /api/v1/content-sources/me/assets");
         const apiAssets = await contentSourcesApi.listAssets<DbAsset[]>(accessToken);
         
         if (Array.isArray(apiAssets) && apiAssets.length > 0) {
+          console.log("[Dashboard] API returned", apiAssets.length, "assets");
           const mappedAssets = apiAssets
             .filter((item): item is NonNullable<typeof item> => item !== null)
             .map((item) => mapDbAssetToUiAsset(item));
           setAssets(mappedAssets);
           return;
         }
+        console.log("[Dashboard] API returned empty, falling back to Supabase");
       } catch (apiError) {
         console.log("[Dashboard] API fetch failed, falling back to Supabase:", apiError);
       }
       
-      // Fallback to direct Supabase query
+      // Fallback to direct Supabase query (using assets table with all columns)
       const { data, error } = await supabase
         .from("assets")
-        .select("*")
+        .select(`
+          id,
+          title,
+          description,
+          human_price,
+          ai_price,
+          license_type,
+          licensing_enabled,
+          total_revenue,
+          created_at,
+          source_url,
+          content,
+          user_id,
+          publication_id,
+          verification_token,
+          verification_status,
+          content_hash,
+          metadata
+        `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -94,6 +115,8 @@ export default function Dashboard() {
         return;
       }
 
+      console.log("[Dashboard] Supabase returned", data?.length || 0, "assets");
+      
       // Map DB assets to UI format - filter out any null/undefined entries
       const mappedAssets = (data || [])
         .filter((item): item is NonNullable<typeof item> => item !== null)
