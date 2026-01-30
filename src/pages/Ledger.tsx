@@ -388,9 +388,9 @@ export default function Ledger() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
+      <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
         <DashboardSidebar />
-        <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+        <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
           <DashboardHeader />
           <div className="flex-1 flex items-center justify-center">
             <Loader2 size={40} className="animate-spin text-[#4A26ED]" />
@@ -401,10 +401,10 @@ export default function Ledger() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F2F9FF] text-[#040042] overflow-hidden">
+    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
       <DashboardSidebar />
 
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
         <motion.div 
@@ -499,12 +499,12 @@ export default function Ledger() {
                   <Sparkline value={metrics.totalRevenue} className="opacity-80" />
                 </div>
                 <p className="text-white/70 text-sm font-medium">Total Revenue {isShowingDemo && "(Demo)"}</p>
-                <p className="text-3xl font-bold mt-1">${metrics.totalRevenue.toFixed(2)}</p>
+                <p className="text-4xl font-bold mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>
               </div>
             </div>
 
             {/* Active Licenses */}
-            <div className="bg-white rounded-2xl border border-[#E8F2FB] p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <FileCheck size={24} className="text-[#4A26ED]" />
                 <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100 font-medium">
@@ -512,7 +512,7 @@ export default function Ledger() {
                 </Badge>
               </div>
               <p className="text-[#040042]/60 text-sm font-medium">Active Licenses {isShowingDemo && "(Demo)"}</p>
-              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.activeLicenses}</p>
+              <p className="text-4xl font-bold text-[#040042] mt-1 tracking-tight">{metrics.activeLicenses}</p>
               <div className="mt-2 flex items-center gap-4 text-sm">
                 <span className="flex items-center gap-1.5">
                   <Sparkles size={14} className="text-[#4A26ED]" />
@@ -526,21 +526,21 @@ export default function Ledger() {
             </div>
 
             {/* Top Asset */}
-            <div className="bg-white rounded-2xl border border-[#E8F2FB] p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <Trophy size={24} className="text-amber-500" />
                 <Badge className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 font-medium">
                   Top Performer
                 </Badge>
               </div>
-              <p className="text-[#040042]/60 text-sm font-medium">Top Asset {isShowingDemo && "(Demo)"}</p>
+              <p className="text-[#040042]/60 text-sm font-medium">Best Selling Asset {isShowingDemo && "(Demo)"}</p>
               {metrics.topAsset ? (
                 <>
                   <p className="text-lg font-bold text-[#040042] mt-1 truncate" title={metrics.topAsset.name}>
                     {metrics.topAsset.name}
                   </p>
-                  <p className="text-emerald-600 font-semibold mt-1">
-                    ${metrics.topAsset.revenue.toFixed(2)} revenue
+                  <p className="text-emerald-600 font-bold mt-1 text-xl">
+                    ${metrics.topAsset.revenue.toFixed(2)}
                   </p>
                 </>
               ) : (
@@ -554,26 +554,25 @@ export default function Ledger() {
             {!hasTransactions && !isShowingDemo ? (
               <EmptyState onAddClick={() => navigate("/dashboard")} />
             ) : (
-              <div className={`bg-white rounded-2xl border border-[#E8F2FB] shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-90' : ''}`}>
-                <div className="p-6 border-b border-[#E8F2FB] flex items-center justify-between">
+              <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-90' : ''}`}>
+                <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                   <div>
                     <h2 className="font-bold text-[#040042] text-lg">Transaction History</h2>
-                    <p className="text-sm text-[#040042]/60">All IP licensing activity and protocol settlements</p>
+                    <p className="text-sm text-[#040042]/60">All IP licensing revenue</p>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-[#040042]/5 rounded-lg">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
                     <Shield size={14} className="text-[#4A26ED]" />
                     <span className="text-xs font-medium text-[#040042]/70">Verified by Story Protocol</span>
                   </div>
                 </div>
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-[#E8F2FB] bg-slate-50/50">
-                      <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">Type</TableHead>
+                    <TableRow className="border-gray-200 bg-gray-50">
                       <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">Asset Name</TableHead>
-                      <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">Buyer Type</TableHead>
+                      <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">License Type</TableHead>
+                      <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">Buyer</TableHead>
                       <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">Revenue</TableHead>
                       <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">Date</TableHead>
-                      <TableHead className="text-[#040042]/70 text-xs font-semibold uppercase tracking-wider">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -587,22 +586,12 @@ export default function Ledger() {
                             initial="hidden"
                             animate="visible"
                             transition={{ delay: index * 0.05 }}
-                            className="border-[#E8F2FB] cursor-pointer hover:bg-slate-50/80 transition-colors group"
+                            className="border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors group"
                             onClick={() => handleRowClick(tx)}
                           >
                             <TableCell>
-                              <div className="flex items-center gap-3">
-                                {getTypeIcon(tx.type)}
-                                <div>
-                                  <p className="font-medium text-[#040042] text-sm">{tx.description}</p>
-                                  {tx.fromDirectLink && (
-                                    <p className="text-[#040042]/40 text-xs">via Direct Link</p>
-                                  )}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
                               <div className="flex items-center gap-2">
+                                {getTypeIcon(tx.type)}
                                 <span className="text-[#040042] font-medium text-sm">{tx.assetTitle || "—"}</span>
                                 {isDemo && (
                                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#040042]/40 border-[#040042]/20">
@@ -613,19 +602,23 @@ export default function Ledger() {
                             </TableCell>
                             <TableCell>{getBuyerTypeBadge(tx.type)}</TableCell>
                             <TableCell>
+                              <span className="text-[#040042]/70 text-sm">
+                                {tx.licenseeEmail ? tx.licenseeEmail.split('@')[0] + '...' : 'Anonymous'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex items-center gap-3">
                                 <Sparkline value={tx.amount > 0 ? tx.amount : 0} />
-                                <span className={`font-semibold tabular-nums ${
+                                <span className={`font-bold tabular-nums text-lg ${
                                   tx.amount > 0 ? "text-emerald-600" : "text-slate-600"
                                 }`}>
-                                  {tx.amount >= 0 ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
+                                  ${Math.abs(tx.amount).toFixed(2)}
                                 </span>
                               </div>
                             </TableCell>
                             <TableCell>
                               <span className="text-[#040042]/60 text-sm">{tx.date}</span>
                             </TableCell>
-                            <TableCell>{getStatusBadge(tx.status)}</TableCell>
                           </motion.tr>
                         );
                       })}

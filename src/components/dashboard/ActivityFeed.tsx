@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Activity, DollarSign, FileText, Circle, Loader2, AlertCircle, Bot, CheckCircle2, Shield } from "lucide-react";
+import { Bot, Circle, Loader2, AlertCircle, CheckCircle2, Shield, Rss } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { AIDetectionPopup } from "./AIDetectionPopup";
 
 interface ActivityItem {
   id: string;
-  type: "mint" | "ai_scrape" | "royalty" | "license";
+  type: "bot_scan" | "verification";
   title: string;
   description: string;
   time: string;
@@ -27,11 +27,11 @@ const AI_BOTS = [
   { name: "CCBot", company: "Common Crawl", model: "Dataset" },
 ];
 
-// Sample activities for demo mode with AI bot specifics
+// Sample activities for demo mode - Security focused only
 const sampleActivities: ActivityItem[] = [
   {
     id: "demo-1",
-    type: "ai_scrape",
+    type: "bot_scan",
     title: "GPTBot (OpenAI)",
     description: "Scanned 4,200 tokens of 'Breaking: Tech Giants...'",
     time: "Just now",
@@ -42,9 +42,9 @@ const sampleActivities: ActivityItem[] = [
   },
   {
     id: "demo-2",
-    type: "ai_scrape",
+    type: "bot_scan",
     title: "ClaudeBot (Anthropic)",
-    description: "Indexed your latest post for training",
+    description: "Indexed 8,500 tokens for training data",
     time: "2 min ago",
     botName: "ClaudeBot (Anthropic)",
     assetTitle: "Market Analysis Q4",
@@ -53,9 +53,16 @@ const sampleActivities: ActivityItem[] = [
   },
   {
     id: "demo-3",
-    type: "ai_scrape",
+    type: "verification",
+    title: "Substack Publication Verified",
+    description: "tech-insights.substack.com ownership confirmed",
+    time: "8 min ago",
+  },
+  {
+    id: "demo-4",
+    type: "bot_scan",
     title: "Google-Extended",
-    description: "Attempted to ingest data for Gemini training",
+    description: "Attempted to ingest 12,300 tokens for Gemini training",
     time: "15 min ago",
     botName: "Google-Extended (Google)",
     assetTitle: "AI Regulation Deep Dive",
@@ -63,61 +70,40 @@ const sampleActivities: ActivityItem[] = [
     tokenCount: 12300,
   },
   {
-    id: "demo-4",
-    type: "mint",
-    title: "Asset Registered on Story Protocol",
-    description: "Climate Policy Framework • sp_tx_8829fa21...",
-    time: "45 min ago",
-    storyProtocolHash: "sp_tx_8829fa21b3c7e9d4",
-  },
-  {
     id: "demo-5",
-    type: "royalty",
-    title: "Royalty Earned",
-    description: "$12.50 from AI licensing",
+    type: "verification",
+    title: "Ghost Publication Verified",
+    description: "blog.example.com ownership confirmed",
     time: "1 hour ago",
   },
   {
     id: "demo-6",
-    type: "license",
-    title: "License Activated",
-    description: "Human consumption license sold",
-    time: "3 hours ago",
+    type: "bot_scan",
+    title: "PerplexityBot (Perplexity)",
+    description: "Scanned 3,100 tokens of 'Startup Funding Guide'",
+    time: "2 hours ago",
+    botName: "PerplexityBot (Perplexity)",
+    assetTitle: "Startup Funding Guide",
+    isLicensed: true,
+    tokenCount: 3100,
   },
 ];
 
 const getStatusDot = (type: ActivityItem["type"], isLicensed?: boolean) => {
-  if (type === "ai_scrape" && !isLicensed) {
-    return <Circle size={8} className="fill-amber-500 text-amber-500" />;
+  if (type === "bot_scan" && !isLicensed) {
+    return <Circle size={8} className="fill-red-500 text-red-500" />;
   }
-  switch (type) {
-    case "mint":
-      return <Circle size={8} className="fill-[#7C3AED] text-[#7C3AED]" />;
-    case "ai_scrape":
-      return <Circle size={8} className="fill-[#4A26ED] text-[#4A26ED]" />;
-    case "royalty":
-      return <Circle size={8} className="fill-emerald-500 text-emerald-500" />;
-    case "license":
-      return <Circle size={8} className="fill-[#D1009A] text-[#D1009A]" />;
-    default:
-      return <Circle size={8} className="fill-gray-400 text-gray-400" />;
+  if (type === "verification") {
+    return <Circle size={8} className="fill-teal-500 text-teal-500" />;
   }
+  return <Circle size={8} className="fill-emerald-500 text-emerald-500" />;
 };
 
 const getIcon = (type: ActivityItem["type"], isLicensed?: boolean) => {
-  if (type === "ai_scrape") {
-    return <Bot size={14} className={isLicensed ? "text-[#4A26ED]" : "text-amber-500"} />;
+  if (type === "verification") {
+    return <Rss size={14} className="text-teal-600" />;
   }
-  switch (type) {
-    case "mint":
-      return <Shield size={14} className="text-[#7C3AED]" />;
-    case "royalty":
-      return <DollarSign size={14} className="text-emerald-500" />;
-    case "license":
-      return <Activity size={14} className="text-[#D1009A]" />;
-    default:
-      return <Activity size={14} />;
-  }
+  return <Bot size={14} className={isLicensed ? "text-emerald-600" : "text-red-500"} />;
 };
 
 const formatTimeAgo = (dateString: string): string => {
@@ -150,7 +136,7 @@ export function ActivityFeed() {
 
       setIsLoading(true);
       try {
-        // Fetch recent transactions
+        // Fetch AI license transactions (for bot activity)
         const { data: transactions, error: txError } = await supabase
           .from("transactions")
           .select(`
@@ -163,14 +149,16 @@ export function ActivityFeed() {
             )
           `)
           .eq("publisher_id", user.id)
+          .eq("license_type", "ai")
           .order("created_at", { ascending: false })
           .limit(4);
 
-        // Fetch recent assets
-        const { data: assets, error: assetError } = await supabase
+        // Fetch verified assets (for verification events)
+        const { data: verifiedAssets, error: assetError } = await supabase
           .from("assets")
-          .select("id, title, created_at")
+          .select("id, title, source_url, created_at, verification_status")
           .eq("user_id", user.id)
+          .eq("verification_status", "verified")
           .order("created_at", { ascending: false })
           .limit(2);
 
@@ -180,56 +168,45 @@ export function ActivityFeed() {
           return;
         }
 
-        // Combine and map to activity items
         const combinedActivities: ActivityItem[] = [];
 
-        // Map transactions to activities with AI bot details
+        // Map AI transactions to bot scan activities
         if (transactions && transactions.length > 0) {
           transactions.forEach((tx: any, index: number) => {
-            if (tx.license_type === "ai") {
-              const bot = AI_BOTS[index % AI_BOTS.length];
-              const tokenCount = Math.floor(Math.random() * 15000) + 2000;
-              combinedActivities.push({
-                id: tx.id,
-                type: "ai_scrape",
-                title: `${bot.name} (${bot.company})`,
-                description: `Scanned ${tokenCount.toLocaleString()} tokens of '${tx.assets?.title || 'content'}'`,
-                time: formatTimeAgo(tx.created_at),
-                botName: `${bot.name} (${bot.company})`,
-                assetTitle: tx.assets?.title || 'content',
-                isLicensed: true,
-                tokenCount,
-              });
-            } else {
-              combinedActivities.push({
-                id: tx.id,
-                type: "license",
-                title: "Human License Sold",
-                description: `$${Number(tx.amount).toFixed(2)} from ${tx.assets?.title || 'content'}`,
-                time: formatTimeAgo(tx.created_at),
-              });
-            }
-          });
-        }
-
-        // Map assets to mint activities with Story Protocol hash
-        if (assets && assets.length > 0) {
-          assets.forEach((asset: any) => {
-            // Generate a mock Story Protocol hash for the activity
-            const mockHash = `sp_tx_${asset.id.replace(/-/g, '').slice(0, 8)}${Date.now().toString(16).slice(-4)}`;
+            const bot = AI_BOTS[index % AI_BOTS.length];
+            const tokenCount = Math.floor(Math.random() * 15000) + 2000;
             combinedActivities.push({
-              id: `asset-${asset.id}`,
-              type: "mint",
-              title: "Asset Registered on Story Protocol",
-              description: `${asset.title} • ${mockHash.slice(0, 12)}...`,
-              time: formatTimeAgo(asset.created_at),
-              storyProtocolHash: mockHash,
+              id: tx.id,
+              type: "bot_scan",
+              title: `${bot.name} (${bot.company})`,
+              description: `Scanned ${tokenCount.toLocaleString()} tokens of '${tx.assets?.title || 'content'}'`,
+              time: formatTimeAgo(tx.created_at),
+              botName: `${bot.name} (${bot.company})`,
+              assetTitle: tx.assets?.title || 'content',
+              isLicensed: true,
+              tokenCount,
             });
           });
         }
 
-        // Sort by recency and take top 5
-        setActivities(combinedActivities.slice(0, 5));
+        // Map verified assets to verification events
+        if (verifiedAssets && verifiedAssets.length > 0) {
+          verifiedAssets.forEach((asset: any) => {
+            const domain = asset.source_url 
+              ? new URL(asset.source_url).hostname 
+              : 'publication';
+            combinedActivities.push({
+              id: `verify-${asset.id}`,
+              type: "verification",
+              title: `Publication Verified`,
+              description: `${domain} ownership confirmed`,
+              time: formatTimeAgo(asset.created_at),
+            });
+          });
+        }
+
+        // Sort by recency and take top 6
+        setActivities(combinedActivities.slice(0, 6));
       } catch (err) {
         console.error("Activity fetch error:", err);
         setActivities([]);
@@ -242,7 +219,7 @@ export function ActivityFeed() {
   }, [user]);
 
   const handleActivityClick = (activity: ActivityItem) => {
-    if (activity.type === "ai_scrape" && !activity.isLicensed) {
+    if (activity.type === "bot_scan" && !activity.isLicensed) {
       setSelectedActivity(activity);
       setPopupOpen(true);
     }
@@ -254,11 +231,11 @@ export function ActivityFeed() {
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-[#E8F2FB] rounded-xl shadow-sm">
-        <div className="p-4 border-b border-[#E8F2FB]">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+        <div className="p-4 border-b border-gray-200">
           <h3 className="text-[#040042] font-semibold text-sm flex items-center gap-2">
-            <Bot size={16} className="text-[#4A26ED]" />
-            AI Detection Feed
+            <Shield size={16} className="text-[#4A26ED]" />
+            Security Monitor
           </h3>
         </div>
         <div className="p-8 flex items-center justify-center">
@@ -270,12 +247,12 @@ export function ActivityFeed() {
 
   return (
     <>
-      <div className="bg-white border border-[#E8F2FB] rounded-xl shadow-sm">
-        <div className="p-4 border-b border-[#E8F2FB]">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+        <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-[#040042] font-semibold text-sm flex items-center gap-2">
-              <Bot size={16} className="text-[#4A26ED]" />
-              AI Detection Feed
+              <Shield size={16} className="text-[#4A26ED]" />
+              Security Monitor
             </h3>
             {isShowingDemo && (
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#040042]/40 border-[#040042]/20">
@@ -283,20 +260,21 @@ export function ActivityFeed() {
               </Badge>
             )}
           </div>
+          <p className="text-[#040042]/50 text-xs mt-1">Bot activity & verification events</p>
         </div>
 
         {isShowingDemo && (
-          <div className="px-4 py-2 bg-[#F2F9FF] border-b border-[#E8F2FB] flex items-center gap-2">
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
             <AlertCircle size={12} className="text-[#4A26ED]" />
             <span className="text-[10px] text-[#040042]/60">Showing sample detections</span>
           </div>
         )}
 
-        <div className={`divide-y divide-[#E8F2FB] ${isShowingDemo ? 'opacity-75' : ''}`}>
+        <div className={`divide-y divide-gray-100 ${isShowingDemo ? 'opacity-75' : ''}`}>
           {displayActivities.map((activity) => {
             const isDemo = activity.id.startsWith('demo-');
-            const isAIScrape = activity.type === "ai_scrape";
-            const isClickable = isAIScrape && !activity.isLicensed;
+            const isBotScan = activity.type === "bot_scan";
+            const isClickable = isBotScan && !activity.isLicensed;
             
             return (
               <div
@@ -304,14 +282,16 @@ export function ActivityFeed() {
                 onClick={() => handleActivityClick(activity)}
                 className={`flex items-start gap-3 p-4 transition-colors ${
                   isClickable 
-                    ? 'hover:bg-amber-50/50 cursor-pointer' 
-                    : 'hover:bg-[#F2F9FF]/50'
+                    ? 'hover:bg-red-50/50 cursor-pointer' 
+                    : 'hover:bg-gray-50'
                 }`}
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                  isAIScrape && !activity.isLicensed 
-                    ? 'bg-amber-100' 
-                    : 'bg-[#F2F9FF]'
+                  isBotScan && !activity.isLicensed 
+                    ? 'bg-red-100' 
+                    : activity.type === "verification"
+                    ? 'bg-teal-100'
+                    : 'bg-emerald-100'
                 }`}>
                   {getIcon(activity.type, activity.isLicensed)}
                 </div>
@@ -320,25 +300,26 @@ export function ActivityFeed() {
                     {getStatusDot(activity.type, activity.isLicensed)}
                     <p className="text-[#040042] font-medium text-sm">{activity.title}</p>
                     
-                    {/* Story Protocol Badge for minted assets */}
-                    {activity.type === "mint" && activity.storyProtocolHash && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] text-[#7C3AED] bg-[#7C3AED]/10 px-1.5 py-0.5 rounded-full font-medium border border-[#7C3AED]/20">
-                        <Shield size={10} />
-                        Story IP
+                    {/* Verification Badge */}
+                    {activity.type === "verification" && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded-full font-medium border border-teal-200">
+                        <CheckCircle2 size={10} />
+                        Verified
                       </span>
                     )}
                     
                     {/* IP Verified Badge for licensed AI activity */}
-                    {isAIScrape && activity.isLicensed && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full font-medium">
+                    {isBotScan && activity.isLicensed && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full font-medium border border-emerald-200">
                         <CheckCircle2 size={10} />
-                        IP Verified
+                        Licensed
                       </span>
                     )}
                     
-                    {/* Unlicensed Badge */}
-                    {isAIScrape && !activity.isLicensed && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">
+                    {/* Unlicensed Badge - now Red */}
+                    {isBotScan && !activity.isLicensed && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-red-700 bg-red-50 px-1.5 py-0.5 rounded-full font-medium border border-red-200">
+                        <AlertCircle size={10} />
                         Unlicensed
                       </span>
                     )}
