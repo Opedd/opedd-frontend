@@ -21,15 +21,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
-
-interface Asset {
-  id: string;
-  title: string;
-  licenseType: "human" | "ai" | "both";
-  status: "active" | "pending" | "minted";
-  revenue: number;
-  createdAt: string;
-}
+import { Asset } from "@/types/asset";
 
 interface AssetSettingsModalProps {
   open: boolean;

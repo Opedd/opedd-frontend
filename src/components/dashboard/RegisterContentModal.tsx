@@ -77,6 +77,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   
   const [view, setView] = useState<ModalView>(initialView);
   const [verificationCode, setVerificationCode] = useState("");
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [copiedVerification, setCopiedVerification] = useState(false);
   
   // Update view when initialView changes or modal opens
@@ -132,6 +133,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setUploadedFile(null);
     setInputMode("file");
     setRegisteredAssetId(null);
+    setVerificationToken(null);
     setCopiedWidget(false);
     setCopiedLink(false);
     setCopiedVerification(false);
@@ -277,6 +279,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
     try {
       // Create an asset representing the publication source
+      // Uses standardized naming: human_price, ai_price
       const { data, error } = await supabase
         .from("assets")
         .insert({
@@ -294,12 +297,20 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         .single();
 
       if (error) throw error;
+      
       setRegisteredAssetId(data.id);
+      // Generate and store verification token for the pending verification modal
+      const token = generateVerificationCode();
+      setVerificationToken(token);
+      setVerificationCode(token);
       onSuccess?.();
     } catch (error) {
       console.error("Error syncing publication:", error);
       // Still show success for demo purposes
       setRegisteredAssetId("demo-" + Date.now());
+      const token = generateVerificationCode();
+      setVerificationToken(token);
+      setVerificationCode(token);
       onSuccess?.();
     }
   };
@@ -326,6 +337,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setIsSubmitting(true);
 
     try {
+      // Uses standardized naming: human_price, ai_price
       const { data, error } = await supabase
         .from("assets")
         .insert({
@@ -350,8 +362,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       setView("success");
 
       toast({
-        title: "Asset Registered",
-        description: "Your content has been protected on Story Protocol",
+        title: "Asset Licensed",
+        description: "Your content has been registered on Story Protocol",
       });
 
       onSuccess?.();
@@ -706,29 +718,29 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {/* Verification Content */}
           <div className="p-6 space-y-5">
             <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-                <CheckCircle size={32} className="text-emerald-600" />
+              <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
+                <Shield size={32} className="text-amber-600" />
               </div>
             </div>
 
             <div className="text-center">
-              <h3 className="text-lg font-bold text-[#040042] mb-2">Verify Your Ownership</h3>
+              <h3 className="text-lg font-bold text-[#040042] mb-2">Pending Verification</h3>
               <p className="text-sm text-slate-600">
-                To finalize protection, please add the verification code below to your publication bio or site header.
+                To finalize licensing, please add the verification token below to your publication bio or site header.
               </p>
             </div>
 
-            {/* Verification Code Box */}
+            {/* Verification Token Box */}
             <div className="bg-[#F2F9FF] border-2 border-[#4A26ED]/20 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Verification Code</p>
-                  <p className="text-2xl font-mono font-bold text-[#4A26ED] tracking-wider">{verificationCode}</p>
+                  <p className="text-xs text-slate-500 mb-1">Verification Token</p>
+                  <p className="text-2xl font-mono font-bold text-[#4A26ED] tracking-wider">{verificationToken || verificationCode}</p>
                 </div>
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleCopy(verificationCode, "verification")}
+                  onClick={() => handleCopy(verificationToken || verificationCode, "verification")}
                   className="border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/10"
                 >
                   {copiedVerification ? (
@@ -748,7 +760,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <p className="text-sm text-amber-800">
-                <strong>Where to add it:</strong> Add <code className="bg-amber-100 px-1 rounded">{verificationCode}</code> to your Substack bio, Ghost site description, or your website's header/footer.
+                <strong>Where to add it:</strong> Add <code className="bg-amber-100 px-1 rounded">{verificationToken || verificationCode}</code> to your Substack bio, Ghost site description, or your website's header/footer.
               </p>
             </div>
 
