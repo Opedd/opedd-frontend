@@ -322,13 +322,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       // Generate content hash from feed URL
       const contentHash = generateContentHash(feedUrl);
       
-      // Determine license type based on pricing
+      // Determine access type based on pricing
       const hasHuman = parseFloat(pubHumanPrice) > 0;
       const hasAi = pubAiPrice && parseFloat(pubAiPrice) > 0;
-      const licenseType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
+      const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
       
       // Create asset with aligned license schema:
-      // title, description, licenseType, contentHash, metadata
+      // title, description, access_type, contentHash, metadata
       const { data, error } = await supabase
         .from("assets")
         .insert({
@@ -343,7 +343,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           human_licenses_sold: 0,
           ai_licenses_sold: 0,
           // New aligned fields
-          license_type: licenseType,
+          access_type: accessType,
           content_hash: contentHash,
           verification_token: token,
           verification_status: "pending",
@@ -399,13 +399,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       // Generate content hash from title + description
       const contentHash = generateContentHash(`${title}${description || ''}`);
       
-      // Determine license type based on pricing
+      // Determine access type based on pricing
       const hasHuman = parseFloat(humanPrice) > 0;
       const hasAi = aiPrice && parseFloat(aiPrice) > 0;
-      const licenseType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
+      const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
       
       // Create asset with aligned license schema:
-      // title, description, licenseType, contentHash, metadata
+      // title, description, access_type, contentHash, metadata
       const { data, error } = await supabase
         .from("assets")
         .insert({
@@ -421,7 +421,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           human_licenses_sold: 0,
           ai_licenses_sold: 0,
           // New aligned fields
-          license_type: licenseType,
+          access_type: accessType,
           content_hash: contentHash,
           verification_status: "verified", // Single works are auto-verified
           metadata: {

@@ -58,7 +58,7 @@ export default function Dashboard() {
       setIsLoading(true);
       const { data, error } = await supabase
         .from("assets")
-        .select("id, title, human_price, ai_price, licensing_enabled, total_revenue, created_at, source_url, user_id, publication_id, verification_status, verification_token")
+        .select("id, title, human_price, ai_price, license_type, licensing_enabled, total_revenue, created_at, source_url, user_id, publication_id, verification_status, verification_token")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
