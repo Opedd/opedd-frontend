@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ConnectCMSModal } from "@/components/integrations/ConnectCMSModal";
 import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
+import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CMSSource {
   id: string;
@@ -92,6 +94,9 @@ export default function Integrations() {
   const [selectedSource, setSelectedSource] = useState<CMSSource | null>(null);
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   
+  // Sync Publication Modal State (opens after connection is active)
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
+  
   // AI Policy State
   const [aiDefenseEnabled, setAiDefenseEnabled] = useState(true);
 
@@ -102,8 +107,9 @@ export default function Integrations() {
     setConnectModalOpen(true);
   };
 
-  const handleConnectionComplete = (feedUrl: string, humanPrice: string, aiPrice: string) => {
+  const handleConnectionComplete = async (feedUrl: string, humanPrice: string, aiPrice: string) => {
     if (selectedSource) {
+      // Update local state
       setSources(prev => 
         prev.map(s => 
           s.id === selectedSource.id 
@@ -111,14 +117,50 @@ export default function Integrations() {
             : s
         )
       );
+      
+      // Persist to database
+      try {
+        await supabase.from("rss_sources").insert({
+          user_id: user.id,
+          name: selectedSource.name,
+          platform: selectedSource.id,
+          feed_url: feedUrl,
+          sync_status: "active",
+        });
+      } catch (error) {
+        console.error("Error saving RSS source:", error);
+      }
+      
       toast({
         title: "Source Connected",
         description: `${selectedSource.name} is now syncing your content.`,
       });
+      
+      // Close ConnectCMS modal, then open Sync Publication modal
+      setConnectModalOpen(false);
+      setTimeout(() => {
+        setSyncModalOpen(true);
+      }, 300);
     }
   };
 
-  const handleDisconnect = (sourceId: string) => {
+  const handleDisconnect = async (sourceId: string) => {
+    const source = sources.find(s => s.id === sourceId);
+    
+    // Remove from database
+    try {
+      if (source?.feedUrl) {
+        await supabase
+          .from("rss_sources")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("platform", sourceId);
+      }
+    } catch (error) {
+      console.error("Error removing RSS source:", error);
+    }
+    
+    // Update local state
     setSources(prev =>
       prev.map(s =>
         s.id === sourceId
@@ -160,7 +202,7 @@ export default function Integrations() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[#040042]">Publisher Automation Hub</h1>
-              <p className="text-[#040042]/60 text-sm">Connect your content sources and manage IP protection</p>
+              <p className="text-[#040042]/60 text-sm">Manage your content sources and API connections</p>
             </div>
           </div>
 
@@ -334,6 +376,13 @@ export default function Integrations() {
         platformName={selectedSource?.name || ""}
         platformLogo={getLogoForModal()}
         onComplete={handleConnectionComplete}
+      />
+      
+      {/* Sync Publication Modal - Opens after connection is active */}
+      <RegisterContentModal
+        open={syncModalOpen}
+        onOpenChange={setSyncModalOpen}
+        initialView="publication"
       />
     </div>
   );

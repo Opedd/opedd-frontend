@@ -337,6 +337,7 @@ export default function Dashboard() {
         open={isAddModalOpen} 
         onOpenChange={setIsAddModalOpen}
         initialView={modalInitialView}
+        checkIntegrations={modalInitialView === "publication"}
         onSuccess={() => {
           fetchAssets();
           toast({

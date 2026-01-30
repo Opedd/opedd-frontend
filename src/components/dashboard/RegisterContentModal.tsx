@@ -27,8 +27,11 @@ import {
   File,
   Globe,
   Image as ImageIcon,
-  Copy
+  Copy,
+  Plug,
+  ArrowRight
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 // Platform logos
@@ -42,6 +45,8 @@ interface RegisterContentModalProps {
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
   initialView?: "choice" | "publication" | "single";
+  /** When true, shows empty state if no active integrations for "publication" view */
+  checkIntegrations?: boolean;
 }
 
 type ModalView = "choice" | "publication" | "single" | "syncing" | "pub-success" | "success";
@@ -82,22 +87,41 @@ const generateContentHash = (content: string): string => {
   return `0x${Math.abs(hash).toString(16).padStart(16, '0')}`;
 };
 
-export function RegisterContentModal({ open, onOpenChange, onSuccess, initialView = "choice" }: RegisterContentModalProps) {
+export function RegisterContentModal({ open, onOpenChange, onSuccess, initialView = "choice", checkIntegrations = false }: RegisterContentModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [view, setView] = useState<ModalView>(initialView);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [copiedVerification, setCopiedVerification] = useState(false);
   
+  // Check for active integrations (for empty state)
+  const [hasActiveIntegrations, setHasActiveIntegrations] = useState(true);
+  const [integrationsLoading, setIntegrationsLoading] = useState(false);
+  
   // Update view when initialView changes or modal opens
   useEffect(() => {
     if (open) {
       setView(initialView);
       setVerificationCode(generateVerificationCode());
+      
+      // Check for active integrations if needed
+      if (checkIntegrations && initialView === "publication" && user) {
+        setIntegrationsLoading(true);
+        supabase
+          .from("rss_sources")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("sync_status", "active")
+          .then(({ data }) => {
+            setHasActiveIntegrations((data?.length || 0) > 0);
+            setIntegrationsLoading(false);
+          });
+      }
     }
-  }, [open, initialView]);
+  }, [open, initialView, checkIntegrations, user]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredAssetId, setRegisteredAssetId] = useState<string | null>(null);
@@ -520,6 +544,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   // PUBLICATION SYNC VIEW
   if (view === "publication") {
+    // Show empty state if checkIntegrations is true and no active integrations
+    const showEmptyState = checkIntegrations && !hasActiveIntegrations && !integrationsLoading;
+    
     return (
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
@@ -544,8 +571,37 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </div>
           </div>
 
-          {/* Form */}
-          <div className="p-6 space-y-5">
+          {/* Empty State - No Active Integrations */}
+          {showEmptyState ? (
+            <div className="p-8 text-center space-y-6">
+              <div className="mx-auto w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center">
+                <Plug size={36} className="text-slate-400" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-[#040042]">No Content Sources Connected</h3>
+                <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                  Connect a Substack, Ghost, or WordPress publication first to sync your content automatically.
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  handleClose();
+                  navigate("/integrations");
+                }}
+                className="bg-[#040042] hover:bg-[#040042]/90 text-white"
+              >
+                Go to Integrations
+                <ArrowRight size={16} className="ml-2" />
+              </Button>
+            </div>
+          ) : integrationsLoading ? (
+            <div className="p-8 text-center">
+              <Loader2 size={32} className="text-[#4A26ED] animate-spin mx-auto" />
+              <p className="text-sm text-slate-500 mt-4">Checking integrations...</p>
+            </div>
+          ) : (
+            /* Form */
+            <div className="p-6 space-y-5">
             {/* Platform Icons - Interactive Buttons */}
             <div className="flex items-center justify-center gap-3 pb-2">
               {platformIcons.map((platform) => (
@@ -660,6 +716,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               Connect & License Archive
             </Button>
           </div>
+          )}
         </DialogContent>
       </Dialog>
     );
