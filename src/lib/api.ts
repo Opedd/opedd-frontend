@@ -149,6 +149,10 @@ export const contentSourcesApi = {
   // Verify ownership of a content source
   verify: <T>(sourceId: string, token?: string | null) =>
     apiFetch<T>(`${API.contentSources}/${sourceId}/verify`, { method: 'POST' }, token),
+
+  // Trigger RSS sync for a content source (import articles)
+  sync: <T>(sourceId: string, token?: string | null) =>
+    apiFetch<T>(`${API.contentSources}/${sourceId}/sync`, { method: 'POST' }, token),
 };
 
 export default api;
