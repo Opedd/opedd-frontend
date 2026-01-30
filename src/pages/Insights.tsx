@@ -27,7 +27,7 @@ export default function Insights() {
           {/* Page Title */}
           <div className="flex items-center gap-3">
             <Shield size={22} className="text-[#4A26ED]" />
-            <h1 className="text-xl font-bold text-[#040042]">Security Insights</h1>
+            <h1 className="text-xl font-bold text-[#040042]">Live Activity Feed</h1>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -36,7 +36,7 @@ export default function Insights() {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[220px] text-xs">
-                  <p>Monitor AI bot activity and publication verification events in real-time.</p>
+                  <p>Monitor bot activity, publication verifications, and licensing events in real-time.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

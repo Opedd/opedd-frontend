@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Bot, Circle, Loader2, AlertCircle, CheckCircle2, Shield, Rss } from "lucide-react";
+import { Bot, Circle, Loader2, AlertCircle, CheckCircle2, Shield, Rss, FileText, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { AIDetectionPopup } from "./AIDetectionPopup";
 
 interface ActivityItem {
   id: string;
-  type: "bot_scan" | "verification";
+  type: "bot_scan" | "verification" | "license_human" | "license_ai";
   title: string;
   description: string;
   time: string;
@@ -15,7 +15,6 @@ interface ActivityItem {
   assetTitle?: string;
   isLicensed?: boolean;
   tokenCount?: number;
-  storyProtocolHash?: string;
 }
 
 // AI Bot definitions for realistic detection simulation
@@ -27,7 +26,7 @@ const AI_BOTS = [
   { name: "CCBot", company: "Common Crawl", model: "Dataset" },
 ];
 
-// Sample activities for demo mode - Security focused only
+// Sample activities for demo mode - Event focused (no dollar amounts)
 const sampleActivities: ActivityItem[] = [
   {
     id: "demo-1",
@@ -42,42 +41,58 @@ const sampleActivities: ActivityItem[] = [
   },
   {
     id: "demo-2",
+    type: "license_human",
+    title: "New License: Climate Policy Framework",
+    description: "Licensed for Human Republication",
+    time: "5 min ago",
+    assetTitle: "Climate Policy Framework",
+  },
+  {
+    id: "demo-3",
     type: "bot_scan",
     title: "ClaudeBot (Anthropic)",
     description: "Indexed 8,500 tokens for training data",
-    time: "2 min ago",
+    time: "12 min ago",
     botName: "ClaudeBot (Anthropic)",
     assetTitle: "Market Analysis Q4",
     isLicensed: true,
     tokenCount: 8500,
   },
   {
-    id: "demo-3",
+    id: "demo-4",
     type: "verification",
     title: "Substack Publication Verified",
     description: "tech-insights.substack.com ownership confirmed",
-    time: "8 min ago",
+    time: "18 min ago",
   },
   {
-    id: "demo-4",
+    id: "demo-5",
     type: "bot_scan",
     title: "Google-Extended",
     description: "Attempted to ingest 12,300 tokens for Gemini training",
-    time: "15 min ago",
+    time: "25 min ago",
     botName: "Google-Extended (Google)",
     assetTitle: "AI Regulation Deep Dive",
     isLicensed: false,
     tokenCount: 12300,
   },
   {
-    id: "demo-5",
+    id: "demo-6",
+    type: "license_ai",
+    title: "New License: Neural Network Patterns",
+    description: "Licensed for AI Model Training",
+    time: "45 min ago",
+    assetTitle: "Neural Network Patterns",
+  },
+  {
+    id: "demo-7",
     type: "verification",
     title: "Ghost Publication Verified",
     description: "blog.example.com ownership confirmed",
     time: "1 hour ago",
   },
   {
-    id: "demo-6",
+    id: "demo-8",
     type: "bot_scan",
     title: "PerplexityBot (Perplexity)",
     description: "Scanned 3,100 tokens of 'Startup Funding Guide'",
@@ -91,19 +106,44 @@ const sampleActivities: ActivityItem[] = [
 
 const getStatusDot = (type: ActivityItem["type"], isLicensed?: boolean) => {
   if (type === "bot_scan" && !isLicensed) {
-    return <Circle size={8} className="fill-red-500 text-red-500" />;
+    return <Circle size={8} className="fill-amber-500 text-amber-500" />;
+  }
+  if (type === "bot_scan" && isLicensed) {
+    return <Circle size={8} className="fill-teal-500 text-teal-500" />;
   }
   if (type === "verification") {
     return <Circle size={8} className="fill-teal-500 text-teal-500" />;
   }
-  return <Circle size={8} className="fill-emerald-500 text-emerald-500" />;
+  // Licensing events - purple
+  return <Circle size={8} className="fill-[#7C3AED] text-[#7C3AED]" />;
 };
 
 const getIcon = (type: ActivityItem["type"], isLicensed?: boolean) => {
   if (type === "verification") {
     return <Rss size={14} className="text-teal-600" />;
   }
-  return <Bot size={14} className={isLicensed ? "text-emerald-600" : "text-red-500"} />;
+  if (type === "bot_scan") {
+    return <Bot size={14} className={isLicensed ? "text-teal-600" : "text-amber-600"} />;
+  }
+  if (type === "license_human") {
+    return <User size={14} className="text-[#7C3AED]" />;
+  }
+  // license_ai
+  return <FileText size={14} className="text-[#7C3AED]" />;
+};
+
+const getIconBackground = (type: ActivityItem["type"], isLicensed?: boolean) => {
+  if (type === "bot_scan" && !isLicensed) {
+    return "bg-amber-100";
+  }
+  if (type === "bot_scan" && isLicensed) {
+    return "bg-teal-100";
+  }
+  if (type === "verification") {
+    return "bg-teal-100";
+  }
+  // Licensing events - purple
+  return "bg-[#7C3AED]/10";
 };
 
 const formatTimeAgo = (dateString: string): string => {
@@ -136,22 +176,20 @@ export function ActivityFeed() {
 
       setIsLoading(true);
       try {
-        // Fetch AI license transactions (for bot activity)
+        // Fetch all transactions (for bot activity AND licensing events)
         const { data: transactions, error: txError } = await supabase
           .from("transactions")
           .select(`
             id,
             created_at,
-            amount,
             license_type,
             assets (
               title
             )
           `)
           .eq("publisher_id", user.id)
-          .eq("license_type", "ai")
           .order("created_at", { ascending: false })
-          .limit(4);
+          .limit(6);
 
         // Fetch verified assets (for verification events)
         const { data: verifiedAssets, error: assetError } = await supabase
@@ -170,31 +208,51 @@ export function ActivityFeed() {
 
         const combinedActivities: ActivityItem[] = [];
 
-        // Map AI transactions to bot scan activities
+        // Map transactions to activities
         if (transactions && transactions.length > 0) {
           transactions.forEach((tx: any, index: number) => {
-            const bot = AI_BOTS[index % AI_BOTS.length];
-            const tokenCount = Math.floor(Math.random() * 15000) + 2000;
-            combinedActivities.push({
-              id: tx.id,
-              type: "bot_scan",
-              title: `${bot.name} (${bot.company})`,
-              description: `Scanned ${tokenCount.toLocaleString()} tokens of '${tx.assets?.title || 'content'}'`,
-              time: formatTimeAgo(tx.created_at),
-              botName: `${bot.name} (${bot.company})`,
-              assetTitle: tx.assets?.title || 'content',
-              isLicensed: true,
-              tokenCount,
-            });
+            const isAI = tx.license_type === "ai";
+            
+            if (isAI) {
+              // AI transactions become bot scan events
+              const bot = AI_BOTS[index % AI_BOTS.length];
+              const tokenCount = Math.floor(Math.random() * 15000) + 2000;
+              combinedActivities.push({
+                id: tx.id,
+                type: "bot_scan",
+                title: `${bot.name} (${bot.company})`,
+                description: `Scanned ${tokenCount.toLocaleString()} tokens of '${tx.assets?.title || 'content'}'`,
+                time: formatTimeAgo(tx.created_at),
+                botName: `${bot.name} (${bot.company})`,
+                assetTitle: tx.assets?.title || 'content',
+                isLicensed: true,
+                tokenCount,
+              });
+            } else {
+              // Human transactions become licensing events (no dollar amounts)
+              combinedActivities.push({
+                id: tx.id,
+                type: "license_human",
+                title: `New License: ${tx.assets?.title || 'Content'}`,
+                description: "Licensed for Human Republication",
+                time: formatTimeAgo(tx.created_at),
+                assetTitle: tx.assets?.title || 'Content',
+              });
+            }
           });
         }
 
         // Map verified assets to verification events
         if (verifiedAssets && verifiedAssets.length > 0) {
           verifiedAssets.forEach((asset: any) => {
-            const domain = asset.source_url 
-              ? new URL(asset.source_url).hostname 
-              : 'publication';
+            let domain = 'publication';
+            try {
+              if (asset.source_url) {
+                domain = new URL(asset.source_url).hostname;
+              }
+            } catch {
+              domain = 'publication';
+            }
             combinedActivities.push({
               id: `verify-${asset.id}`,
               type: "verification",
@@ -205,8 +263,8 @@ export function ActivityFeed() {
           });
         }
 
-        // Sort by recency and take top 6
-        setActivities(combinedActivities.slice(0, 6));
+        // Sort by recency and take top 8
+        setActivities(combinedActivities.slice(0, 8));
       } catch (err) {
         console.error("Activity fetch error:", err);
         setActivities([]);
@@ -235,7 +293,7 @@ export function ActivityFeed() {
         <div className="p-4 border-b border-gray-200">
           <h3 className="text-[#040042] font-semibold text-sm flex items-center gap-2">
             <Shield size={16} className="text-[#4A26ED]" />
-            Security Monitor
+            Activity Feed
           </h3>
         </div>
         <div className="p-8 flex items-center justify-center">
@@ -252,7 +310,7 @@ export function ActivityFeed() {
           <div className="flex items-center justify-between">
             <h3 className="text-[#040042] font-semibold text-sm flex items-center gap-2">
               <Shield size={16} className="text-[#4A26ED]" />
-              Security Monitor
+              Activity Feed
             </h3>
             {isShowingDemo && (
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#040042]/40 border-[#040042]/20">
@@ -260,13 +318,13 @@ export function ActivityFeed() {
               </Badge>
             )}
           </div>
-          <p className="text-[#040042]/50 text-xs mt-1">Bot activity & verification events</p>
+          <p className="text-[#040042]/50 text-xs mt-1">Bot activity, verifications & licensing events</p>
         </div>
 
         {isShowingDemo && (
           <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
             <AlertCircle size={12} className="text-[#4A26ED]" />
-            <span className="text-[10px] text-[#040042]/60">Showing sample detections</span>
+            <span className="text-[10px] text-[#040042]/60">Showing sample events</span>
           </div>
         )}
 
@@ -282,17 +340,11 @@ export function ActivityFeed() {
                 onClick={() => handleActivityClick(activity)}
                 className={`flex items-start gap-3 p-4 transition-colors ${
                   isClickable 
-                    ? 'hover:bg-red-50/50 cursor-pointer' 
+                    ? 'hover:bg-amber-50/50 cursor-pointer' 
                     : 'hover:bg-gray-50'
                 }`}
               >
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                  isBotScan && !activity.isLicensed 
-                    ? 'bg-red-100' 
-                    : activity.type === "verification"
-                    ? 'bg-teal-100'
-                    : 'bg-emerald-100'
-                }`}>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${getIconBackground(activity.type, activity.isLicensed)}`}>
                   {getIcon(activity.type, activity.isLicensed)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -300,7 +352,7 @@ export function ActivityFeed() {
                     {getStatusDot(activity.type, activity.isLicensed)}
                     <p className="text-[#040042] font-medium text-sm">{activity.title}</p>
                     
-                    {/* Verification Badge */}
+                    {/* Verification Badge - Teal */}
                     {activity.type === "verification" && (
                       <span className="inline-flex items-center gap-0.5 text-[9px] text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded-full font-medium border border-teal-200">
                         <CheckCircle2 size={10} />
@@ -308,19 +360,26 @@ export function ActivityFeed() {
                       </span>
                     )}
                     
-                    {/* IP Verified Badge for licensed AI activity */}
+                    {/* Licensed Bot Badge - Teal */}
                     {isBotScan && activity.isLicensed && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full font-medium border border-emerald-200">
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded-full font-medium border border-teal-200">
                         <CheckCircle2 size={10} />
                         Licensed
                       </span>
                     )}
                     
-                    {/* Unlicensed Badge - now Red */}
+                    {/* Unlicensed Bot Badge - Amber */}
                     {isBotScan && !activity.isLicensed && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] text-red-700 bg-red-50 px-1.5 py-0.5 rounded-full font-medium border border-red-200">
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium border border-amber-200">
                         <AlertCircle size={10} />
-                        Unlicensed
+                        Blocked
+                      </span>
+                    )}
+                    
+                    {/* Licensing Event Badge - Purple */}
+                    {(activity.type === "license_human" || activity.type === "license_ai") && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-[#7C3AED] bg-[#7C3AED]/10 px-1.5 py-0.5 rounded-full font-medium border border-[#7C3AED]/20">
+                        {activity.type === "license_human" ? "Human" : "AI"}
                       </span>
                     )}
                     
