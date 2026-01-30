@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { contentSourcesApi } from "@/lib/api";
 import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle, HelpCircle } from "lucide-react";
 import {
   Tooltip,
@@ -50,12 +51,33 @@ export default function Dashboard() {
     setIsAddModalOpen(true);
   };
 
-  // Fetch assets from Supabase
+  // Fetch assets from API (with Supabase fallback)
   const fetchAssets = async () => {
     if (!user) return;
     
     try {
       setIsLoading(true);
+      
+      // Get the user's session token for API calls
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      // Try to fetch from the new API endpoint first
+      try {
+        const apiAssets = await contentSourcesApi.listAssets<DbAsset[]>(accessToken);
+        
+        if (Array.isArray(apiAssets) && apiAssets.length > 0) {
+          const mappedAssets = apiAssets
+            .filter((item): item is NonNullable<typeof item> => item !== null)
+            .map((item) => mapDbAssetToUiAsset(item));
+          setAssets(mappedAssets);
+          return;
+        }
+      } catch (apiError) {
+        console.log("[Dashboard] API fetch failed, falling back to Supabase:", apiError);
+      }
+      
+      // Fallback to direct Supabase query
       const { data, error } = await supabase
         .from("assets")
         .select("*")

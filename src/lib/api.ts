@@ -11,6 +11,10 @@ export const API = {
   // Direct Edge Function endpoints
   licenses: EDGE_FUNCTION_BASE + '/licenses',
 
+  // Content Sources (new schema) - for fetching user's licensed assets
+  contentSourcesAssets: '/api/v1/content-sources/me/assets',
+  contentSources: '/api/v1/content-sources',
+
   // API proxy - append path as query param
   proxy: (path: string) => EDGE_FUNCTION_BASE + '/api-proxy?path=' + encodeURIComponent(path),
 };
@@ -126,6 +130,21 @@ export const licensesApi = {
 
   delete: (id: string, token?: string | null) =>
     edgeFetch<{ message: string }>(API.licenses + '?id=' + encodeURIComponent(id), { method: 'DELETE' }, token),
+};
+
+// Content Sources API (new schema via proxy)
+export const contentSourcesApi = {
+  // Get all licensed assets for the current user
+  listAssets: <T>(token?: string | null) =>
+    apiFetch<T>(API.contentSourcesAssets, { method: 'GET' }, token),
+
+  // Get content sources
+  list: <T>(token?: string | null) =>
+    apiFetch<T>(API.contentSources, { method: 'GET' }, token),
+
+  // Create a new content source
+  create: <T>(body: { feed_url: string; name: string; human_price?: number; ai_price?: number }, token?: string | null) =>
+    apiFetch<T>(API.contentSources, { method: 'POST', body: JSON.stringify(body) }, token),
 };
 
 export default api;
