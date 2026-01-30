@@ -28,13 +28,14 @@ export interface Asset {
 }
 
 // Database asset structure (matches current Supabase schema)
-// Note: Uses publication_id until DB migration renames to source_id
+// Supports both old column names (publication_id, asset_id) and new (source_id, license_id)
 export interface DbAsset {
   id: string;
   title: string;
   human_price: number | null;
   ai_price: number | null;
   license_type?: string | null; // Current DB column
+  access_type?: string | null; // New schema column
   licensing_enabled: boolean | null;
   total_revenue: number | null;
   created_at: string | null;
@@ -42,7 +43,8 @@ export interface DbAsset {
   description?: string | null;
   content?: string | null;
   user_id: string;
-  publication_id?: string | null; // Current DB column (will become source_id)
+  publication_id?: string | null; // Old DB column
+  source_id?: string | null; // New DB column (preferred)
   verification_token?: string | null;
   verification_status?: string | null;
   content_hash?: string | null;
@@ -92,11 +94,15 @@ export const generateContentHash = (content: string): string => {
 
 // Map database asset to UI asset format
 export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
-  // Determine license type based on license_type or pricing
+  // Determine license type based on access_type, license_type, or pricing
   let licenseType: AccessType = "human";
   
-  // Prefer license_type if set
-  if (dbAsset.license_type === "both" || dbAsset.license_type === "human" || dbAsset.license_type === "ai") {
+  // Prefer access_type (new schema) if set
+  if (dbAsset.access_type === "both" || dbAsset.access_type === "human" || dbAsset.access_type === "ai") {
+    licenseType = dbAsset.access_type;
+  }
+  // Fall back to license_type (old schema)
+  else if (dbAsset.license_type === "both" || dbAsset.license_type === "human" || dbAsset.license_type === "ai") {
     licenseType = dbAsset.license_type;
   } else {
     // Fall back to pricing-based detection
@@ -113,10 +119,10 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     status = (dbAsset.total_revenue ?? 0) > 0 ? "minted" : "active";
   }
 
-  // Determine format based on publication_id presence (maps to source_id in UI)
-  // If publication_id exists, it's a "Publication Post" (part of a synced feed)
+  // Determine format based on source_id or publication_id presence
+  // If either exists, it's a "Publication Post" (part of a synced feed)
   // Otherwise, it's a "Single Work"
-  const hasSourceId = !!dbAsset.publication_id;
+  const hasSourceId = !!(dbAsset.source_id || dbAsset.publication_id);
   
   return {
     id: dbAsset.id,
@@ -127,7 +133,7 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     createdAt: dbAsset.created_at?.split("T")[0] ?? "",
     format: hasSourceId ? "publication" : "single",
     sourceUrl: dbAsset.source_url ?? undefined,
-    source_id: dbAsset.publication_id ?? undefined, // Map publication_id to source_id
+    source_id: dbAsset.source_id ?? dbAsset.publication_id ?? undefined, // Prefer source_id, fallback to publication_id
     verification_token: dbAsset.verification_token ?? undefined,
     verification_status: (dbAsset.verification_status as "pending" | "verified") ?? "pending",
     content_hash: dbAsset.content_hash ?? undefined,
