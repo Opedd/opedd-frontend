@@ -346,6 +346,10 @@ export default function Dashboard() {
                 assets={filteredAssets} 
                 onDelete={handleDelete}
                 onBulkDelete={handleBulkDelete}
+                onVerify={(id) => {
+                  // Refresh assets after verification attempt
+                  fetchAssets();
+                }}
                 isLoading={isLoading}
                 onAddClick={openRegisterModal}
                 onSyncClick={openPublicationSync}

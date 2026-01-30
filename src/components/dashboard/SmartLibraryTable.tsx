@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle, FileText, Rss, CheckCircle, Clock, Wallet } from "lucide-react";
+import { Shield, Trash2, Image, Settings, DollarSign, RefreshCw, Loader2, AlertCircle, LayoutGrid, List, HelpCircle, FileText, Rss, CheckCircle, Clock, Wallet, ShieldCheck } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RegistryView } from "./RegistryView";
 import { OnboardingCards } from "./OnboardingCards";
@@ -52,11 +52,14 @@ import { Sparkline } from "./Sparkline";
 import { AssetSettingsModal } from "./AssetSettingsModal";
 import { useToast } from "@/hooks/use-toast";
 import { Asset } from "@/types/asset";
+import { contentSourcesApi } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SmartLibraryTableProps {
   assets: Asset[];
   onDelete: (id: string) => void;
   onBulkDelete?: (ids: string[]) => void;
+  onVerify?: (id: string) => void;
   isLoading?: boolean;
   onAddClick?: () => void;
   onSyncClick?: () => void;
@@ -104,6 +107,7 @@ export function SmartLibraryTable({
   assets, 
   onDelete, 
   onBulkDelete, 
+  onVerify,
   isLoading = false,
   onAddClick,
   onSyncClick,
@@ -114,6 +118,7 @@ export function SmartLibraryTable({
   const { toast } = useToast();
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   
   // Multi-select state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -196,6 +201,44 @@ export function SmartLibraryTable({
     });
     setIsDeleteDialogOpen(false);
     setSelectedIds(new Set());
+  };
+
+  // Handle verify ownership via backend API
+  const handleVerifyOwnership = async (asset: Asset) => {
+    if (!asset.source_id) {
+      toast({
+        title: "Verification Not Available",
+        description: "Only publication posts can be verified",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVerifyingId(asset.id);
+    
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      await contentSourcesApi.verify(asset.source_id, accessToken);
+      
+      toast({
+        title: "Verification Initiated",
+        description: "We're checking your publication for the verification token",
+      });
+      
+      // Call parent handler if provided
+      onVerify?.(asset.id);
+    } catch (error) {
+      console.error("Verification error:", error);
+      toast({
+        title: "Verification Failed",
+        description: "Please ensure your verification token is visible on your publication",
+        variant: "destructive",
+      });
+    } finally {
+      setVerifyingId(null);
+    }
   };
 
   if (isLoading) {
@@ -353,19 +396,44 @@ export function SmartLibraryTable({
                     </div>
                   </TableCell>
 
-                  {/* Verification Status Badge */}
+                  {/* Verification Status Badge with Verify Button */}
                   <TableCell>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       {asset.verification_status === "verified" ? (
                         <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200 gap-1">
                           <CheckCircle size={10} />
                           Verified
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-200 gap-1">
-                          <Clock size={10} />
-                          Pending
-                        </Badge>
+                        <>
+                          <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-200 gap-1">
+                            <Clock size={10} />
+                            Pending
+                          </Badge>
+                          {asset.source_id && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => handleVerifyOwnership(asset)}
+                                    disabled={verifyingId === asset.id}
+                                    className="px-2 py-1 rounded-md bg-[#4A26ED]/10 text-[#4A26ED] text-[10px] font-medium hover:bg-[#4A26ED] hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    {verifyingId === asset.id ? (
+                                      <Loader2 size={10} className="animate-spin" />
+                                    ) : (
+                                      <ShieldCheck size={10} />
+                                    )}
+                                    Verify
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs max-w-[200px]">
+                                  <p>Verify ownership by checking your publication for the verification token</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </>
                       )}
                     </div>
                   </TableCell>
