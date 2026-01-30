@@ -382,10 +382,10 @@ export function SmartLibraryTable({
                     </div>
                   </TableCell>
 
-                  {/* Format Column - Now checks publication_id first */}
+                  {/* Format Column - Now checks source_id first */}
                   <TableCell>
                     <div className="flex items-center gap-1.5">
-                      {asset.publication_id ? (
+                      {asset.source_id ? (
                         <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 gap-1">
                           <Rss size={10} />
                           Publication Post

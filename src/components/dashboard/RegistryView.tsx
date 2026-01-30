@@ -12,15 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CertificateModal } from "./CertificateModal";
 
-interface Asset {
-  id: string;
-  title: string;
-  licenseType: "human" | "ai" | "both";
-  status: "active" | "pending" | "minted";
-  revenue: number;
-  createdAt: string;
-  storyProtocolHash?: string;
-}
+import { Asset } from "@/types/asset";
 
 interface RegistryViewProps {
   assets: Asset[];
