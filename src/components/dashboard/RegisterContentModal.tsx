@@ -375,76 +375,47 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const pubName = feedPreview?.title || feedUrl;
       const cleanPubName = pubName.startsWith('Publication:') ? pubName.replace('Publication: ', '') : pubName;
       
-      // Step 1: Create rss_sources entry first (content_sources)
-      const { data: sourceData, error: sourceError } = await supabase
-        .from("rss_sources")
-        .insert({
-          user_id: user.id,
-          name: cleanPubName,
-          feed_url: feedUrl,
-          platform: platform?.name?.toLowerCase() || "rss",
-          sync_status: "pending",
-          article_count: 0,
-        })
-        .select("id")
-        .single();
-
-      if (sourceError) {
-        console.error("Error creating rss_source:", sourceError);
-        throw sourceError;
+      // Get auth token for API calls
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error("No access token available");
       }
       
-      console.log("[RegisterContentModal] Created rss_source:", sourceData.id);
+      // Use contentSourcesApi to create the source via backend API
+      const { contentSourcesApi } = await import('@/lib/api');
       
-      // Step 2: Create asset linked to the source via publication_id
-      const { data, error } = await supabase
-        .from("assets")
-        .insert({
-          user_id: user.id,
-          title: `Publication: ${cleanPubName}`,
-          description: `Synced publication from ${platform?.name || 'RSS feed'}`,
-          source_url: feedUrl,
+      // Step 1: Create content source via API
+      const sourceData = await contentSourcesApi.create<{ id: string; verification_token?: string }>(
+        {
+          feed_url: feedUrl,
+          name: cleanPubName,
           human_price: parseFloat(pubHumanPrice) || 4.99,
-          ai_price: pubAiPrice ? parseFloat(pubAiPrice) : null,
-          licensing_enabled: true,
-          total_revenue: 0,
-          human_licenses_sold: 0,
-          ai_licenses_sold: 0,
-          license_type: accessType,
-          content_hash: contentHash,
-          verification_token: token,
-          verification_status: "pending",
-          publication_id: sourceData.id, // Link to the rss_source
-          metadata: {
-            url: feedUrl,
-            type: "publication",
-            platform: platform?.name?.toLowerCase() || "rss",
-            source_id: sourceData.id,
-          },
-        })
-        .select("id")
-        .single();
-
-      if (error) throw error;
+          ai_price: pubAiPrice ? parseFloat(pubAiPrice) : undefined,
+        },
+        accessToken
+      );
       
-      // Start the syncing animation after DB insert
+      console.log("[RegisterContentModal] Created content source via API:", sourceData);
+      
+      // Start the syncing animation after source creation
       setIsConnecting(false);
       setView("syncing");
       
-      setRegisteredAssetId(data.id);
-      // Store verification token for display
-      setVerificationToken(token);
-      setVerificationCode(token);
+      // Use the source ID as the registered asset ID
+      const sourceId = sourceData.id;
+      setRegisteredAssetId(sourceId);
       
-      // Trigger backend RSS import (non-blocking)
+      // Use verification token from API response or generated one
+      const verificationTokenFromApi = sourceData.verification_token || token;
+      setVerificationToken(verificationTokenFromApi);
+      setVerificationCode(verificationTokenFromApi);
+      
+      // Step 2: Trigger RSS sync to import articles
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token;
-        
-        // Import contentSourcesApi dynamically to trigger sync
-        const { contentSourcesApi } = await import('@/lib/api');
-        await contentSourcesApi.sync(sourceData.id, accessToken);
-        console.log("[RegisterContentModal] RSS sync triggered for source:", sourceData.id);
+        await contentSourcesApi.sync(sourceId, accessToken);
+        console.log("[RegisterContentModal] RSS sync triggered for source:", sourceId);
       } catch (syncError) {
         console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
         // Non-critical - the sync will happen when backend is ready
