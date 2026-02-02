@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { contentSourcesApi } from "@/lib/api";
+import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle, HelpCircle } from "lucide-react";
 import {
   Tooltip,
@@ -21,13 +20,72 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Asset, DbAsset, mapDbAssetToUiAsset } from "@/types/asset";
+import { Asset, AccessType } from "@/types/asset";
+
+// API response type from content-sources/me/assets
+interface ApiAsset {
+  id: string;
+  title: string;
+  description?: string;
+  humanPrice?: number;
+  aiPrice?: number;
+  accessType?: string;
+  licensingEnabled?: boolean;
+  totalRevenue?: number;
+  createdAt?: string;
+  sourceUrl?: string;
+  sourceId?: string;
+  verificationToken?: string;
+  verificationStatus?: string;
+  contentHash?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// Map API asset to UI format
+const mapApiAssetToUiAsset = (apiAsset: ApiAsset): Asset => {
+  // Determine license type
+  let licenseType: AccessType = "human";
+  if (apiAsset.accessType === "both" || apiAsset.accessType === "human" || apiAsset.accessType === "ai") {
+    licenseType = apiAsset.accessType;
+  } else {
+    const hasHuman = (apiAsset.humanPrice ?? 0) > 0;
+    const hasAi = (apiAsset.aiPrice ?? 0) > 0;
+    if (hasHuman && hasAi) licenseType = "both";
+    else if (hasAi) licenseType = "ai";
+  }
+
+  // Determine status
+  let status: "active" | "pending" | "minted" = "pending";
+  if (apiAsset.licensingEnabled) {
+    status = (apiAsset.totalRevenue ?? 0) > 0 ? "minted" : "active";
+  }
+
+  const hasSourceId = !!apiAsset.sourceId;
+
+  return {
+    id: apiAsset.id,
+    title: apiAsset.title,
+    licenseType,
+    status,
+    revenue: apiAsset.totalRevenue ?? 0,
+    createdAt: apiAsset.createdAt?.split("T")[0] ?? "",
+    format: hasSourceId ? "publication" : "single",
+    sourceUrl: apiAsset.sourceUrl,
+    source_id: apiAsset.sourceId,
+    verification_token: apiAsset.verificationToken,
+    verification_status: (apiAsset.verificationStatus as "pending" | "verified") ?? "pending",
+    content_hash: apiAsset.contentHash,
+    metadata: apiAsset.metadata,
+    description: apiAsset.description,
+  };
+};
 
 type StatusFilter = "all" | "active" | "pending" | "minted";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { contentSources, licenses } = useAuthenticatedApi();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,63 +109,27 @@ export default function Dashboard() {
     setIsAddModalOpen(true);
   };
 
-  // Fetch licenses directly from Supabase assets table
-  // The table is named "assets" in the database but represents "licenses" in our domain
+  // Fetch assets from the API (content-sources/me/assets endpoint)
+  // This fetches from the Vercel backend which is the source of truth
   const fetchAssets = async () => {
     if (!user) return;
     
     try {
       setIsLoading(true);
       
-      // Fetch directly from Supabase assets table (which stores licenses)
-      // Field mapping: publication_id → source_id (in UI), asset_id → license_id (in transactions)
-      const { data, error } = await supabase
-        .from("assets")
-        .select(`
-          id,
-          title,
-          description,
-          human_price,
-          ai_price,
-          license_type,
-          licensing_enabled,
-          total_revenue,
-          created_at,
-          source_url,
-          content,
-          user_id,
-          publication_id,
-          verification_token,
-          verification_status,
-          content_hash,
-          metadata
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching licenses:", error);
-        toast({
-          title: "Connection Error",
-          description: "Failed to load licenses from the database",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log("[Dashboard] Supabase returned", data?.length || 0, "licenses");
+      // Fetch from API via authenticated hook
+      const data = await contentSources.listAssets<ApiAsset[]>();
       
-      // Map DB assets to UI format - filter out any null/undefined entries
-      // publication_id maps to source_id in the UI
-      const mappedAssets = (data || [])
-        .filter((item): item is NonNullable<typeof item> => item !== null)
-        .map((item) => mapDbAssetToUiAsset(item as DbAsset));
+      console.log("[Dashboard] API returned", data?.length || 0, "assets");
+      
+      // Map API response to UI format
+      const mappedAssets: Asset[] = (data || []).map((item) => mapApiAssetToUiAsset(item));
       setAssets(mappedAssets);
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error("Error fetching assets:", err);
       toast({
         title: "Connection Error",
-        description: "Unable to reach the database. Please try again.",
+        description: "Failed to load assets. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -123,21 +145,8 @@ export default function Dashboard() {
 
   const handleDelete = async (id: string) => {
     try {
-      // Delete from assets table (licenses)
-      const { error } = await supabase
-        .from("assets")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
-
-      if (error) {
-        toast({
-          title: "Delete Failed",
-          description: "Could not remove the license. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Delete via authenticated API
+      await licenses.delete(id);
 
       setAssets((prev) => prev.filter((a) => a.id !== id));
       toast({
@@ -147,8 +156,8 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Delete error:", err);
       toast({
-        title: "Connection Error",
-        description: "Unable to delete license. Please try again.",
+        title: "Delete Failed",
+        description: "Could not remove the license. Please try again.",
         variant: "destructive",
       });
     }
@@ -156,20 +165,8 @@ export default function Dashboard() {
 
   const handleBulkDelete = async (ids: string[]) => {
     try {
-      const { error } = await supabase
-        .from("assets")
-        .delete()
-        .in("id", ids)
-        .eq("user_id", user.id);
-
-      if (error) {
-        toast({
-          title: "Bulk Delete Failed",
-          description: "Could not remove the assets. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Delete each item via API (no bulk endpoint available)
+      await Promise.all(ids.map((id) => licenses.delete(id)));
 
       setAssets((prev) => prev.filter((a) => !ids.includes(a.id)));
       toast({
@@ -178,6 +175,11 @@ export default function Dashboard() {
       });
     } catch (err) {
       console.error("Bulk delete error:", err);
+      toast({
+        title: "Bulk Delete Failed",
+        description: "Could not remove the assets. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
