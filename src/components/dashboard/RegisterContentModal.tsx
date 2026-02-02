@@ -407,12 +407,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       try {
         await contentSources.sync(sourceId);
         console.log("[RegisterContentModal] RSS sync triggered for source:", sourceId);
+        
+        // Give the backend a moment to process the sync, then refresh data
+        setTimeout(() => {
+          console.log("[RegisterContentModal] Refreshing dashboard data after sync");
+          onSuccess?.();
+        }, 1500);
       } catch (syncError) {
         console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
-        // Non-critical - the sync will happen when backend is ready
+        // Still call onSuccess to refresh data from the source creation
+        onSuccess?.();
       }
-      
-      onSuccess?.();
     } catch (error) {
       console.error("Error syncing publication:", error);
       setIsConnecting(false);
