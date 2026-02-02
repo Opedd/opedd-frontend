@@ -23,8 +23,9 @@ export function useAuthenticatedApi() {
     }, [getAccessToken]),
 
     create: useCallback(async <T>(body: { 
-      feed_url: string; 
+      url: string; 
       name: string; 
+      platform: "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
       human_price?: number; 
       ai_price?: number 
     }) => {
