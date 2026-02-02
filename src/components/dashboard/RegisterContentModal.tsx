@@ -378,9 +378,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const cleanPubName = pubName.startsWith('Publication:') ? pubName.replace('Publication: ', '') : pubName;
       
       // Step 1: Create content source via authenticated API (token auto-injected)
+      const platformType = (platform?.name.toLowerCase() || "other") as "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
+      
       const sourceData = await contentSources.create<{ id: string; verification_token?: string }>({
-        feed_url: feedUrl,
+        url: feedUrl,
         name: cleanPubName,
+        platform: platformType,
         human_price: parseFloat(pubHumanPrice) || 4.99,
         ai_price: pubAiPrice ? parseFloat(pubAiPrice) : undefined,
       });

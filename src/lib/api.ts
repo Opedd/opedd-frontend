@@ -147,7 +147,13 @@ export const contentSourcesApi = {
     apiFetch<T>(API.contentSources, { method: 'GET' }, token),
 
   // Create a new content source
-  create: <T>(body: { feed_url: string; name: string; human_price?: number; ai_price?: number }, token?: string | null) =>
+  create: <T>(body: { 
+    url: string; 
+    name: string; 
+    platform: "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
+    human_price?: number; 
+    ai_price?: number 
+  }, token?: string | null) =>
     apiFetch<T>(API.contentSources, { method: 'POST', body: JSON.stringify(body) }, token),
 
   // Verify ownership of a content source
