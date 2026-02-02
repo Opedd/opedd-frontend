@@ -52,8 +52,7 @@ import { Sparkline } from "./Sparkline";
 import { AssetSettingsModal } from "./AssetSettingsModal";
 import { useToast } from "@/hooks/use-toast";
 import { Asset } from "@/types/asset";
-import { contentSourcesApi } from "@/lib/api";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 
 interface SmartLibraryTableProps {
   assets: Asset[];
@@ -116,6 +115,7 @@ export function SmartLibraryTable({
 }: SmartLibraryTableProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { contentSources } = useAuthenticatedApi();
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
@@ -221,11 +221,8 @@ export function SmartLibraryTable({
     setVerifyingId(asset.id);
     
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      
-      // Call the verify endpoint via api-proxy: /content-sources/:id/verify
-      await contentSourcesApi.verify(sourceId, accessToken);
+      // Call the verify endpoint via authenticated API (token auto-injected)
+      await contentSources.verify(sourceId);
       
       toast({
         title: "Verification Initiated",

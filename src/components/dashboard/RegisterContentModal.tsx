@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Rss, 
@@ -90,6 +91,7 @@ const generateContentHash = (content: string): string => {
 export function RegisterContentModal({ open, onOpenChange, onSuccess, initialView = "choice", checkIntegrations = false }: RegisterContentModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { contentSources } = useAuthenticatedApi();
   const navigate = useNavigate();
   
   const [view, setView] = useState<ModalView>(initialView);
@@ -375,27 +377,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const pubName = feedPreview?.title || feedUrl;
       const cleanPubName = pubName.startsWith('Publication:') ? pubName.replace('Publication: ', '') : pubName;
       
-      // Get auth token for API calls
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      
-      if (!accessToken) {
-        throw new Error("No access token available");
-      }
-      
-      // Use contentSourcesApi to create the source via backend API
-      const { contentSourcesApi } = await import('@/lib/api');
-      
-      // Step 1: Create content source via API
-      const sourceData = await contentSourcesApi.create<{ id: string; verification_token?: string }>(
-        {
-          feed_url: feedUrl,
-          name: cleanPubName,
-          human_price: parseFloat(pubHumanPrice) || 4.99,
-          ai_price: pubAiPrice ? parseFloat(pubAiPrice) : undefined,
-        },
-        accessToken
-      );
+      // Step 1: Create content source via authenticated API (token auto-injected)
+      const sourceData = await contentSources.create<{ id: string; verification_token?: string }>({
+        feed_url: feedUrl,
+        name: cleanPubName,
+        human_price: parseFloat(pubHumanPrice) || 4.99,
+        ai_price: pubAiPrice ? parseFloat(pubAiPrice) : undefined,
+      });
       
       console.log("[RegisterContentModal] Created content source via API:", sourceData);
       
@@ -412,9 +400,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       setVerificationToken(verificationTokenFromApi);
       setVerificationCode(verificationTokenFromApi);
       
-      // Step 2: Trigger RSS sync to import articles
+      // Step 2: Trigger RSS sync to import articles (token auto-injected)
       try {
-        await contentSourcesApi.sync(sourceId, accessToken);
+        await contentSources.sync(sourceId);
         console.log("[RegisterContentModal] RSS sync triggered for source:", sourceId);
       } catch (syncError) {
         console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
