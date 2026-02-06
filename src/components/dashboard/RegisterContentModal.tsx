@@ -30,7 +30,8 @@ import {
   Image as ImageIcon,
   Copy,
   Plug,
-  ArrowRight
+  ArrowRight,
+  Plus
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
@@ -45,12 +46,12 @@ interface RegisterContentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
-  initialView?: "choice" | "publication" | "single";
+  initialView?: "choice" | "publication" | "single" | "enterprise";
   /** When true, shows empty state if no active integrations for "publication" view */
   checkIntegrations?: boolean;
 }
 
-type ModalView = "choice" | "publication" | "single" | "syncing" | "pub-success" | "success";
+type ModalView = "choice" | "publication" | "single" | "enterprise" | "syncing" | "pub-success" | "success";
 
 interface MockArticle {
   title: string;
@@ -168,6 +169,18 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   // Connecting state (for triggering RSS import)
   const [isConnecting, setIsConnecting] = useState(false);
 
+  // Enterprise (Media Org) multi-feed state
+  interface EnterpriseFeed {
+    url: string;
+    tag: string;
+  }
+  const [enterpriseFeeds, setEnterpriseFeeds] = useState<EnterpriseFeed[]>([
+    { url: "", tag: "" },
+  ]);
+  const [enterpriseOrgName, setEnterpriseOrgName] = useState("");
+  const [enterpriseHumanPrice, setEnterpriseHumanPrice] = useState("4.99");
+  const [enterpriseAiPrice, setEnterpriseAiPrice] = useState("");
+
   // Simulate fetching feed metadata when URL changes
   useEffect(() => {
     if (feedUrl.length > 15 && feedUrl.includes('.')) {
@@ -221,6 +234,10 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setProgress(0);
     setCurrentArticle(0);
     setArticles(prev => prev.map(a => ({ ...a, status: "pending" })));
+    setEnterpriseFeeds([{ url: "", tag: "" }]);
+    setEnterpriseOrgName("");
+    setEnterpriseHumanPrice("4.99");
+    setEnterpriseAiPrice("");
   };
 
   const handleClose = () => {
@@ -560,6 +577,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
           {/* Options */}
           <div className="p-6 space-y-4">
+            {/* Single Feed (Newsletter) */}
             <button
               onClick={() => setView("publication")}
               className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 text-left transition-all duration-200 group"
@@ -569,12 +587,31 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Link2 size={24} className="text-[#4A26ED] group-hover:text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#040042] text-base mb-1">Sync a Publication</h3>
-                  <p className="text-sm text-slate-500">Connect a Newsletter, RSS, or Website to automatically import and license every new post.</p>
+                  <h3 className="font-bold text-[#040042] text-base mb-1">Single Feed (Newsletter)</h3>
+                  <p className="text-sm text-slate-500">Connect one RSS feed, Substack, or Ghost URL to sync and license every post.</p>
                 </div>
               </div>
             </button>
 
+            {/* Bulk / Enterprise (Media Org) */}
+            <button
+              onClick={() => setView("enterprise")}
+              className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-[#D1009A] hover:bg-[#D1009A]/5 text-left transition-all duration-200 group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D1009A]/20 to-[#FF4DA6]/20 flex items-center justify-center flex-shrink-0 group-hover:from-[#D1009A] group-hover:to-[#FF4DA6] transition-all">
+                  <Globe size={24} className="text-[#D1009A] group-hover:text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-[#040042] text-base">Bulk / Enterprise (Media Org)</h3>
+                  </div>
+                  <p className="text-sm text-slate-500">Add multiple feeds, sitemaps, and tag them by vertical (Politics, Research, etc.).</p>
+                </div>
+              </div>
+            </button>
+
+            {/* Register Single Work */}
             <button
               onClick={() => setView("single")}
               className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all duration-200 group"
@@ -589,6 +626,194 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
               </div>
             </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+  // ENTERPRISE / MEDIA ORG VIEW
+  if (view === "enterprise") {
+    const addFeedRow = () => {
+      setEnterpriseFeeds(prev => [...prev, { url: "", tag: "" }]);
+    };
+
+    const updateFeedRow = (index: number, field: "url" | "tag", value: string) => {
+      setEnterpriseFeeds(prev => prev.map((f, i) => i === index ? { ...f, [field]: value } : f));
+    };
+
+    const removeFeedRow = (index: number) => {
+      setEnterpriseFeeds(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleEnterpriseSubmit = async () => {
+      const validFeeds = enterpriseFeeds.filter(f => f.url.trim());
+      if (validFeeds.length === 0) {
+        toast({ title: "At least one feed required", variant: "destructive" });
+        return;
+      }
+      if (!user) return;
+
+      setIsConnecting(true);
+      try {
+        for (const feed of validFeeds) {
+          const platform = detectPlatform(feed.url);
+          const platformType = (platform?.name.toLowerCase() || "other") as "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
+          const feedName = feed.tag ? `${enterpriseOrgName || "Org"} — ${feed.tag}` : (enterpriseOrgName || feed.url);
+
+          const sourceData = await contentSources.create<{ id: string }>({
+            url: feed.url,
+            name: feedName,
+            platform: platformType,
+            human_price: parseFloat(enterpriseHumanPrice) || 4.99,
+            ai_price: enterpriseAiPrice ? parseFloat(enterpriseAiPrice) : undefined,
+          });
+
+          try {
+            await contentSources.sync(sourceData.id);
+          } catch {
+            // sync may not be immediately available
+          }
+        }
+
+        setIsConnecting(false);
+        setView("syncing");
+
+        setTimeout(() => {
+          onSuccess?.();
+        }, 1500);
+
+        toast({
+          title: "Sources Registered",
+          description: `${validFeeds.length} feed(s) are now syncing.`,
+        });
+      } catch (error) {
+        console.error("Enterprise registration error:", error);
+        setIsConnecting(false);
+        toast({ title: "Registration Failed", description: "Could not register feeds.", variant: "destructive" });
+      }
+    };
+
+    const tagSuggestions = ["Politics", "Research", "Business", "Technology", "Opinion", "Culture"];
+
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-xl rounded-2xl p-0 overflow-hidden shadow-2xl max-h-[90vh]">
+          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D1009A]/20 to-[#FF4DA6]/20 flex items-center justify-center">
+                  <Globe size={24} className="text-[#D1009A]" />
+                </div>
+                <div>
+                  <h1 className="text-[#040042] font-bold text-lg leading-tight">Media Organization Setup</h1>
+                  <p className="text-[#040042]/60 text-sm">Add multiple feeds and tag by vertical</p>
+                </div>
+              </div>
+              <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                <X size={16} className="text-[#040042]/60" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
+            <div className="space-y-2">
+              <Label className="text-sm font-bold text-[#040042]">Organization Name</Label>
+              <Input
+                value={enterpriseOrgName}
+                onChange={(e) => setEnterpriseOrgName(e.target.value)}
+                placeholder="e.g. GZero Media, Drop Site News"
+                className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#D1009A] focus:ring-[#D1009A]/20 placeholder:text-slate-400"
+                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-bold text-[#040042]">Content Feeds</Label>
+                <button onClick={addFeedRow} className="text-xs font-medium text-[#4A26ED] hover:text-[#3B1ED1] transition-colors flex items-center gap-1">
+                  <Plus size={14} />
+                  Add Feed
+                </button>
+              </div>
+
+              {enterpriseFeeds.map((feed, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Rss size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+                    <Input
+                      value={feed.url}
+                      onChange={(e) => updateFeedRow(index, "url", e.target.value)}
+                      placeholder="https://feed-url.com/rss"
+                      className="!bg-white !text-[#040042] border-slate-200 h-10 pl-9 text-sm focus:border-[#D1009A] focus:ring-[#D1009A]/20 placeholder:text-slate-400"
+                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                    />
+                  </div>
+                  <Input
+                    value={feed.tag}
+                    onChange={(e) => updateFeedRow(index, "tag", e.target.value)}
+                    placeholder="Tag (e.g. Politics)"
+                    className="!bg-white !text-[#040042] border-slate-200 h-10 w-36 text-sm focus:border-[#D1009A] focus:ring-[#D1009A]/20 placeholder:text-slate-400"
+                    style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                  />
+                  {enterpriseFeeds.length > 1 && (
+                    <button onClick={() => removeFeedRow(index)} className="w-10 h-10 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0">
+                      <X size={14} className="text-red-500" />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="text-[10px] text-slate-400 mr-1">Suggestions:</span>
+                {["Politics", "Research", "Business", "Technology", "Opinion", "Culture"].map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => {
+                      const idx = enterpriseFeeds.findIndex(f => !f.tag.trim());
+                      if (idx >= 0) updateFeedRow(idx, "tag", tag);
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-[#D1009A]/10 hover:text-[#D1009A] transition-colors"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Shield size={16} className="text-[#D1009A]" />
+                <span className="text-sm font-semibold text-[#040042]">Global License Fees</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-[#040042]">Human Republication</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#040042]/50 font-medium">$</span>
+                    <Input type="number" value={enterpriseHumanPrice} onChange={(e) => setEnterpriseHumanPrice(e.target.value)} placeholder="4.99" className="border-slate-200 h-11 pl-7 bg-white" step="0.01" min="0" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-[#040042]">AI Ingestion</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#040042]/50 font-medium">$</span>
+                    <Input type="number" value={enterpriseAiPrice} onChange={(e) => setEnterpriseAiPrice(e.target.value)} placeholder="49.99" className="border-slate-200 h-11 pl-7 bg-white" step="0.01" min="0" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleEnterpriseSubmit}
+              disabled={isConnecting}
+              className="w-full h-12 bg-gradient-to-r from-[#D1009A] to-[#FF4DA6] hover:from-[#B8008A] hover:to-[#E6449A] text-white font-semibold"
+            >
+              {isConnecting ? (
+                <><Loader2 size={18} className="mr-2 animate-spin" />Registering Feeds...</>
+              ) : (
+                <><Shield size={18} className="mr-2" />Register {enterpriseFeeds.filter(f => f.url.trim()).length} Feed{enterpriseFeeds.filter(f => f.url.trim()).length !== 1 ? 's' : ''}</>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

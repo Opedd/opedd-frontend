@@ -8,7 +8,7 @@ const navItems = [
   { title: "Registry", path: "/dashboard", icon: LayoutDashboard },
   { title: "Insights", path: "/insights", icon: BarChart3 },
   { title: "Ledger", path: "/ledger", icon: Wallet },
-  { title: "Integrations", path: "/integrations", icon: Zap },
+  { title: "Connectors", path: "/integrations", icon: Zap },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
