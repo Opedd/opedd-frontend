@@ -117,13 +117,16 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       
-      // Fetch assets and sources in parallel
-      const [assetsData, sourcesResult] = await Promise.all([
-        contentSources.listAssets<ApiAsset[]>(),
-        supabase.from("rss_sources").select("id, name").eq("user_id", user.id),
-      ]);
-      
-      // Build source lookup map
+      // Fetch sources and assets independently so one failure doesn't block the other
+      const sourcesPromise = supabase.from("rss_sources").select("id, name").eq("user_id", user.id);
+      let assetsData: ApiAsset[] | null = null;
+      try {
+        assetsData = await contentSources.listAssets<ApiAsset[]>();
+      } catch (apiErr) {
+        console.warn("[Dashboard] API assets fetch failed (non-blocking):", apiErr);
+      }
+
+      const sourcesResult = await sourcesPromise;
       const sources = sourcesResult.data || [];
       const lookup: Record<string, string> = {};
       sources.forEach((s) => { lookup[s.id] = s.name; });
