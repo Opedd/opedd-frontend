@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle, HelpCircle, Rss, List } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Bot, AlertTriangle, HelpCircle, Rss, List } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -25,7 +25,7 @@ import {
 import { Asset, AccessType } from "@/types/asset";
 import { mapDbAssetToUiAsset, DbAsset } from "@/types/asset";
 
-type StatusFilter = "all" | "active" | "pending" | "minted";
+type StatusFilter = "all" | "protected" | "syncing" | "pending";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -42,6 +42,11 @@ export default function Dashboard() {
   const [sourceLookup, setSourceLookup] = useState<Record<string, string>>({});
   const [sourceList, setSourceList] = useState<{ id: string; name: string }[]>([]);
 
+  const openRegisterModal = () => {
+    setModalInitialView("choice");
+    setIsAddModalOpen(true);
+  };
+
   const openPublicationSync = () => {
     setModalInitialView("publication");
     setIsAddModalOpen(true);
@@ -52,17 +57,11 @@ export default function Dashboard() {
     setIsAddModalOpen(true);
   };
 
-  const openRegisterModal = () => {
-    setModalInitialView("choice");
-    setIsAddModalOpen(true);
-  };
-
   const fetchAssets = async () => {
     if (!user) return;
     try {
       setIsLoading(true);
       
-      // Fetch sources and assets from local Supabase (primary source of truth)
       const [sourcesResult, assetsResult] = await Promise.all([
         supabase.from("rss_sources").select("id, name").eq("user_id", user.id),
         supabase.from("assets").select("*").eq("user_id", user.id),
@@ -75,7 +74,6 @@ export default function Dashboard() {
       setSourceList(sources);
       
       const localAssets = assetsResult.data || [];
-      console.log("[Dashboard] Local DB returned", localAssets.length, "assets,", sources.length, "sources");
       const mappedAssets: Asset[] = localAssets.map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
       setAssets(mappedAssets);
     } catch (err: any) {
@@ -93,18 +91,18 @@ export default function Dashboard() {
 
   const handleDelete = async (id: string) => {
     try {
-      await licenses.delete(id);
+      await supabase.from("assets").delete().eq("id", id).eq("user_id", user.id);
       setAssets((prev) => prev.filter((a) => a.id !== id));
-      toast({ title: "License Removed", description: "The license has been deleted from your library" });
+      toast({ title: "Asset Removed", description: "The asset has been deleted from your library" });
     } catch (err) {
       console.error("Delete error:", err);
-      toast({ title: "Delete Failed", description: "Could not remove the license. Please try again.", variant: "destructive" });
+      toast({ title: "Delete Failed", description: "Could not remove the asset. Please try again.", variant: "destructive" });
     }
   };
 
   const handleBulkDelete = async (ids: string[]) => {
     try {
-      await Promise.all(ids.map((id) => licenses.delete(id)));
+      await Promise.all(ids.map((id) => supabase.from("assets").delete().eq("id", id).eq("user_id", user.id)));
       setAssets((prev) => prev.filter((a) => !ids.includes(a.id)));
       toast({ title: "Assets Removed", description: `${ids.length} assets have been deleted` });
     } catch (err) {
@@ -122,14 +120,14 @@ export default function Dashboard() {
   });
 
   const totalRevenue = assets.reduce((sum, a) => sum + a.revenue, 0);
-  const activeCount = assets.filter((a) => a.status === "active").length;
+  const protectedCount = assets.filter((a) => a.status === "protected").length;
 
   const getFilterLabel = (filter: StatusFilter) => {
     switch (filter) {
       case "all": return "All Assets";
-      case "active": return "Active";
+      case "protected": return "Protected";
+      case "syncing": return "Syncing";
       case "pending": return "Pending";
-      case "minted": return "Minted";
     }
   };
 
@@ -165,8 +163,8 @@ export default function Dashboard() {
                 <p className="text-2xl font-bold text-[#040042] mt-1">{assets.length}</p>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                <p className="text-[#4A26ED] text-xs font-medium uppercase tracking-wide">Active Licenses</p>
-                <p className="text-2xl font-bold text-[#040042] mt-1">{activeCount}</p>
+                <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">{protectedCount}</p>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
@@ -181,7 +179,7 @@ export default function Dashboard() {
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[200px] text-xs">
-                      <p>Revenue lost to unlicensed AI scraping. Mint your assets to enable billing.</p>
+                      <p>Revenue lost to unlicensed AI scraping. Protect your assets to enable billing.</p>
                     </TooltipContent>
                   </Tooltip>
                   <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -198,7 +196,7 @@ export default function Dashboard() {
             </div>
           </TooltipProvider>
 
-          {/* Sources / Library Sub-tabs */}
+          {/* Sources / Library Tabs */}
           <Tabs value={registryTab} onValueChange={(v) => setRegistryTab(v as "sources" | "library")} className="w-full">
             <div className="flex items-center justify-between">
               <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-xl">
@@ -225,7 +223,7 @@ export default function Dashboard() {
 
             {/* Sources Tab */}
             <TabsContent value="sources" className="mt-4">
-              <SourcesView onAddSource={openPublicationSync} />
+              <SourcesView onAddSource={openRegisterModal} />
             </TabsContent>
 
             {/* Library Tab */}
@@ -253,14 +251,14 @@ export default function Dashboard() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] shadow-lg rounded-xl w-40">
                     <DropdownMenuItem onClick={() => setStatusFilter("all")} className={`cursor-pointer rounded-lg ${statusFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>All Assets</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter("active")} className={`cursor-pointer rounded-lg ${statusFilter === "active" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />Active
+                    <DropdownMenuItem onClick={() => setStatusFilter("protected")} className={`cursor-pointer rounded-lg ${statusFilter === "protected" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />Protected
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("syncing")} className={`cursor-pointer rounded-lg ${statusFilter === "syncing" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                      <span className="w-2 h-2 rounded-full bg-[#4A26ED] mr-2" />Syncing
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setStatusFilter("pending")} className={`cursor-pointer rounded-lg ${statusFilter === "pending" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
                       <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />Pending
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter("minted")} className={`cursor-pointer rounded-lg ${statusFilter === "minted" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
-                      <span className="w-2 h-2 rounded-full bg-[#4A26ED] mr-2" />Minted
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -321,12 +319,11 @@ export default function Dashboard() {
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         initialView={modalInitialView}
-        checkIntegrations={modalInitialView === "publication"}
         onSuccess={() => {
           fetchAssets();
           toast({
-            title: "Data Sync Successful",
-            description: "Your content has been registered and synced to the database",
+            title: "Content Protected",
+            description: "Your content has been registered and synced to your library",
           });
         }}
       />

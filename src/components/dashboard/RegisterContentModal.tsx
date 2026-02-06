@@ -584,8 +584,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       setView("success");
 
       toast({
-        title: "Asset Licensed",
-        description: "Your content has been registered on Story Protocol",
+        title: "Content Protected",
+        description: "Your work has been registered and is now protected",
       });
 
       onSuccess?.();
@@ -887,9 +887,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               className="w-full h-12 bg-gradient-to-r from-[#D1009A] to-[#FF4DA6] hover:from-[#B8008A] hover:to-[#E6449A] text-white font-semibold"
             >
               {isConnecting ? (
-                <><Loader2 size={18} className="mr-2 animate-spin" />Registering Feeds...</>
+                <><Loader2 size={18} className="mr-2 animate-spin" />Syncing & Protecting...</>
               ) : (
-                <><Shield size={18} className="mr-2" />Register {enterpriseFeeds.filter(f => f.url.trim()).length} Feed{enterpriseFeeds.filter(f => f.url.trim()).length !== 1 ? 's' : ''}</>
+                <><Shield size={18} className="mr-2" />Sync & Protect {enterpriseFeeds.filter(f => f.url.trim()).length} Feed{enterpriseFeeds.filter(f => f.url.trim()).length !== 1 ? 's' : ''}</>
               )}
             </Button>
           </div>
@@ -928,32 +928,10 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           </div>
 
           {/* Empty State - No Active Integrations */}
-          {showEmptyState ? (
-            <div className="p-8 text-center space-y-6">
-              <div className="mx-auto w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center">
-                <Plug size={36} className="text-slate-400" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-[#040042]">No Content Sources Connected</h3>
-                <p className="text-sm text-slate-500 max-w-xs mx-auto">
-                  Connect a Substack, Ghost, or WordPress publication first to sync your content automatically.
-                </p>
-              </div>
-              <Button
-                onClick={() => {
-                  handleClose();
-                  navigate("/integrations");
-                }}
-                className="bg-[#040042] hover:bg-[#040042]/90 text-white"
-              >
-                Go to Integrations
-                <ArrowRight size={16} className="ml-2" />
-              </Button>
-            </div>
-          ) : integrationsLoading ? (
+          {integrationsLoading ? (
             <div className="p-8 text-center">
               <Loader2 size={32} className="text-[#4A26ED] animate-spin mx-auto" />
-              <p className="text-sm text-slate-500 mt-4">Checking integrations...</p>
+              <p className="text-sm text-slate-500 mt-4">Loading...</p>
             </div>
           ) : (
             /* Form + Sticky Footer */
@@ -1107,8 +1085,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 ) : (
                   <>
                     <Shield size={18} className="mr-2" />
-                    Connect & License Archive
+                    Sync & Protect Content
                   </>
+
                 )}
               </Button>
             </div>
@@ -1131,8 +1110,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <img src={opeddLogo} alt="Opedd" className="h-8" />
                 <div className="h-6 w-px bg-white/20" />
                 <div>
-                  <h1 className="text-white font-bold text-lg leading-tight">Syncing Archive</h1>
-                  <p className="text-[#A78BFA] text-sm">Registering content on Story Protocol</p>
+                  <h1 className="text-white font-bold text-lg leading-tight">Syncing & Protecting</h1>
+                  <p className="text-[#A78BFA] text-sm">Securing your content rights</p>
                 </div>
               </div>
             </div>
@@ -1160,7 +1139,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             <div className="bg-slate-50 rounded-xl p-4 space-y-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 <FileText size={12} />
-                <span>Recently Fetched & Shielded</span>
+                <span>Syncing & Protecting Articles</span>
               </div>
               <div className="space-y-2">
                 {articles.map((article, index) => (
@@ -1185,7 +1164,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       {article.title}
                     </span>
                     {article.status === "complete" && (
-                      <span className="text-xs text-emerald-600 font-medium">Licensed</span>
+                      <span className="text-xs text-emerald-600 font-medium">Protected</span>
                     )}
                   </div>
                 ))}
@@ -1480,10 +1459,10 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Loader2 size={18} className="mr-2 animate-spin" />
                   Registering...
                 </>
-              ) : (
+               ) : (
                 <>
                   <Shield size={18} className="mr-2" />
-                  Mint & License
+                  Protect & License
                 </>
               )}
             </Button>
@@ -1505,7 +1484,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               <div className="h-6 w-px bg-white/20" />
               <div>
                 <h1 className="text-white font-bold text-lg leading-tight">Registration Complete</h1>
-                <p className="text-emerald-400 text-sm">Your IP is now protected on Story Protocol</p>
+                <p className="text-emerald-400 text-sm">Your content is now protected</p>
               </div>
             </div>
             <button
