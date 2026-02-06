@@ -85,24 +85,69 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   }, [user]);
 
   const handleResync = async (source: Source) => {
+    const previousCount = source.article_count || 0;
     setSyncingId(source.id);
     try {
       await contentSources.sync(source.id);
       toast({
-        title: "Sync Triggered",
-        description: `Re-syncing ${source.name}...`,
+        title: "Syncing…",
+        description: `Fetching new articles from ${source.name}`,
       });
-      // Refresh after delay
-      setTimeout(fetchSources, 2000);
+
+      // Poll for completion: check article_count changes up to 5 times
+      let attempts = 0;
+      const poll = async () => {
+        attempts++;
+        const { data } = await supabase
+          .from("rss_sources")
+          .select("article_count, last_synced_at, sync_status")
+          .eq("id", source.id)
+          .maybeSingle();
+
+        if (data) {
+          const newCount = data.article_count || 0;
+          const added = newCount - previousCount;
+
+          // Update the card in-place without full reload
+          setSources(prev => prev.map(s =>
+            s.id === source.id
+              ? { ...s, article_count: newCount, last_synced_at: data.last_synced_at, sync_status: data.sync_status }
+              : s
+          ));
+
+          // If count changed or status is no longer pending, we're done
+          if (added > 0 || data.sync_status === "active" || attempts >= 5) {
+            setSyncingId(null);
+            toast({
+              title: "Sync Complete",
+              description: added > 0
+                ? `${added} new article${added !== 1 ? "s" : ""} added to your Library.`
+                : "No new articles found — your Library is up to date.",
+            });
+            return;
+          }
+        }
+
+        if (attempts < 5) {
+          setTimeout(poll, 2000);
+        } else {
+          setSyncingId(null);
+          toast({
+            title: "Sync Complete",
+            description: "Sync finished. Check your Library for updates.",
+          });
+        }
+      };
+
+      setTimeout(poll, 2000);
     } catch (err) {
       console.error("Resync error:", err);
+      setSyncingId(null);
       toast({
         title: "Sync Failed",
         description: "Could not re-sync this source.",
         variant: "destructive",
       });
-    } finally {
-      setSyncingId(null);
     }
   };
 
