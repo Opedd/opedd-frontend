@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
+import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle, HelpCircle, Rss, List } from "lucide-react";
 import {
   Tooltip,
@@ -89,9 +90,12 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single">("choice");
   const [registryTab, setRegistryTab] = useState<"sources" | "library">("sources");
+  const [sourceLookup, setSourceLookup] = useState<Record<string, string>>({});
+  const [sourceList, setSourceList] = useState<{ id: string; name: string }[]>([]);
 
   const openPublicationSync = () => {
     setModalInitialView("publication");
@@ -112,9 +116,22 @@ export default function Dashboard() {
     if (!user) return;
     try {
       setIsLoading(true);
-      const data = await contentSources.listAssets<ApiAsset[]>();
-      console.log("[Dashboard] API returned", data?.length || 0, "assets");
-      const mappedAssets: Asset[] = (data || []).map((item) => mapApiAssetToUiAsset(item));
+      
+      // Fetch assets and sources in parallel
+      const [assetsData, sourcesResult] = await Promise.all([
+        contentSources.listAssets<ApiAsset[]>(),
+        supabase.from("rss_sources").select("id, name").eq("user_id", user.id),
+      ]);
+      
+      // Build source lookup map
+      const sources = sourcesResult.data || [];
+      const lookup: Record<string, string> = {};
+      sources.forEach((s) => { lookup[s.id] = s.name; });
+      setSourceLookup(lookup);
+      setSourceList(sources);
+      
+      console.log("[Dashboard] API returned", assetsData?.length || 0, "assets,", sources.length, "sources");
+      const mappedAssets: Asset[] = (assetsData || []).map((item) => mapApiAssetToUiAsset(item));
       setAssets(mappedAssets);
     } catch (err) {
       console.error("Error fetching assets:", err);
@@ -159,7 +176,9 @@ export default function Dashboard() {
   const filteredAssets = assets.filter((a) => {
     const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesSource = sourceFilter === "all" || 
+      (sourceFilter === "direct" ? !a.source_id : a.source_id === sourceFilter);
+    return matchesSearch && matchesStatus && matchesSource;
   });
 
   const totalRevenue = assets.reduce((sum, a) => sum + a.revenue, 0);
@@ -305,6 +324,30 @@ export default function Dashboard() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
+                {/* Source Filter */}
+                {sourceList.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E8F2FB] rounded-xl text-sm text-[#040042] hover:border-[#4A26ED]/40 transition-all">
+                        <Rss size={16} className="text-[#040042]/50" />
+                        <span className="font-medium truncate max-w-[120px]">
+                          {sourceFilter === "all" ? "All Sources" : sourceFilter === "direct" ? "Direct Upload" : sourceLookup[sourceFilter] || "Source"}
+                        </span>
+                        <ChevronDown size={14} className="text-[#040042]/50" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] shadow-lg rounded-xl w-48">
+                      <DropdownMenuItem onClick={() => setSourceFilter("all")} className={`cursor-pointer rounded-lg ${sourceFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>All Sources</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSourceFilter("direct")} className={`cursor-pointer rounded-lg ${sourceFilter === "direct" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>Direct Upload</DropdownMenuItem>
+                      {sourceList.map((s) => (
+                        <DropdownMenuItem key={s.id} onClick={() => setSourceFilter(s.id)} className={`cursor-pointer rounded-lg truncate ${sourceFilter === s.id ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                          {s.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
               {/* Table */}
@@ -324,6 +367,7 @@ export default function Dashboard() {
                   onAddClick={openRegisterModal}
                   onSyncClick={openPublicationSync}
                   onRegisterClick={openSingleWork}
+                  sourceLookup={sourceLookup}
                   showPulse={assets.length === 0 && !isLoading}
                 />
               )}

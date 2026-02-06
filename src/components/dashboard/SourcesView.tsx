@@ -160,8 +160,40 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     );
   }
 
+  const totalArticles = sources.reduce((sum, s) => sum + (s.article_count || 0), 0);
+
+  const getRelativeTime = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
   return (
     <div className="space-y-4">
+      {/* Summary Bar */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-[#040042]/50">
+          {sources.length} Source{sources.length !== 1 ? "s" : ""} · {totalArticles} Total Article{totalArticles !== 1 ? "s" : ""}
+        </p>
+        <Button
+          onClick={onAddSource}
+          size="sm"
+          className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-8 text-xs gap-1.5"
+        >
+          <Plus size={14} />
+          Add Source
+        </Button>
+      </div>
+
       {/* Source Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sources.map((source) => {
@@ -202,9 +234,9 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                   </div>
                   <p className="text-xs text-[#040042]/50 truncate">{source.feed_url}</p>
                   <div className="flex items-center gap-4 mt-2 text-xs text-[#040042]/40">
-                    <span>{source.article_count || 0} articles</span>
+                    <span className="font-medium">{source.article_count || 0} articles</span>
                     {source.last_synced_at && (
-                      <span>Last sync: {new Date(source.last_synced_at).toLocaleDateString()}</span>
+                      <span>Synced {getRelativeTime(source.last_synced_at)}</span>
                     )}
                   </div>
                 </div>
