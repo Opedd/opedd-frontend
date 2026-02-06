@@ -697,8 +697,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-xl rounded-2xl p-0 overflow-hidden shadow-2xl max-h-[90vh]">
-          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-xl rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D1009A]/20 to-[#FF4DA6]/20 flex items-center justify-center">
@@ -715,7 +715,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </div>
           </div>
 
-          <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
+          <div className="flex-1 overflow-y-auto p-6 space-y-5">
             <div className="space-y-2">
               <Label className="text-sm font-bold text-[#040042]">Organization Name</Label>
               <Input
@@ -802,7 +802,10 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
               </div>
             </div>
+          </div>
 
+          {/* Sticky Footer */}
+          <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
             <Button
               onClick={handleEnterpriseSubmit}
               disabled={isConnecting}
@@ -827,9 +830,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
           {/* Light Header */}
-          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
+          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A26ED]/20 to-[#7C3AED]/20 flex items-center justify-center">
@@ -878,8 +881,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               <p className="text-sm text-slate-500 mt-4">Checking integrations...</p>
             </div>
           ) : (
-            /* Form */
-            <div className="p-6 space-y-5">
+            /* Form + Sticky Footer */
+            <>
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
             {/* Platform Icons - Interactive Buttons */}
             <div className="flex items-center justify-center gap-3 pb-2">
               {platformIcons.map((platform) => (
@@ -1006,30 +1010,34 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
               </div>
             </div>
+            </div>
 
-            <Button 
-              onClick={handlePublicationSync}
-              disabled={isSubmitting || isConnecting || !feedUrl.trim()}
-              className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 size={18} className="mr-2 animate-spin" />
-                  Connecting...
-                </>
-              ) : feedPreview?.isLoading ? (
-                <>
-                  <Loader2 size={18} className="mr-2 animate-spin" />
-                  Validating URL...
-                </>
-              ) : (
-                <>
-                  <Shield size={18} className="mr-2" />
-                  Connect & License Archive
-                </>
-              )}
-            </Button>
-          </div>
+            {/* Sticky Footer */}
+            <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+              <Button 
+                onClick={handlePublicationSync}
+                disabled={isSubmitting || isConnecting || !feedUrl.trim()}
+                className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConnecting ? (
+                  <>
+                    <Loader2 size={18} className="mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : feedPreview?.isLoading ? (
+                  <>
+                    <Loader2 size={18} className="mr-2 animate-spin" />
+                    Validating URL...
+                  </>
+                ) : (
+                  <>
+                    <Shield size={18} className="mr-2" />
+                    Connect & License Archive
+                  </>
+                )}
+              </Button>
+            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
@@ -1386,7 +1394,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           </div>
 
           {/* Footer */}
-          <div className="p-5 bg-slate-50 border-t border-slate-200 flex-shrink-0">
+          <div className="p-5 bg-white border-t border-slate-200 flex-shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
             <Button 
               onClick={handleSingleSubmit}
               disabled={isSubmitting}
