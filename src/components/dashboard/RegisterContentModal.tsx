@@ -435,12 +435,18 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         // Still call onSuccess to refresh data from the source creation
         onSuccess?.();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error syncing publication:", error);
       setIsConnecting(false);
+      
+      const errorMsg = error?.message || "";
+      const isPublisherNotFound = errorMsg.toLowerCase().includes("publisher not found");
+      
       toast({
-        title: "Sync Failed",
-        description: "Could not sync publication. Please try again.",
+        title: isPublisherNotFound ? "Publisher Profile Missing" : "Sync Failed",
+        description: isPublisherNotFound 
+          ? "Your publisher profile hasn't been created on the licensing network yet. Please complete your profile in Settings first."
+          : `Could not sync publication: ${errorMsg || "Unknown error. Please try again."}`,
         variant: "destructive",
       });
     }
