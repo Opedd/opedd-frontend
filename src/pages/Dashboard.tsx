@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle, HelpCircle } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Loader2, Bot, AlertTriangle, HelpCircle, Rss, List } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { EmptyState } from "@/components/dashboard/EmptyState";
 import { SmartLibraryTable } from "@/components/dashboard/SmartLibraryTable";
+import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -43,7 +44,6 @@ interface ApiAsset {
 
 // Map API asset to UI format
 const mapApiAssetToUiAsset = (apiAsset: ApiAsset): Asset => {
-  // Determine license type
   let licenseType: AccessType = "human";
   if (apiAsset.accessType === "both" || apiAsset.accessType === "human" || apiAsset.accessType === "ai") {
     licenseType = apiAsset.accessType;
@@ -54,7 +54,6 @@ const mapApiAssetToUiAsset = (apiAsset: ApiAsset): Asset => {
     else if (hasAi) licenseType = "ai";
   }
 
-  // Determine status
   let status: "active" | "pending" | "minted" = "pending";
   if (apiAsset.licensingEnabled) {
     status = (apiAsset.totalRevenue ?? 0) > 0 ? "minted" : "active";
@@ -92,8 +91,8 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single">("choice");
+  const [registryTab, setRegistryTab] = useState<"sources" | "library">("sources");
 
-  // Handlers to open specific modal views
   const openPublicationSync = () => {
     setModalInitialView("publication");
     setIsAddModalOpen(true);
@@ -109,20 +108,12 @@ export default function Dashboard() {
     setIsAddModalOpen(true);
   };
 
-  // Fetch assets from the API (content-sources/me/assets endpoint)
-  // This fetches from the Vercel backend which is the source of truth
   const fetchAssets = async () => {
     if (!user) return;
-    
     try {
       setIsLoading(true);
-      
-      // Fetch from API via authenticated hook
       const data = await contentSources.listAssets<ApiAsset[]>();
-      
       console.log("[Dashboard] API returned", data?.length || 0, "assets");
-      
-      // Map API response to UI format
       const mappedAssets: Asset[] = (data || []).map((item) => mapApiAssetToUiAsset(item));
       setAssets(mappedAssets);
     } catch (err) {
@@ -145,45 +136,26 @@ export default function Dashboard() {
 
   const handleDelete = async (id: string) => {
     try {
-      // Delete via authenticated API
       await licenses.delete(id);
-
       setAssets((prev) => prev.filter((a) => a.id !== id));
-      toast({
-        title: "License Removed",
-        description: "The license has been deleted from your library",
-      });
+      toast({ title: "License Removed", description: "The license has been deleted from your library" });
     } catch (err) {
       console.error("Delete error:", err);
-      toast({
-        title: "Delete Failed",
-        description: "Could not remove the license. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Delete Failed", description: "Could not remove the license. Please try again.", variant: "destructive" });
     }
   };
 
   const handleBulkDelete = async (ids: string[]) => {
     try {
-      // Delete each item via API (no bulk endpoint available)
       await Promise.all(ids.map((id) => licenses.delete(id)));
-
       setAssets((prev) => prev.filter((a) => !ids.includes(a.id)));
-      toast({
-        title: "Assets Removed",
-        description: `${ids.length} assets have been deleted`,
-      });
+      toast({ title: "Assets Removed", description: `${ids.length} assets have been deleted` });
     } catch (err) {
       console.error("Bulk delete error:", err);
-      toast({
-        title: "Bulk Delete Failed",
-        description: "Could not remove the assets. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Bulk Delete Failed", description: "Could not remove the assets. Please try again.", variant: "destructive" });
     }
   };
 
-  // Apply search and status filters
   const filteredAssets = assets.filter((a) => {
     const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
@@ -214,7 +186,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <LayoutDashboard size={22} className="text-[#4A26ED]" />
-              <h1 className="text-xl font-bold text-[#040042]">Licensing Hub</h1>
+              <h1 className="text-xl font-bold text-[#040042]">Registry</h1>
             </div>
 
             <button
@@ -241,7 +213,6 @@ export default function Dashboard() {
                 <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
                 <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
               </div>
-              {/* Unlicensed AI Scrapes Card with Help Tooltip */}
               <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors cursor-pointer">
                 <div className="absolute top-2 right-2 flex items-center gap-1.5">
                   <Tooltip>
@@ -251,7 +222,7 @@ export default function Dashboard() {
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[200px] text-xs">
-                      <p>This shows revenue lost to unlicensed AI scraping. Mint your assets to enable billing.</p>
+                      <p>Revenue lost to unlicensed AI scraping. Mint your assets to enable billing.</p>
                     </TooltipContent>
                   </Tooltip>
                   <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -268,109 +239,102 @@ export default function Dashboard() {
             </div>
           </TooltipProvider>
 
-          {/* Search & Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40" size={18} />
-              <input
-                type="text"
-                placeholder="Search assets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#E8F2FB] rounded-xl py-2.5 pl-11 pr-4 text-sm text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]/40 transition-all"
-              />
+          {/* Sources / Library Sub-tabs */}
+          <Tabs value={registryTab} onValueChange={(v) => setRegistryTab(v as "sources" | "library")} className="w-full">
+            <div className="flex items-center justify-between">
+              <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-xl">
+                <TabsTrigger
+                  value="sources"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-5 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
+                >
+                  <Rss size={15} />
+                  Sources
+                </TabsTrigger>
+                <TabsTrigger
+                  value="library"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-5 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
+                >
+                  <List size={15} />
+                  Library
+                </TabsTrigger>
+              </TabsList>
+
+              {registryTab === "library" && (
+                <span className="text-sm text-[#040042]/50">{assets.length} asset{assets.length !== 1 ? 's' : ''}</span>
+              )}
             </div>
 
-            {/* Status Filter Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E8F2FB] rounded-xl text-sm text-[#040042] hover:border-[#4A26ED]/40 transition-all">
-                  <Filter size={16} className="text-[#040042]/50" />
-                  <span className="font-medium">{getFilterLabel(statusFilter)}</span>
-                  <ChevronDown size={14} className="text-[#040042]/50" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] shadow-lg rounded-xl w-40">
-                <DropdownMenuItem
-                  onClick={() => setStatusFilter("all")}
-                  className={`cursor-pointer rounded-lg ${statusFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}
-                >
-                  All Assets
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setStatusFilter("active")}
-                  className={`cursor-pointer rounded-lg ${statusFilter === "active" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />
-                  Active
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setStatusFilter("pending")}
-                  className={`cursor-pointer rounded-lg ${statusFilter === "pending" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
-                  Pending
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setStatusFilter("minted")}
-                  className={`cursor-pointer rounded-lg ${statusFilter === "minted" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-[#4A26ED] mr-2" />
-                  Minted
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+            {/* Sources Tab */}
+            <TabsContent value="sources" className="mt-4">
+              <SourcesView onAddSource={openPublicationSync} />
+            </TabsContent>
 
-          {/* Content Area - Full Width Table */}
-          <div className="space-y-3">
-            <TooltipProvider>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-[#040042]">Licensing Hub</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="w-5 h-5 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
-                        <HelpCircle size={12} className="text-[#040042]/50" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[220px] text-xs">
-                      <p>Your registered content assets. Enable licensing to monetize from human citations and AI model access.</p>
-                    </TooltipContent>
-                  </Tooltip>
+            {/* Library Tab */}
+            <TabsContent value="library" className="mt-4">
+              {/* Search & Filter Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search assets..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white border border-[#E8F2FB] rounded-xl py-2.5 pl-11 pr-4 text-sm text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]/40 transition-all"
+                  />
                 </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E8F2FB] rounded-xl text-sm text-[#040042] hover:border-[#4A26ED]/40 transition-all">
+                      <Filter size={16} className="text-[#040042]/50" />
+                      <span className="font-medium">{getFilterLabel(statusFilter)}</span>
+                      <ChevronDown size={14} className="text-[#040042]/50" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] shadow-lg rounded-xl w-40">
+                    <DropdownMenuItem onClick={() => setStatusFilter("all")} className={`cursor-pointer rounded-lg ${statusFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>All Assets</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("active")} className={`cursor-pointer rounded-lg ${statusFilter === "active" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />Active
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("pending")} className={`cursor-pointer rounded-lg ${statusFilter === "pending" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                      <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />Pending
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("minted")} className={`cursor-pointer rounded-lg ${statusFilter === "minted" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                      <span className="w-2 h-2 rounded-full bg-[#4A26ED] mr-2" />Minted
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </TooltipProvider>
-            {filteredAssets.length === 0 && assets.length > 0 && !isLoading ? (
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
-                <p className="text-[#040042]/60 text-sm">
-                  {searchQuery ? "No assets match your search" : "No assets match this filter"}
-                </p>
-              </div>
-            ) : (
-              <SmartLibraryTable 
-                assets={filteredAssets} 
-                onDelete={handleDelete}
-                onBulkDelete={handleBulkDelete}
-                onVerify={(id) => {
-                  // Refresh assets after verification attempt
-                  fetchAssets();
-                }}
-                isLoading={isLoading}
-                onAddClick={openRegisterModal}
-                onSyncClick={openPublicationSync}
-                onRegisterClick={openSingleWork}
-                showPulse={assets.length === 0 && !isLoading}
-              />
-            )}
-          </div>
+
+              {/* Table */}
+              {filteredAssets.length === 0 && assets.length > 0 && !isLoading ? (
+                <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
+                  <p className="text-[#040042]/60 text-sm">
+                    {searchQuery ? "No assets match your search" : "No assets match this filter"}
+                  </p>
+                </div>
+              ) : (
+                <SmartLibraryTable
+                  assets={filteredAssets}
+                  onDelete={handleDelete}
+                  onBulkDelete={handleBulkDelete}
+                  onVerify={() => fetchAssets()}
+                  isLoading={isLoading}
+                  onAddClick={openRegisterModal}
+                  onSyncClick={openPublicationSync}
+                  onRegisterClick={openSingleWork}
+                  showPulse={assets.length === 0 && !isLoading}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
       {/* Register Content Modal */}
-      <RegisterContentModal 
-        open={isAddModalOpen} 
+      <RegisterContentModal
+        open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         initialView={modalInitialView}
         checkIntegrations={modalInitialView === "publication"}
