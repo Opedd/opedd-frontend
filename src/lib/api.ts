@@ -68,7 +68,9 @@ export async function apiFetch<T>(
   if (!response.ok) {
     const errorText = await response.text();
     console.warn(`[API] ${response.status} for ${path}:`, errorText);
-    throw new Error(`Edge function returned ${response.status}: ${response.statusText}, ${errorText}`);
+    const parsed = (() => { try { return JSON.parse(errorText); } catch { return null; } })();
+    const msg = parsed?.error?.message || response.statusText;
+    throw new Error(msg);
   }
   
   const data = await safeParseJson(response) as { success?: boolean; data?: T; error?: { message: string } };
