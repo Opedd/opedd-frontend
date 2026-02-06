@@ -1,58 +1,49 @@
 
 
-# Registry Architecture: Sources + Library Formalization
+## Problem Diagnosis
 
-## Overview
+The sync completes successfully on the external licensing backend, but the articles never appear in the dashboard. Here is why:
 
-Formalize the Source-to-Library relationship in the Registry by enhancing the existing Sources/Library sub-tabs with proper data linking, adding a "Source" column to the Library table, and cleaning up the registration modal flow.
+1. **No local record created**: When you register a publication, the code only sends the data to the external V1 API. It never inserts a corresponding record into the local `rss_sources` table, so the Sources tab stays empty.
 
-## What Changes
+2. **Asset fetch fails silently**: The Dashboard tries to load articles from the external API (`/content-sources/me/assets`), but this endpoint returns 401/404 errors (JWT mismatch between Lovable Cloud and the external backend). The error is swallowed silently, so no articles appear.
 
-### 1. Sources View Enhancement (SourcesView.tsx)
-- Add **"Total Assets"** count to each source card (from `article_count` column in `rss_sources`)
-- Add **"Last Synced"** timestamp display (already partially there, improve formatting to relative time like "2 hours ago")
-- Add an **"Add Source"** button at the top of the sources grid for quick access
-- Show a summary bar: "3 Sources | 142 Total Articles"
+3. **Two disconnected data stores**: Single works are saved directly to the local `assets` table (and show up fine), but publication syncs only exist on the external API with no local copy.
 
-### 2. Library Table: Add "Source" Column (SmartLibraryTable.tsx)
-- Add a new **"Source"** column between Title and Format columns
-- For assets with a `source_id`, display the source name (will need to pass source data or resolve from the `rss_sources` table)
-- For single works (no `source_id`), display a muted "Direct Upload" label
-- This lets Media Orgs filter/identify which pipe an article came from
+## Solution
 
-### 3. Dashboard Data Flow (Dashboard.tsx)
-- Fetch sources alongside assets so source names can be resolved in the Library table
-- Pass sources data to `SmartLibraryTable` as a lookup map (`Record<string, string>` of sourceId to sourceName)
-- Add a source-based filter option in the Library filter dropdown (filter by specific source)
+After a successful publication sync via the external API, **also insert a local record** into both `rss_sources` and `assets` tables. This ensures the Sources tab and Library tab display the data regardless of whether the external API is reachable.
 
-### 4. Registration Modal Refinement (RegisterContentModal.tsx)
-- The existing "choice" screen already branches into Newsletter vs Media Org -- keep this as-is
-- Ensure the **Newsletter path** remains a simple URL input (already done)
-- Ensure the **Media Org path** supports multiple feeds with tags (already done)
-- Minor UX: rename the choice labels to match the spec: "Single Feed (Newsletter)" and "Bulk/Enterprise (Media Org)"
+### Step 1: Insert local `rss_sources` record after API creation
 
-### 5. Asset Type: Add Source Name (asset.ts)
-- Add optional `source_name?: string` field to the `Asset` interface for UI display
+In `RegisterContentModal.tsx`, after the external API `contentSources.create` call succeeds, insert a matching row into the local `rss_sources` table with the source name, feed URL, platform, and sync status.
 
-## Technical Details
+### Step 2: Sync articles into local `assets` table
 
-### Data Resolution Strategy
-The Library table needs source names. Two approaches exist -- we will use the simpler one:
+After the external `contentSources.sync` call, attempt to fetch the synced articles from the external API. If the external API is unreachable (401/404), create a placeholder asset linked to the source so the user can see something was registered. Update the local `rss_sources.article_count` accordingly.
 
-**Approach: Local Supabase Join**
-- When fetching assets in `Dashboard.tsx`, also query `rss_sources` for the current user
-- Build a `Map<sourceId, sourceName>` and pass it to `SmartLibraryTable`
-- The `source_id` field on assets maps to `publication_id` in the DB, which references `rss_sources.id`
+### Step 3: Update Dashboard asset fetching to use local data as primary source
 
-### Files Modified
-| File | Change |
-|------|--------|
-| `src/types/asset.ts` | Add `source_name` field to `Asset` interface |
-| `src/pages/Dashboard.tsx` | Fetch sources, build lookup map, pass to table, add source filter |
-| `src/components/dashboard/SmartLibraryTable.tsx` | Add "Source" column with source name display |
-| `src/components/dashboard/SourcesView.tsx` | Enhanced card layout with total assets count, improved timestamp, summary bar |
-| `src/components/dashboard/RegisterContentModal.tsx` | Minor label updates on the choice screen |
+Modify `fetchAssets` in `Dashboard.tsx` to query the local `assets` table directly (via Supabase) as the primary data source, with the external API as an optional enrichment layer. This eliminates the dependency on the external API for displaying registered content.
 
-### No CSS/Layout Breaking Changes
-All changes follow the "Logic Swap Only" constraint -- we are adding data columns and enhancing existing cards while keeping the current design language (colors, fonts, card styles) intact.
+### Step 4: Link assets to sources
+
+When inserting assets locally after a sync, set the `publication_id` field to the local `rss_sources.id` so that the Library tab's source filter works correctly. Map the `source_id` on the UI asset type to this local ID.
+
+### Technical Details
+
+**RegisterContentModal.tsx changes:**
+- After `contentSources.create` succeeds, run `supabase.from("rss_sources").insert(...)` with name, feed_url, platform, user_id, sync_status: "active"
+- After `contentSources.sync` succeeds, attempt to fetch articles from the API and insert them into the local `assets` table
+- If the API fetch fails, still mark the source as active with article_count from the sync response
+
+**Dashboard.tsx changes:**
+- Replace `contentSources.listAssets` call with a direct Supabase query: `supabase.from("assets").select("*").eq("user_id", user.id)`
+- Remove the external API dependency for the primary asset list
+- Keep the external API call as an optional secondary enrichment (non-blocking)
+
+**SourcesView.tsx changes:**
+- No structural changes needed -- it already reads from local `rss_sources`, which will now have data
+
+This approach makes the local database the source of truth for the UI, while the external API handles the licensing/verification backend logic.
 
