@@ -23,62 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Asset, AccessType } from "@/types/asset";
-
-// API response type from content-sources/me/assets
-interface ApiAsset {
-  id: string;
-  title: string;
-  description?: string;
-  humanPrice?: number;
-  aiPrice?: number;
-  accessType?: string;
-  licensingEnabled?: boolean;
-  totalRevenue?: number;
-  createdAt?: string;
-  sourceUrl?: string;
-  sourceId?: string;
-  verificationToken?: string;
-  verificationStatus?: string;
-  contentHash?: string;
-  metadata?: Record<string, unknown>;
-}
-
-// Map API asset to UI format
-const mapApiAssetToUiAsset = (apiAsset: ApiAsset): Asset => {
-  let licenseType: AccessType = "human";
-  if (apiAsset.accessType === "both" || apiAsset.accessType === "human" || apiAsset.accessType === "ai") {
-    licenseType = apiAsset.accessType;
-  } else {
-    const hasHuman = (apiAsset.humanPrice ?? 0) > 0;
-    const hasAi = (apiAsset.aiPrice ?? 0) > 0;
-    if (hasHuman && hasAi) licenseType = "both";
-    else if (hasAi) licenseType = "ai";
-  }
-
-  let status: "active" | "pending" | "minted" = "pending";
-  if (apiAsset.licensingEnabled) {
-    status = (apiAsset.totalRevenue ?? 0) > 0 ? "minted" : "active";
-  }
-
-  const hasSourceId = !!apiAsset.sourceId;
-
-  return {
-    id: apiAsset.id,
-    title: apiAsset.title,
-    licenseType,
-    status,
-    revenue: apiAsset.totalRevenue ?? 0,
-    createdAt: apiAsset.createdAt?.split("T")[0] ?? "",
-    format: hasSourceId ? "publication" : "single",
-    sourceUrl: apiAsset.sourceUrl,
-    source_id: apiAsset.sourceId,
-    verification_token: apiAsset.verificationToken,
-    verification_status: (apiAsset.verificationStatus as "pending" | "verified") ?? "pending",
-    content_hash: apiAsset.contentHash,
-    metadata: apiAsset.metadata,
-    description: apiAsset.description,
-  };
-};
+import { mapDbAssetToUiAsset, DbAsset } from "@/types/asset";
 
 type StatusFilter = "all" | "active" | "pending" | "minted";
 
@@ -117,28 +62,24 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       
-      // Fetch sources and assets independently so one failure doesn't block the other
-      const sourcesPromise = supabase.from("rss_sources").select("id, name").eq("user_id", user.id);
-      let assetsData: ApiAsset[] | null = null;
-      try {
-        assetsData = await contentSources.listAssets<ApiAsset[]>();
-      } catch {
-        // API proxy may return 404 if publisher not registered — expected, non-blocking
-      }
+      // Fetch sources and assets from local Supabase (primary source of truth)
+      const [sourcesResult, assetsResult] = await Promise.all([
+        supabase.from("rss_sources").select("id, name").eq("user_id", user.id),
+        supabase.from("assets").select("*").eq("user_id", user.id),
+      ]);
 
-      const sourcesResult = await sourcesPromise;
       const sources = sourcesResult.data || [];
       const lookup: Record<string, string> = {};
       sources.forEach((s) => { lookup[s.id] = s.name; });
       setSourceLookup(lookup);
       setSourceList(sources);
       
-      console.log("[Dashboard] API returned", assetsData?.length || 0, "assets,", sources.length, "sources");
-      const mappedAssets: Asset[] = (assetsData || []).map((item) => mapApiAssetToUiAsset(item));
+      const localAssets = assetsResult.data || [];
+      console.log("[Dashboard] Local DB returned", localAssets.length, "assets,", sources.length, "sources");
+      const mappedAssets: Asset[] = localAssets.map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
       setAssets(mappedAssets);
     } catch (err: any) {
       console.warn("[Dashboard] Non-critical fetch error:", err?.message || err);
-      // Don't show toast for expected API errors — assets just remain empty
     } finally {
       setIsLoading(false);
     }
