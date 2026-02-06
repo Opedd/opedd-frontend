@@ -436,7 +436,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         onSuccess?.();
       }
     } catch (error: any) {
-      console.error("Error syncing publication:", error);
+      console.warn("[RegisterContentModal] Publication sync failed:", error?.message || error);
       setIsConnecting(false);
       
       const errorMsg = error?.message || "";
