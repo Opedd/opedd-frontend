@@ -136,13 +136,9 @@ export default function Dashboard() {
       console.log("[Dashboard] API returned", assetsData?.length || 0, "assets,", sources.length, "sources");
       const mappedAssets: Asset[] = (assetsData || []).map((item) => mapApiAssetToUiAsset(item));
       setAssets(mappedAssets);
-    } catch (err) {
-      console.error("Error fetching assets:", err);
-      toast({
-        title: "Connection Error",
-        description: "Failed to load assets. Please try again.",
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      console.warn("[Dashboard] Non-critical fetch error:", err?.message || err);
+      // Don't show toast for expected API errors — assets just remain empty
     } finally {
       setIsLoading(false);
     }
