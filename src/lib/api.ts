@@ -64,9 +64,14 @@ export async function apiFetch<T>(
   });
   
   console.log('[API] Response status:', response.status);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.warn(`[API] ${response.status} for ${path}:`, errorText);
+    throw new Error(`Edge function returned ${response.status}: ${response.statusText}, ${errorText}`);
+  }
   
   const data = await safeParseJson(response) as { success?: boolean; data?: T; error?: { message: string } };
-  console.log('[API] Response for ' + path + ':', data);
   
   if (!data.success) {
     throw new Error(data.error?.message || 'API request failed');
