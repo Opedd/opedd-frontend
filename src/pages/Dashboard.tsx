@@ -122,8 +122,8 @@ export default function Dashboard() {
       let assetsData: ApiAsset[] | null = null;
       try {
         assetsData = await contentSources.listAssets<ApiAsset[]>();
-      } catch (apiErr) {
-        console.warn("[Dashboard] API assets fetch failed (non-blocking):", apiErr);
+      } catch {
+        // API proxy may return 404 if publisher not registered — expected, non-blocking
       }
 
       const sourcesResult = await sourcesPromise;
