@@ -412,29 +412,98 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       setView("syncing");
       
       // Use the source ID as the registered asset ID
-      const sourceId = sourceData.id;
-      setRegisteredAssetId(sourceId);
+      const externalSourceId = sourceData.id;
+      setRegisteredAssetId(externalSourceId);
       
       // Use verification token from API response or generated one
       const verificationTokenFromApi = sourceData.verification_token || token;
       setVerificationToken(verificationTokenFromApi);
       setVerificationCode(verificationTokenFromApi);
       
-      // Step 2: Trigger RSS sync to import articles (token auto-injected)
+      // Step 2: Insert local rss_sources record so Sources tab shows the pipe
+      let localSourceId: string | null = null;
       try {
-        await contentSources.sync(sourceId);
-        console.log("[RegisterContentModal] RSS sync triggered for source:", sourceId);
+        const { data: localSource, error: srcErr } = await supabase
+          .from("rss_sources")
+          .insert({
+            user_id: user.id,
+            name: cleanPubName,
+            feed_url: feedUrl,
+            platform: platformType,
+            sync_status: "active",
+            last_synced_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+        if (srcErr) throw srcErr;
+        localSourceId = localSource.id;
+        console.log("[RegisterContentModal] Local rss_sources record created:", localSourceId);
+      } catch (localErr) {
+        console.warn("[RegisterContentModal] Failed to insert local source:", localErr);
+      }
+      
+      // Step 3: Trigger RSS sync to import articles (token auto-injected)
+      let syncedArticles: any[] | null = null;
+      try {
+        await contentSources.sync(externalSourceId);
+        console.log("[RegisterContentModal] RSS sync triggered for source:", externalSourceId);
         
-        // Give the backend a moment to process the sync, then refresh data
-        setTimeout(() => {
-          console.log("[RegisterContentModal] Refreshing dashboard data after sync");
-          onSuccess?.();
-        }, 1500);
+        // Try to fetch the synced articles from the API
+        try {
+          syncedArticles = await contentSources.listAssets<any[]>();
+        } catch {
+          console.warn("[RegisterContentModal] Could not fetch synced articles from API");
+        }
       } catch (syncError) {
         console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
-        // Still call onSuccess to refresh data from the source creation
-        onSuccess?.();
       }
+      
+      // Step 4: Mirror synced articles into local assets table
+      if (localSourceId) {
+        const articlesToInsert = (syncedArticles && syncedArticles.length > 0)
+          ? syncedArticles.map((a: any) => ({
+              user_id: user.id,
+              title: a.title || "Untitled Article",
+              description: a.description || null,
+              source_url: a.sourceUrl || a.url || null,
+              publication_id: localSourceId,
+              human_price: parseFloat(pubHumanPrice) || 4.99,
+              ai_price: pubAiPrice ? parseFloat(pubAiPrice) : null,
+              license_type: accessType,
+              licensing_enabled: true,
+              verification_token: verificationTokenFromApi,
+              verification_status: "pending",
+              content_hash: a.contentHash || generateContentHash(a.title || feedUrl),
+            }))
+          : [{
+              user_id: user.id,
+              title: `${cleanPubName} – Publication Feed`,
+              description: `Articles synced from ${feedUrl}`,
+              source_url: feedUrl,
+              publication_id: localSourceId,
+              human_price: parseFloat(pubHumanPrice) || 4.99,
+              ai_price: pubAiPrice ? parseFloat(pubAiPrice) : null,
+              license_type: accessType,
+              licensing_enabled: true,
+              verification_token: verificationTokenFromApi,
+              verification_status: "pending",
+              content_hash: contentHash,
+            }];
+        
+        try {
+          await supabase.from("assets").insert(articlesToInsert);
+          // Update article count on local source
+          await supabase.from("rss_sources").update({
+            article_count: articlesToInsert.length,
+          }).eq("id", localSourceId);
+          console.log("[RegisterContentModal] Inserted", articlesToInsert.length, "local assets");
+        } catch (insertErr) {
+          console.warn("[RegisterContentModal] Failed to insert local assets:", insertErr);
+        }
+      }
+      
+      // Refresh dashboard data
+      onSuccess?.();
     } catch (error: any) {
       console.warn("[RegisterContentModal] Publication sync failed:", error?.message || error);
       setIsConnecting(false);
