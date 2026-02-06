@@ -64,6 +64,7 @@ interface SmartLibraryTableProps {
   onSyncClick?: () => void;
   onRegisterClick?: () => void;
   showPulse?: boolean;
+  sourceLookup?: Record<string, string>;
 }
 
 // Demo mode removed - showing real data only
@@ -111,7 +112,8 @@ export function SmartLibraryTable({
   onAddClick,
   onSyncClick,
   onRegisterClick,
-  showPulse = false
+  showPulse = false,
+  sourceLookup = {}
 }: SmartLibraryTableProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -320,6 +322,9 @@ export function SmartLibraryTable({
                 Title
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium">
+                Source
+              </TableHead>
+              <TableHead className="text-[#040042]/60 text-xs font-medium">
                 Format
               </TableHead>
               <TableHead className="text-[#040042]/60 text-xs font-medium">
@@ -379,6 +384,17 @@ export function SmartLibraryTable({
                         )}
                       </div>
                     </div>
+                  </TableCell>
+
+                  {/* Source Column */}
+                  <TableCell>
+                    {asset.source_id && sourceLookup[asset.source_id] ? (
+                      <span className="text-xs text-[#040042]/70 font-medium truncate max-w-[120px] block">
+                        {sourceLookup[asset.source_id]}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-[#040042]/30 italic">Direct Upload</span>
+                    )}
                   </TableCell>
 
                   {/* Format Column - Now checks source_id first */}

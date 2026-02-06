@@ -25,6 +25,8 @@ export interface Asset {
   metadata?: Record<string, unknown>;
   // Description field
   description?: string;
+  // Resolved source name for UI display in Library table
+  source_name?: string;
 }
 
 // Database asset structure (matches current Supabase schema)
