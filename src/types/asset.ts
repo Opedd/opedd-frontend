@@ -24,6 +24,12 @@ export interface Asset {
   metadata?: Record<string, unknown>;
   // Description field
   description?: string;
+  // Full synced content
+  content?: string;
+  // Publication date
+  publishedAt?: string;
+  // Platform identifier (e.g. 'substack', 'ghost')
+  platform?: string;
   // Resolved source name for UI display in Library table
   source_name?: string;
 }
@@ -42,6 +48,7 @@ export interface DbAsset {
   source_url: string | null;
   description?: string | null;
   content?: string | null;
+  published_at?: string | null;
   user_id: string;
   publication_id?: string | null;
   source_id?: string | null;
@@ -133,5 +140,7 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     content_hash: dbAsset.content_hash ?? undefined,
     metadata: dbAsset.metadata ?? undefined,
     description: dbAsset.description ?? undefined,
+    content: dbAsset.content ?? undefined,
+    publishedAt: dbAsset.published_at ?? undefined,
   };
 };

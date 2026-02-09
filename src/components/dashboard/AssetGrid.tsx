@@ -2,14 +2,28 @@ import React from "react";
 import { format } from "date-fns";
 import { Shield, Clock, Loader2, FileText, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Asset } from "@/types/asset";
+
+import substackLogo from "@/assets/platforms/substack.svg";
+import ghostLogo from "@/assets/platforms/ghost.png";
+import wordpressLogo from "@/assets/platforms/wordpress.svg";
+import beehiivLogo from "@/assets/platforms/beehiiv.png";
+import mediumLogo from "@/assets/platforms/medium.svg";
+
+const platformLogos: Record<string, string> = {
+  substack: substackLogo,
+  ghost: ghostLogo,
+  wordpress: wordpressLogo,
+  beehiiv: beehiivLogo,
+  medium: mediumLogo,
+};
 
 interface AssetGridProps {
   assets: Asset[];
   onViewDetails: (asset: Asset) => void;
   isLoading?: boolean;
   sourceLookup?: Record<string, string>;
+  platformLookup?: Record<string, string>;
 }
 
 const getStatusConfig = (status: Asset["status"]) => {
@@ -35,7 +49,15 @@ const getStatusConfig = (status: Asset["status"]) => {
   }
 };
 
-export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {} }: AssetGridProps) {
+function getSnippet(content?: string, description?: string, maxLen = 120): string {
+  const text = content || description || "";
+  if (!text) return "";
+  // Strip basic HTML tags
+  const plain = text.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  return plain.length > maxLen ? plain.slice(0, maxLen).trimEnd() + "…" : plain;
+}
+
+export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {}, platformLookup = {} }: AssetGridProps) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex items-center justify-center">
@@ -68,46 +90,55 @@ export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {} 
         const sourceName = asset.source_id && sourceLookup[asset.source_id]
           ? sourceLookup[asset.source_id]
           : null;
+        const platform = asset.source_id ? platformLookup[asset.source_id] : undefined;
+        const logoSrc = platform ? platformLogos[platform.toLowerCase()] : undefined;
+        const snippet = getSnippet(asset.content, asset.description);
 
         return (
           <div
             key={asset.id}
-            className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md hover:border-[#4A26ED]/20 transition-all group"
+            onClick={() => onViewDetails(asset)}
+            className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md hover:border-[#4A26ED]/20 transition-all group cursor-pointer flex flex-col"
           >
-            {/* Status Badge */}
+            {/* Top row: badge + platform logo */}
             <div className="flex items-center justify-between mb-3">
               <Badge variant="outline" className={`text-[10px] px-2 py-0.5 gap-1 ${statusConfig.className}`}>
                 {statusConfig.icon}
                 {statusConfig.label}
               </Badge>
-              {sourceName && (
+              {logoSrc ? (
+                <img src={logoSrc} alt={platform} className="h-5 w-5 object-contain opacity-60 group-hover:opacity-100 transition-opacity" />
+              ) : sourceName ? (
                 <span className="text-[10px] text-[#040042]/40 font-medium truncate max-w-[100px]">
                   {sourceName}
                 </span>
-              )}
+              ) : null}
             </div>
 
             {/* Title */}
-            <h3 className="font-semibold text-[#040042] text-sm leading-snug line-clamp-2 mb-2 min-h-[2.5rem]">
+            <h3 className="font-semibold text-[#040042] text-sm leading-snug line-clamp-2 mb-1.5 min-h-[2.5rem]">
               {asset.title}
             </h3>
 
-            {/* Sync Date */}
-            <p className="text-xs text-[#040042]/40 mb-4 flex items-center gap-1.5">
-              <Clock size={11} />
-              Synced {syncDate}
-            </p>
+            {/* Snippet */}
+            {snippet && (
+              <p className="text-xs text-[#040042]/50 leading-relaxed line-clamp-3 mb-3 flex-1">
+                {snippet}
+              </p>
+            )}
+            {!snippet && <div className="flex-1" />}
 
-            {/* View Details */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewDetails(asset)}
-              className="w-full h-9 text-xs font-medium gap-1.5 border-[#E8F2FB] hover:border-[#4A26ED]/40 hover:bg-[#4A26ED]/5 hover:text-[#4A26ED] transition-all"
-            >
-              <Eye size={13} />
-              View Details
-            </Button>
+            {/* Footer: date + view */}
+            <div className="flex items-center justify-between pt-3 border-t border-[#E8F2FB]">
+              <p className="text-[11px] text-[#040042]/40 flex items-center gap-1.5">
+                <Clock size={11} />
+                {syncDate}
+              </p>
+              <span className="text-[11px] font-medium text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                <Eye size={12} />
+                View
+              </span>
+            </div>
           </div>
         );
       })}
