@@ -20,7 +20,9 @@ import {
   X,
   Shield,
   Eye,
-  EyeOff
+  EyeOff,
+  HelpCircle,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +77,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [verifyFailedId, setVerifyFailedId] = useState<string | null>(null);
   const [instructionsSource, setInstructionsSource] = useState<Source | null>(null);
+  const [troubleshootSource, setTroubleshootSource] = useState<Source | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
 
   const fetchSources = async () => {
@@ -346,11 +349,21 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                     )}
                   </div>
                   <p className="text-xs text-[#040042]/50 truncate">{source.feed_url}</p>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-[#040042]/40">
+                  <div className="flex items-center gap-3 mt-2 text-xs text-[#040042]/40">
                     <span className="font-medium">{source.article_count || 0} articles</span>
                     {source.last_synced_at && (
                       <span>Synced {getRelativeTime(source.last_synced_at)}</span>
                     )}
+                    {/* Sync Method Tag */}
+                    {(() => {
+                      const p = (source.platform || "").toLowerCase();
+                      const isWebhook = p === "ghost" || p === "beehiiv";
+                      return (
+                        <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${isWebhook ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
+                          {isWebhook ? '⚡ Real-time' : '🔄 Scheduled'}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -359,10 +372,17 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
               {hasFailed && (
                 <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
                   <AlertCircle size={14} className="text-red-500 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-red-700">
+                  <div className="text-xs text-red-700 flex-1">
                     <p className="font-medium">Verification code not found on your site.</p>
                     <p className="mt-0.5 text-red-600">Make sure you've added the code to your bio or header, then try again.</p>
                   </div>
+                  <button
+                    onClick={() => setTroubleshootSource(source)}
+                    className="text-xs text-red-600 hover:text-red-800 font-semibold underline underline-offset-2 flex items-center gap-1 flex-shrink-0 mt-0.5"
+                  >
+                    <HelpCircle size={12} />
+                    Troubleshoot
+                  </button>
                 </div>
               )}
 
@@ -532,6 +552,104 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 >
                   <ShieldCheck size={16} className="mr-2" />
                   Verify Now
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
+      {/* Troubleshoot Dialog */}
+      {troubleshootSource && (() => {
+        const code = getVerificationCode(troubleshootSource);
+        const optionAText = `Verify with Opedd: ${code}`;
+        const optionBText = `<meta name="opedd-verification" content="${code}" />`;
+
+        return (
+          <Dialog open={!!troubleshootSource} onOpenChange={() => setTroubleshootSource(null)}>
+            <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+              <div className="bg-red-600 px-6 py-5 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <HelpCircle size={20} className="text-white" />
+                    <div>
+                      <h1 className="text-white font-bold text-base leading-tight">Troubleshoot Verification</h1>
+                      <p className="text-red-200 text-sm">{troubleshootSource.name}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setTroubleshootSource(null)}
+                    className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  >
+                    <X size={16} className="text-white" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-[#040042] flex items-center gap-2">
+                    <BookOpen size={14} className="text-red-500" />
+                    Common Issues
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      { q: "Code not found on your site", a: "Make sure the verification code is publicly visible — not behind a login wall or paywall." },
+                      { q: "Using Option B (meta tag)?", a: "Ensure the <meta> tag is inside the <head> section of your site, not inside an article body." },
+                      { q: "Ghost or WordPress site?", a: "Add the code to your site's 'Code injection → Site Header' section in admin settings." },
+                      { q: "Substack publication?", a: "Add the visible text to your publication's About page. Meta tags are not supported on Substack." },
+                      { q: "Recently updated?", a: "It may take a few minutes for changes to propagate. Wait 2–3 minutes and retry." },
+                    ].map((item, i) => (
+                      <div key={i} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                        <p className="text-xs font-semibold text-[#040042]">{item.q}</p>
+                        <p className="text-xs text-slate-500 mt-1">{item.a}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 pt-4 space-y-3">
+                  <h3 className="text-sm font-bold text-[#040042]">Your Verification Code</h3>
+                  <div className="bg-[#F2F9FF] border-2 border-[#4A26ED]/20 rounded-xl p-4 flex items-center justify-between">
+                    <p className="text-xl font-mono font-bold text-[#4A26ED] tracking-wider">{code}</p>
+                    <Button size="sm" onClick={() => handleCopyCode(code)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white border-none h-8 text-xs">
+                      {copiedCode ? <><Check size={12} className="mr-1.5" />Copied</> : <><Copy size={12} className="mr-1.5" />Copy</>}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-slate-900 rounded-lg p-2.5">
+                      <p className="text-[9px] text-slate-400 mb-1">Option A — Visible</p>
+                      <code className="text-[10px] text-emerald-400 font-mono">{optionAText}</code>
+                    </div>
+                    <div className="bg-slate-900 rounded-lg p-2.5">
+                      <p className="text-[9px] text-slate-400 mb-1">Option B — Meta Tag</p>
+                      <code className="text-[10px] text-emerald-400 font-mono break-all">{optionBText}</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTroubleshootSource(null);
+                    setInstructionsSource(troubleshootSource);
+                  }}
+                  className="flex-1 h-11"
+                >
+                  <Eye size={14} className="mr-2" />
+                  Full Instructions
+                </Button>
+                <Button
+                  onClick={() => {
+                    setTroubleshootSource(null);
+                    handleVerify(troubleshootSource);
+                  }}
+                  className="flex-1 h-11 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
+                >
+                  <RefreshCw size={14} className="mr-2" />
+                  Retry Verification
                 </Button>
               </div>
             </DialogContent>
