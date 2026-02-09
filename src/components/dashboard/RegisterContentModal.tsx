@@ -970,6 +970,28 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               <p className="text-xs text-slate-500">
                 We'll fetch and license all articles from this feed
               </p>
+
+              {/* Platform Helper Hint — shown when URL looks invalid */}
+              {feedUrl.length > 5 && !feedUrl.includes('.') && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
+                  <p className="text-xs font-semibold text-amber-800 mb-1.5">💡 Platform Helper</p>
+                  <div className="space-y-1 text-xs text-amber-700">
+                    <p><strong>Substack:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yourname.substack.com/feed</code></p>
+                    <p><strong>Ghost:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yoursite.ghost.io/rss</code></p>
+                    <p><strong>Beehiiv:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yourname.beehiiv.com/feed</code></p>
+                    <p><strong>WordPress:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yoursite.com/feed</code></p>
+                  </div>
+                </div>
+              )}
+
+              {/* Also show hint when URL has a dot but no /feed or /rss and no platform detected */}
+              {feedUrl.length > 10 && feedUrl.includes('.') && !detectedPlatform && !feedUrl.match(/\/(feed|rss|atom)/i) && !feedPreview?.isLoading && (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 animate-in fade-in-0 duration-200">
+                  <p className="text-xs text-slate-500">
+                    💡 Tip: Most RSS feeds end with <code className="bg-slate-100 px-1 rounded text-[#040042]">/feed</code> or <code className="bg-slate-100 px-1 rounded text-[#040042]">/rss</code>. Try appending that to your URL.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* URL Preview Card with Fetching State */}
