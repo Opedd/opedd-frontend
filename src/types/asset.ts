@@ -16,8 +16,8 @@ export interface Asset {
   source_id?: string;
   // Verification token for publication ownership verification
   verification_token?: string;
-  // Verification status from backend: 'pending' or 'verified'
-  verification_status?: "pending" | "verified";
+  // Verification status from backend: 'pending', 'verified', or 'auto-verified'
+  verification_status?: "pending" | "verified" | "auto-verified";
   // Content hash for license schema alignment
   content_hash?: string;
   // Additional metadata (JSONB)
@@ -129,7 +129,7 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     sourceUrl: dbAsset.source_url ?? undefined,
     source_id: sourceId,
     verification_token: dbAsset.verification_token ?? undefined,
-    verification_status: (dbAsset.verification_status as "pending" | "verified") ?? "pending",
+    verification_status: (dbAsset.verification_status as "pending" | "verified" | "auto-verified") ?? "pending",
     content_hash: dbAsset.content_hash ?? undefined,
     metadata: dbAsset.metadata ?? undefined,
     description: dbAsset.description ?? undefined,

@@ -433,6 +433,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             platform: platformType,
             sync_status: "active",
             last_synced_at: new Date().toISOString(),
+            registration_path: "newsletter_feed",
           })
           .select("id")
           .single();
@@ -569,7 +570,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           ai_licenses_sold: 0,
           license_type: accessType, // DB column is license_type, not access_type
           content_hash: contentHash,
-          verification_status: "verified", // Single works are auto-verified
+          verification_status: "auto-verified", // Single works are auto-verified on upload
           metadata: {
             url: articleUrl || null,
             type: uploadedFile ? "document" : "article",
@@ -743,6 +744,21 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             human_price: parseFloat(enterpriseHumanPrice) || 4.99,
             ai_price: enterpriseAiPrice ? parseFloat(enterpriseAiPrice) : undefined,
           });
+
+          // Insert local rss_sources record with bulk_enterprise path
+          try {
+            await supabase.from("rss_sources").insert({
+              user_id: user.id,
+              name: feedName,
+              feed_url: feed.url,
+              platform: platformType,
+              sync_status: "active",
+              last_synced_at: new Date().toISOString(),
+              registration_path: "bulk_enterprise",
+            });
+          } catch (localErr) {
+            console.warn("[RegisterContentModal] Failed to insert local enterprise source:", localErr);
+          }
 
           try {
             await contentSources.sync(sourceData.id);

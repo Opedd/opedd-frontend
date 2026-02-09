@@ -139,6 +139,7 @@ export type Database = {
           last_synced_at: string | null
           name: string
           platform: string | null
+          registration_path: string
           sync_status: string | null
           user_id: string
         }
@@ -150,6 +151,7 @@ export type Database = {
           last_synced_at?: string | null
           name: string
           platform?: string | null
+          registration_path?: string
           sync_status?: string | null
           user_id: string
         }
@@ -161,6 +163,7 @@ export type Database = {
           last_synced_at?: string | null
           name?: string
           platform?: string | null
+          registration_path?: string
           sync_status?: string | null
           user_id?: string
         }
