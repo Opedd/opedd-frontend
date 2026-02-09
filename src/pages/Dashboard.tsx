@@ -12,7 +12,6 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { SmartLibraryTable } from "@/components/dashboard/SmartLibraryTable";
 import { AssetGrid } from "@/components/dashboard/AssetGrid";
 import { AssetSettingsModal } from "@/components/dashboard/AssetSettingsModal";
 import { SourcesView } from "@/components/dashboard/SourcesView";

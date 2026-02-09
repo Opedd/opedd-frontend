@@ -38,7 +38,7 @@ export function AssetSettingsModal({ open, onOpenChange, asset, onUpdate }: Asse
   const [copiedWidget, setCopiedWidget] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  if (!asset) return null;
+  if (!asset || !open) return null;
 
   const directPayLink = `https://opedd.io/pay/${asset.id}`;
   const widgetCode = `<script src="https://opedd.io/widget.js" data-asset-id="${asset.id}"></script>`;
