@@ -13,6 +13,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { SmartLibraryTable } from "@/components/dashboard/SmartLibraryTable";
+import { AssetGrid } from "@/components/dashboard/AssetGrid";
+import { AssetSettingsModal } from "@/components/dashboard/AssetSettingsModal";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +43,8 @@ export default function Dashboard() {
   const [registryTab, setRegistryTab] = useState<"sources" | "library">("sources");
   const [sourceLookup, setSourceLookup] = useState<Record<string, string>>({});
   const [sourceList, setSourceList] = useState<{ id: string; name: string }[]>([]);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [isAssetDetailsOpen, setIsAssetDetailsOpen] = useState(false);
 
   const openRegisterModal = () => {
     setModalInitialView("choice");
@@ -288,27 +292,16 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Table */}
-              {filteredAssets.length === 0 && assets.length > 0 && !isLoading ? (
-                <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 text-center">
-                  <p className="text-[#040042]/60 text-sm">
-                    {searchQuery ? "No assets match your search" : "No assets match this filter"}
-                  </p>
-                </div>
-              ) : (
-                <SmartLibraryTable
-                  assets={filteredAssets}
-                  onDelete={handleDelete}
-                  onBulkDelete={handleBulkDelete}
-                  onVerify={() => fetchAssets()}
-                  isLoading={isLoading}
-                  onAddClick={openRegisterModal}
-                  onSyncClick={openPublicationSync}
-                  onRegisterClick={openSingleWork}
-                  sourceLookup={sourceLookup}
-                  showPulse={assets.length === 0 && !isLoading}
-                />
-              )}
+              {/* Asset Grid */}
+              <AssetGrid
+                assets={filteredAssets}
+                onViewDetails={(asset) => {
+                  setSelectedAsset(asset);
+                  setIsAssetDetailsOpen(true);
+                }}
+                isLoading={isLoading}
+                sourceLookup={sourceLookup}
+              />
             </TabsContent>
           </Tabs>
         </div>
@@ -321,12 +314,22 @@ export default function Dashboard() {
         initialView={modalInitialView}
         onSuccess={() => {
           fetchAssets();
+          setRegistryTab("library");
           toast({
             title: "Content Protected",
             description: "Your content has been registered and synced to your library",
           });
         }}
       />
+
+      {/* Asset Details Modal */}
+      {selectedAsset && (
+        <AssetSettingsModal
+          asset={selectedAsset}
+          open={isAssetDetailsOpen}
+          onOpenChange={setIsAssetDetailsOpen}
+        />
+      )}
     </div>
   );
 }

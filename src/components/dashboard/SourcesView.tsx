@@ -262,13 +262,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             Register a feed or sitemap to start syncing articles into your library automatically.
           </p>
         </div>
-        <Button
-          onClick={onAddSource}
-          className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white"
-        >
-          <Plus size={16} className="mr-2" />
-          Add Your First Source
-        </Button>
+        <p className="text-xs text-[#040042]/40 mt-1">Use the <strong>"Register Content"</strong> button above to get started.</p>
       </div>
     );
   }
@@ -297,14 +291,6 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         <p className="text-sm text-[#040042]/50">
           {sources.length} Source{sources.length !== 1 ? "s" : ""} · {totalArticles} Total Article{totalArticles !== 1 ? "s" : ""}
         </p>
-        <Button
-          onClick={onAddSource}
-          size="sm"
-          className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-8 text-xs gap-1.5"
-        >
-          <Plus size={14} />
-          Add Source
-        </Button>
       </div>
 
       {/* Source Cards */}
