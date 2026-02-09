@@ -140,6 +140,7 @@ export type Database = {
           name: string
           platform: string | null
           registration_path: string
+          sync_method: string
           sync_status: string | null
           user_id: string
         }
@@ -152,6 +153,7 @@ export type Database = {
           name: string
           platform?: string | null
           registration_path?: string
+          sync_method?: string
           sync_status?: string | null
           user_id: string
         }
@@ -164,6 +166,7 @@ export type Database = {
           name?: string
           platform?: string | null
           registration_path?: string
+          sync_method?: string
           sync_status?: string | null
           user_id?: string
         }
