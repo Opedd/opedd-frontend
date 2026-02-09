@@ -14,6 +14,8 @@ import Ledger from "./pages/Ledger";
 import Integrations from "./pages/Integrations";
 import Settings from "./pages/Settings";
 import Checkout from "./pages/Checkout";
+import LicenseCheckout from "./pages/LicenseCheckout";
+import LicenseSuccess from "./pages/LicenseSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/checkout/:assetId" element={<Checkout />} />
+            <Route path="/license/success" element={<LicenseSuccess />} />
+            <Route path="/license/:id" element={<LicenseCheckout />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

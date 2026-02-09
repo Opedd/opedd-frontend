@@ -19,6 +19,8 @@ import {
   DollarSign,
   AlertTriangle,
   Archive,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Asset, AssetStatus } from "@/types/asset";
 
@@ -73,6 +75,8 @@ const statusConfig = (status: AssetStatus) => {
 };
 
 export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLicenseTerms }: AssetDetailDrawerProps) {
+  const [copied, setCopied] = React.useState(false);
+
   if (!asset) return null;
 
   const sc = statusConfig(asset.status);
@@ -84,6 +88,13 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     : asset.createdAt
     ? format(new Date(asset.createdAt), "MMMM d, yyyy")
     : null;
+  const licenseLink = `opedd.com/license/${asset.id}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(`https://${licenseLink}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -175,7 +186,15 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
         </div>
 
         {/* Sticky Footer */}
-        <div className="shrink-0 px-6 py-4 border-t border-[#E8F2FB] bg-white">
+        <div className="shrink-0 px-6 py-4 border-t border-[#E8F2FB] bg-white space-y-2">
+          {/* Copy Licensing Link */}
+          <button
+            onClick={handleCopyLink}
+            className="w-full h-10 rounded-xl border border-[#E8F2FB] bg-slate-50 hover:bg-slate-100 text-sm font-medium text-[#040042]/70 flex items-center justify-center gap-2 transition-all"
+          >
+            {copied ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+            {copied ? "Link Copied!" : `Copy Licensing Link`}
+          </button>
           <Button
             onClick={() => onSetLicenseTerms?.(asset)}
             className="w-full h-11 rounded-xl bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold text-sm shadow-lg shadow-[#4A26ED]/25 transition-all active:scale-[0.98] gap-2"
