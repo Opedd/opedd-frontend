@@ -368,6 +368,19 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 </div>
               </div>
 
+              {/* Empty source state — verified but 0 articles */}
+              {isVerified && (source.article_count || 0) === 0 && (
+                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+                  <Rss size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-blue-700">
+                    <p className="font-medium">Everything is set up!</p>
+                    <p className="mt-0.5 text-blue-600">
+                      We're just waiting for your first post to appear on {source.platform ? source.platform.charAt(0).toUpperCase() + source.platform.slice(1) : 'your site'}.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Verification Failed Banner */}
               {hasFailed && (
                 <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
@@ -419,27 +432,51 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                     )}
                   </>
                 ) : (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleResync(source)}
-                          disabled={isSyncing}
-                          className="h-8 text-xs gap-1.5"
-                        >
-                          {isSyncing ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : (
-                            <RefreshCw size={12} />
-                          )}
-                          Re-sync
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Fetch new articles from this source</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResync(source)}
+                            disabled={isSyncing}
+                            className="h-8 text-xs gap-1.5"
+                          >
+                            {isSyncing ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              <RefreshCw size={12} />
+                            )}
+                            Re-sync
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Fetch new articles from this source</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    {/* Sync Now — manual trigger */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleResync(source)}
+                            disabled={isSyncing}
+                            className="h-8 w-8 p-0 text-[#040042]/40 hover:text-[#4A26ED]"
+                          >
+                            {isSyncing ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Rss size={14} />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Sync now — don't wait 12 hours</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </>
                 )}
 
                 {source.feed_url && (
