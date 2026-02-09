@@ -24,10 +24,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Asset, AccessType } from "@/types/asset";
+import { Asset, AssetStatus, AccessType } from "@/types/asset";
 import { mapDbAssetToUiAsset, DbAsset } from "@/types/asset";
 
-type StatusFilter = "all" | "protected" | "syncing" | "pending";
+type StatusFilter = "all" | "protected" | "syncing" | "pending" | "failed";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -67,10 +67,11 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       
-      const [sourcesResult, assetsResult] = await Promise.all([
-        supabase.from("rss_sources").select("id, name, platform").eq("user_id", user.id),
-        supabase.from("assets").select("*").eq("user_id", user.id),
-      ]);
+      // Fetch sources from local DB for lookup
+      const sourcesResult = await supabase
+        .from("rss_sources")
+        .select("id, name, platform")
+        .eq("user_id", user.id);
 
       const sources = sourcesResult.data || [];
       const lookup: Record<string, string> = {};
@@ -80,9 +81,19 @@ export default function Dashboard() {
       setPlatformLookup(platLookup);
       setSourceList(sources);
       
-      const localAssets = assetsResult.data || [];
-      const mappedAssets: Asset[] = localAssets.map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
-      setAssets(mappedAssets);
+      // Fetch assets via the licenses edge function endpoint
+      try {
+        const apiAssets = await licenses.list<DbAsset[]>();
+        const mappedAssets: Asset[] = (Array.isArray(apiAssets) ? apiAssets : []).map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
+        setAssets(mappedAssets);
+      } catch (apiErr: any) {
+        console.warn("[Dashboard] Licenses API fallback to local DB:", apiErr?.message);
+        // Fallback: fetch from local Supabase
+        const assetsResult = await supabase.from("assets").select("*").eq("user_id", user.id);
+        const localAssets = assetsResult.data || [];
+        const mappedAssets: Asset[] = localAssets.map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
+        setAssets(mappedAssets);
+      }
     } catch (err: any) {
       console.warn("[Dashboard] Non-critical fetch error:", err?.message || err);
     } finally {

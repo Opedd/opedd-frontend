@@ -3,11 +3,13 @@
 
 export type AccessType = "human" | "ai" | "both";
 
+export type AssetStatus = "protected" | "syncing" | "pending" | "verified" | "failed" | "source_archived";
+
 export interface Asset {
   id: string;
   title: string;
   licenseType: AccessType; // UI field, derived from access_type or pricing
-  status: "protected" | "syncing" | "pending";
+  status: AssetStatus;
   revenue: number;
   createdAt: string;
   format?: "single" | "publication";
@@ -16,8 +18,8 @@ export interface Asset {
   source_id?: string;
   // Verification token for publication ownership verification
   verification_token?: string;
-  // Verification status from backend: 'pending', 'verified', or 'auto-verified'
-  verification_status?: "pending" | "verified" | "auto-verified";
+  // Verification status from backend: 'pending', 'verified', 'failed'
+  verification_status?: "pending" | "verified" | "failed";
   // Content hash for license schema alignment
   content_hash?: string;
   // Additional metadata (JSONB)
@@ -32,6 +34,8 @@ export interface Asset {
   platform?: string;
   // Resolved source name for UI display in Library table
   source_name?: string;
+  // Thumbnail image URL
+  thumbnailUrl?: string;
 }
 
 // Database asset structure (matches current Supabase schema)
@@ -49,6 +53,7 @@ export interface DbAsset {
   description?: string | null;
   content?: string | null;
   published_at?: string | null;
+  thumbnail_url?: string | null;
   user_id: string;
   publication_id?: string | null;
   source_id?: string | null;
@@ -115,12 +120,17 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     else if (hasAi) licenseType = "ai";
   }
 
-  // Determine status: Protected (licensed) or Syncing (pending)
-  let status: Asset["status"] = "pending";
-  if (dbAsset.licensing_enabled) {
+  // Map verification_status to UI status
+  let status: AssetStatus = "pending";
+  const vs = dbAsset.verification_status?.toLowerCase();
+  if (vs === "verified") {
     status = "protected";
-  } else if (dbAsset.verification_status === "pending") {
-    status = "syncing";
+  } else if (vs === "failed") {
+    status = "failed";
+  } else if (vs === "pending") {
+    status = "pending";
+  } else if (dbAsset.licensing_enabled) {
+    status = "protected";
   }
 
   const sourceId = dbAsset.source_id ?? dbAsset.publication_id ?? undefined;
@@ -136,11 +146,12 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     sourceUrl: dbAsset.source_url ?? undefined,
     source_id: sourceId,
     verification_token: dbAsset.verification_token ?? undefined,
-    verification_status: (dbAsset.verification_status as "pending" | "verified" | "auto-verified") ?? "pending",
+    verification_status: (dbAsset.verification_status as "pending" | "verified" | "failed") ?? "pending",
     content_hash: dbAsset.content_hash ?? undefined,
     metadata: dbAsset.metadata ?? undefined,
     description: dbAsset.description ?? undefined,
     content: dbAsset.content ?? undefined,
     publishedAt: dbAsset.published_at ?? undefined,
+    thumbnailUrl: dbAsset.thumbnail_url ?? undefined,
   };
 };

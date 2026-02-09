@@ -17,8 +17,10 @@ import {
   Calendar,
   Link2,
   DollarSign,
+  AlertTriangle,
+  Archive,
 } from "lucide-react";
-import { Asset } from "@/types/asset";
+import { Asset, AssetStatus } from "@/types/asset";
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.png";
@@ -52,13 +54,20 @@ function wordCount(text?: string): number {
   return plain.split(/\s+/).filter(Boolean).length;
 }
 
-const statusConfig = (status: Asset["status"]) => {
+const statusConfig = (status: AssetStatus) => {
   switch (status) {
     case "protected":
+    case "verified":
       return { label: "Protected", className: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: <Shield size={12} /> };
     case "syncing":
       return { label: "Syncing", className: "bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20", icon: <Loader2 size={12} className="animate-spin" /> };
     case "pending":
+      return { label: "Pending", className: "bg-amber-50 text-amber-700 border-amber-200", icon: <Clock size={12} /> };
+    case "failed":
+      return { label: "Failed", className: "bg-red-50 text-red-700 border-red-200", icon: <AlertTriangle size={12} /> };
+    case "source_archived":
+      return { label: "Archived", className: "bg-slate-50 text-slate-600 border-slate-200", icon: <Archive size={12} /> };
+    default:
       return { label: "Pending", className: "bg-amber-50 text-amber-700 border-amber-200", icon: <Clock size={12} /> };
   }
 };
