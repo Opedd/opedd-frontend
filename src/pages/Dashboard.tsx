@@ -14,6 +14,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { AssetGrid } from "@/components/dashboard/AssetGrid";
 import { AssetSettingsModal } from "@/components/dashboard/AssetSettingsModal";
+import { AssetDetailDrawer } from "@/components/dashboard/AssetDetailDrawer";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +42,7 @@ export default function Dashboard() {
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single">("choice");
   const [registryTab, setRegistryTab] = useState<"sources" | "library">("sources");
   const [sourceLookup, setSourceLookup] = useState<Record<string, string>>({});
+  const [platformLookup, setPlatformLookup] = useState<Record<string, string>>({});
   const [sourceList, setSourceList] = useState<{ id: string; name: string }[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isAssetDetailsOpen, setIsAssetDetailsOpen] = useState(false);
@@ -66,14 +68,16 @@ export default function Dashboard() {
       setIsLoading(true);
       
       const [sourcesResult, assetsResult] = await Promise.all([
-        supabase.from("rss_sources").select("id, name").eq("user_id", user.id),
+        supabase.from("rss_sources").select("id, name, platform").eq("user_id", user.id),
         supabase.from("assets").select("*").eq("user_id", user.id),
       ]);
 
       const sources = sourcesResult.data || [];
       const lookup: Record<string, string> = {};
-      sources.forEach((s) => { lookup[s.id] = s.name; });
+      const platLookup: Record<string, string> = {};
+      sources.forEach((s) => { lookup[s.id] = s.name; platLookup[s.id] = s.platform || ""; });
       setSourceLookup(lookup);
+      setPlatformLookup(platLookup);
       setSourceList(sources);
       
       const localAssets = assetsResult.data || [];
@@ -300,6 +304,7 @@ export default function Dashboard() {
                 }}
                 isLoading={isLoading}
                 sourceLookup={sourceLookup}
+                platformLookup={platformLookup}
               />
             </TabsContent>
           </Tabs>
@@ -321,14 +326,19 @@ export default function Dashboard() {
         }}
       />
 
-      {/* Asset Details Modal */}
-      {selectedAsset && (
-        <AssetSettingsModal
-          asset={selectedAsset}
-          open={isAssetDetailsOpen}
-          onOpenChange={setIsAssetDetailsOpen}
-        />
-      )}
+      {/* Asset Detail Slide-over */}
+      <AssetDetailDrawer
+        asset={selectedAsset}
+        open={isAssetDetailsOpen}
+        onOpenChange={setIsAssetDetailsOpen}
+        platform={selectedAsset?.source_id ? platformLookup[selectedAsset.source_id] : undefined}
+        onSetLicenseTerms={(asset) => {
+          setIsAssetDetailsOpen(false);
+          // Open the pricing/settings modal
+          setSelectedAsset(asset);
+          setTimeout(() => setIsAssetDetailsOpen(false), 0);
+        }}
+      />
     </div>
   );
 }
