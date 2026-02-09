@@ -1,6 +1,7 @@
 import React from "react";
 import { format } from "date-fns";
-import { Shield, Clock, Loader2, FileText, Eye, AlertTriangle, Archive, DollarSign } from "lucide-react";
+import { Shield, Clock, Loader2, FileText, Eye, AlertTriangle, Archive, DollarSign, Copy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Asset, AssetStatus } from "@/types/asset";
@@ -96,6 +97,16 @@ export function AssetGrid({
   onToggleSelect,
   selectionMode = false,
 }: AssetGridProps) {
+  const { toast } = useToast();
+  const [copiedId, setCopiedId] = React.useState<string | null>(null);
+
+  const handleCopyLink = (e: React.MouseEvent, assetId: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(`https://opedd.com/license/${assetId}`);
+    setCopiedId(assetId);
+    toast({ title: "Link copied", description: "Licensing link copied to clipboard." });
+    setTimeout(() => setCopiedId(null), 2000);
+  };
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex items-center justify-center">
@@ -231,12 +242,23 @@ export function AssetGrid({
                   <Clock size={11} />
                   {displayDate}
                 </p>
-                {!selectionMode && (
-                  <span className="text-[11px] font-medium text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                    <Eye size={12} />
-                    View
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {!selectionMode && (
+                    <button
+                      onClick={(e) => handleCopyLink(e, asset.id)}
+                      className="text-[11px] font-medium text-[#040042]/40 hover:text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1"
+                      title="Copy licensing link"
+                    >
+                      {copiedId === asset.id ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                    </button>
+                  )}
+                  {!selectionMode && (
+                    <span className="text-[11px] font-medium text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      <Eye size={12} />
+                      View
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
