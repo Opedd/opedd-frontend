@@ -1020,6 +1020,58 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               </div>
             )}
 
+            {/* Sync Method Info - Platform-specific */}
+            {detectedPlatform && !feedPreview?.isLoading && feedPreview && (() => {
+              const platformName = detectedPlatform.name.toLowerCase();
+              const isWebhook = platformName === "ghost" || platformName === "beehiiv";
+              const webhookUrl = `https://api.opedd.io/webhooks/${user?.id?.slice(0, 8) || "pub"}/ingest`;
+
+              return (
+                <div className={`rounded-xl border overflow-hidden animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ${isWebhook ? 'border-emerald-200 bg-emerald-50/50' : 'border-blue-200 bg-blue-50/50'}`}>
+                  <div className={`px-4 py-3 flex items-center gap-2 border-b ${isWebhook ? 'border-emerald-200 bg-emerald-50' : 'border-blue-200 bg-blue-50'}`}>
+                    <Badge variant="outline" className={`text-[10px] px-2 py-0 font-semibold ${isWebhook ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-blue-100 text-blue-700 border-blue-300'}`}>
+                      {isWebhook ? '⚡ Real-time' : '🔄 Scheduled'}
+                    </Badge>
+                    <span className="text-sm font-semibold text-[#040042]">
+                      {isWebhook ? 'Webhook Sync' : 'Automated Sync'}
+                    </span>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {isWebhook ? (
+                      <>
+                        <p className="text-xs text-slate-600">
+                          Real-time sync: Add this webhook URL to your <strong>{detectedPlatform.name}</strong> settings to get instant content updates.
+                        </p>
+                        <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between gap-3">
+                          <code className="text-xs text-emerald-400 font-mono truncate">{webhookUrl}</code>
+                          <Button
+                            size="sm"
+                            onClick={() => handleCopy(webhookUrl, "verification")}
+                            className="h-7 px-2.5 bg-white/10 hover:bg-white/20 text-white text-xs flex-shrink-0"
+                          >
+                            {copiedVerification ? <Check size={12} /> : <Copy size={12} />}
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-slate-400">
+                          Go to {detectedPlatform.name} → Settings → Integrations → Webhooks → Paste this URL
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-slate-600">
+                          Automated Sync: Opedd will scan your <strong>{detectedPlatform.name}</strong> feed every 12 hours for new content.
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-blue-700">
+                          <Rss size={12} />
+                          <span>No setup required — we handle everything automatically</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="bg-slate-50 rounded-xl p-4 space-y-4">
               <div className="flex items-center gap-2">
                 <Shield size={16} className="text-[#4A26ED]" />
