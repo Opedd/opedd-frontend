@@ -21,7 +21,8 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
-  Key
+  Key,
+  DollarSign
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,6 +98,10 @@ export default function Settings() {
 
   // Stripe state
   const [stripeConnected, setStripeConnected] = useState(false);
+
+  // Pricing defaults state
+  const [defaultHumanPrice, setDefaultHumanPrice] = useState("5.00");
+  const [defaultAiPrice, setDefaultAiPrice] = useState("10.00");
 
   // Developer state
   const [publisherIdCopied, setPublisherIdCopied] = useState(false);
@@ -466,6 +471,52 @@ export default function Settings() {
                           </Button>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Pricing Defaults Card */}
+                    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                      <div className="flex items-center gap-2 mb-6">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 flex items-center justify-center border border-emerald-500/20">
+                          <DollarSign size={16} className="text-emerald-600" />
+                        </div>
+                        <div>
+                          <h2 className="font-bold text-[#040042]">Pricing Defaults</h2>
+                          <p className="text-slate-500 text-xs">Standard prices applied to newly synced articles</p>
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[#040042] font-bold text-sm">Default Human License Price</Label>
+                          <p className="text-xs text-slate-500">Applied to new articles from synced sources.</p>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40 font-semibold text-sm">$</span>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={defaultHumanPrice}
+                              onChange={(e) => setDefaultHumanPrice(e.target.value)}
+                              className="bg-slate-50 border-slate-200 h-12 rounded-xl pl-8 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[#040042] font-bold text-sm">Default AI Training License Price</Label>
+                          <p className="text-xs text-slate-500">Fee for AI companies ingesting your content.</p>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40 font-semibold text-sm">$</span>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={defaultAiPrice}
+                              onChange={(e) => setDefaultAiPrice(e.target.value)}
+                              className="bg-slate-50 border-slate-200 h-12 rounded-xl pl-8 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-3">These prices will be applied automatically when new articles are synced from your connected sources.</p>
                     </div>
 
                     {/* Save Button */}

@@ -1,7 +1,8 @@
 import React from "react";
 import { format } from "date-fns";
-import { Shield, Clock, Loader2, FileText, Eye, AlertTriangle, Archive, CheckCircle } from "lucide-react";
+import { Shield, Clock, Loader2, FileText, Eye, AlertTriangle, Archive, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Asset, AssetStatus } from "@/types/asset";
 
 import substackLogo from "@/assets/platforms/substack.svg";
@@ -24,6 +25,9 @@ interface AssetGridProps {
   isLoading?: boolean;
   sourceLookup?: Record<string, string>;
   platformLookup?: Record<string, string>;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  selectionMode?: boolean;
 }
 
 const getStatusConfig = (status: AssetStatus) => {
@@ -75,7 +79,23 @@ function getSnippet(description?: string, maxLen = 120): string {
   return plain.length > maxLen ? plain.slice(0, maxLen).trimEnd() + "…" : plain;
 }
 
-export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {}, platformLookup = {} }: AssetGridProps) {
+function hasLivePrice(asset: Asset): boolean {
+  const hasPrice = (asset.revenue > 0) || 
+    (asset.metadata && ((asset.metadata as any).human_price > 0 || (asset.metadata as any).ai_price > 0));
+  // Check if licensing_enabled via status being protected/verified
+  return (asset.status === "protected" || asset.status === "verified") && !!hasPrice;
+}
+
+export function AssetGrid({ 
+  assets, 
+  onViewDetails, 
+  isLoading, 
+  sourceLookup = {}, 
+  platformLookup = {},
+  selectedIds = new Set(),
+  onToggleSelect,
+  selectionMode = false,
+}: AssetGridProps) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex items-center justify-center">
@@ -101,7 +121,7 @@ export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {},
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {assets.map((asset) => {
-        const statusConfig = getStatusConfig(asset.status);
+        const statusCfg = getStatusConfig(asset.status);
         const displayDate = asset.publishedAt
           ? format(new Date(asset.publishedAt), "MMM d, yyyy")
           : asset.createdAt
@@ -113,16 +133,49 @@ export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {},
         const platform = asset.source_id ? platformLookup[asset.source_id] : undefined;
         const logoSrc = platform ? platformLogos[platform.toLowerCase()] : undefined;
         const snippet = getSnippet(asset.description);
+        const isSelected = selectedIds.has(asset.id);
+        const isLivePriced = hasLivePrice(asset);
 
         return (
           <div
             key={asset.id}
-            onClick={() => onViewDetails(asset)}
-            className="bg-white rounded-xl border border-[#E8F2FB] hover:shadow-md hover:border-[#4A26ED]/20 transition-all group cursor-pointer flex flex-col overflow-hidden"
+            className={`bg-white rounded-xl border hover:shadow-md transition-all group cursor-pointer flex flex-col overflow-hidden relative ${
+              isSelected 
+                ? "border-[#4A26ED] ring-2 ring-[#4A26ED]/20" 
+                : "border-[#E8F2FB] hover:border-[#4A26ED]/20"
+            }`}
           >
+            {/* Checkbox */}
+            {selectionMode && (
+              <div 
+                className="absolute top-3 left-3 z-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSelect?.(asset.id);
+                }}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  className="h-5 w-5 border-2 border-slate-300 data-[state=checked]:bg-[#4A26ED] data-[state=checked]:border-[#4A26ED] bg-white shadow-sm"
+                />
+              </div>
+            )}
+
+            {/* Live Price Badge */}
+            {isLivePriced && (
+              <div className="absolute top-3 right-3 z-10">
+                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm">
+                  <DollarSign size={12} className="text-white" />
+                </div>
+              </div>
+            )}
+
             {/* Thumbnail */}
             {asset.thumbnailUrl && (
-              <div className="w-full h-36 bg-slate-100 overflow-hidden">
+              <div 
+                className="w-full h-36 bg-slate-100 overflow-hidden"
+                onClick={() => onViewDetails(asset)}
+              >
                 <img
                   src={asset.thumbnailUrl}
                   alt=""
@@ -132,20 +185,31 @@ export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {},
               </div>
             )}
 
-            <div className="p-5 flex flex-col flex-1">
+            <div 
+              className={`p-5 flex flex-col flex-1 ${selectionMode ? 'pl-10' : ''}`}
+              onClick={() => {
+                if (selectionMode) {
+                  onToggleSelect?.(asset.id);
+                } else {
+                  onViewDetails(asset);
+                }
+              }}
+            >
               {/* Top row: badge + platform logo */}
               <div className="flex items-center justify-between mb-3">
-                <Badge variant="outline" className={`text-[10px] px-2 py-0.5 gap-1 ${statusConfig.className}`}>
-                  {statusConfig.icon}
-                  {statusConfig.label}
+                <Badge variant="outline" className={`text-[10px] px-2 py-0.5 gap-1 ${statusCfg.className}`}>
+                  {statusCfg.icon}
+                  {statusCfg.label}
                 </Badge>
-                {logoSrc ? (
-                  <img src={logoSrc} alt={platform} className="h-5 w-5 object-contain opacity-60 group-hover:opacity-100 transition-opacity" />
-                ) : sourceName ? (
-                  <span className="text-[10px] text-[#040042]/40 font-medium truncate max-w-[100px]">
-                    {sourceName}
-                  </span>
-                ) : null}
+                <div className="flex items-center gap-1.5">
+                  {logoSrc ? (
+                    <img src={logoSrc} alt={platform} className="h-5 w-5 object-contain opacity-60 group-hover:opacity-100 transition-opacity" />
+                  ) : sourceName ? (
+                    <span className="text-[10px] text-[#040042]/40 font-medium truncate max-w-[100px]">
+                      {sourceName}
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
               {/* Title */}
@@ -167,10 +231,12 @@ export function AssetGrid({ assets, onViewDetails, isLoading, sourceLookup = {},
                   <Clock size={11} />
                   {displayDate}
                 </p>
-                <span className="text-[11px] font-medium text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                  <Eye size={12} />
-                  View
-                </span>
+                {!selectionMode && (
+                  <span className="text-[11px] font-medium text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <Eye size={12} />
+                    View
+                  </span>
+                )}
               </div>
             </div>
           </div>

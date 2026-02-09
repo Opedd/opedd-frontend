@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Bot, AlertTriangle, HelpCircle, Rss, List } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Bot, AlertTriangle, HelpCircle, Rss, List, CheckSquare } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -13,10 +13,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { AssetGrid } from "@/components/dashboard/AssetGrid";
-import { AssetSettingsModal } from "@/components/dashboard/AssetSettingsModal";
 import { AssetDetailDrawer } from "@/components/dashboard/AssetDetailDrawer";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
+import { FloatingPriceBar } from "@/components/dashboard/FloatingPriceBar";
+import { BulkPricingModal } from "@/components/dashboard/BulkPricingModal";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { Asset, AssetStatus, AccessType } from "@/types/asset";
 import { mapDbAssetToUiAsset, DbAsset } from "@/types/asset";
 
@@ -47,18 +49,27 @@ export default function Dashboard() {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isAssetDetailsOpen, setIsAssetDetailsOpen] = useState(false);
 
+  // Multi-select state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+    setSelectionMode(false);
+  }, []);
+
   const openRegisterModal = () => {
     setModalInitialView("choice");
-    setIsAddModalOpen(true);
-  };
-
-  const openPublicationSync = () => {
-    setModalInitialView("publication");
-    setIsAddModalOpen(true);
-  };
-
-  const openSingleWork = () => {
-    setModalInitialView("single");
     setIsAddModalOpen(true);
   };
 
@@ -67,7 +78,6 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       
-      // Fetch sources from local DB for lookup
       const sourcesResult = await supabase
         .from("rss_sources")
         .select("id, name, platform")
@@ -81,14 +91,12 @@ export default function Dashboard() {
       setPlatformLookup(platLookup);
       setSourceList(sources);
       
-      // Fetch assets via the licenses edge function endpoint
       try {
         const apiAssets = await licenses.list<DbAsset[]>();
         const mappedAssets: Asset[] = (Array.isArray(apiAssets) ? apiAssets : []).map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
         setAssets(mappedAssets);
       } catch (apiErr: any) {
         console.warn("[Dashboard] Licenses API fallback to local DB:", apiErr?.message);
-        // Fallback: fetch from local Supabase
         const assetsResult = await supabase.from("assets").select("*").eq("user_id", user.id);
         const localAssets = assetsResult.data || [];
         const mappedAssets: Asset[] = localAssets.map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
@@ -107,28 +115,6 @@ export default function Dashboard() {
 
   if (!user) return null;
 
-  const handleDelete = async (id: string) => {
-    try {
-      await supabase.from("assets").delete().eq("id", id).eq("user_id", user.id);
-      setAssets((prev) => prev.filter((a) => a.id !== id));
-      toast({ title: "Asset Removed", description: "The asset has been deleted from your library" });
-    } catch (err) {
-      console.error("Delete error:", err);
-      toast({ title: "Delete Failed", description: "Could not remove the asset. Please try again.", variant: "destructive" });
-    }
-  };
-
-  const handleBulkDelete = async (ids: string[]) => {
-    try {
-      await Promise.all(ids.map((id) => supabase.from("assets").delete().eq("id", id).eq("user_id", user.id)));
-      setAssets((prev) => prev.filter((a) => !ids.includes(a.id)));
-      toast({ title: "Assets Removed", description: `${ids.length} assets have been deleted` });
-    } catch (err) {
-      console.error("Bulk delete error:", err);
-      toast({ title: "Bulk Delete Failed", description: "Could not remove the assets. Please try again.", variant: "destructive" });
-    }
-  };
-
   const filteredAssets = assets.filter((a) => {
     const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
@@ -138,7 +124,7 @@ export default function Dashboard() {
   });
 
   const totalRevenue = assets.reduce((sum, a) => sum + a.revenue, 0);
-  const protectedCount = assets.filter((a) => a.status === "protected").length;
+  const protectedCount = assets.filter((a) => a.status === "protected" || a.status === "verified").length;
 
   const getFilterLabel = (filter: StatusFilter) => {
     switch (filter) {
@@ -146,6 +132,7 @@ export default function Dashboard() {
       case "protected": return "Protected";
       case "syncing": return "Syncing";
       case "pending": return "Pending";
+      case "failed": return "Failed";
     }
   };
 
@@ -235,7 +222,28 @@ export default function Dashboard() {
               </TabsList>
 
               {registryTab === "library" && (
-                <span className="text-sm text-[#040042]/50">{assets.length} asset{assets.length !== 1 ? 's' : ''}</span>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant={selectionMode ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      if (selectionMode) {
+                        clearSelection();
+                      } else {
+                        setSelectionMode(true);
+                      }
+                    }}
+                    className={`h-8 text-xs gap-1.5 rounded-lg ${
+                      selectionMode 
+                        ? "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white" 
+                        : "border-[#E8F2FB] text-[#040042]/60 hover:border-[#4A26ED]/40"
+                    }`}
+                  >
+                    <CheckSquare size={14} />
+                    {selectionMode ? `${selectedIds.size} Selected` : "Select"}
+                  </Button>
+                  <span className="text-sm text-[#040042]/50">{assets.length} asset{assets.length !== 1 ? 's' : ''}</span>
+                </div>
               )}
             </div>
 
@@ -316,11 +324,32 @@ export default function Dashboard() {
                 isLoading={isLoading}
                 sourceLookup={sourceLookup}
                 platformLookup={platformLookup}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
+                selectionMode={selectionMode}
               />
             </TabsContent>
           </Tabs>
         </div>
       </main>
+
+      {/* Floating Price Bar */}
+      <FloatingPriceBar
+        selectedCount={selectedIds.size}
+        onSetPrices={() => setIsPricingModalOpen(true)}
+        onClearSelection={clearSelection}
+      />
+
+      {/* Bulk Pricing Modal */}
+      <BulkPricingModal
+        open={isPricingModalOpen}
+        onOpenChange={setIsPricingModalOpen}
+        selectedIds={Array.from(selectedIds)}
+        onSuccess={() => {
+          clearSelection();
+          fetchAssets();
+        }}
+      />
 
       {/* Register Content Modal */}
       <RegisterContentModal
@@ -345,9 +374,9 @@ export default function Dashboard() {
         platform={selectedAsset?.source_id ? platformLookup[selectedAsset.source_id] : undefined}
         onSetLicenseTerms={(asset) => {
           setIsAssetDetailsOpen(false);
-          // Open the pricing/settings modal
           setSelectedAsset(asset);
-          setTimeout(() => setIsAssetDetailsOpen(false), 0);
+          setSelectedIds(new Set([asset.id]));
+          setIsPricingModalOpen(true);
         }}
       />
     </div>
