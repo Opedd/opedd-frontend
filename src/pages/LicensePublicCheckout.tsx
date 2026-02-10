@@ -150,7 +150,7 @@ export default function LicensePublicCheckout() {
           <div className="rounded-xl border border-border bg-card p-6">
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">License Key</p>
             <div className="flex items-center justify-center gap-3">
-              <code className="text-xl md:text-2xl font-mono font-semibold text-foreground tracking-widest">
+              <code className="text-3xl md:text-4xl font-mono font-bold text-foreground tracking-[0.25em] leading-none">
                 {licenseKey}
               </code>
               <button
