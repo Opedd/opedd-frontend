@@ -5,24 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Rss, 
-  Plus, 
   Trash2, 
   RefreshCw, 
   Loader2, 
   ExternalLink,
-  CheckCircle,
   Clock,
   Globe,
   ShieldCheck,
-  AlertCircle,
-  Copy,
-  Check,
-  X,
-  Shield,
-  Eye,
-  EyeOff,
-  HelpCircle,
-  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,10 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
 
 // Platform logos
 import substackLogo from "@/assets/platforms/substack.svg";
@@ -53,6 +39,7 @@ interface Source {
   article_count: number | null;
   last_synced_at: string | null;
   created_at: string | null;
+  verification_token?: string | null;
 }
 
 const platformLogos: Record<string, string> = {
@@ -74,11 +61,8 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   const [sources, setSources] = useState<Source[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingId, setSyncingId] = useState<string | null>(null);
-  const [verifyingId, setVerifyingId] = useState<string | null>(null);
-  const [verifyFailedId, setVerifyFailedId] = useState<string | null>(null);
-  const [instructionsSource, setInstructionsSource] = useState<Source | null>(null);
-  const [troubleshootSource, setTroubleshootSource] = useState<Source | null>(null);
-  const [copiedCode, setCopiedCode] = useState(false);
+  const [verifyModalSource, setVerifyModalSource] = useState<Source | null>(null);
+  const [tokenLookup, setTokenLookup] = useState<Record<string, string>>({});
 
   const fetchSources = async () => {
     if (!user) return;
@@ -190,57 +174,25 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     }
   };
 
-  const handleVerify = async (source: Source) => {
-    setVerifyingId(source.id);
-    setVerifyFailedId(null);
+  // Fetch verification tokens from API
+  const fetchTokens = async () => {
     try {
-      await contentSources.verify(source.id);
-      // Update local state to verified
-      setSources(prev => prev.map(s =>
-        s.id === source.id ? { ...s, sync_status: "active" } : s
-      ));
-      toast({
-        title: "Verified!",
-        description: `${source.name} ownership has been confirmed.`,
-      });
-    } catch (err) {
-      console.error("Verification error:", err);
-      setVerifyFailedId(source.id);
-      toast({
-        title: "Verification Failed",
-        description: "We couldn't find the verification code on your site. Please check and try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setVerifyingId(null);
-    }
-  };
-
-  const handleCopyCode = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
+      const apiSources = await contentSources.list<Array<{ id: string; verification_token?: string }>>();
+      if (Array.isArray(apiSources)) {
+        const lookup: Record<string, string> = {};
+        apiSources.forEach((s) => {
+          if (s.verification_token) lookup[s.id] = s.verification_token;
+        });
+        setTokenLookup(lookup);
+      }
     } catch {
-      // fallback
+      // Token fetch is best-effort
     }
   };
 
-  // Get verification code for a source from its assets
-  const getVerificationCode = (source: Source) => {
-    // Generate a deterministic code from the source id
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let hash = 0;
-    for (let i = 0; i < source.id.length; i++) {
-      hash = ((hash << 5) - hash) + source.id.charCodeAt(i);
-      hash = hash & hash;
-    }
-    const code = Array.from({ length: 4 }, (_, i) => {
-      const idx = Math.abs((hash >> (i * 5)) % chars.length);
-      return chars[idx];
-    }).join("");
-    return `OPEDD-${code}`;
-  };
+  useEffect(() => {
+    if (user) fetchTokens();
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -300,8 +252,6 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           const isVerified = source.sync_status === "active";
           const isPending = !isVerified;
           const isSyncing = syncingId === source.id;
-          const isVerifying = verifyingId === source.id;
-          const hasFailed = verifyFailedId === source.id;
 
           return (
             <div
@@ -389,24 +339,6 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 </div>
               )}
 
-              {/* Verification Failed Banner */}
-              {hasFailed && (
-                <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                  <AlertCircle size={14} className="text-red-500 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-red-700 flex-1">
-                    <p className="font-medium">Verification code not found on your site.</p>
-                    <p className="mt-0.5 text-red-600">Make sure you've added the code to your bio or header, then try again.</p>
-                  </div>
-                  <button
-                    onClick={() => setTroubleshootSource(source)}
-                    className="text-xs text-red-600 hover:text-red-800 font-semibold underline underline-offset-2 flex items-center gap-1 flex-shrink-0 mt-0.5"
-                  >
-                    <HelpCircle size={12} />
-                    Troubleshoot
-                  </button>
-                </div>
-              )}
-
               {/* Actions */}
               <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#E8F2FB]">
                 {/* Verify or Re-sync based on status */}
@@ -414,30 +346,24 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                   <>
                     <Button
                       size="sm"
-                      onClick={() => handleVerify(source)}
-                      disabled={isVerifying}
+                      onClick={() => setVerifyModalSource({
+                        ...source,
+                        verification_token: tokenLookup[source.id] || source.verification_token || null,
+                      })}
                       className="h-8 text-xs gap-1.5 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white"
                     >
-                      {isVerifying ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : hasFailed ? (
-                        <RefreshCw size={12} />
-                      ) : (
-                        <ShieldCheck size={12} />
-                      )}
-                      {hasFailed ? "Retry" : "Verify Ownership"}
+                      <ShieldCheck size={12} />
+                      Verify Ownership
                     </Button>
-                    {hasFailed && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInstructionsSource(source)}
-                        className="h-8 text-xs gap-1.5"
-                      >
-                        <Eye size={12} />
-                        View Instructions
-                      </Button>
-                    )}
+                    <button
+                      onClick={() => setVerifyModalSource({
+                        ...source,
+                        verification_token: tokenLookup[source.id] || source.verification_token || null,
+                      })}
+                      className="text-xs text-[#4A26ED] hover:text-[#3B1ED1] font-medium underline underline-offset-2"
+                    >
+                      View Code
+                    </button>
                   </>
                 ) : (
                   <>
@@ -518,189 +444,24 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         })}
       </div>
 
-      {/* View Instructions Dialog */}
-      {instructionsSource && (() => {
-        const code = getVerificationCode(instructionsSource);
-        const optionAText = `Verify with Opedd: ${code}`;
-        const optionBText = `<meta name="opedd-verification" content="${code}" />`;
-
-        return (
-          <Dialog open={!!instructionsSource} onOpenChange={() => setInstructionsSource(null)}>
-            <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-              <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Shield size={20} className="text-[#A78BFA]" />
-                    <div>
-                      <h1 className="text-white font-bold text-base leading-tight">Verification Instructions</h1>
-                      <p className="text-[#A78BFA] text-sm">{instructionsSource.name}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setInstructionsSource(null)}
-                    className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                  >
-                    <X size={16} className="text-white" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 space-y-5">
-                <p className="text-sm text-slate-600">
-                  Add one of the following to your publication so we can confirm ownership. Then click <strong>"Verify Ownership"</strong> on the source card.
-                </p>
-
-                {/* Option A */}
-                <div className="rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="bg-slate-50 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
-                    <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-semibold">Option A</Badge>
-                    <span className="text-sm font-semibold text-[#040042]">Visible — Add to About / Bio</span>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <p className="text-xs text-slate-500">Paste this text into your publication's About section, bio, or footer.</p>
-                    <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between gap-3">
-                      <code className="text-xs text-emerald-400 font-mono truncate">{optionAText}</code>
-                      <Button size="sm" onClick={() => handleCopyCode(optionAText)} className="h-7 px-2.5 bg-white/10 hover:bg-white/20 text-white text-xs flex-shrink-0">
-                        {copiedCode ? <Check size={12} /> : <Copy size={12} />}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Option B */}
-                <div className="rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="bg-slate-50 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
-                    <Badge variant="outline" className="text-[10px] px-2 py-0 bg-teal-50 text-teal-700 border-teal-200 font-semibold">Option B</Badge>
-                    <span className="text-sm font-semibold text-[#040042]">Hidden — Meta Tag in Header</span>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <p className="text-xs text-slate-500">
-                      Add this invisible meta tag to your site's <code className="bg-slate-100 px-1 rounded text-[#040042]">&lt;head&gt;</code> for a clean About section.
-                    </p>
-                    <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between gap-3">
-                      <code className="text-xs text-emerald-400 font-mono truncate">{optionBText}</code>
-                      <Button size="sm" onClick={() => handleCopyCode(optionBText)} className="h-7 px-2.5 bg-white/10 hover:bg-white/20 text-white text-xs flex-shrink-0">
-                        {copiedCode ? <Check size={12} /> : <Copy size={12} />}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-                <Button
-                  onClick={() => {
-                    setInstructionsSource(null);
-                    handleVerify(instructionsSource);
-                  }}
-                  className="w-full h-11 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
-                >
-                  <ShieldCheck size={16} className="mr-2" />
-                  Verify Now
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        );
-      })()}
-
-      {/* Troubleshoot Dialog */}
-      {troubleshootSource && (() => {
-        const code = getVerificationCode(troubleshootSource);
-        const optionAText = `Verify with Opedd: ${code}`;
-        const optionBText = `<meta name="opedd-verification" content="${code}" />`;
-
-        return (
-          <Dialog open={!!troubleshootSource} onOpenChange={() => setTroubleshootSource(null)}>
-            <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-              <div className="bg-red-600 px-6 py-5 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <HelpCircle size={20} className="text-white" />
-                    <div>
-                      <h1 className="text-white font-bold text-base leading-tight">Troubleshoot Verification</h1>
-                      <p className="text-red-200 text-sm">{troubleshootSource.name}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setTroubleshootSource(null)}
-                    className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                  >
-                    <X size={16} className="text-white" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 space-y-5">
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-[#040042] flex items-center gap-2">
-                    <BookOpen size={14} className="text-red-500" />
-                    Common Issues
-                  </h3>
-                  <div className="space-y-2">
-                    {[
-                      { q: "Code not found on your site", a: "Make sure the verification code is publicly visible — not behind a login wall or paywall." },
-                      { q: "Using Option B (meta tag)?", a: "Ensure the <meta> tag is inside the <head> section of your site, not inside an article body." },
-                      { q: "Ghost or WordPress site?", a: "Add the code to your site's 'Code injection → Site Header' section in admin settings." },
-                      { q: "Substack publication?", a: "Add the visible text to your publication's About page. Meta tags are not supported on Substack." },
-                      { q: "Recently updated?", a: "It may take a few minutes for changes to propagate. Wait 2–3 minutes and retry." },
-                    ].map((item, i) => (
-                      <div key={i} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                        <p className="text-xs font-semibold text-[#040042]">{item.q}</p>
-                        <p className="text-xs text-slate-500 mt-1">{item.a}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border-t border-slate-200 pt-4 space-y-3">
-                  <h3 className="text-sm font-bold text-[#040042]">Your Verification Code</h3>
-                  <div className="bg-[#F2F9FF] border-2 border-[#4A26ED]/20 rounded-xl p-4 flex items-center justify-between">
-                    <p className="text-xl font-mono font-bold text-[#4A26ED] tracking-wider">{code}</p>
-                    <Button size="sm" onClick={() => handleCopyCode(code)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white border-none h-8 text-xs">
-                      {copiedCode ? <><Check size={12} className="mr-1.5" />Copied</> : <><Copy size={12} className="mr-1.5" />Copy</>}
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-slate-900 rounded-lg p-2.5">
-                      <p className="text-[9px] text-slate-400 mb-1">Option A — Visible</p>
-                      <code className="text-[10px] text-emerald-400 font-mono">{optionAText}</code>
-                    </div>
-                    <div className="bg-slate-900 rounded-lg p-2.5">
-                      <p className="text-[9px] text-slate-400 mb-1">Option B — Meta Tag</p>
-                      <code className="text-[10px] text-emerald-400 font-mono break-all">{optionBText}</code>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setTroubleshootSource(null);
-                    setInstructionsSource(troubleshootSource);
-                  }}
-                  className="flex-1 h-11"
-                >
-                  <Eye size={14} className="mr-2" />
-                  Full Instructions
-                </Button>
-                <Button
-                  onClick={() => {
-                    setTroubleshootSource(null);
-                    handleVerify(troubleshootSource);
-                  }}
-                  className="flex-1 h-11 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
-                >
-                  <RefreshCw size={14} className="mr-2" />
-                  Retry Verification
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        );
-      })()}
+      {/* Verify Ownership Modal */}
+      <VerifyOwnershipModal
+        open={!!verifyModalSource}
+        onOpenChange={(open) => { if (!open) setVerifyModalSource(null); }}
+        source={verifyModalSource}
+        onVerified={() => {
+          // Update local state to verified
+          if (verifyModalSource) {
+            setSources(prev => prev.map(s =>
+              s.id === verifyModalSource.id ? { ...s, sync_status: "active" } : s
+            ));
+            toast({
+              title: "Verified!",
+              description: `${verifyModalSource.name} ownership has been confirmed.`,
+            });
+          }
+        }}
+      />
     </div>
   );
 }
