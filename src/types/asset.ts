@@ -121,16 +121,11 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
   }
 
   // Map verification_status to UI status
-  let status: AssetStatus = "pending";
-  const vs = dbAsset.verification_status?.toLowerCase();
-  if (vs === "verified") {
+  let status: Asset["status"] = "pending";
+  if (dbAsset.licensing_enabled || dbAsset.verification_status === "verified") {
     status = "protected";
-  } else if (vs === "failed") {
-    status = "failed";
-  } else if (vs === "pending") {
-    status = "pending";
-  } else if (dbAsset.licensing_enabled) {
-    status = "protected";
+  } else if (dbAsset.verification_status === "pending") {
+    status = "syncing";
   }
 
   const sourceId = dbAsset.source_id ?? dbAsset.publication_id ?? undefined;
