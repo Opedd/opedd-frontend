@@ -20,11 +20,11 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { asset_id, email, license_type } = await req.json();
+    const { article_id, buyer_email, license_type } = await req.json();
 
-    if (!asset_id || !email || !license_type) {
+    if (!article_id || !buyer_email || !license_type) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: asset_id, email, license_type" }),
+        JSON.stringify({ error: "Missing required fields: article_id, buyer_email, license_type" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -44,12 +44,12 @@ serve(async (req: Request) => {
     const { data: asset, error: assetError } = await supabase
       .from("assets")
       .select("id, title, human_price, ai_price, user_id, human_licenses_sold, ai_licenses_sold, total_revenue")
-      .eq("id", asset_id)
+      .eq("id", article_id)
       .maybeSingle();
 
     if (assetError || !asset) {
       return new Response(
-        JSON.stringify({ error: "Asset not found" }),
+        JSON.stringify({ error: "Article not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -57,19 +57,20 @@ serve(async (req: Request) => {
     const amount = license_type === "human" ? (asset.human_price ?? 0) : (asset.ai_price ?? 0);
     const licenseKey = generateLicenseKey();
 
-    // Insert issued license
-    const { error: insertError } = await supabase.from("issued_licenses").insert({
-      asset_id,
+    // Record transaction
+    const { error: txError } = await supabase.from("transactions").insert({
+      asset_id: article_id,
+      publisher_id: asset.user_id,
       license_type,
-      licensee_email: email,
-      license_key: licenseKey,
+      buyer_email,
       amount,
+      status: "settled",
     });
 
-    if (insertError) {
-      console.error("Insert error:", insertError);
+    if (txError) {
+      console.error("Transaction insert error:", txError);
       return new Response(
-        JSON.stringify({ error: "Failed to issue license" }),
+        JSON.stringify({ error: "Failed to record transaction" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -85,7 +86,7 @@ serve(async (req: Request) => {
         [soldField]: currentSold + 1,
         total_revenue: currentRevenue + amount,
       })
-      .eq("id", asset_id);
+      .eq("id", article_id);
 
     return new Response(
       JSON.stringify({

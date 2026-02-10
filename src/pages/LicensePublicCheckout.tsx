@@ -71,8 +71,8 @@ export default function LicensePublicCheckout() {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
-            asset_id: asset.id,
-            email,
+            article_id: asset.id,
+            buyer_email: email,
             license_type: selected,
           }),
         }
