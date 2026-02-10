@@ -93,12 +93,16 @@ export default function Dashboard() {
       
       try {
         const apiAssets = await licenses.list<DbAsset[]>();
+        console.log("[Dashboard] Raw assets from API:", Array.isArray(apiAssets) ? apiAssets.length : 0, "items");
+        console.log("[Dashboard] First asset:", Array.isArray(apiAssets) ? apiAssets[0] : apiAssets);
         const mappedAssets: Asset[] = (Array.isArray(apiAssets) ? apiAssets : []).map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
         setAssets(mappedAssets);
       } catch (apiErr: any) {
         console.warn("[Dashboard] Licenses API fallback to local DB:", apiErr?.message);
         const assetsResult = await supabase.from("assets").select("*").eq("user_id", user.id);
         const localAssets = assetsResult.data || [];
+        console.log("[Dashboard] Raw assets from DB:", localAssets.length, "items");
+        console.log("[Dashboard] First asset:", localAssets[0]);
         const mappedAssets: Asset[] = localAssets.map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
         setAssets(mappedAssets);
       }
