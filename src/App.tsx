@@ -17,6 +17,7 @@ import Checkout from "./pages/Checkout";
 import LicenseCheckout from "./pages/LicenseCheckout";
 import LicenseSuccess from "./pages/LicenseSuccess";
 import NotFound from "./pages/NotFound";
+import LicensePublicCheckout from "./pages/LicensePublicCheckout";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/checkout/:assetId" element={<Checkout />} />
             <Route path="/license/success" element={<LicenseSuccess />} />
             <Route path="/license/:id" element={<LicenseCheckout />} />
+            <Route path="/l/:id" element={<LicensePublicCheckout />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

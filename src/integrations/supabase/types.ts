@@ -97,6 +97,44 @@ export type Database = {
           },
         ]
       }
+      issued_licenses: {
+        Row: {
+          amount: number
+          asset_id: string
+          created_at: string
+          id: string
+          license_key: string
+          license_type: string
+          licensee_email: string
+        }
+        Insert: {
+          amount?: number
+          asset_id: string
+          created_at?: string
+          id?: string
+          license_key: string
+          license_type?: string
+          licensee_email: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: string
+          created_at?: string
+          id?: string
+          license_key?: string
+          license_type?: string
+          licensee_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issued_licenses_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
