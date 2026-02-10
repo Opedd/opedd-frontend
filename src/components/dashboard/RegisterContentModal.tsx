@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
+import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
 
 // Platform logos
 import substackLogo from "@/assets/platforms/substack.svg";
@@ -1267,132 +1268,29 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     );
   }
 
-  // PUBLICATION SUCCESS VIEW (with verification code + dual options)
+  // PUBLICATION SUCCESS VIEW — show VerifyOwnershipModal in registration mode
   if (view === "pub-success") {
     const code = verificationToken || verificationCode;
-    const optionAText = `Verify with Opedd: ${code}`;
-    const optionBText = `<meta name="opedd-verification" content="${code}" />`;
+    const detectedPlatformForVerify = detectPlatform(feedUrl);
+    const platformType = detectedPlatformForVerify?.name.toLowerCase() || "other";
 
     return (
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-          {/* Header */}
-          <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <img src={opeddLogo} alt="Opedd" className="h-8" />
-                <div className="h-6 w-px bg-white/20" />
-                <div>
-                  <h1 className="text-white font-bold text-lg leading-tight">Source Added!</h1>
-                  <p className="text-emerald-400 text-sm">Verify ownership to activate licensing</p>
-                </div>
-              </div>
-              <button
-                onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              >
-                <X size={16} className="text-white" />
-              </button>
-            </div>
-          </div>
-
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-5">
-            {/* Success icon */}
-            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-                <CheckCircle size={32} className="text-emerald-600" />
-              </div>
-            </div>
-
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-[#040042] mb-1">Your Verification Code</h3>
-              <p className="text-sm text-slate-500">
-                Add this code to your publication so we can confirm you own it. Choose the option that works best for you.
-              </p>
-            </div>
-
-            {/* Code display */}
-            <div className="bg-[#F2F9FF] border-2 border-[#4A26ED]/20 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Verification Code</p>
-                  <p className="text-2xl font-mono font-bold text-[#4A26ED] tracking-wider">{code}</p>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleCopy(code, "verification")}
-                  className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white border-none"
-                >
-                  {copiedVerification ? <><Check size={14} className="mr-1.5" />Copied</> : <><Copy size={14} className="mr-1.5" />Copy</>}
-                </Button>
-              </div>
-            </div>
-
-            {/* Option A: Visible */}
-            <div className="rounded-xl border border-slate-200 overflow-hidden">
-              <div className="bg-slate-50 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
-                <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-semibold">Option A</Badge>
-                <span className="text-sm font-semibold text-[#040042]">Visible — Add to About / Bio</span>
-              </div>
-              <div className="p-4 space-y-3">
-                <p className="text-xs text-slate-500">
-                  Paste this text anywhere in your publication's About section, bio, or footer.
-                </p>
-                <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between gap-3">
-                  <code className="text-xs text-emerald-400 font-mono truncate">{optionAText}</code>
-                  <Button
-                    size="sm"
-                    onClick={() => handleCopy(optionAText, "verification")}
-                    className="h-7 px-2.5 bg-white/10 hover:bg-white/20 text-white text-xs flex-shrink-0"
-                  >
-                    <Copy size={12} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Option B: Hidden */}
-            <div className="rounded-xl border border-slate-200 overflow-hidden">
-              <div className="bg-slate-50 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
-                <Badge variant="outline" className="text-[10px] px-2 py-0 bg-teal-50 text-teal-700 border-teal-200 font-semibold">Option B</Badge>
-                <span className="text-sm font-semibold text-[#040042]">Hidden — Meta Tag in Header</span>
-              </div>
-              <div className="p-4 space-y-3">
-                <p className="text-xs text-slate-500">
-                  For a clean About section, add this invisible meta tag to your site's <code className="bg-slate-100 px-1 rounded text-[#040042]">&lt;head&gt;</code> instead.
-                </p>
-                <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between gap-3">
-                  <code className="text-xs text-emerald-400 font-mono truncate">{optionBText}</code>
-                  <Button
-                    size="sm"
-                    onClick={() => handleCopy(optionBText, "verification")}
-                    className="h-7 px-2.5 bg-white/10 hover:bg-white/20 text-white text-xs flex-shrink-0"
-                  >
-                    <Copy size={12} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p className="text-sm text-amber-800">
-                <strong>After adding the code:</strong> Go to your Sources tab and click <strong>"Verify Ownership"</strong> to complete verification.
-              </p>
-            </div>
-          </div>
-
-          {/* Sticky Footer */}
-          <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-            <Button
-              onClick={handleClose}
-              className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
-            >
-              Go to Sources
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <VerifyOwnershipModal
+        open={open}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) handleClose();
+        }}
+        source={{
+          id: registeredAssetId || "",
+          name: feedPreview?.title || feedUrl,
+          platform: platformType,
+          verification_token: code,
+        }}
+        registrationMode
+        onVerified={() => {
+          onSuccess?.();
+        }}
+      />
     );
   }
 
