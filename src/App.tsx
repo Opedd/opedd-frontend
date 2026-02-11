@@ -18,6 +18,7 @@ import LicenseCheckout from "./pages/LicenseCheckout";
 import LicenseSuccess from "./pages/LicenseSuccess";
 import NotFound from "./pages/NotFound";
 import LicensePublicCheckout from "./pages/LicensePublicCheckout";
+import LicenseByUrl from "./pages/LicenseByUrl";
 import LicenseVerify from "./pages/LicenseVerify";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/license/success" element={<LicenseSuccess />} />
             <Route path="/license/:id" element={<LicenseCheckout />} />
             <Route path="/l/:id" element={<LicensePublicCheckout />} />
+            <Route path="/l" element={<LicenseByUrl />} />
             <Route path="/verify/:key" element={<LicenseVerify />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
