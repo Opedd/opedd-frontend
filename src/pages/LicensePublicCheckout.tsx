@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Shield, Check, Copy, Loader2, ChevronDown } from "lucide-react";
+import { Shield, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
-import opeddLogoDark from "@/assets/opedd-logo.png";
+
 
 const EXT_SUPABASE_URL = "https://djdzcciayennqchjgybx.supabase.co";
 const EXT_ANON_KEY =
@@ -46,8 +46,6 @@ export default function LicensePublicCheckout() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [licenseKey, setLicenseKey] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -88,7 +86,7 @@ export default function LicensePublicCheckout() {
     setSubmitting(true);
     try {
       const res = await fetch(
-        `${EXT_SUPABASE_URL}/functions/v1/issue-license`,
+        `${EXT_SUPABASE_URL}/functions/v1/create-checkout`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
@@ -99,6 +97,7 @@ export default function LicensePublicCheckout() {
             buyer_organization: organization || undefined,
             intended_use: intendedUse,
             license_type: selected,
+            return_url: window.location.origin,
           }),
         }
       );
@@ -106,10 +105,10 @@ export default function LicensePublicCheckout() {
       const result = await res.json();
 
       if (!res.ok || !result.success) {
-        throw new Error(result.error || "License issuance failed");
+        throw new Error(result.error || "Checkout creation failed");
       }
 
-      setLicenseKey(result.data.license_key);
+      window.location.href = result.data.checkout_url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -117,12 +116,6 @@ export default function LicensePublicCheckout() {
     }
   };
 
-  const handleCopy = () => {
-    if (!licenseKey) return;
-    navigator.clipboard.writeText(licenseKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const hasHuman = (asset?.human_price ?? 0) > 0;
   const hasAi = (asset?.ai_price ?? 0) > 0;
@@ -153,57 +146,6 @@ export default function LicensePublicCheckout() {
     );
   }
 
-  // — Success —
-  if (licenseKey) {
-    return (
-      <div className="min-h-screen bg-[#040042] flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-[560px] text-center animate-fade-in">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-4 py-1.5 text-sm font-medium mb-6">
-            <Check className="h-4 w-4" />
-            License Secured
-          </div>
-
-          <h1
-            className="text-2xl md:text-3xl font-semibold text-white mb-3"
-            style={{ fontFamily: "'Newsreader', 'Georgia', serif" }}
-          >
-            {asset.title}
-          </h1>
-
-          <p className="text-white/50 text-sm mb-10 max-w-md mx-auto">
-            Your license key has been issued. A confirmation has been sent to
-            your email and the author has been notified.
-          </p>
-
-          <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <p className="text-xs text-white/40 uppercase tracking-wider mb-3">
-              License Key
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <code className="text-3xl md:text-4xl font-mono font-bold text-white tracking-[0.25em] leading-none">
-                {licenseKey}
-              </code>
-              <button
-                onClick={handleCopy}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white"
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-emerald-400" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <p className="text-xs text-white/30 mt-8">
-            Powered by{" "}
-            <span className="text-white/60 font-medium">Opedd Protocol</span>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   // — License option cards —
   const licenseOptions: { type: LicenseType; label: string; price: number }[] = [];
