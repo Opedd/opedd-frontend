@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -21,7 +21,8 @@ import {
   Trophy,
   Loader2,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  Filter
 } from "lucide-react";
 import {
   Tooltip,
@@ -39,6 +40,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const EXT_SUPABASE_URL = "https://djdzcciayennqchjgybx.supabase.co";
+const EXT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZHpjY2lheWVubnFjaGpneWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MTEyODIsImV4cCI6MjA4NDQ4NzI4Mn0.yy8AU2uOMMjqyGsjWLNlzsUp93Z9UQ7N-PRe90qDG3E";
 
 interface Transaction {
   id: string;
@@ -50,22 +61,13 @@ interface Transaction {
   assetTitle?: string;
   assetId?: string;
   fromDirectLink?: boolean;
-  storyProtocolHash?: string;
   licenseeEmail?: string;
   licenseTerms?: string;
-  // AI Lab specific fields
+  licenseKey?: string;
   aiLabName?: string;
   aiModel?: string;
   tokenVolume?: number;
 }
-
-// AI Labs for realistic transaction simulation
-const AI_LABS = [
-  { name: "OpenAI", model: "GPT-4o Fine-tuning", tokens: 120000 },
-  { name: "Anthropic", model: "Claude 3.5 Training", tokens: 85000 },
-  { name: "Google DeepMind", model: "Gemini Pro", tokens: 210000 },
-  { name: "Perplexity AI", model: "pplx-online", tokens: 45000 },
-];
 
 // Sample transactions for demo mode
 const sampleTransactions: Transaction[] = [
@@ -78,12 +80,9 @@ const sampleTransactions: Transaction[] = [
     status: "settled",
     assetTitle: "The Future of Quantum Computing",
     assetId: "sample-001",
-    storyProtocolHash: "0x7f9fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91385",
     licenseeEmail: "training@openai.com",
     licenseTerms: "Non-exclusive license for AI model training. Valid for 12 months from date of purchase.",
-    aiLabName: "OpenAI",
-    aiModel: "GPT-4o Fine-tuning",
-    tokenVolume: 120000
+    licenseKey: "OP-DEMO-0001",
   },
   { 
     id: "DEMO-002", 
@@ -95,9 +94,9 @@ const sampleTransactions: Transaction[] = [
     assetTitle: "Climate Policy Framework Analysis",
     assetId: "sample-002",
     fromDirectLink: true,
-    storyProtocolHash: "0x3e8fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91123",
     licenseeEmail: "editor@nature.com",
-    licenseTerms: "Single-use republication license for academic purposes."
+    licenseTerms: "Single-use republication license for academic purposes.",
+    licenseKey: "OP-DEMO-0002",
   },
   { 
     id: "DEMO-003", 
@@ -108,12 +107,9 @@ const sampleTransactions: Transaction[] = [
     status: "processing",
     assetTitle: "Neural Network Architecture Patterns",
     assetId: "sample-003",
-    storyProtocolHash: "0x9a1fade1c0d57a7af66ab4ead79fade1c0d57a7af66ab4ead7c2c2eb7b11a91456",
     licenseeEmail: "data@anthropic.com",
     licenseTerms: "Non-exclusive license for AI model training. Pending confirmation.",
-    aiLabName: "Anthropic",
-    aiModel: "Claude 3.5 Training",
-    tokenVolume: 85000
+    licenseKey: "OP-DEMO-0003",
   },
 ];
 
@@ -122,17 +118,14 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.08
-    }
+    transition: { staggerChildren: 0.08 }
   }
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
-    opacity: 1, 
-    y: 0,
+    opacity: 1, y: 0,
     transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const }
   }
 };
@@ -140,11 +133,18 @@ const itemVariants = {
 const rowVariants = {
   hidden: { opacity: 0, x: -10 },
   visible: { 
-    opacity: 1, 
-    x: 0,
+    opacity: 1, x: 0,
     transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
   }
 };
+
+// Map API status to UI status
+function mapStatus(status: string): "settled" | "processing" | "disputed" {
+  if (status === "completed") return "settled";
+  if (status === "pending") return "processing";
+  if (status === "failed") return "disputed";
+  return "processing";
+}
 
 export default function Ledger() {
   const { user } = useAuth();
@@ -155,120 +155,126 @@ export default function Ledger() {
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [apiMetrics, setApiMetrics] = useState<{ totalRevenue: number; activeLicenses: number; topAsset: { id: string; title: string; revenue: number } | null } | null>(null);
 
-  // Fetch transactions from Supabase
-  // Field mapping: asset_id in DB represents license_id in our domain
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!user) return;
-      
-      setIsLoading(true);
-      try {
-        // Query transactions table - asset_id references the licenses (assets table)
-        const { data, error } = await supabase
-          .from("transactions")
-          .select(`
-            id,
-            created_at,
-            asset_id,
-            amount,
-            license_type,
-            status,
-            story_protocol_hash,
-            buyer_email,
-            assets (
-              title
-            )
-          `)
-          .eq("publisher_id", user.id)
-          .order("created_at", { ascending: false });
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
-        if (error) {
-          console.error("Error fetching transactions:", error);
-          toast({
-            title: "Connection Error",
-            description: "Unable to load transactions. Showing demo data.",
-            variant: "destructive",
-          });
-          setTransactions([]);
-        } else if (data && data.length > 0) {
-          // Map database transactions to UI format
-          // asset_id in DB = license_id in domain terminology
-          const mappedTransactions: Transaction[] = data.map((tx: any, index: number) => {
-            const isAI = tx.license_type === "ai";
-            const aiLab = isAI ? AI_LABS[index % AI_LABS.length] : null;
-            
-            return {
-              id: tx.id,
-              type: isAI ? "ai_ingestion" : "human_license",
-              description: isAI 
-                ? `AI Training License - ${aiLab?.name || 'AI Lab'}` 
-                : `Human Republication License`,
-              amount: Number(tx.amount),
-              date: new Date(tx.created_at).toISOString().split("T")[0],
-              status: tx.status === "settled" ? "settled" : tx.status === "disputed" ? "disputed" : "processing",
-              assetTitle: tx.assets?.title || "Unknown License",
-              assetId: tx.asset_id, // This is license_id in domain terms
-              storyProtocolHash: tx.story_protocol_hash,
-              licenseeEmail: tx.buyer_email,
-              licenseTerms: isAI 
-                ? "Non-exclusive license for AI model training. Valid for 12 months."
-                : "Single-use republication license. Attribution required.",
-              // AI Lab specific fields
-              aiLabName: aiLab?.name,
-              aiModel: aiLab?.model,
-              tokenVolume: aiLab?.tokens
-            };
-          });
-          setTransactions(mappedTransactions);
-        } else {
-          setTransactions([]);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
+  const fetchTransactions = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
         setTransactions([]);
-      } finally {
         setIsLoading(false);
+        return;
       }
-    };
 
+      const params = new URLSearchParams({ limit: "50", offset: "0" });
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      if (typeFilter !== "all") params.set("type", typeFilter);
+
+      const res = await fetch(
+        `${EXT_SUPABASE_URL}/functions/v1/get-transactions?${params.toString()}`,
+        {
+          headers: {
+            apikey: EXT_ANON_KEY,
+            Accept: "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        console.warn("get-transactions error:", result.error);
+        toast({
+          title: "Connection Error",
+          description: "Unable to load transactions. Showing demo data.",
+          variant: "destructive",
+        });
+        setTransactions([]);
+        setApiMetrics(null);
+      } else if (result.data?.transactions?.length > 0) {
+        const mapped: Transaction[] = result.data.transactions.map((tx: any) => {
+          const isAI = tx.license_type === "ai";
+          return {
+            id: tx.id,
+            type: isAI ? "ai_ingestion" : "human_license",
+            description: isAI ? "AI Training License" : "Human Republication License",
+            amount: Number(tx.amount),
+            date: new Date(tx.created_at).toISOString().split("T")[0],
+            status: mapStatus(tx.status),
+            assetTitle: tx.asset_title || "Unknown Asset",
+            assetId: tx.article_id,
+            licenseeEmail: tx.buyer_email,
+            licenseKey: tx.license_key,
+            licenseTerms: isAI
+              ? "Non-exclusive license for AI model training. Valid for 12 months."
+              : "Single-use republication license. Attribution required.",
+          };
+        });
+        setTransactions(mapped);
+        setApiMetrics({
+          totalRevenue: result.data.metrics?.totalRevenue ?? 0,
+          activeLicenses: result.data.metrics?.activeLicenses ?? 0,
+          topAsset: result.data.metrics?.topAsset ?? null,
+        });
+      } else {
+        setTransactions([]);
+        setApiMetrics(result.data?.metrics ? {
+          totalRevenue: result.data.metrics.totalRevenue ?? 0,
+          activeLicenses: result.data.metrics.activeLicenses ?? 0,
+          topAsset: result.data.metrics.topAsset ?? null,
+        } : null);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setTransactions([]);
+      setApiMetrics(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, statusFilter, typeFilter, toast]);
+
+  useEffect(() => {
     fetchTransactions();
-  }, [user, toast]);
+  }, [fetchTransactions]);
 
   // Determine which data to display
   const isShowingDemo = !isLoading && transactions.length === 0;
   const displayTransactions = isShowingDemo ? sampleTransactions : transactions;
 
-  // Calculate metrics
+  // Metrics: prefer API metrics when available
   const metrics = useMemo(() => {
-    const totalRevenue = displayTransactions
-      .filter(t => t.amount > 0)
-      .reduce((sum, t) => sum + t.amount, 0);
-    
-    const activeLicenses = displayTransactions.filter(t => 
-      t.type !== "payout" && t.status === "settled"
-    ).length;
-
-    // Find top asset by revenue
+    if (apiMetrics && !isShowingDemo) {
+      return {
+        totalRevenue: apiMetrics.totalRevenue,
+        activeLicenses: apiMetrics.activeLicenses,
+        topAsset: apiMetrics.topAsset ? { name: apiMetrics.topAsset.title, revenue: apiMetrics.topAsset.revenue } : null,
+      };
+    }
+    // Fallback for demo mode
+    const totalRevenue = displayTransactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+    const activeLicenses = displayTransactions.filter(t => t.type !== "payout" && t.status === "settled").length;
     const assetRevenue = displayTransactions
       .filter(t => t.assetTitle && t.amount > 0)
       .reduce((acc, t) => {
-        if (t.assetTitle) {
-          acc[t.assetTitle] = (acc[t.assetTitle] || 0) + t.amount;
-        }
+        if (t.assetTitle) acc[t.assetTitle] = (acc[t.assetTitle] || 0) + t.amount;
         return acc;
       }, {} as Record<string, number>);
-
     const topAsset = Object.entries(assetRevenue).sort((a, b) => b[1] - a[1])[0];
-
     return {
       totalRevenue,
       activeLicenses,
-      topAsset: topAsset ? { name: topAsset[0], revenue: topAsset[1] } : null
+      topAsset: topAsset ? { name: topAsset[0], revenue: topAsset[1] } : null,
     };
-  }, [displayTransactions]);
+  }, [apiMetrics, isShowingDemo, displayTransactions]);
 
-  // Check if there are any transactions (excluding payouts for empty state)
   const hasTransactions = displayTransactions.filter(t => t.type !== "payout").length > 0;
 
   if (!user) return null;
@@ -280,24 +286,18 @@ export default function Ledger() {
 
   const handleExportCSV = async () => {
     setIsExporting(true);
-    toast({
-      title: "Preparing your report...",
-      description: "Your CSV export will be ready shortly.",
-    });
+    toast({ title: "Preparing your report...", description: "Your CSV export will be ready shortly." });
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Simulate export delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Create CSV content
-    const headers = ["ID", "Type", "Asset Name", "Buyer Type", "Amount", "Date", "Status"];
+    const headers = ["ID", "Type", "Asset Name", "Buyer", "Amount", "Date", "Status"];
     const rows = displayTransactions.map(tx => [
       tx.id,
-      tx.type,
+      tx.type === "ai_ingestion" ? "AI" : "Human",
       tx.assetTitle || "—",
-      tx.type === "ai_ingestion" ? "AI" : tx.type === "human_license" ? "Individual" : "Payout",
+      tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] : "Anonymous",
       tx.amount.toFixed(2),
       tx.date,
-      tx.status
+      tx.status,
     ]);
 
     const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
@@ -344,15 +344,13 @@ export default function Ledger() {
       case "ai_ingestion":
         return (
           <Badge className="bg-[#4A26ED]/10 text-[#4A26ED] border border-[#4A26ED]/20 hover:bg-[#4A26ED]/10 font-medium">
-            <Sparkles size={12} className="mr-1" />
-            AI
+            <Sparkles size={12} className="mr-1" /> AI
           </Badge>
         );
       case "human_license":
         return (
           <Badge className="bg-[#D1009A]/10 text-[#D1009A] border border-[#D1009A]/20 hover:bg-[#D1009A]/10 font-medium">
-            <User size={12} className="mr-1" />
-            Individual
+            <User size={12} className="mr-1" /> Individual
           </Badge>
         );
       case "payout":
@@ -367,23 +365,11 @@ export default function Ledger() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "settled":
-        return (
-          <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium">
-            Success
-          </Badge>
-        );
+        return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium">Success</Badge>;
       case "processing":
-        return (
-          <Badge className="bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-50 font-medium">
-            Pending
-          </Badge>
-        );
+        return <Badge className="bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-50 font-medium">Pending</Badge>;
       case "disputed":
-        return (
-          <Badge className="bg-red-50 text-red-700 border border-red-200 hover:bg-red-50 font-medium">
-            Disputed
-          </Badge>
-        );
+        return <Badge className="bg-red-50 text-red-700 border border-red-200 hover:bg-red-50 font-medium">Failed</Badge>;
       default:
         return null;
     }
@@ -417,10 +403,7 @@ export default function Ledger() {
           animate="visible"
         >
           {/* Page Header with Export Button */}
-          <motion.div 
-            className="flex items-center justify-between"
-            variants={itemVariants}
-          >
+          <motion.div className="flex items-center justify-between" variants={itemVariants}>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center">
                 <Wallet size={24} className="text-[#4A26ED]" />
@@ -436,12 +419,12 @@ export default function Ledger() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[220px] text-xs">
-                        <p>Track all your IP licensing revenue and Story Protocol settlements in one place.</p>
+                        <p>Track all your IP licensing revenue and settlements in one place.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <p className="text-[#040042]/60 text-sm">IP licensing revenue & Story Protocol settlements</p>
+                <p className="text-[#040042]/60 text-sm">IP licensing revenue & verified settlements</p>
               </div>
             </div>
             
@@ -451,15 +434,9 @@ export default function Ledger() {
               className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3d1ecc] hover:to-[#6b2ed4] text-white font-medium px-5 h-11 rounded-xl shadow-md hover:shadow-lg transition-all"
             >
               {isExporting ? (
-                <>
-                  <Loader2 size={18} className="mr-2 animate-spin" />
-                  Exporting...
-                </>
+                <><Loader2 size={18} className="mr-2 animate-spin" />Exporting...</>
               ) : (
-                <>
-                  <Download size={18} className="mr-2" />
-                  Export CSV
-                </>
+                <><Download size={18} className="mr-2" />Export CSV</>
               )}
             </Button>
           </motion.div>
@@ -489,10 +466,7 @@ export default function Ledger() {
           )}
 
           {/* Metric Cards Row */}
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-            variants={itemVariants}
-          >
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6" variants={itemVariants}>
             {/* Total Revenue */}
             <div className="bg-gradient-to-br from-[#040042] to-[#1a1a5c] rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#4A26ED]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -542,9 +516,7 @@ export default function Ledger() {
                   <p className="text-lg font-bold text-[#040042] mt-1 truncate" title={metrics.topAsset.name}>
                     {metrics.topAsset.name}
                   </p>
-                  <p className="text-emerald-600 font-bold mt-1 text-xl">
-                    ${metrics.topAsset.revenue.toFixed(2)}
-                  </p>
+                  <p className="text-emerald-600 font-bold mt-1 text-xl">${metrics.topAsset.revenue.toFixed(2)}</p>
                 </>
               ) : (
                 <p className="text-[#040042]/40 mt-1">No sales yet</p>
@@ -558,16 +530,48 @@ export default function Ledger() {
               <EmptyState onAddClick={() => navigate("/dashboard")} />
             ) : (
               <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden ${isShowingDemo ? 'opacity-90' : ''}`}>
-                <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                  <div>
-                    <h2 className="font-bold text-[#040042] text-lg">Transaction History</h2>
-                    <p className="text-sm text-[#040042]/60">All IP licensing revenue</p>
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="font-bold text-[#040042] text-lg">Transaction History</h2>
+                      <p className="text-sm text-[#040042]/60">All IP licensing revenue</p>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
+                      <Shield size={14} className="text-[#4A26ED]" />
+                      <span className="text-xs font-medium text-[#040042]/70">Verified by Opedd Protocol</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
-                    <Shield size={14} className="text-[#4A26ED]" />
-                    <span className="text-xs font-medium text-[#040042]/70">Verified by Story Protocol</span>
+
+                  {/* Filter Dropdowns */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-[#040042]/50">
+                      <Filter size={14} />
+                      <span className="text-xs font-medium uppercase tracking-wider">Filters</span>
+                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="failed">Failed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="human">Human</SelectItem>
+                        <SelectItem value="ai">AI Training</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
+
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-200 bg-gray-50">
@@ -581,7 +585,7 @@ export default function Ledger() {
                   <TableBody>
                     <AnimatePresence>
                       {displayTransactions.map((tx, index) => {
-                        const isDemo = tx.id.startsWith('DEMO-');
+                        const isDemo = tx.id.startsWith("DEMO-");
                         return (
                           <motion.tr
                             key={tx.id}
@@ -606,15 +610,13 @@ export default function Ledger() {
                             <TableCell>{getBuyerTypeBadge(tx.type)}</TableCell>
                             <TableCell>
                               <span className="text-[#040042]/70 text-sm">
-                                {tx.licenseeEmail ? tx.licenseeEmail.split('@')[0] + '...' : 'Anonymous'}
+                                {tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}
                               </span>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Sparkline value={tx.amount > 0 ? tx.amount : 0} />
-                                <span className={`font-bold tabular-nums text-lg ${
-                                  tx.amount > 0 ? "text-emerald-600" : "text-slate-600"
-                                }`}>
+                                <span className={`font-bold tabular-nums text-lg ${tx.amount > 0 ? "text-emerald-600" : "text-slate-600"}`}>
                                   ${Math.abs(tx.amount).toFixed(2)}
                                 </span>
                               </div>
