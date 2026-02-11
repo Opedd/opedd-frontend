@@ -102,7 +102,7 @@ export function AssetGrid({
 
   const handleCopyLink = (e: React.MouseEvent, assetId: string) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(`https://opedd.com/l/${assetId}`);
+    navigator.clipboard.writeText(`${window.location.origin}/l/${assetId}`);
     setCopiedId(assetId);
     toast({ title: "Link copied", description: "Licensing link copied to clipboard." });
     setTimeout(() => setCopiedId(null), 2000);
