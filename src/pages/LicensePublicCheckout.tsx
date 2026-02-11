@@ -1,51 +1,64 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Shield, Check, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
-interface AssetData {
+const EXT_SUPABASE_URL = "https://djdzcciayennqchjgybx.supabase.co";
+const EXT_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZHpjY2lheWVubnFjaGpneWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MTEyODIsImV4cCI6MjA4NDQ4NzI4Mn0.yy8AU2uOMMjqyGsjWLNlzsUp93Z9UQ7N-PRe90qDG3E";
+
+interface AssetRow {
   id: string;
   title: string;
   description: string | null;
   human_price: number | null;
   ai_price: number | null;
   verification_status: string | null;
+  licensing_enabled: boolean | null;
 }
 
 type LicenseType = "human" | "ai";
 
 export default function LicensePublicCheckout() {
   const { id } = useParams<{ id: string }>();
-  const { toast } = useToast();
 
-  const [asset, setAsset] = useState<AssetData | null>(null);
+  const [asset, setAsset] = useState<AssetRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   const [selected, setSelected] = useState<LicenseType | null>(null);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [licenseKey, setLicenseKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Fetch asset via PostgREST (anon, public SELECT policy)
   useEffect(() => {
     if (!id) return;
     (async () => {
-      const { data, error } = await supabase
-        .from("assets")
-        .select("id, title, description, human_price, ai_price, verification_status")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error || !data) {
+      try {
+        const url = `${EXT_SUPABASE_URL}/rest/v1/assets?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled&id=eq.${id}&limit=1`;
+        const res = await fetch(url, {
+          headers: { apikey: EXT_ANON_KEY, Accept: "application/json" },
+        });
+        const rows = await res.json();
+        const row = Array.isArray(rows) ? rows[0] : null;
+        if (!row || !row.licensing_enabled) {
+          setNotFound(true);
+        } else {
+          setAsset(row);
+          // Auto-select if only one price available
+          const hasHuman = (row.human_price ?? 0) > 0;
+          const hasAi = (row.ai_price ?? 0) > 0;
+          if (hasHuman && !hasAi) setSelected("human");
+          if (hasAi && !hasHuman) setSelected("ai");
+        }
+      } catch {
         setNotFound(true);
-      } else {
-        setAsset(data);
       }
       setLoading(false);
     })();
@@ -53,23 +66,21 @@ export default function LicensePublicCheckout() {
 
   const handleSubmit = async () => {
     if (!selected || !email || !asset) return;
+    setError(null);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      setError("Please enter a valid email address.");
       return;
     }
 
     setSubmitting(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/issue-license`,
+        `${EXT_SUPABASE_URL}/functions/v1/issue-license`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
+          headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
           body: JSON.stringify({
             article_id: asset.id,
             buyer_email: email,
@@ -86,8 +97,7 @@ export default function LicensePublicCheckout() {
 
       setLicenseKey(result.license_key);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      toast({ title: "Error", description: message, variant: "destructive" });
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setSubmitting(false);
     }
@@ -100,10 +110,11 @@ export default function LicensePublicCheckout() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const price = (type: LicenseType) =>
-    type === "human" ? (asset?.human_price ?? 0) : (asset?.ai_price ?? 0);
+  const hasHuman = (asset?.human_price ?? 0) > 0;
+  const hasAi = (asset?.ai_price ?? 0) > 0;
+  const isVerified = asset?.verification_status === "verified";
 
-  // — Loading / Error states —
+  // — Loading —
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -112,18 +123,19 @@ export default function LicensePublicCheckout() {
     );
   }
 
+  // — Not found / not licensable —
   if (notFound || !asset) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
         <img src={opeddLogo} alt="Opedd" className="h-7 opacity-60" />
-        <p className="text-muted-foreground text-sm">This content is not available for licensing.</p>
+        <p className="text-muted-foreground text-sm">
+          This content is not available for licensing.
+        </p>
       </div>
     );
   }
 
-  const isVerified = asset.verification_status === "verified";
-
-  // — Success state —
+  // — Success —
   if (licenseKey) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center px-4">
@@ -144,11 +156,14 @@ export default function LicensePublicCheckout() {
           </h1>
 
           <p className="text-muted-foreground text-sm mb-10">
-            Your license key has been issued. A confirmation has been sent to your email and the author has been notified.
+            Your license key has been issued. A confirmation has been sent to
+            your email and the author has been notified.
           </p>
 
           <div className="rounded-xl border border-border bg-card p-6">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">License Key</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
+              License Key
+            </p>
             <div className="flex items-center justify-center gap-3">
               <code className="text-3xl md:text-4xl font-mono font-bold text-foreground tracking-[0.25em] leading-none">
                 {licenseKey}
@@ -157,23 +172,42 @@ export default function LicensePublicCheckout() {
                 onClick={handleCopy}
                 className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               >
-                {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                {copied ? (
+                  <Check className="h-4 w-4 text-primary" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>
 
           <p className="text-xs text-muted-foreground mt-6">
-            Powered by <span className="text-foreground font-medium">Opedd Protocol</span>
+            Powered by{" "}
+            <span className="text-foreground font-medium">Opedd Protocol</span>
           </p>
         </div>
       </div>
     );
   }
 
-  // — Main checkout state —
+  // — Main checkout —
+  const licenseOptions: { type: LicenseType; label: string; price: number }[] =
+    [];
+  if (hasHuman)
+    licenseOptions.push({
+      type: "human",
+      label: "Human License",
+      price: asset.human_price!,
+    });
+  if (hasAi)
+    licenseOptions.push({
+      type: "ai",
+      label: "AI Training License",
+      price: asset.ai_price!,
+    });
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4">
-      {/* Logo */}
       <header className="pt-10 pb-12">
         <img src={opeddLogo} alt="Opedd" className="h-7" />
       </header>
@@ -202,12 +236,12 @@ export default function LicensePublicCheckout() {
           )}
         </div>
 
-        {/* License selection */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {(["human", "ai"] as const).map((type) => {
+        {/* License cards — only show cards with price > 0 */}
+        <div
+          className={`grid gap-4 mb-8 ${licenseOptions.length === 2 ? "grid-cols-2" : "grid-cols-1 max-w-xs mx-auto"}`}
+        >
+          {licenseOptions.map(({ type, label, price }) => {
             const active = selected === type;
-            const label = type === "human" ? "Human License" : "AI Training License";
-            const p = price(type);
             return (
               <button
                 key={type}
@@ -218,9 +252,11 @@ export default function LicensePublicCheckout() {
                     : "border-border hover:border-muted-foreground/40 bg-transparent"
                 }`}
               >
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{label}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  {label}
+                </p>
                 <p className="text-2xl font-semibold text-foreground">
-                  {p > 0 ? `$${p.toFixed(2)}` : "Free"}
+                  ${price.toFixed(2)}
                 </p>
               </button>
             );
@@ -233,9 +269,17 @@ export default function LicensePublicCheckout() {
             type="email"
             placeholder="Licensee email address"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError(null);
+            }}
             className="h-12 text-sm bg-card border-border"
           />
+
+          {error && (
+            <p className="text-destructive text-sm px-1">{error}</p>
+          )}
+
           <Button
             onClick={handleSubmit}
             disabled={!selected || !email || submitting}
@@ -254,9 +298,9 @@ export default function LicensePublicCheckout() {
           </Button>
         </div>
 
-        {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-10 pb-10">
-          Powered by <span className="text-foreground font-medium">Opedd Protocol</span>
+          Powered by{" "}
+          <span className="text-foreground font-medium">Opedd Protocol</span>
         </p>
       </div>
     </div>
