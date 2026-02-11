@@ -40,8 +40,8 @@ export function AssetSettingsModal({ open, onOpenChange, asset, onUpdate }: Asse
 
   if (!asset || !open) return null;
 
-  const directPayLink = `https://opedd.io/pay/${asset.id}`;
-  const widgetCode = `<script src="https://opedd.io/widget.js" data-asset-id="${asset.id}"></script>`;
+  const directPayLink = `${window.location.origin}/l/${asset.id}`;
+  const widgetCode = `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget" data-asset-id="${asset.id}" data-frontend-url="${window.location.origin}"></script>`;
 
   const handleCopy = async (text: string, type: "widget" | "link") => {
     try {

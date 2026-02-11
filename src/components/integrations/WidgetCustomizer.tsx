@@ -33,12 +33,13 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
   ];
 
   // Generate dynamic widget code
-  const widgetCode = `<script src="https://cdn.opedd.io/widget.js"
+  const widgetCode = `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"
   data-publisher-id="${publisherId}"
   data-color="${primaryColor}"
   data-radius="${borderRadius[0]}"
   data-theme="${darkTheme ? 'dark' : 'light'}"
-  data-text="${labelText}">
+  data-text="${labelText}"
+  data-frontend-url="${window.location.origin}">
 </script>`;
 
   const handleCopyCode = async () => {
@@ -299,7 +300,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                       {labelText || "Buy License"}
                     </motion.button>
                     
-                    {/* Story Protocol Badge */}
+                    {/* Opedd Protocol Badge */}
                     <div className="flex items-center gap-1.5">
                       <Shield size={12} className="text-[#7C3AED]" />
                       <span 
@@ -308,7 +309,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                           darkTheme ? "text-slate-500" : "text-slate-400"
                         )}
                       >
-                        Verified by Story Protocol
+                        Verified by Opedd Protocol
                       </span>
                     </div>
                   </div>
@@ -349,7 +350,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                 <span className="text-slate-500">{"<"}</span>
                 <span className="text-[#7C3AED]">script</span>
                 <span className="text-slate-400"> src=</span>
-                <span className="text-emerald-400">"https://cdn.opedd.io/widget.js"</span>
+                <span className="text-emerald-400">"https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"</span>
                 {"\n"}
                 <span className="text-slate-400">  data-publisher-id=</span>
                 <span className="text-emerald-400">"{publisherId}"</span>
@@ -365,6 +366,9 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                 {"\n"}
                 <span className="text-slate-400">  data-text=</span>
                 <span className="text-amber-400">"{labelText}"</span>
+                {"\n"}
+                <span className="text-slate-400">  data-frontend-url=</span>
+                <span className="text-amber-400">"{typeof window !== 'undefined' ? window.location.origin : ''}"</span>
                 <span className="text-slate-500">{">"}</span>
                 {"\n"}
                 <span className="text-slate-500">{"</"}</span>
