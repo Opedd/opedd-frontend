@@ -12,6 +12,7 @@ import {
   Clock,
   Globe,
   ShieldCheck,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
+import { SourcePricingModal } from "@/components/dashboard/SourcePricingModal";
 
 // Platform logos
 import substackLogo from "@/assets/platforms/substack.svg";
@@ -63,6 +65,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [verifyModalSource, setVerifyModalSource] = useState<Source | null>(null);
   const [tokenLookup, setTokenLookup] = useState<Record<string, string>>({});
+  const [pricingSource, setPricingSource] = useState<Source | null>(null);
 
   const fetchSources = async () => {
     if (!user) return;
@@ -389,6 +392,24 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       </Tooltip>
                     </TooltipProvider>
 
+                    {/* Set Default Pricing */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPricingSource(source)}
+                            className="h-8 text-xs gap-1.5"
+                          >
+                            <DollarSign size={12} />
+                            Set Pricing
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Set default pricing for all articles from this source</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
                     {/* Sync Now — manual trigger */}
                     <TooltipProvider>
                       <Tooltip>
@@ -462,6 +483,17 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           }
         }}
       />
+
+      {/* Source Pricing Modal */}
+      {pricingSource && (
+        <SourcePricingModal
+          open={!!pricingSource}
+          onOpenChange={(open) => { if (!open) setPricingSource(null); }}
+          sourceId={pricingSource.id}
+          sourceName={pricingSource.name}
+          onSuccess={fetchSources}
+        />
+      )}
     </div>
   );
 }

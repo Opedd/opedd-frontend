@@ -36,6 +36,9 @@ export interface Asset {
   source_name?: string;
   // Thumbnail image URL
   thumbnailUrl?: string;
+  // Pricing
+  human_price?: number | null;
+  ai_price?: number | null;
 }
 
 // Database asset structure (matches current Supabase schema)
@@ -150,5 +153,7 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     content: dbAsset.content ?? undefined,
     publishedAt: dbAsset.published_at ?? undefined,
     thumbnailUrl: dbAsset.thumbnail_url ?? undefined,
+    human_price: dbAsset.human_price ?? undefined,
+    ai_price: dbAsset.ai_price ?? undefined,
   };
 };

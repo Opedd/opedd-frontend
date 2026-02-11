@@ -141,6 +141,18 @@ export const licensesApi = {
 
   delete: (id: string, token?: string | null) =>
     edgeFetch<{ message: string }>(API.licenses + '?id=' + encodeURIComponent(id), { method: 'DELETE' }, token),
+
+  updatePrices: <T>(body: {
+    articleIds?: string[];
+    sourceId?: string;
+    humanPrice?: number;
+    aiPrice?: number;
+    licensingEnabled?: boolean;
+  }, token?: string | null) =>
+    edgeFetch<T>(EDGE_FUNCTION_BASE + '/update-license-prices', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }, token),
 };
 
 // Content Sources API (new schema via proxy)
