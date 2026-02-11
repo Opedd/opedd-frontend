@@ -29,7 +29,6 @@ export default function LicenseSuccess() {
 
   const fetchStatus = useCallback(async () => {
     if (!sessionId) {
-      setData({ status: "failed" });
       setLoading(false);
       return;
     }
@@ -133,6 +132,30 @@ export default function LicenseSuccess() {
           </motion.div>
         )}
 
+        {/* No session_id — generic success */}
+        {!loading && !sessionId && !data && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-md w-full text-center space-y-8"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+              className="mx-auto w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center"
+            >
+              <Check size={40} className="text-emerald-400" />
+            </motion.div>
+            <h1 className="text-3xl font-bold text-white">License Secured!</h1>
+            <p className="text-white/50 text-sm">Your license has been issued successfully.</p>
+            <Link to="/" className="inline-block text-sm text-[#A78BFA] hover:underline">
+              ← Return to Opedd
+            </Link>
+          </motion.div>
+        )}
+
         {/* Completed */}
         {!loading && data?.status === "completed" && (
           <motion.div
@@ -188,9 +211,20 @@ export default function LicenseSuccess() {
               </div>
             )}
 
-            <Link to="/" className="inline-block text-sm text-[#A78BFA] hover:underline">
-              ← Return to Opedd
-            </Link>
+            <div className="flex flex-col items-center gap-3">
+              {data.license_key && (
+                <Link
+                  to={`/verify/${encodeURIComponent(data.license_key)}`}
+                  className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline"
+                >
+                  <Shield size={14} />
+                  Verify this license
+                </Link>
+              )}
+              <Link to="/" className="inline-block text-sm text-white/40 hover:text-white/60 transition-colors">
+                ← Return to Opedd
+              </Link>
+            </div>
           </motion.div>
         )}
       </main>
