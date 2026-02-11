@@ -100,7 +100,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     : asset.createdAt
     ? format(new Date(asset.createdAt), "MMMM d, yyyy")
     : null;
-  const licenseLink = `opedd.com/license/${asset.id}`;
+  const licenseLink = `opedd.com/l/${asset.id}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(`https://${licenseLink}`);
