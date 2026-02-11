@@ -95,7 +95,7 @@ export default function LicensePublicCheckout() {
         throw new Error(result.error || "License issuance failed");
       }
 
-      setLicenseKey(result.license_key);
+      setLicenseKey(result.data.license_key);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
