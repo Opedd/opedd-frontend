@@ -65,6 +65,17 @@ export function useAuthenticatedApi() {
       const token = await getAccessToken();
       return licensesApi.delete(id, token);
     }, [getAccessToken]),
+
+    updatePrices: useCallback(async <T>(body: {
+      articleIds?: string[];
+      sourceId?: string;
+      humanPrice?: number;
+      aiPrice?: number;
+      licensingEnabled?: boolean;
+    }) => {
+      const token = await getAccessToken();
+      return licensesApi.updatePrices<T>(body, token);
+    }, [getAccessToken]),
   };
 
   // Generic API methods with auto-injected token

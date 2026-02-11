@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
 import {
   Sheet,
@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Shield,
   Clock,
@@ -21,8 +23,12 @@ import {
   Archive,
   Copy,
   Check,
+  Pencil,
+  X,
 } from "lucide-react";
 import { Asset, AssetStatus } from "@/types/asset";
+import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
+import { useToast } from "@/hooks/use-toast";
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.png";
@@ -76,6 +82,12 @@ const statusConfig = (status: AssetStatus) => {
 
 export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLicenseTerms }: AssetDetailDrawerProps) {
   const [copied, setCopied] = React.useState(false);
+  const [editingPricing, setEditingPricing] = useState(false);
+  const [humanPrice, setHumanPrice] = useState("");
+  const [aiPrice, setAiPrice] = useState("");
+  const [savingPricing, setSavingPricing] = useState(false);
+  const { licenses } = useAuthenticatedApi();
+  const { toast } = useToast();
 
   if (!asset) return null;
 
@@ -94,6 +106,31 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     navigator.clipboard.writeText(`https://${licenseLink}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleEditPricing = () => {
+    setHumanPrice(asset.human_price != null ? String(asset.human_price) : "");
+    setAiPrice(asset.ai_price != null ? String(asset.ai_price) : "");
+    setEditingPricing(true);
+  };
+
+  const handleSavePricing = async () => {
+    setSavingPricing(true);
+    try {
+      await licenses.updatePrices({
+        articleIds: [asset.id],
+        humanPrice: humanPrice !== "" ? parseFloat(humanPrice) || 0 : undefined,
+        aiPrice: aiPrice !== "" ? parseFloat(aiPrice) || 0 : undefined,
+        licensingEnabled: true,
+      });
+      toast({ title: "Pricing Updated", description: `Prices saved for "${asset.title}".` });
+      setEditingPricing(false);
+    } catch (err) {
+      console.error("Pricing save error:", err);
+      toast({ title: "Update Failed", description: "Could not save pricing.", variant: "destructive" });
+    } finally {
+      setSavingPricing(false);
+    }
   };
 
   return (
@@ -135,6 +172,89 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
                   <span className="text-[10px] uppercase tracking-wide font-semibold text-[#040042]/40">Published</span>
                 </div>
                 <p className="text-sm font-bold text-[#040042]">{pubDate}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Current Pricing */}
+          <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <DollarSign size={13} className="text-[#040042]/40" />
+                <span className="text-[10px] uppercase tracking-wide font-semibold text-[#040042]/40">License Pricing</span>
+              </div>
+              {!editingPricing && (
+                <button
+                  onClick={handleEditPricing}
+                  className="flex items-center gap-1 text-xs text-[#4A26ED] hover:text-[#3B1ED1] font-medium"
+                >
+                  <Pencil size={11} />
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingPricing ? (
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#040042]/60">Human License ($)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={humanPrice}
+                    onChange={(e) => setHumanPrice(e.target.value)}
+                    className="h-9 text-sm bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#040042]/60">AI Training License ($)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={aiPrice}
+                    onChange={(e) => setAiPrice(e.target.value)}
+                    className="h-9 text-sm bg-white"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleSavePricing}
+                    disabled={savingPricing}
+                    className="h-8 text-xs gap-1.5 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white"
+                  >
+                    {savingPricing ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                    Save
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingPricing(false)}
+                    className="h-8 text-xs gap-1"
+                  >
+                    <X size={12} />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] text-[#040042]/40 uppercase mb-0.5">Human</p>
+                  <p className="text-sm font-bold text-[#040042]">
+                    {asset.human_price != null && asset.human_price > 0 ? `$${asset.human_price.toFixed(2)}` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-[#040042]/40 uppercase mb-0.5">AI Training</p>
+                  <p className="text-sm font-bold text-[#040042]">
+                    {asset.ai_price != null && asset.ai_price > 0 ? `$${asset.ai_price.toFixed(2)}` : "—"}
+                  </p>
+                </div>
               </div>
             )}
           </div>
