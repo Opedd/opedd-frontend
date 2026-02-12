@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { decodeText } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -514,7 +515,7 @@ export default function Ledger() {
               {metrics.topAsset ? (
                 <>
                   <p className="text-lg font-bold text-[#040042] mt-1 truncate" title={metrics.topAsset.name}>
-                    {metrics.topAsset.name}
+                    {metrics.topAsset.name ? decodeText(metrics.topAsset.name) : ""}
                   </p>
                   <p className="text-emerald-600 font-bold mt-1 text-xl">${metrics.topAsset.revenue.toFixed(2)}</p>
                 </>
@@ -599,7 +600,7 @@ export default function Ledger() {
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 {getTypeIcon(tx.type)}
-                                <span className="text-[#040042] font-medium text-sm">{tx.assetTitle || "—"}</span>
+                                <span className="text-[#040042] font-medium text-sm">{tx.assetTitle ? decodeText(tx.assetTitle) : "—"}</span>
                                 {isDemo && (
                                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#040042]/40 border-[#040042]/20">
                                     Demo

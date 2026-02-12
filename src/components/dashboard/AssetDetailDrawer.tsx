@@ -29,6 +29,7 @@ import {
 import { Asset, AssetStatus } from "@/types/asset";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useToast } from "@/hooks/use-toast";
+import { decodeText } from "@/lib/utils";
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.png";
@@ -148,7 +149,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
             )}
           </div>
           <SheetTitle className="text-lg font-bold text-[#040042] leading-snug pr-8">
-            {asset.title}
+            {decodeText(asset.title)}
           </SheetTitle>
         </SheetHeader>
 
@@ -283,7 +284,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
             <h3 className="text-xs font-semibold uppercase tracking-wide text-[#040042]/40 mb-3">Article Content</h3>
             {plainContent ? (
               <div className="prose prose-sm max-w-none text-[#040042]/80 leading-relaxed text-sm whitespace-pre-wrap">
-                {plainContent}
+                {decodeText(plainContent)}
               </div>
             ) : (
               <div className="bg-slate-50 rounded-xl p-6 text-center space-y-3">

@@ -2,6 +2,7 @@ import React from "react";
 import { format } from "date-fns";
 import { Shield, Clock, Loader2, FileText, Eye, AlertTriangle, Archive, DollarSign, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { decodeText } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Asset, AssetStatus } from "@/types/asset";
@@ -225,13 +226,13 @@ export function AssetGrid({
 
               {/* Title */}
               <h3 className="font-semibold text-[#040042] text-sm leading-snug line-clamp-2 mb-1.5 min-h-[2.5rem]">
-                {asset.title}
+                {decodeText(asset.title)}
               </h3>
 
               {/* Snippet from description */}
               {snippet && (
                 <p className="text-xs text-[#040042]/50 leading-relaxed line-clamp-3 mb-3 flex-1">
-                  {snippet}
+                  {decodeText(snippet)}
                 </p>
               )}
               {!snippet && <div className="flex-1" />}

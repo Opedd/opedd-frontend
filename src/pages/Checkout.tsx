@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { decodeText } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
@@ -219,7 +220,7 @@ export default function Checkout() {
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between gap-4">
                           <h1 className="text-xl md:text-2xl font-bold text-white leading-tight">
-                            {asset.title}
+                            {decodeText(asset.title)}
                           </h1>
                           <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex-shrink-0">
                             <Shield size={12} className="mr-1" />
@@ -227,7 +228,7 @@ export default function Checkout() {
                           </Badge>
                         </div>
                         <p className="text-white/60 text-sm leading-relaxed">
-                          {asset.description}
+                          {decodeText(asset.description)}
                         </p>
                       </div>
                     </div>
@@ -394,7 +395,7 @@ export default function Checkout() {
                 <h2 className="text-3xl font-bold text-white mb-2">License Secured!</h2>
                 <p className="text-white/60 text-center max-w-md mb-8">
                   Your {selectedLicense === "human" ? "Individual" : "AI Training"} license for 
-                  "{asset.title}" has been successfully issued.
+                  "{decodeText(asset.title)}" has been successfully issued.
                 </p>
 
                 {/* License Key Display */}
