@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import LicensePublicCheckout from "./pages/LicensePublicCheckout";
 import LicenseByUrl from "./pages/LicenseByUrl";
 import LicenseVerify from "./pages/LicenseVerify";
+import Registry from "./pages/Registry";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/l/:id" element={<LicensePublicCheckout />} />
             <Route path="/l" element={<LicenseByUrl />} />
             <Route path="/verify/:key" element={<LicenseVerify />} />
+            <Route path="/registry" element={<Registry />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
