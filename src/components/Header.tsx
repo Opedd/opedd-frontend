@@ -22,9 +22,11 @@ const Header = () => {
     { label: "How it Works", href: "#how-it-works" },
     { label: "Why Opedd", href: "#why-opedd" },
     { label: "Pricing", href: "#pricing" },
+    { label: "Registry", href: "/registry", isRoute: true },
   ];
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("/")) return; // Let Link handle routes
     e.preventDefault();
     const targetId = href.replace("#", "");
     const element = document.getElementById(targetId);
@@ -57,16 +59,26 @@ const Header = () => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                onClick={(e) => handleSmoothScroll(e, link.href)}
-                className="text-alice-gray hover:text-oxford transition-colors duration-200 text-sm font-medium"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="text-alice-gray hover:text-oxford transition-colors duration-200 text-sm font-medium"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={(e) => handleSmoothScroll(e, link.href)}
+                  className="text-alice-gray hover:text-oxford transition-colors duration-200 text-sm font-medium"
+                >
+                  {link.label}
+                </a>
+              )
+            )}
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
@@ -97,16 +109,27 @@ const Header = () => {
             className="md:hidden py-4 border-t border-soft-white/10 bg-navy-deep"
           >
             <nav className="flex flex-col gap-4 bg-navy-deep">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-alice-gray hover:text-oxford transition-colors py-2 text-sm font-medium"
-                  onClick={(e) => handleSmoothScroll(e, link.href)}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) =>
+                link.isRoute ? (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className="text-alice-gray hover:text-oxford transition-colors py-2 text-sm font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className="text-alice-gray hover:text-oxford transition-colors py-2 text-sm font-medium"
+                    onClick={(e) => handleSmoothScroll(e, link.href)}
+                  >
+                    {link.label}
+                  </a>
+                )
+              )}
               <div className="flex flex-col gap-3 pt-4 border-t border-soft-white/10">
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full text-soft-white hover:text-oxford border border-soft-white/30 hover:border-oxford">
