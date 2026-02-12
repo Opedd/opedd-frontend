@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -24,7 +23,12 @@ import {
   Key,
   DollarSign,
   Loader2,
-  BarChart3
+  BarChart3,
+  Upload,
+  Camera,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +36,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+
+interface StripeConnect {
+  connected: boolean;
+  onboarding_complete: boolean;
+  charges_enabled?: boolean;
+  payouts_enabled?: boolean;
+}
 
 interface PublisherProfile {
   id: string;
@@ -43,32 +65,33 @@ interface PublisherProfile {
   default_ai_price: number | null;
   website_url: string | null;
   description: string | null;
+  logo_url: string | null;
   article_count: number;
   transaction_count: number;
+  stripe_connect: StripeConnect | null;
+  webhook: { configured: boolean; url: string } | null;
   created_at: string;
 }
 
-// Animation variants for tab content
 const tabContentVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: { 
-    opacity: 1, 
-    y: 0,
+    opacity: 1, y: 0,
     transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
   },
   exit: { 
-    opacity: 0, 
-    y: -10,
+    opacity: 0, y: -10,
     transition: { duration: 0.2, ease: [0.4, 0, 1, 1] as const }
   }
 };
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile state
   const [profile, setProfile] = useState<PublisherProfile | null>(null);
@@ -86,22 +109,30 @@ export default function Settings() {
   const [apiKeyCopied, setApiKeyCopied] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
+  // Logo state
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
   // Stripe state
-  const [stripeConnected] = useState(false);
+  const [stripeStatus, setStripeStatus] = useState<StripeConnect | null>(null);
+  const [isStripeLoading, setIsStripeLoading] = useState(false);
+  const [isStripeConnecting, setIsStripeConnecting] = useState(false);
+
+  const apiHeaders = useCallback(async () => {
+    const token = await getAccessToken();
+    if (!token) throw new Error("Not authenticated");
+    return {
+      apikey: EXT_ANON_KEY,
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+  }, [getAccessToken]);
 
   const fetchProfile = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
-
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
-        headers: {
-          apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${session.access_token}`,
-          Accept: "application/json",
-        },
-      });
-
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, { headers });
       const result = await res.json();
       if (result.success && result.data) {
         const d = result.data as PublisherProfile;
@@ -111,33 +142,57 @@ export default function Settings() {
         setWebsiteUrl(d.website_url || "");
         setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "5.00");
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "10.00");
+        setLogoPreview(d.logo_url || null);
+        if (d.stripe_connect) setStripeStatus(d.stripe_connect);
       }
     } catch (err) {
       console.warn("[Settings] Failed to fetch profile:", err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [apiHeaders]);
+
+  // Stripe Connect handlers
+  const fetchStripeStatus = useCallback(async () => {
+    setIsStripeLoading(true);
+    try {
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "stripe_status" }),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        setStripeStatus(result.data);
+      }
+    } catch (err) {
+      console.warn("[Settings] Stripe status fetch failed:", err);
+    } finally {
+      setIsStripeLoading(false);
+    }
+  }, [apiHeaders]);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  // Fetch stripe status when payouts tab is selected
+  useEffect(() => {
+    if (activeTab === "payouts" && !stripeStatus && !isStripeLoading) {
+      fetchStripeStatus();
+    }
+  }, [activeTab, stripeStatus, isStripeLoading, fetchStripeStatus]);
 
   if (!user) return null;
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Not authenticated");
-
+      const headers = await apiHeaders();
       const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers,
         body: JSON.stringify({
           name: publisherName,
           default_human_price: parseFloat(defaultHumanPrice) || 0,
@@ -146,7 +201,6 @@ export default function Settings() {
           description: bio,
         }),
       });
-
       const result = await res.json();
       if (result.success) {
         if (result.data) setProfile(result.data);
@@ -161,11 +215,54 @@ export default function Settings() {
     }
   };
 
-  const handleConnectStripe = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Stripe Connect integration is not yet available.",
-    });
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Logo must be under 2MB", variant: "destructive" });
+      return;
+    }
+    setIsUploadingLogo(true);
+    try {
+      const token = await getAccessToken();
+      if (!token || !profile?.id) throw new Error("Not authenticated");
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${profile.id}/logo.${ext}`;
+
+      // Upload to external Supabase storage
+      const uploadRes = await fetch(
+        `${EXT_SUPABASE_URL}/storage/v1/object/publisher-logos/${path}`,
+        {
+          method: "POST",
+          headers: {
+            apikey: EXT_ANON_KEY,
+            Authorization: `Bearer ${token}`,
+            "x-upsert": "true",
+          },
+          body: file,
+        }
+      );
+      if (!uploadRes.ok) throw new Error("Upload failed");
+
+      const publicUrl = `${EXT_SUPABASE_URL}/storage/v1/object/public/publisher-logos/${path}`;
+
+      // Save logo_url to profile
+      const headers = await apiHeaders();
+      await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ logo_url: publicUrl }),
+      });
+
+      setLogoPreview(publicUrl);
+      setProfile(prev => prev ? { ...prev, logo_url: publicUrl } : prev);
+      toast({ title: "Logo Updated", description: "Your publication logo has been saved." });
+    } catch (err: unknown) {
+      toast({ title: "Upload Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsUploadingLogo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const publisherId = profile?.id || user?.id || "";
@@ -197,19 +294,12 @@ export default function Settings() {
   const handleRegenerateApiKey = async () => {
     setIsRegenerating(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Not authenticated");
-
+      const headers = await apiHeaders();
       const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers,
         body: JSON.stringify({ action: "generate_api_key" }),
       });
-
       const result = await res.json();
       if (result.success && result.data?.api_key) {
         setProfile(prev => prev ? { ...prev, api_key: result.data.api_key } : prev);
@@ -224,6 +314,50 @@ export default function Settings() {
       setIsRegenerating(false);
     }
   };
+
+  const handleConnectStripe = async () => {
+    setIsStripeConnecting(true);
+    try {
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "connect_stripe" }),
+      });
+      const result = await res.json();
+      if (result.success && result.data?.onboarding_url) {
+        window.open(result.data.onboarding_url, "_blank");
+      } else {
+        throw new Error(result.error?.message || "Failed to start Stripe onboarding");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Stripe Connect Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsStripeConnecting(false);
+    }
+  };
+
+  const handleOpenStripeDashboard = async () => {
+    try {
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "stripe_dashboard" }),
+      });
+      const result = await res.json();
+      if (result.success && result.data?.dashboard_url) {
+        window.open(result.data.dashboard_url, "_blank");
+      } else {
+        throw new Error(result.error?.message || "Failed to open dashboard");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    }
+  };
+
+  const isStripeFullyConnected = stripeStatus?.connected && stripeStatus?.onboarding_complete;
+  const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
 
   return (
     <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
@@ -324,6 +458,43 @@ export default function Settings() {
                           <h2 className="font-bold text-[#040042]">Publisher Profile</h2>
                         </div>
                         <div className="grid gap-5">
+                          {/* Logo Upload */}
+                          <div className="space-y-2">
+                            <Label className="text-[#040042] font-bold text-sm">Publication Logo</Label>
+                            <div className="flex items-center gap-4">
+                              <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {logoPreview ? (
+                                  <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                                ) : (
+                                  <Camera size={28} className="text-slate-300" />
+                                )}
+                              </div>
+                              <div>
+                                <input
+                                  ref={fileInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={handleLogoUpload}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  disabled={isUploadingLogo}
+                                  className="border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl"
+                                >
+                                  {isUploadingLogo ? (
+                                    <><Loader2 size={14} className="mr-2 animate-spin" /> Uploading...</>
+                                  ) : (
+                                    <><Upload size={14} className="mr-2" /> Upload Logo</>
+                                  )}
+                                </Button>
+                                <p className="text-xs text-slate-400 mt-1.5">Max 2MB. JPG, PNG, or SVG.</p>
+                              </div>
+                            </div>
+                          </div>
+
                           <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label className="text-[#040042] font-bold text-sm">Publisher Name</Label>
@@ -394,15 +565,9 @@ export default function Settings() {
                             className="h-11 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium flex-shrink-0 transition-all"
                           >
                             {publisherIdCopied ? (
-                              <>
-                                <Check size={14} className="mr-2" />
-                                Copied
-                              </>
+                              <><Check size={14} className="mr-2" />Copied</>
                             ) : (
-                              <>
-                                <Copy size={14} className="mr-2" />
-                                Copy ID
-                              </>
+                              <><Copy size={14} className="mr-2" />Copy ID</>
                             )}
                           </Button>
                         </div>
@@ -447,15 +612,9 @@ export default function Settings() {
                                   className="h-11 px-4 bg-[#040042] hover:bg-[#040042]/90 text-white rounded-xl font-medium transition-all"
                                 >
                                   {apiKeyCopied ? (
-                                    <>
-                                      <Check size={14} className="mr-2" />
-                                      Copied
-                                    </>
+                                    <><Check size={14} className="mr-2" />Copied</>
                                   ) : (
-                                    <>
-                                      <Copy size={14} className="mr-2" />
-                                      Copy
-                                    </>
+                                    <><Copy size={14} className="mr-2" />Copy</>
                                   )}
                                 </Button>
                               </div>
@@ -465,25 +624,42 @@ export default function Settings() {
                                   <Shield size={12} className="inline mr-1 text-amber-500" />
                                   Keep this key secret. Regenerating will invalidate the current key.
                                 </p>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={handleRegenerateApiKey}
-                                  disabled={isRegenerating}
-                                  className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium transition-all"
-                                >
-                                  {isRegenerating ? (
-                                    <>
-                                      <RefreshCw size={14} className="mr-2 animate-spin" />
-                                      Regenerating...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <RefreshCw size={14} className="mr-2" />
-                                      Regenerate Key
-                                    </>
-                                  )}
-                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={isRegenerating}
+                                      className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium transition-all"
+                                    >
+                                      {isRegenerating ? (
+                                        <><RefreshCw size={14} className="mr-2 animate-spin" />Regenerating...</>
+                                      ) : (
+                                        <><RefreshCw size={14} className="mr-2" />Regenerate Key</>
+                                      )}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="bg-white">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
+                                        <AlertTriangle size={20} className="text-amber-500" />
+                                        Regenerate API Key?
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription className="text-slate-600">
+                                        This will invalidate your current API key immediately. Any integrations using the old key will stop working. You'll need to update all services with the new key.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel className="rounded-xl border-slate-200">Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={handleRegenerateApiKey}
+                                        className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+                                      >
+                                        Yes, Regenerate Key
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
                             </>
                           ) : (
@@ -495,15 +671,9 @@ export default function Settings() {
                                 className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
                               >
                                 {isRegenerating ? (
-                                  <>
-                                    <Loader2 size={14} className="mr-2 animate-spin" />
-                                    Generating...
-                                  </>
+                                  <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</>
                                 ) : (
-                                  <>
-                                    <Key size={14} className="mr-2" />
-                                    Generate API Key
-                                  </>
+                                  <><Key size={14} className="mr-2" />Generate API Key</>
                                 )}
                               </Button>
                             </div>
@@ -586,7 +756,7 @@ export default function Settings() {
                         </div>
                         <h2 className="font-bold text-[#040042] text-xl mb-2">Team Management</h2>
                         <p className="text-[#040042]/60 text-sm max-w-md mx-auto">
-                          Invite team members, assign roles, and manage organizational access. This feature is coming soon.
+                          Currently, one account per publication. Team management with roles and invitations is coming soon.
                         </p>
                         <Badge variant="outline" className="mt-4 border-[#4A26ED]/30 text-[#4A26ED] bg-[#4A26ED]/5 font-medium">
                           Coming Soon
@@ -596,7 +766,7 @@ export default function Settings() {
                   )}
                 </TabsContent>
 
-                {/* TAB 3: Payouts */}
+                {/* TAB 3: Payouts — Stripe Connect */}
                 <TabsContent value="payouts" className="mt-6" forceMount={activeTab === "payouts" ? true : undefined}>
                   {activeTab === "payouts" && (
                     <motion.div
@@ -621,44 +791,94 @@ export default function Settings() {
                               <p className="text-slate-500 text-sm">Receive payouts directly to your bank</p>
                             </div>
                           </div>
-                          <Badge 
-                            variant="outline"
-                            className={`text-xs font-semibold px-3 py-1 rounded-full border ${
-                              stripeConnected 
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
-                                : "bg-amber-50 text-amber-700 border-amber-200"
-                            }`}
-                          >
-                            {stripeConnected ? "Connected" : "Disconnected"}
-                          </Badge>
+                          {isStripeLoading ? (
+                            <Loader2 size={18} className="animate-spin text-slate-400" />
+                          ) : (
+                            <Badge 
+                              variant="outline"
+                              className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                                isStripeFullyConnected 
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                                  : isStripePartial
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : "bg-slate-50 text-slate-600 border-slate-200"
+                              }`}
+                            >
+                              {isStripeFullyConnected ? "Connected" : isStripePartial ? "Setup Incomplete" : "Not Connected"}
+                            </Badge>
+                          )}
                         </div>
 
-                        <div className="space-y-4">
-                          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                            <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Shield size={18} className="text-slate-500" />
+                        {isStripeFullyConnected ? (
+                          <div className="space-y-4">
+                            {/* Status indicators */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
+                                {stripeStatus?.charges_enabled ? (
+                                  <CheckCircle2 size={20} className="text-emerald-500" />
+                                ) : (
+                                  <XCircle size={20} className="text-red-400" />
+                                )}
+                                <div>
+                                  <p className="text-sm font-medium text-[#040042]">Charges</p>
+                                  <p className="text-xs text-slate-500">{stripeStatus?.charges_enabled ? "Enabled" : "Disabled"}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium text-[#040042] text-sm">Secure Payment Processing</p>
-                                <p className="text-xs text-slate-500 mt-1">
-                                  Connect your Stripe account to receive payouts from content licensing. 
-                                  Your financial data is encrypted and never stored on our servers.
-                                </p>
+                              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
+                                {stripeStatus?.payouts_enabled ? (
+                                  <CheckCircle2 size={20} className="text-emerald-500" />
+                                ) : (
+                                  <XCircle size={20} className="text-red-400" />
+                                )}
+                                <div>
+                                  <p className="text-sm font-medium text-[#040042]">Payouts</p>
+                                  <p className="text-xs text-slate-500">{stripeStatus?.payouts_enabled ? "Enabled" : "Disabled"}</p>
+                                </div>
                               </div>
                             </div>
+
+                            <Button
+                              onClick={handleOpenStripeDashboard}
+                              className="w-full h-14 bg-gradient-to-r from-[#635BFF] to-[#8B5CF6] hover:from-[#5649e6] hover:to-[#7c3aed] text-white rounded-xl font-semibold text-base shadow-lg shadow-[#635BFF]/25 transition-all active:scale-[0.98]"
+                            >
+                              <ExternalLink size={18} className="mr-2" />
+                              Open Stripe Dashboard
+                            </Button>
                           </div>
-                          
-                          <Button
-                            onClick={handleConnectStripe}
-                            className="w-full h-14 bg-gradient-to-r from-[#635BFF] to-[#8B5CF6] hover:from-[#5649e6] hover:to-[#7c3aed] text-white rounded-xl font-semibold text-base shadow-lg shadow-[#635BFF]/25 transition-all active:scale-[0.98]"
-                          >
-                            <Lock size={18} className="mr-2" />
-                            Connect Stripe Account
-                            <ExternalLink size={14} className="ml-2 opacity-70" />
-                          </Button>
-                          <p className="text-xs text-center text-slate-400">Stripe Connect integration coming soon</p>
-                        </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <Shield size={18} className="text-slate-500" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-[#040042] text-sm">Secure Payment Processing</p>
+                                  <p className="text-xs text-slate-500 mt-1">
+                                    Connect your Stripe account to receive payouts from content licensing. 
+                                    Your financial data is encrypted and never stored on our servers.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <Button
+                              onClick={handleConnectStripe}
+                              disabled={isStripeConnecting}
+                              className="w-full h-14 bg-gradient-to-r from-[#635BFF] to-[#8B5CF6] hover:from-[#5649e6] hover:to-[#7c3aed] text-white rounded-xl font-semibold text-base shadow-lg shadow-[#635BFF]/25 transition-all active:scale-[0.98]"
+                            >
+                              {isStripeConnecting ? (
+                                <><Loader2 size={18} className="mr-2 animate-spin" />Connecting...</>
+                              ) : (
+                                <>
+                                  <Lock size={18} className="mr-2" />
+                                  {isStripePartial ? "Complete Stripe Setup" : "Connect Stripe Account"}
+                                  <ExternalLink size={14} className="ml-2 opacity-70" />
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Payout Info */}
