@@ -39,6 +39,10 @@ export interface Asset {
   // Pricing
   human_price?: number | null;
   ai_price?: number | null;
+  // License stats
+  human_licenses_sold?: number | null;
+  ai_licenses_sold?: number | null;
+  total_revenue?: number | null;
 }
 
 // Database asset structure (matches current Supabase schema)
@@ -155,5 +159,8 @@ export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {
     thumbnailUrl: dbAsset.thumbnail_url ?? undefined,
     human_price: dbAsset.human_price ?? undefined,
     ai_price: dbAsset.ai_price ?? undefined,
+    human_licenses_sold: (dbAsset as any).human_licenses_sold ?? null,
+    ai_licenses_sold: (dbAsset as any).ai_licenses_sold ?? null,
+    total_revenue: dbAsset.total_revenue ?? null,
   };
 };
