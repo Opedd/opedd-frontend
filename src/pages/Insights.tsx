@@ -3,6 +3,7 @@ import {
   Shield, HelpCircle, TrendingUp, FileCheck, Sparkles, User, 
   Loader2, AlertCircle, BarChart3 
 } from "lucide-react";
+import { decodeText } from "@/lib/utils";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -268,7 +269,7 @@ export default function Insights() {
                   <TableBody>
                     {displayTop.map((a) => (
                       <TableRow key={a.id} className="border-gray-100">
-                        <TableCell className="font-medium text-[#040042] text-sm max-w-[200px] truncate">{a.title}</TableCell>
+                        <TableCell className="font-medium text-[#040042] text-sm max-w-[200px] truncate">{decodeText(a.title)}</TableCell>
                         <TableCell className="text-right text-[#040042]/70 text-sm">{a.licenses_sold}</TableCell>
                         <TableCell className="text-right font-bold text-emerald-600 text-sm">${a.revenue.toFixed(2)}</TableCell>
                       </TableRow>
