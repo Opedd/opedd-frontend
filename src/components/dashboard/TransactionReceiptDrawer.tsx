@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { EXT_SUPABASE_URL } from "@/lib/constants";
 import { 
   Sparkles, 
   User, 
@@ -22,7 +23,10 @@ import {
   Shield,
   Bot,
   Cpu,
-  Hash
+  Hash,
+  Download,
+  Building2,
+  Briefcase
 } from "lucide-react";
 import { useState } from "react";
 
@@ -39,7 +43,10 @@ interface Transaction {
   storyProtocolHash?: string;
   licenseeEmail?: string;
   licenseTerms?: string;
-  // AI Lab specific fields
+  licenseKey?: string;
+  buyerName?: string;
+  buyerOrganization?: string;
+  intendedUse?: string;
   aiLabName?: string;
   aiModel?: string;
   tokenVolume?: number;
@@ -57,6 +64,7 @@ export function TransactionReceiptDrawer({
   onOpenChange 
 }: TransactionReceiptDrawerProps) {
   const [copiedHash, setCopiedHash] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
 
   if (!transaction) return null;
 
@@ -68,26 +76,31 @@ export function TransactionReceiptDrawer({
     }
   };
 
+  const handleCopyLicenseKey = () => {
+    if (transaction.licenseKey) {
+      navigator.clipboard.writeText(transaction.licenseKey);
+      setCopiedKey(true);
+      setTimeout(() => setCopiedKey(false), 2000);
+    }
+  };
+
+  const handleDownloadCertificate = () => {
+    if (transaction.licenseKey) {
+      window.open(
+        `${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(transaction.licenseKey)}`,
+        "_blank"
+      );
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "settled":
-        return (
-          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
-            Settled
-          </Badge>
-        );
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">Completed</Badge>;
       case "processing":
-        return (
-          <Badge className="bg-sky-100 text-sky-700 border-sky-200 hover:bg-sky-100">
-            Processing
-          </Badge>
-        );
+        return <Badge className="bg-sky-100 text-sky-700 border-sky-200 hover:bg-sky-100">Pending</Badge>;
       case "disputed":
-        return (
-          <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">
-            Disputed
-          </Badge>
-        );
+        return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">Failed</Badge>;
       default:
         return null;
     }
@@ -106,12 +119,9 @@ export function TransactionReceiptDrawer({
 
   const getTypeLabel = () => {
     switch (transaction.type) {
-      case "ai_ingestion":
-        return "AI Ingestion License";
-      case "human_license":
-        return "Human Republication License";
-      case "payout":
-        return "Payout to Bank";
+      case "ai_ingestion": return "AI Ingestion License";
+      case "human_license": return "Human Republication License";
+      case "payout": return "Payout to Bank";
     }
   };
 
@@ -138,19 +148,13 @@ export function TransactionReceiptDrawer({
           {/* Amount & Status */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">
-                Amount
-              </p>
-              <p className={`text-3xl font-bold ${
-                transaction.amount > 0 ? "text-emerald-600" : "text-[#040042]"
-              }`}>
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Amount</p>
+              <p className={`text-3xl font-bold ${transaction.amount > 0 ? "text-emerald-600" : "text-[#040042]"}`}>
                 {transaction.amount > 0 ? "+" : ""}${Math.abs(transaction.amount).toFixed(2)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-2">
-                Status
-              </p>
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-2">Status</p>
               {getStatusBadge(transaction.status)}
             </div>
           </div>
@@ -160,32 +164,24 @@ export function TransactionReceiptDrawer({
           {/* Transaction Details */}
           <div className="space-y-4">
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">
-                Description
-              </p>
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Description</p>
               <p className="text-[#040042] font-medium">{transaction.description}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">
-                  Date
-                </p>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Date</p>
                 <p className="text-[#040042]">{transaction.date}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">
-                  Transaction ID
-                </p>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Transaction ID</p>
                 <p className="text-[#040042] font-mono text-sm">{transaction.id}</p>
               </div>
             </div>
 
             {transaction.assetTitle && (
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">
-                  Associated Asset
-                </p>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Associated Article</p>
                 <div className="flex items-center gap-2">
                   <FileText size={16} className="text-[#4A26ED]" />
                   <p className="text-[#040042] font-medium">{transaction.assetTitle}</p>
@@ -193,21 +189,54 @@ export function TransactionReceiptDrawer({
               </div>
             )}
 
-            {transaction.fromDirectLink && (
-              <div className="flex items-center gap-2 bg-sky-50 px-3 py-2 rounded-lg">
-                <Link2 size={16} className="text-sky-600" />
-                <span className="text-sky-700 text-sm font-medium">
-                  Acquired via Direct Pay Link
-                </span>
+            {/* License Key */}
+            {transaction.licenseKey && (
+              <div>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">License Key</p>
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                  <code className="text-sm font-mono text-[#040042] flex-1 truncate">{transaction.licenseKey}</code>
+                  <button onClick={handleCopyLicenseKey} className="text-slate-400 hover:text-[#4A26ED] transition-colors flex-shrink-0">
+                    {copiedKey ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Copy size={16} />}
+                  </button>
+                </div>
               </div>
             )}
 
-            {transaction.licenseeEmail && (
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">
-                  Licensee
-                </p>
-                <p className="text-[#040042]">{transaction.licenseeEmail}</p>
+            {/* Buyer Details */}
+            {(transaction.buyerName || transaction.buyerOrganization || transaction.licenseeEmail) && (
+              <div className="bg-slate-50 rounded-xl p-4 space-y-3 border border-slate-100">
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">Buyer Details</p>
+                {transaction.buyerName && (
+                  <div className="flex items-center gap-2">
+                    <User size={14} className="text-slate-400" />
+                    <span className="text-sm text-[#040042]">{transaction.buyerName}</span>
+                  </div>
+                )}
+                {transaction.buyerOrganization && (
+                  <div className="flex items-center gap-2">
+                    <Building2 size={14} className="text-slate-400" />
+                    <span className="text-sm text-[#040042]">{transaction.buyerOrganization}</span>
+                  </div>
+                )}
+                {transaction.licenseeEmail && (
+                  <div className="flex items-center gap-2">
+                    <ExternalLink size={14} className="text-slate-400" />
+                    <span className="text-sm text-[#040042]">{transaction.licenseeEmail}</span>
+                  </div>
+                )}
+                {transaction.intendedUse && (
+                  <div className="flex items-start gap-2">
+                    <Briefcase size={14} className="text-slate-400 mt-0.5" />
+                    <span className="text-sm text-[#040042]">{transaction.intendedUse}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {transaction.fromDirectLink && (
+              <div className="flex items-center gap-2 bg-sky-50 px-3 py-2 rounded-lg">
+                <Link2 size={16} className="text-sky-600" />
+                <span className="text-sky-700 text-sm font-medium">Acquired via Direct Pay Link</span>
               </div>
             )}
 
@@ -218,37 +247,28 @@ export function TransactionReceiptDrawer({
                   <Bot size={16} className="text-[#4A26ED]" />
                   <span className="text-sm font-semibold text-[#040042]">AI Lab Details</span>
                 </div>
-                
                 {transaction.aiLabName && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
-                        <Bot size={12} className="text-[#4A26ED]" />
-                      </div>
+                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center"><Bot size={12} className="text-[#4A26ED]" /></div>
                       <span className="text-xs text-slate-500 uppercase tracking-wider">Lab</span>
                     </div>
                     <span className="text-sm font-medium text-[#040042]">{transaction.aiLabName}</span>
                   </div>
                 )}
-                
                 {transaction.aiModel && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
-                        <Cpu size={12} className="text-[#4A26ED]" />
-                      </div>
+                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center"><Cpu size={12} className="text-[#4A26ED]" /></div>
                       <span className="text-xs text-slate-500 uppercase tracking-wider">Model</span>
                     </div>
                     <span className="text-sm font-medium text-[#040042]">{transaction.aiModel}</span>
                   </div>
                 )}
-                
                 {transaction.tokenVolume && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
-                        <Hash size={12} className="text-[#4A26ED]" />
-                      </div>
+                      <div className="w-6 h-6 rounded-md bg-[#4A26ED]/10 flex items-center justify-center"><Hash size={12} className="text-[#4A26ED]" /></div>
                       <span className="text-xs text-slate-500 uppercase tracking-wider">Token Volume</span>
                     </div>
                     <span className="text-sm font-medium text-[#040042]">{transaction.tokenVolume.toLocaleString()} Tokens</span>
@@ -266,25 +286,13 @@ export function TransactionReceiptDrawer({
               <Shield size={18} className="text-[#4A26ED]" />
               <p className="font-semibold">Story Protocol Record</p>
             </div>
-            
             {transaction.storyProtocolHash ? (
               <div>
-                <p className="text-xs text-white/60 uppercase tracking-wider font-medium mb-2">
-                  Transaction Hash
-                </p>
+                <p className="text-xs text-white/60 uppercase tracking-wider font-medium mb-2">Transaction Hash</p>
                 <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
-                  <code className="text-emerald-400 text-sm font-mono flex-1 truncate">
-                    {transaction.storyProtocolHash}
-                  </code>
-                  <button
-                    onClick={handleCopyHash}
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    {copiedHash ? (
-                      <CheckCircle2 size={16} className="text-emerald-400" />
-                    ) : (
-                      <Copy size={16} />
-                    )}
+                  <code className="text-emerald-400 text-sm font-mono flex-1 truncate">{transaction.storyProtocolHash}</code>
+                  <button onClick={handleCopyHash} className="text-white/70 hover:text-white transition-colors">
+                    {copiedHash ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}
                   </button>
                 </div>
                 <a
@@ -297,30 +305,36 @@ export function TransactionReceiptDrawer({
                 </a>
               </div>
             ) : (
-              <p className="text-white/60 text-sm">
-                No blockchain record for this transaction type.
-              </p>
+              <p className="text-white/60 text-sm">No blockchain record for this transaction type.</p>
             )}
           </div>
 
           {/* License Terms */}
           {transaction.licenseTerms && (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-2">
-                License Terms
-              </p>
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-2">License Terms</p>
               <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600 leading-relaxed">
                 {transaction.licenseTerms}
               </div>
             </div>
           )}
+
+          {/* Download Certificate */}
+          {transaction.licenseKey && (
+            <Button
+              onClick={handleDownloadCertificate}
+              variant="outline"
+              className="w-full h-11 gap-2 border-[#4A26ED]/20 text-[#4A26ED] hover:bg-[#4A26ED]/5"
+            >
+              <Download size={16} />
+              Download License Certificate
+            </Button>
+          )}
         </div>
 
         <DrawerFooter className="border-t border-slate-100 pt-4">
           <DrawerClose asChild>
-            <Button variant="outline" className="w-full h-11">
-              Close
-            </Button>
+            <Button variant="outline" className="w-full h-11">Close</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
