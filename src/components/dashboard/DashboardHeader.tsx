@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
-import { supabase } from "@/integrations/supabase/client";
 import { Settings, LogOut, ExternalLink, ChevronDown, Bell, DollarSign, Shield, RefreshCw, CheckCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -37,7 +36,7 @@ const typeConfig: Record<string, { icon: React.ElementType; color: string; dot: 
 const defaultConfig = { icon: Bell, color: "text-[#4A26ED] bg-[#4A26ED]/10", dot: "bg-[#4A26ED]" };
 
 export function DashboardHeader() {
-  const { user, logout } = useAuth();
+  const { user, logout, getAccessToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -45,13 +44,13 @@ export function DashboardHeader() {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
+      const token = await getAccessToken();
+      if (!token) return;
 
       const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications?limit=10`, {
         headers: {
           apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
@@ -64,7 +63,7 @@ export function DashboardHeader() {
     } catch (err) {
       console.warn("[DashboardHeader] Failed to fetch notifications:", err);
     }
-  }, []);
+  }, [getAccessToken]);
 
   useEffect(() => {
     fetchNotifications();
@@ -72,23 +71,47 @@ export function DashboardHeader() {
 
   const handleMarkAllRead = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
+      const token = await getAccessToken();
+      if (!token) return;
 
       await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ mark_all_read: true }),
+        body: JSON.stringify({ action: "mark_all_read" }),
       });
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (err) {
       console.warn("[DashboardHeader] Failed to mark read:", err);
+    }
+  };
+
+  const handleMarkOneRead = async (notificationId: string) => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+
+      await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: "mark_read", notification_id: notificationId }),
+      });
+
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.warn("[DashboardHeader] Failed to mark notification read:", err);
     }
   };
 
@@ -147,7 +170,8 @@ export function DashboardHeader() {
                   return (
                     <div
                       key={n.id}
-                      className={`flex items-start gap-3 px-4 py-3 border-b border-[#E8F2FB] last:border-0 transition-colors ${
+                      onClick={() => !n.read && handleMarkOneRead(n.id)}
+                      className={`flex items-start gap-3 px-4 py-3 border-b border-[#E8F2FB] last:border-0 transition-colors cursor-pointer hover:bg-[#F2F9FF] ${
                         !n.read ? "bg-[#F2F9FF]/60" : ""
                       }`}
                     >
