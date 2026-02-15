@@ -1,15 +1,21 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Shield, Check, Copy, Loader2, ExternalLink, AlertTriangle, Search } from "lucide-react";
+import { Shield, Check, Copy, Loader2, ExternalLink, AlertTriangle, Search, Download, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const EXT_SUPABASE_URL = "https://djdzcciayennqchjgybx.supabase.co";
 const EXT_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZHpjY2lheWVubnFjaGpneWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MTEyODIsImV4cCI6MjA4NDQ4NzI4Mn0.yy8AU2uOMMjqyGsjWLNlzsUp93Z9UQ7N-PRe90qDG3E";
+
+interface BlockchainProof {
+  registered: boolean;
+  valid: boolean;
+  explorer_url: string;
+  contract_address: string;
+}
 
 interface LicenseData {
   license_key: string;
@@ -34,6 +40,7 @@ interface LicenseData {
   currency: string;
   issued_at: string;
   machine_readable?: object;
+  blockchain_proof?: BlockchainProof | null;
 }
 
 export default function LicenseVerify() {
@@ -41,17 +48,18 @@ export default function LicenseVerify() {
   const navigate = useNavigate();
 
   const [data, setData] = useState<LicenseData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [lookupKey, setLookupKey] = useState(key || "");
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
 
   useEffect(() => {
-    if (!key) { setLoading(false); setNotFound(true); return; }
+    if (!key) { setLoading(false); return; }
     setLoading(true);
     setNotFound(false);
     setData(null);
+    setLookupKey(key);
     (async () => {
       try {
         const res = await fetch(
@@ -104,6 +112,49 @@ export default function LicenseVerify() {
     );
   }
 
+  // — No key param: show lookup form —
+  if (!key) {
+    return (
+      <div className="min-h-screen bg-[#040042] flex flex-col">
+        <div className="px-6 py-6">
+          <img src={opeddLogo} alt="Opedd" className="h-7" />
+        </div>
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-md text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 text-white/70 px-4 py-1.5 text-sm font-medium mb-6">
+              <Shield className="h-4 w-4" />
+              Verify a License
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">License Verification</h1>
+            <p className="text-white/50 text-sm mb-8 max-w-sm mx-auto">
+              Paste a license key below to verify its authenticity against the Opedd registry.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                value={lookupKey}
+                onChange={(e) => setLookupKey(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+                placeholder="OP-XXXX-XXXX"
+                className="h-11 bg-white/5 border-white/15 text-white placeholder:text-white/30 font-mono focus-visible:ring-[#4A26ED]/30 focus-visible:border-[#4A26ED]"
+              />
+              <Button
+                onClick={handleLookup}
+                disabled={!lookupKey.trim()}
+                className="h-11 px-5 bg-[#4A26ED] hover:bg-[#4A26ED]/90 text-white shrink-0"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Verify
+              </Button>
+            </div>
+            <p className="text-xs text-white/20 mt-10">
+              Powered by <span className="text-white/40 font-medium">Opedd Protocol</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // — Not Found —
   if (notFound || !data) {
     return (
@@ -146,6 +197,7 @@ export default function LicenseVerify() {
   }
 
   const isRevoked = data.status === "refunded";
+  const bp = data.blockchain_proof;
 
   // — Valid License —
   return (
@@ -168,7 +220,7 @@ export default function LicenseVerify() {
             ) : (
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-4 py-1.5 text-sm font-medium">
                 <Check className="h-4 w-4" />
-                Verified License
+                License Verified
               </div>
             )}
           </div>
@@ -218,7 +270,7 @@ export default function LicenseVerify() {
               </DetailRow>
               <DetailRow label="License Type">{data.license_type_label}</DetailRow>
               {data.intended_use_label && (
-                <DetailRow label="Permitted Use">{data.intended_use_label}</DetailRow>
+                <DetailRow label="Intended Use">{data.intended_use_label}</DetailRow>
               )}
               <DetailRow label="Amount">${data.amount.toFixed(2)}</DetailRow>
               <DetailRow label="Issued">{formatDate(data.issued_at)}</DetailRow>
@@ -235,6 +287,50 @@ export default function LicenseVerify() {
               </div>
             </div>
           </div>
+
+          {/* Blockchain Proof */}
+          {bp && (
+            <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <LinkIcon className="h-4 w-4 text-purple-400" />
+                <p className="text-xs text-purple-400 uppercase tracking-wider font-medium">On-Chain Proof</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border ${
+                  bp.registered
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                    : "border-white/15 bg-white/5 text-white/40"
+                }`}>
+                  <Check className="h-3 w-3" />
+                  Registered on Base
+                </span>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border ${
+                  bp.valid
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                    : "border-red-500/30 bg-red-500/10 text-red-400"
+                }`}>
+                  {bp.valid ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                  {bp.valid ? "Valid" : "Invalid"}
+                </span>
+              </div>
+              {bp.explorer_url && (
+                <a
+                  href={bp.explorer_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-purple-400 hover:underline"
+                >
+                  View on BaseScan
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+              {bp.contract_address && (
+                <p className="text-xs text-white/30 font-mono break-all">
+                  Contract: {bp.contract_address}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Machine-Readable License (AI only) */}
           {data.machine_readable && (
@@ -257,9 +353,20 @@ export default function LicenseVerify() {
           )}
 
           {/* Footer */}
-          <p className="text-center text-xs text-white/20 pt-4">
-            Powered by <span className="text-white/40 font-medium">Opedd Protocol</span>
-          </p>
+          <div className="text-center space-y-4 pt-4">
+            <a
+              href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(data.license_key)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Download Certificate
+            </a>
+            <p className="text-xs text-white/20">
+              Powered by <span className="text-white/40 font-medium">Opedd Protocol</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

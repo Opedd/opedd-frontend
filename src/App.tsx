@@ -46,6 +46,7 @@ const App = () => (
             <Route path="/license/:id" element={<LicenseCheckout />} />
             <Route path="/l/:id" element={<LicensePublicCheckout />} />
             <Route path="/l" element={<LicenseByUrl />} />
+            <Route path="/verify" element={<LicenseVerify />} />
             <Route path="/verify/:key" element={<LicenseVerify />} />
             <Route path="/registry" element={<Registry />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
