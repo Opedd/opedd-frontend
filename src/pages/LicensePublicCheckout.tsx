@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Shield, Loader2, ChevronDown } from "lucide-react";
+import { Shield, Loader2, ChevronDown, CheckCircle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,8 @@ const INTENDED_USE_OPTIONS = [
   { value: "personal", label: "Personal Use" },
   { value: "editorial", label: "Editorial / Journalism" },
   { value: "commercial", label: "Commercial Use" },
-  { value: "ai_training", label: "AI Training / Ingestion" },
-  { value: "corporate", label: "Corporate / Enterprise" },
+  { value: "ai_training", label: "AI Model Training" },
+  { value: "corporate", label: "Corporate / Internal" },
 ] as const;
 
 export default function LicensePublicCheckout() {
@@ -45,6 +45,7 @@ export default function LicensePublicCheckout() {
   const [intendedUse, setIntendedUse] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [freeSuccess, setFreeSuccess] = useState<{ license_key: string } | null>(null);
 
 
   useEffect(() => {
@@ -61,10 +62,10 @@ export default function LicensePublicCheckout() {
           setNotFound(true);
         } else {
           setAsset(row);
-          const hasHuman = (row.human_price ?? 0) > 0;
-          const hasAi = (row.ai_price ?? 0) > 0;
-          if (hasHuman && !hasAi) setSelected("human");
-          if (hasAi && !hasHuman) setSelected("ai");
+          const hasH = row.human_price != null;
+          const hasA = row.ai_price != null;
+          if (hasH && !hasA) setSelected("human");
+          if (hasA && !hasH) setSelected("ai");
         }
       } catch {
         setNotFound(true);
@@ -74,7 +75,7 @@ export default function LicensePublicCheckout() {
   }, [id]);
 
   const handleSubmit = async () => {
-    if (!selected || !email || !name || !intendedUse || !asset) return;
+    if (!selected || !email || !asset) return;
     setError(null);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -83,32 +84,56 @@ export default function LicensePublicCheckout() {
       return;
     }
 
+    const price = selected === "human" ? (asset.human_price ?? 0) : (asset.ai_price ?? 0);
+    const isFree = price === 0;
+
     setSubmitting(true);
     try {
-      const res = await fetch(
-        `${EXT_SUPABASE_URL}/functions/v1/create-checkout`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
-          body: JSON.stringify({
-            article_id: asset.id,
-            buyer_email: email,
-            buyer_name: name,
-            buyer_organization: organization || undefined,
-            intended_use: intendedUse,
-            license_type: selected,
-            return_url: window.location.origin,
-          }),
+      if (isFree) {
+        // Free license — call issue-license
+        const res = await fetch(
+          `${EXT_SUPABASE_URL}/functions/v1/issue-license`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
+            body: JSON.stringify({
+              article_id: asset.id,
+              buyer_email: email,
+              buyer_name: name || undefined,
+              buyer_organization: organization || undefined,
+              intended_use: intendedUse || undefined,
+              license_type: selected,
+            }),
+          }
+        );
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || "License issuance failed");
         }
-      );
-
-      const result = await res.json();
-
-      if (!res.ok || !result.success) {
-        throw new Error(result.error || "Checkout creation failed");
+        setFreeSuccess({ license_key: result.data?.license_key || "N/A" });
+      } else {
+        // Paid license — call create-checkout → Stripe
+        const res = await fetch(
+          `${EXT_SUPABASE_URL}/functions/v1/create-checkout`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
+            body: JSON.stringify({
+              article_id: asset.id,
+              buyer_email: email,
+              license_type: selected,
+              buyer_name: name || undefined,
+              buyer_organization: organization || undefined,
+              intended_use: intendedUse || undefined,
+            }),
+          }
+        );
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || "Checkout creation failed");
+        }
+        window.location.href = result.data.checkout_url;
       }
-
-      window.location.href = result.data.checkout_url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -117,12 +142,13 @@ export default function LicensePublicCheckout() {
   };
 
 
-  const hasHuman = (asset?.human_price ?? 0) > 0;
-  const hasAi = (asset?.ai_price ?? 0) > 0;
+  const hasHuman = asset?.human_price != null;
+  const hasAi = asset?.ai_price != null;
   const isVerified = asset?.verification_status === "verified";
-  const canSubmit = !!selected && !!email && !!name && !!intendedUse && !submitting;
+  const canSubmit = !!selected && !!email && !submitting && !freeSuccess;
+  const selectedPrice = selected === "human" ? (asset?.human_price ?? 0) : selected === "ai" ? (asset?.ai_price ?? 0) : 0;
+  const isPaid = selectedPrice > 0;
 
-  const selectedPrice = selected === "human" ? asset?.human_price : selected === "ai" ? asset?.ai_price : null;
   const selectedLabel = selected === "human" ? "Human License" : selected === "ai" ? "AI Training License" : null;
 
   // — Loading —
@@ -149,8 +175,8 @@ export default function LicensePublicCheckout() {
 
   // — License option cards —
   const licenseOptions: { type: LicenseType; label: string; price: number }[] = [];
-  if (hasHuman) licenseOptions.push({ type: "human", label: "Human License", price: asset.human_price! });
-  if (hasAi) licenseOptions.push({ type: "ai", label: "AI Training License", price: asset.ai_price! });
+  if (hasHuman) licenseOptions.push({ type: "human", label: "Human License", price: asset.human_price ?? 0 });
+  if (hasAi) licenseOptions.push({ type: "ai", label: "AI Training License", price: asset.ai_price ?? 0 });
 
   // — Left panel content (shared between desktop and mobile) —
   const ArticleInfo = ({ mobile = false }: { mobile?: boolean }) => (
@@ -186,7 +212,7 @@ export default function LicensePublicCheckout() {
           </p>
           <p className="text-white/70 text-sm font-medium">{selectedLabel}</p>
           <p className="text-2xl font-semibold text-white mt-1">
-            ${selectedPrice.toFixed(2)}
+            {selectedPrice > 0 ? `$${selectedPrice.toFixed(2)}` : "Free"}
           </p>
         </div>
       )}
@@ -315,7 +341,7 @@ export default function LicensePublicCheckout() {
                         {label}
                       </p>
                       <p className="text-xl font-semibold text-[#040042]">
-                        ${price.toFixed(2)}
+                        {price > 0 ? `$${price.toFixed(2)}` : "Free"}
                       </p>
                     </button>
                   );
@@ -328,21 +354,43 @@ export default function LicensePublicCheckout() {
               <p className="text-red-600 text-sm px-1">{error}</p>
             )}
 
-            {/* Submit */}
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="w-full h-12 bg-[#040042] text-white hover:bg-[#040042]/90 rounded-xl text-sm font-semibold"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Processing…
-                </>
-              ) : (
-                "Secure License"
-              )}
-            </Button>
+            {/* Free success inline */}
+            {freeSuccess ? (
+              <div className="rounded-xl border-2 border-green-500/30 bg-green-50 p-6 text-center space-y-3">
+                <CheckCircle className="h-8 w-8 text-green-600 mx-auto" />
+                <p className="text-sm font-semibold text-[#040042]">License Issued!</p>
+                <div className="flex items-center justify-center gap-2">
+                  <code className="text-sm font-mono bg-white border border-green-200 rounded px-3 py-1.5 text-[#040042]">
+                    {freeSuccess.license_key}
+                  </code>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(freeSuccess.license_key); }}
+                    className="p-1.5 rounded hover:bg-green-100 text-green-700"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-[#040042]/40">Save this key — it's your proof of license.</p>
+              </div>
+            ) : (
+              /* Submit */
+              <Button
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                className="w-full h-12 bg-[#040042] text-white hover:bg-[#040042]/90 rounded-xl text-sm font-semibold"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    {isPaid ? "Redirecting to payment…" : "Processing…"}
+                  </>
+                ) : isPaid ? (
+                  `Pay $${selectedPrice.toFixed(2)} · Secure License`
+                ) : (
+                  "Secure Free License"
+                )}
+              </Button>
+            )}
           </div>
 
           <p className="text-center text-xs text-[#040042]/25 mt-10">
