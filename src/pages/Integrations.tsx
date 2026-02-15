@@ -95,6 +95,8 @@ export default function Integrations() {
   // AI Policy State
   const [aiDefenseEnabled, setAiDefenseEnabled] = useState(true);
   const [publisherId, setPublisherId] = useState<string | null>(null);
+  const [robotsCopied, setRobotsCopied] = useState(false);
+  const [aiTxtCopied, setAiTxtCopied] = useState(false);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -744,7 +746,7 @@ export default function Integrations() {
               </div>
               
               {aiDefenseEnabled && (
-                <div className="mt-6 pt-5 border-t border-white/10">
+                <div className="mt-6 pt-5 border-t border-white/10 space-y-5">
                   <div className="grid grid-cols-3 gap-6">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-emerald-400 rounded-full" />
@@ -768,19 +770,79 @@ export default function Integrations() {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Preview link */}
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePreviewRobotsTxt}
-                      className="text-xs text-white/50 hover:text-white/80 hover:bg-white/5 gap-1.5"
-                    >
-                      <ExternalLink size={12} />
-                      Preview robots.txt output
-                    </Button>
-                  </div>
+
+                  {/* Policy URLs */}
+                  {publisherId && (
+                    <div className="space-y-3 pt-3 border-t border-white/10">
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        Add these rules to your site's <code className="text-white/70 bg-white/10 px-1.5 py-0.5 rounded">robots.txt</code> and <code className="text-white/70 bg-white/10 px-1.5 py-0.5 rounded">ai.txt</code> files to block AI crawlers from scraping your content.
+                      </p>
+
+                      {/* robots.txt URL */}
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">robots.txt rules</p>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 overflow-hidden">
+                            <code className="text-xs text-emerald-400 font-mono truncate block">
+                              {`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=robots`}
+                            </code>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=robots`);
+                              setRobotsCopied(true);
+                              setTimeout(() => setRobotsCopied(false), 2000);
+                            }}
+                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
+                          >
+                            {robotsCopied ? <Check size={14} /> : <Copy size={14} />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => window.open(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=robots`, "_blank")}
+                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
+                          >
+                            <ExternalLink size={14} />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* ai.txt URL */}
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">ai.txt</p>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 overflow-hidden">
+                            <code className="text-xs text-emerald-400 font-mono truncate block">
+                              {`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=ai_txt`}
+                            </code>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=ai_txt`);
+                              setAiTxtCopied(true);
+                              setTimeout(() => setAiTxtCopied(false), 2000);
+                            }}
+                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
+                          >
+                            {aiTxtCopied ? <Check size={14} /> : <Copy size={14} />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => window.open(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=ai_txt`, "_blank")}
+                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
+                          >
+                            <ExternalLink size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
