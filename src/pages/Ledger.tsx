@@ -105,8 +105,10 @@ export default function Ledger() {
   const [apiMetrics, setApiMetrics] = useState<{
     total_revenue: number;
     total_transactions: number;
-    avg_transaction: number;
-    top_article: string | null;
+    human_licenses: number;
+    ai_licenses: number;
+    avg_transaction?: number;
+    top_article?: string | null;
   } | null>(null);
 
   // Filters
@@ -183,17 +185,25 @@ export default function Ledger() {
 
   const metrics = useMemo(() => {
     if (apiMetrics) {
+      const total = apiMetrics.total_revenue ?? 0;
+      const count = apiMetrics.total_transactions ?? 0;
       return {
-        totalRevenue: apiMetrics.total_revenue ?? 0,
-        totalTransactions: apiMetrics.total_transactions ?? 0,
-        avgTransaction: apiMetrics.avg_transaction ?? 0,
+        totalRevenue: total,
+        totalTransactions: count,
+        humanLicenses: apiMetrics.human_licenses ?? 0,
+        aiLicenses: apiMetrics.ai_licenses ?? 0,
+        avgTransaction: apiMetrics.avg_transaction ?? (count > 0 ? total / count : 0),
         topArticle: apiMetrics.top_article ?? null,
       };
     }
     const totalRevenue = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+    const human = transactions.filter(t => t.type === "human_license").length;
+    const ai = transactions.filter(t => t.type === "ai_ingestion").length;
     return {
       totalRevenue,
       totalTransactions: transactions.length,
+      humanLicenses: human,
+      aiLicenses: ai,
       avgTransaction: transactions.length > 0 ? totalRevenue / transactions.length : 0,
       topArticle: null,
     };
@@ -382,24 +392,18 @@ export default function Ledger() {
               <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.totalTransactions}</p>
             </div>
 
-            {/* Average Transaction */}
+            {/* Human Licenses */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-              <Sparkles size={20} className="text-emerald-600 mb-3" />
-              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Avg Transaction</p>
-              <p className="text-3xl font-bold text-[#040042] mt-1">${metrics.avgTransaction.toFixed(2)}</p>
+              <User size={20} className="text-[#D1009A] mb-3" />
+              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Human Licenses</p>
+              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.humanLicenses}</p>
             </div>
 
-            {/* Top Article */}
+            {/* AI Licenses */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-              <Trophy size={20} className="text-amber-500 mb-3" />
-              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Top Article</p>
-              {metrics.topArticle ? (
-                <p className="text-sm font-bold text-[#040042] mt-1 truncate" title={metrics.topArticle}>
-                  {decodeText(metrics.topArticle)}
-                </p>
-              ) : (
-                <p className="text-sm text-[#040042]/40 mt-1">No sales yet</p>
-              )}
+              <Sparkles size={20} className="text-[#4A26ED] mb-3" />
+              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">AI Licenses</p>
+              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.aiLicenses}</p>
             </div>
           </motion.div>
 
