@@ -68,7 +68,10 @@ interface PublisherProfile {
   logo_url: string | null;
   article_count: number;
   transaction_count: number;
+  stripe_account_id: string | null;
+  stripe_onboarding_complete: boolean;
   stripe_connect: StripeConnect | null;
+  webhook_url: string | null;
   webhook: { configured: boolean; url: string } | null;
   created_at: string;
 }
@@ -135,7 +138,15 @@ export default function Settings() {
       const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, { headers });
       const result = await res.json();
       if (result.success && result.data) {
-        const d = result.data as PublisherProfile;
+        // Support both flat (result.data) and nested (result.data.publisher) shapes
+        const pub = result.data.publisher || result.data;
+        const stats = result.data.stats || {};
+        const d: PublisherProfile = {
+          ...pub,
+          article_count: stats.article_count ?? pub.article_count ?? 0,
+          transaction_count: stats.transaction_count ?? pub.transaction_count ?? 0,
+          email: pub.email || user?.email || "",
+        };
         setProfile(d);
         setPublisherName(d.name || "");
         setBio(d.description || "");
@@ -143,7 +154,15 @@ export default function Settings() {
         setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "5.00");
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "10.00");
         setLogoPreview(d.logo_url || null);
-        if (d.stripe_connect) setStripeStatus(d.stripe_connect);
+        // Derive stripe status from publisher fields if stripe_connect not present
+        if (d.stripe_connect) {
+          setStripeStatus(d.stripe_connect);
+        } else if (d.stripe_account_id) {
+          setStripeStatus({
+            connected: true,
+            onboarding_complete: d.stripe_onboarding_complete ?? false,
+          });
+        }
       }
     } catch (err) {
       console.warn("[Settings] Failed to fetch profile:", err);
@@ -298,7 +317,7 @@ export default function Settings() {
       const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ action: "generate_api_key" }),
+        body: JSON.stringify({ action: "regenerate_api_key" }),
       });
       const result = await res.json();
       if (result.success && result.data?.api_key) {
@@ -326,7 +345,7 @@ export default function Settings() {
       });
       const result = await res.json();
       if (result.success && result.data?.onboarding_url) {
-        window.open(result.data.onboarding_url, "_blank");
+        window.location.href = result.data.onboarding_url;
       } else {
         throw new Error(result.error?.message || "Failed to start Stripe onboarding");
       }
