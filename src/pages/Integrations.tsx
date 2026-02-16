@@ -18,14 +18,13 @@ import {
   Check,
   Trash2,
   Eye,
-  Code2,
   AlertTriangle
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,11 +59,6 @@ interface WebhookDelivery {
   timestamp: string;
 }
 
-interface EmbedSnippets {
-  html_auto_detect: string;
-  html_auto_detect_badge: string;
-  wordpress_shortcode: string;
-}
 
 export default function Integrations() {
   const { user, getAccessToken } = useAuth();
@@ -86,10 +80,6 @@ export default function Integrations() {
   const [showDeliveries, setShowDeliveries] = useState(false);
   const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
 
-  // Embed snippets state
-  const [embedSnippets, setEmbedSnippets] = useState<EmbedSnippets | null>(null);
-  const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
-  const [snippetCopied, setSnippetCopied] = useState<string | null>(null);
 
   const [publisherId, setPublisherId] = useState<string | null>(null);
 
@@ -140,22 +130,13 @@ export default function Integrations() {
           setStripeStatus(stripeResult.data);
         }
 
-        // Fetch embed snippets
-        try {
-          const snippetsResult = await postAction("generate_embed_snippets");
-          if (snippetsResult.success && snippetsResult.data) {
-            setEmbedSnippets(snippetsResult.data);
-          }
-        } catch { /* ignore */ }
       } catch (err) {
         console.warn("[Integrations] Load failed:", err);
         setWebhookStatus({ configured: false, url: null });
       } finally {
         setIsStripeLoading(false);
-        setIsLoadingSnippets(false);
       }
     };
-    setIsLoadingSnippets(true);
     load();
   }, [apiHeaders, postAction]);
 
@@ -260,34 +241,8 @@ export default function Integrations() {
     }
   };
 
-  // --- Embed Snippets ---
-  const handleLoadSnippets = async () => {
-    if (embedSnippets) return;
-    setIsLoadingSnippets(true);
-    try {
-      const result = await postAction("generate_embed_snippets");
-      if (result.success && result.data) {
-        setEmbedSnippets(result.data);
-      }
-    } catch (err) {
-      console.warn("[Integrations] Snippets fetch failed:", err);
-    } finally {
-      setIsLoadingSnippets(false);
-    }
-  };
 
-
-
-  const handleCopySnippet = async (code: string, tab: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setSnippetCopied(tab);
-      setTimeout(() => setSnippetCopied(null), 2000);
-      toast({ title: "Copied!", description: "Snippet copied to clipboard." });
-    } catch {
-      toast({ title: "Copy Failed", variant: "destructive" });
-    }
-  };
+  // Stripe status helpers
 
   // Stripe status helpers
   const isStripeFullyConnected = stripeStatus?.connected && stripeStatus?.onboarding_complete;
@@ -622,74 +577,6 @@ export default function Integrations() {
             <WidgetCustomizer publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
           </section>
 
-          {/* Section 4: Embed Snippets */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Code2 size={18} className="text-[#4A26ED]" />
-              <h2 className="font-bold text-[#040042]">Embed Snippets</h2>
-            </div>
-
-            <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-              {isLoadingSnippets ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 size={24} className="animate-spin text-[#4A26ED]" />
-                </div>
-              ) : embedSnippets ? (
-                <Tabs defaultValue="html_auto" className="w-full">
-                  <TabsList className="bg-slate-50 border border-slate-100 rounded-xl p-1 h-auto mb-4">
-                    <TabsTrigger value="html_auto" className="text-xs rounded-lg px-3 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                      HTML (Auto-detect)
-                    </TabsTrigger>
-                    <TabsTrigger value="html_badge" className="text-xs rounded-lg px-3 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                      HTML (Badge)
-                    </TabsTrigger>
-                    <TabsTrigger value="wordpress" className="text-xs rounded-lg px-3 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                      WordPress
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {[
-                    { value: "html_auto", code: embedSnippets.html_auto_detect },
-                    { value: "html_badge", code: embedSnippets.html_auto_detect_badge },
-                    { value: "wordpress", code: embedSnippets.wordpress_shortcode },
-                  ].map(({ value, code }) => (
-                    <TabsContent key={value} value={value}>
-                      <div className="relative">
-                        <pre className="bg-slate-900 text-slate-200 rounded-xl p-4 text-xs font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48">
-                          {code}
-                        </pre>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleCopySnippet(code, value)}
-                          className="absolute top-3 right-3 h-8 px-3 bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-lg text-xs"
-                        >
-                          {snippetCopied === value ? <><Check size={12} className="mr-1" />Copied</> : <><Copy size={12} className="mr-1" />Copy</>}
-                        </Button>
-                      </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              ) : (
-                <div className="text-center py-6 text-sm text-slate-400">
-                  <p>Could not load embed snippets.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleLoadSnippets}
-                    className="mt-3 text-xs"
-                  >
-                    Retry
-                  </Button>
-                </div>
-              )}
-
-              <p className="text-xs text-slate-400 mt-4">
-                Need per-article snippets? Find them on each article's detail page in your{" "}
-                <a href="/dashboard" className="text-[#4A26ED] hover:underline">Registry</a>.
-              </p>
-            </div>
-          </section>
 
         </div>
       </main>
