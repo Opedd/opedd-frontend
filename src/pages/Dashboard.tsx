@@ -16,6 +16,7 @@ import { AssetGrid } from "@/components/dashboard/AssetGrid";
 import { AssetDetailDrawer } from "@/components/dashboard/AssetDetailDrawer";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
+import { OnboardingCards } from "@/components/dashboard/OnboardingCards";
 import { FloatingPriceBar } from "@/components/dashboard/FloatingPriceBar";
 import { BulkPricingModal } from "@/components/dashboard/BulkPricingModal";
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +42,7 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single">("choice");
+  const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single" | "enterprise">("choice");
   const [registryTab, setRegistryTab] = useState<"sources" | "library">("sources");
   const [sourceLookup, setSourceLookup] = useState<Record<string, string>>({});
   const [platformLookup, setPlatformLookup] = useState<Record<string, string>>({});
@@ -163,6 +164,15 @@ export default function Dashboard() {
               Register Content
             </button>
           </div>
+
+          {/* Onboarding Cards — show when no assets */}
+          {!isLoading && assets.length === 0 && (
+            <OnboardingCards
+              onSyncClick={() => { setModalInitialView("publication"); setIsAddModalOpen(true); }}
+              onRegisterClick={() => { setModalInitialView("single"); setIsAddModalOpen(true); }}
+              onEnterpriseClick={() => { setModalInitialView("enterprise"); setIsAddModalOpen(true); }}
+            />
+          )}
 
           {/* Compact Metrics */}
           <TooltipProvider>

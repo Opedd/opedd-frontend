@@ -37,6 +37,8 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
+import { PlatformSetupInstructions } from "@/components/dashboard/PlatformSetupInstructions";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 // Platform logos
 import substackLogo from "@/assets/platforms/substack.svg";
@@ -61,12 +63,12 @@ interface MockArticle {
 }
 
 // Detect platform from URL
-const detectPlatform = (url: string): { name: string; logo: string } | null => {
+const detectPlatform = (url: string): { name: string; logo: string; supportsWidget: boolean } | null => {
   const lowerUrl = url.toLowerCase();
-  if (lowerUrl.includes("substack.com")) return { name: "Substack", logo: substackLogo };
-  if (lowerUrl.includes("ghost.io") || lowerUrl.includes("ghost.org")) return { name: "Ghost", logo: ghostLogo };
-  if (lowerUrl.includes("beehiiv.com")) return { name: "Beehiiv", logo: beehiivLogo };
-  if (lowerUrl.includes("wordpress.com") || lowerUrl.includes("wp.com")) return { name: "WordPress", logo: wordpressLogo };
+  if (lowerUrl.includes("substack.com")) return { name: "Substack", logo: substackLogo, supportsWidget: false };
+  if (lowerUrl.includes("ghost.io") || lowerUrl.includes("ghost.org")) return { name: "Ghost", logo: ghostLogo, supportsWidget: true };
+  if (lowerUrl.includes("beehiiv.com")) return { name: "Beehiiv", logo: beehiivLogo, supportsWidget: true };
+  if (lowerUrl.includes("wordpress.com") || lowerUrl.includes("wp.com")) return { name: "WordPress", logo: wordpressLogo, supportsWidget: true };
   return null;
 };
 
@@ -93,14 +95,21 @@ const generateContentHash = (content: string): string => {
 
 export function RegisterContentModal({ open, onOpenChange, onSuccess, initialView = "choice", checkIntegrations = false }: RegisterContentModalProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, getAccessToken } = useAuth();
   const { contentSources } = useAuthenticatedApi();
   const navigate = useNavigate();
-  
+
   const [view, setView] = useState<ModalView>(initialView);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [copiedVerification, setCopiedVerification] = useState(false);
+
+  // Publisher profile ID (for widget code)
+  const [publisherProfileId, setPublisherProfileId] = useState<string | null>(null);
+
+  // Platform setup state (widget install flow)
+  const [showPlatformSetup, setShowPlatformSetup] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<"ghost" | "wordpress" | "beehiiv" | "other" | null>(null);
   
   // Check for active integrations (for empty state)
   const [hasActiveIntegrations, setHasActiveIntegrations] = useState(true);
@@ -111,7 +120,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     if (open) {
       setView(initialView);
       setVerificationCode(generateVerificationCode());
-      
+      setShowPlatformSetup(false);
+      setSelectedPlatform(null);
+
       // Check for active integrations if needed
       if (checkIntegrations && initialView === "publication" && user) {
         setIntegrationsLoading(true);
@@ -127,6 +138,31 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       }
     }
   }, [open, initialView, checkIntegrations, user]);
+
+  // Fetch publisher profile ID for widget code
+  useEffect(() => {
+    if (!open || !user) return;
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        if (!token) return;
+        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+          headers: {
+            apikey: EXT_ANON_KEY,
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+        const result = await res.json();
+        if (result.success && result.data) {
+          const pub = result.data.publisher || result.data;
+          setPublisherProfileId(pub.id);
+        }
+      } catch {
+        // Non-critical — widget code will fall back to asset ID
+      }
+    })();
+  }, [open, user, getAccessToken]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredAssetId, setRegisteredAssetId] = useState<string | null>(null);
@@ -240,6 +276,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setEnterpriseOrgName("");
     setEnterpriseHumanPrice("4.99");
     setEnterpriseAiPrice("");
+    setShowPlatformSetup(false);
+    setSelectedPlatform(null);
   };
 
   const handleClose = () => {
@@ -325,7 +363,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   const directPayLink = registeredAssetId
     ? `https://opedd.io/pay/${registeredAssetId}`
     : "";
-  const widgetCode = registeredAssetId
+  const widgetCode = publisherProfileId
+    ? `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget" data-publisher-id="${publisherProfileId}"></script>`
+    : registeredAssetId
     ? `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget" data-asset-id="${registeredAssetId}"></script>`
     : "";
 
@@ -616,15 +656,26 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   };
 
   // Platform icons for display with placeholders
-  const platformIcons = [
-    { name: "Substack", logo: substackLogo, placeholder: "yourname.substack.com/feed" },
-    { name: "Ghost", logo: ghostLogo, placeholder: "yoursite.ghost.io/rss" },
-    { name: "Beehiiv", logo: beehiivLogo, placeholder: "yourname.beehiiv.com/feed" },
-    { name: "WordPress", logo: wordpressLogo, placeholder: "yoursite.wordpress.com/feed" },
+  const platformIcons: { name: string; logo: string | null; placeholder: string; supportsWidget: boolean; platformKey: "ghost" | "wordpress" | "beehiiv" | "other" | null }[] = [
+    { name: "Substack", logo: substackLogo, placeholder: "yourname.substack.com/feed", supportsWidget: false, platformKey: null },
+    { name: "Ghost", logo: ghostLogo, placeholder: "yoursite.ghost.io/rss", supportsWidget: true, platformKey: "ghost" },
+    { name: "Beehiiv", logo: beehiivLogo, placeholder: "yourname.beehiiv.com/feed", supportsWidget: true, platformKey: "beehiiv" },
+    { name: "WordPress", logo: wordpressLogo, placeholder: "yoursite.wordpress.com/feed", supportsWidget: true, platformKey: "wordpress" },
+    { name: "Other", logo: null, placeholder: "", supportsWidget: true, platformKey: "other" },
   ];
 
-  const handlePlatformClick = (placeholder: string) => {
-    setFeedUrl(`https://${placeholder}`);
+  const handlePlatformClick = (platform: typeof platformIcons[number]) => {
+    if (platform.supportsWidget && platform.platformKey && publisherProfileId) {
+      setSelectedPlatform(platform.platformKey);
+      setShowPlatformSetup(true);
+    } else {
+      // RSS-only (Substack) or no publisher profile yet — fill the RSS URL template
+      if (platform.placeholder) {
+        setFeedUrl(`https://${platform.placeholder}`);
+      }
+      setShowPlatformSetup(false);
+      setSelectedPlatform(null);
+    }
   };
 
   // CHOICE VIEW
@@ -960,23 +1011,49 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               {platformIcons.map((platform) => (
                 <button
                   key={platform.name}
-                  onClick={() => handlePlatformClick(platform.placeholder)}
+                  onClick={() => handlePlatformClick(platform)}
                   className="flex flex-col items-center gap-1.5 group"
-                  title={`Click to use ${platform.name} template`}
+                  title={platform.supportsWidget ? `Install widget on ${platform.name}` : `Use ${platform.name} RSS template`}
                 >
                   <div className="w-12 h-12 rounded-xl bg-white border-2 border-slate-200 flex items-center justify-center p-2 hover:border-[#4A26ED] hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all cursor-pointer group-hover:scale-105">
-                    <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
+                    {platform.logo ? (
+                      <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
+                    ) : (
+                      <Globe size={22} className="text-slate-400 group-hover:text-[#4A26ED] transition-colors" />
+                    )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-medium group-hover:text-[#4A26ED] transition-colors">{platform.name}</span>
                 </button>
               ))}
             </div>
 
+            {/* Platform Setup Instructions (widget install flow) */}
+            {showPlatformSetup && selectedPlatform && publisherProfileId ? (
+              <PlatformSetupInstructions
+                platform={selectedPlatform}
+                publisherId={publisherProfileId}
+                onDone={handleClose}
+                onUseRss={() => {
+                  setShowPlatformSetup(false);
+                  setSelectedPlatform(null);
+                  // Fill the matching RSS template
+                  const templates: Record<string, string> = {
+                    ghost: "https://yoursite.ghost.io/rss",
+                    wordpress: "https://yoursite.wordpress.com/feed",
+                    beehiiv: "https://yourname.beehiiv.com/feed",
+                  };
+                  if (templates[selectedPlatform]) {
+                    setFeedUrl(templates[selectedPlatform]);
+                  }
+                }}
+              />
+            ) : (
+            <>
             <div className="space-y-2">
               <Label className="text-sm font-bold text-[#040042]">RSS Feed or Site URL</Label>
               <div className="relative">
                 <Rss size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-                <Input 
+                <Input
                   value={feedUrl}
                   onChange={(e) => setFeedUrl(e.target.value)}
                   placeholder="https://yourname.substack.com/feed"
@@ -987,6 +1064,15 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               <p className="text-xs text-slate-500">
                 We'll fetch and license all articles from this feed
               </p>
+
+              {/* Substack RSS-only note */}
+              {detectedPlatform && !detectedPlatform.supportsWidget && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 animate-in fade-in-0 duration-200">
+                  <p className="text-xs text-blue-700">
+                    {detectedPlatform.name} doesn't support custom JS injection, so we'll use RSS sync to automatically import your content.
+                  </p>
+                </div>
+              )}
 
               {/* Platform Helper Hint — shown when URL looks invalid */}
               {feedUrl.length > 5 && !feedUrl.includes('.') && (
@@ -1116,13 +1202,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <Shield size={16} className="text-[#4A26ED]" />
                 <span className="text-sm font-semibold text-[#040042]">Global License Fees</span>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-[#040042]">Human Republication *</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
-                    <Input 
+                    <Input
                       type="number"
                       value={pubHumanPrice}
                       onChange={(e) => setPubHumanPrice(e.target.value)}
@@ -1135,12 +1221,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   </div>
                   <p className="text-xs text-slate-400">Per article license</p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-[#040042]">AI Ingestion <span className="text-slate-400 font-normal">(optional)</span></Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
-                    <Input 
+                    <Input
                       type="number"
                       value={pubAiPrice}
                       onChange={(e) => setPubAiPrice(e.target.value)}
@@ -1155,11 +1241,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
               </div>
             </div>
+            </>
+            )}
             </div>
 
-            {/* Sticky Footer */}
+            {/* Sticky Footer — only show for RSS form, not platform setup */}
+            {!showPlatformSetup && (
             <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-              <Button 
+              <Button
                 onClick={handlePublicationSync}
                 disabled={isSubmitting || isConnecting || !feedUrl.trim()}
                 className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1183,6 +1272,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 )}
               </Button>
             </div>
+            )}
             </>
           )}
         </DialogContent>
