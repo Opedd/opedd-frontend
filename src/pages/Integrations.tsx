@@ -307,14 +307,32 @@ export default function Integrations() {
             </div>
           </div>
 
-          {/* Section 1: Connectors Grid */}
+          {/* Section 1: Widget Customizer */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Palette size={18} className="text-[#D1009A]" />
+                <h2 className="font-bold text-[#040042]">Opedd Widget Customizer</h2>
+              </div>
+              <span className="text-xs text-[#040042]/50 bg-[#D1009A]/10 px-2 py-1 rounded-full">
+                Embed on your site
+              </span>
+            </div>
+            <p className="text-sm text-[#040042]/60 -mt-2">
+              Design your licensing widget, copy the embed code, and paste it on your site. One tag handles both human and AI licensing.
+            </p>
+            
+            <WidgetCustomizer publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
+          </section>
+
+          {/* Section 2: Payment Connectors Grid */}
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <Plug size={18} className="text-[#4A26ED]" />
-              <h2 className="font-bold text-[#040042]">Connectors</h2>
+              <h2 className="font-bold text-[#040042]">Payment Connectors</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Stripe Card */}
               <div className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md transition-all flex flex-col">
                 <div className="flex items-start justify-between mb-3">
@@ -365,38 +383,18 @@ export default function Integrations() {
                   Notify Me
                 </Button>
               </div>
-
-              {/* Webhooks Card */}
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md transition-all flex flex-col">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
-                    <Webhook size={22} className="text-emerald-600" />
-                  </div>
-                  {getWebhookStatusBadge()}
-                </div>
-                <h3 className="font-semibold text-[#040042] text-sm">Webhooks</h3>
-                <p className="text-xs text-[#040042]/50 mt-1 flex-1">Receive real-time events for licensing activity</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const el = document.getElementById("webhook-section");
-                    el?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="mt-4 w-full h-9 text-xs gap-1.5"
-                >
-                  {webhookStatus?.configured ? "Manage" : "Configure"}
-                </Button>
-              </div>
             </div>
           </section>
 
-          {/* Section 2: Webhook Configuration */}
+          {/* Section 3: Webhook Configuration */}
           <section id="webhook-section" className="space-y-4">
             <div className="flex items-center gap-2">
               <Webhook size={18} className="text-emerald-600" />
               <h2 className="font-bold text-[#040042]">Webhooks</h2>
             </div>
+            <p className="text-sm text-[#040042]/60 -mt-2">
+              Advanced: receive real-time events when licenses are purchased or verified
+            </p>
 
             <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm space-y-5">
               {webhookStatus?.configured ? (
@@ -557,24 +555,6 @@ export default function Integrations() {
                 </>
               )}
             </div>
-          </section>
-
-          {/* Section 3: Widget Customizer */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Palette size={18} className="text-[#D1009A]" />
-                <h2 className="font-bold text-[#040042]">Opedd Widget Customizer</h2>
-              </div>
-              <span className="text-xs text-[#040042]/50 bg-[#D1009A]/10 px-2 py-1 rounded-full">
-                Embed on your site
-              </span>
-            </div>
-            <p className="text-sm text-[#040042]/60 -mt-2">
-              Design your licensing widget and get the embed code for your website.
-            </p>
-            
-            <WidgetCustomizer publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
           </section>
 
 
