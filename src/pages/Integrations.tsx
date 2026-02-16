@@ -4,7 +4,6 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { 
-  Shield, 
   Plug,
   Palette,
   CreditCard,
@@ -22,7 +21,7 @@ import {
   Code2,
   AlertTriangle
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -92,11 +91,7 @@ export default function Integrations() {
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
   const [snippetCopied, setSnippetCopied] = useState<string | null>(null);
 
-  // AI Policy State
-  const [aiDefenseEnabled, setAiDefenseEnabled] = useState(true);
   const [publisherId, setPublisherId] = useState<string | null>(null);
-  const [robotsCopied, setRobotsCopied] = useState(false);
-  const [aiTxtCopied, setAiTxtCopied] = useState(false);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -292,15 +287,6 @@ export default function Integrations() {
     } catch {
       toast({ title: "Copy Failed", variant: "destructive" });
     }
-  };
-
-  // --- AI Defense ---
-  const handlePreviewRobotsTxt = () => {
-    if (!publisherId) return;
-    window.open(
-      `${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=robots`,
-      "_blank"
-    );
   };
 
   // Stripe status helpers
@@ -705,148 +691,6 @@ export default function Integrations() {
             </div>
           </section>
 
-          {/* Section 5: AI Defense Policy */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Shield size={18} className="text-[#4A26ED]" />
-              <h2 className="font-bold text-[#040042]">AI Defense Policy</h2>
-            </div>
-            
-            <div className="bg-gradient-to-br from-[#040042] via-[#0a0a5c] to-[#040042] rounded-xl p-6 shadow-xl">
-              <div className="flex items-start justify-between gap-6">
-                <div className="flex gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-[#4A26ED] to-[#7C3AED] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#4A26ED]/30">
-                    <Shield size={26} className="text-white" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-bold text-white">Global AI Rights Enforcement</h3>
-                    <p className="text-sm text-white/60 max-w-md leading-relaxed">
-                      When enabled, Opedd automatically updates your headers and robots.txt to block scrapers that do not pay your required licensing fees.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                  <Switch
-                    checked={aiDefenseEnabled}
-                    onCheckedChange={(checked) => {
-                      setAiDefenseEnabled(checked);
-                      toast({
-                        title: checked ? "AI Defense Activated" : "AI Defense Disabled",
-                        description: checked 
-                          ? "Your content is now protected from unauthorized AI scraping."
-                          : "AI crawlers can access your content freely.",
-                      });
-                    }}
-                    className="data-[state=checked]:bg-emerald-500 scale-110"
-                  />
-                  <span className="text-xs text-white/40 mt-1">
-                    {aiDefenseEnabled ? "Active" : "Disabled"}
-                  </span>
-                </div>
-              </div>
-              
-              {aiDefenseEnabled && (
-                <div className="mt-6 pt-5 border-t border-white/10 space-y-5">
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full" />
-                      <div>
-                        <div className="text-xs text-white/40">robots.txt</div>
-                        <div className="text-sm font-semibold text-white">Updated</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full" />
-                      <div>
-                        <div className="text-xs text-white/40">ai.txt headers</div>
-                        <div className="text-sm font-semibold text-white">Configured</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full" />
-                      <div>
-                        <div className="text-xs text-white/40">Secure Rights Ledger</div>
-                        <div className="text-sm font-semibold text-white">Registered</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Policy URLs */}
-                  {publisherId && (
-                    <div className="space-y-3 pt-3 border-t border-white/10">
-                      <p className="text-xs text-white/50 leading-relaxed">
-                        Add these rules to your site's <code className="text-white/70 bg-white/10 px-1.5 py-0.5 rounded">robots.txt</code> and <code className="text-white/70 bg-white/10 px-1.5 py-0.5 rounded">ai.txt</code> files to block AI crawlers from scraping your content.
-                      </p>
-
-                      {/* robots.txt URL */}
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">robots.txt rules</p>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 overflow-hidden">
-                            <code className="text-xs text-emerald-400 font-mono truncate block">
-                              {`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=robots`}
-                            </code>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              navigator.clipboard.writeText(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=robots`);
-                              setRobotsCopied(true);
-                              setTimeout(() => setRobotsCopied(false), 2000);
-                            }}
-                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
-                          >
-                            {robotsCopied ? <Check size={14} /> : <Copy size={14} />}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => window.open(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=robots`, "_blank")}
-                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
-                          >
-                            <ExternalLink size={14} />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* ai.txt URL */}
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">ai.txt</p>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 overflow-hidden">
-                            <code className="text-xs text-emerald-400 font-mono truncate block">
-                              {`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=ai_txt`}
-                            </code>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              navigator.clipboard.writeText(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=ai_txt`);
-                              setAiTxtCopied(true);
-                              setTimeout(() => setAiTxtCopied(false), 2000);
-                            }}
-                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
-                          >
-                            {aiTxtCopied ? <Check size={14} /> : <Copy size={14} />}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => window.open(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}&format=ai_txt`, "_blank")}
-                            className="h-9 px-3 text-white/50 hover:text-white hover:bg-white/10 shrink-0"
-                          >
-                            <ExternalLink size={14} />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
         </div>
       </main>
     </div>
