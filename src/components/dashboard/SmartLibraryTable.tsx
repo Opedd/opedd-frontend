@@ -228,6 +228,7 @@ export function SmartLibraryTable({
         <OnboardingCards 
           onSyncClick={() => onSyncClick?.()}
           onRegisterClick={() => onRegisterClick?.()}
+          onEnterpriseClick={() => {}}
         />
       )}
 
