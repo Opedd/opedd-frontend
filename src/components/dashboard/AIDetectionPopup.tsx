@@ -45,7 +45,7 @@ export function AIDetectionPopup({
             <p className="font-semibold text-sm">Protect Your Content</p>
           </div>
           <p className="text-white/70 text-sm leading-relaxed">
-            Mint this asset on Story Protocol to enable automated billing for AI Labs. 
+            Mint this asset on Opedd Protocol to enable automated billing for AI Labs. 
             Every future access will be logged and monetized automatically.
           </p>
         </div>
@@ -66,7 +66,7 @@ export function AIDetectionPopup({
             }}
           >
             <Shield size={16} className="mr-2" />
-            Mint on Story Protocol
+            Mint on Opedd Protocol
             <ExternalLink size={14} className="ml-2" />
           </Button>
         </DialogFooter>

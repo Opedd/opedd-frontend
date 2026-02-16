@@ -280,11 +280,11 @@ export function TransactionReceiptDrawer({
 
           <Separator />
 
-          {/* Story Protocol Details */}
+          {/* Opedd Protocol Details */}
           <div className="bg-gradient-to-br from-[#040042] to-[#1a1a5c] rounded-xl p-5 text-white">
             <div className="flex items-center gap-2 mb-4">
               <Shield size={18} className="text-[#4A26ED]" />
-              <p className="font-semibold">Story Protocol Record</p>
+              <p className="font-semibold">Opedd Protocol Record</p>
             </div>
             {transaction.storyProtocolHash ? (
               <div>

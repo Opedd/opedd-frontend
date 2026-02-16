@@ -17,8 +17,8 @@ const features = [
   {
     icon: FileText,
     title: "Automated Revenue Settlement",
-    description: "Track every ingestion. Receive payments automatically via Story Protocol.",
-    highlight: "Story Protocol",
+    description: "Track every ingestion. Receive payments automatically via Opedd Protocol.",
+    highlight: "Opedd Protocol",
   },
 ];
 

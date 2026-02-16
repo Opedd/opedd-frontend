@@ -322,11 +322,11 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   };
 
   // Generate distribution links
-  const directPayLink = registeredAssetId 
-    ? `https://opedd.io/pay/${registeredAssetId}` 
+  const directPayLink = registeredAssetId
+    ? `https://opedd.io/pay/${registeredAssetId}`
     : "";
-  const widgetCode = registeredAssetId 
-    ? `<script src="https://opedd.io/widget.js" data-asset-id="${registeredAssetId}"></script>` 
+  const widgetCode = registeredAssetId
+    ? `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget" data-asset-id="${registeredAssetId}"></script>`
     : "";
 
   const handleCopy = async (text: string, type: "widget" | "link" | "verification") => {

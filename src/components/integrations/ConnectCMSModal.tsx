@@ -130,8 +130,8 @@ export function ConnectCMSModal({
     onOpenChange(false);
   };
 
-  const widgetCode = `<script src="https://opedd.io/widget.js" 
-  data-publisher="${publisherId}"
+  const widgetCode = `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"
+  data-publisher-id="${publisherId}"
   data-human-fee="${humanPrice}"
   data-ai-fee="${aiPrice}">
 </script>`;
@@ -175,8 +175,8 @@ export function ConnectCMSModal({
           </h2>
           <p className="text-white/60 text-sm mt-1">
             {step === "form" && `Connect your ${platformName} to automatically shield your content`}
-            {step === "syncing" && "Importing and registering your content on Story Protocol"}
-            {step === "complete" && "Your articles are now protected with IP rights"}
+            {step === "syncing" && "Importing and registering your content on Opedd Protocol"}
+            {step === "complete" && "Your articles are now protected and licensed"}
           </p>
         </div>
 
@@ -263,7 +263,7 @@ export function ConnectCMSModal({
                 </div>
                 <h3 className="text-lg font-bold text-[#040042]">Syncing Archive</h3>
                 <p className="text-sm text-[#040042]/60 mt-1">
-                  Registering {currentArticle}/{totalArticles} articles on Story Protocol...
+                  Registering {currentArticle}/{totalArticles} articles on Opedd Protocol...
                 </p>
               </div>
 
@@ -321,7 +321,7 @@ export function ConnectCMSModal({
                 </div>
                 <h3 className="text-lg font-bold text-[#040042]">Archive Protected!</h3>
                 <p className="text-sm text-[#040042]/60 mt-1">
-                  {totalArticles} articles registered on Story Protocol
+                  {totalArticles} articles registered on Opedd Protocol
                 </p>
               </div>
 

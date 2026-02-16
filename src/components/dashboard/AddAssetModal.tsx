@@ -124,8 +124,8 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
   const directPayLink = registeredAssetId 
     ? `https://opedd.io/pay/${registeredAssetId}` 
     : "";
-  const widgetCode = registeredAssetId 
-    ? `<script src="https://opedd.io/widget.js" data-asset-id="${registeredAssetId}"></script>` 
+  const widgetCode = registeredAssetId
+    ? `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget" data-asset-id="${registeredAssetId}"></script>`
     : "";
 
   const handleCopy = async (text: string, type: "widget" | "link") => {
@@ -219,7 +219,7 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
 
       toast({
         title: "Asset Registered",
-        description: "Your content has been protected on Story Protocol",
+        description: "Your content has been protected on Opedd Protocol",
       });
 
       onSuccess?.();
@@ -248,7 +248,7 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
                 <div className="h-6 w-px bg-white/20" />
                 <div>
                   <h1 className="text-white font-bold text-lg leading-tight">Registration Complete</h1>
-                  <p className="text-emerald-400 text-sm">Your IP is now protected on Story Protocol</p>
+                  <p className="text-emerald-400 text-sm">Your IP is now protected on Opedd Protocol</p>
                 </div>
               </div>
               <button
@@ -385,7 +385,7 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
               <div className="h-6 w-px bg-white/20" />
               <div>
                 <h1 className="text-white font-bold text-lg leading-tight">Register Intellectual Property</h1>
-                <p className="text-[#A78BFA] text-sm">Set your licensing terms on Story Protocol</p>
+                <p className="text-[#A78BFA] text-sm">Set your licensing terms on Opedd Protocol</p>
               </div>
             </div>
             <button
@@ -670,12 +670,12 @@ export function AddAssetModal({ open, onOpenChange, onSuccess }: AddAssetModalPr
             {isSubmitting ? (
               <>
                 <Loader2 size={18} className="mr-2 animate-spin" />
-                Minting on Story Protocol...
+                Minting on Opedd Protocol...
               </>
             ) : (
               <>
                 <Shield size={18} className="mr-2" />
-                Mint & Protect on Story Protocol
+                Mint & Protect on Opedd Protocol
               </>
             )}
           </Button>
