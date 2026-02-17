@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
-import opeddLogo from "@/assets/opedd-logo.png";
-import opeddLogoInverse from "@/assets/opedd-logo-inverse.png";
+
+/** Minimal Opedd "O" icon mark — no wordmark */
+const OpeddMark = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" className={className}>
+    <path
+      d="M16 4C9.373 4 4 9.373 4 16s5.373 12 12 12 12-5.373 12-12S22.627 4 16 4Zm0 19.5c-4.142 0-7.5-3.358-7.5-7.5S11.858 8.5 16 8.5s7.5 3.358 7.5 7.5-3.358 7.5-7.5 7.5Z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
 const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
   const [selectedPrice, setSelectedPrice] = useState<"human" | "ai">("human");
@@ -23,8 +31,8 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
     <div className={`w-[360px] rounded-2xl ${bg} border ${border} ${cardShadow} overflow-hidden`}>
       {/* Header */}
       <div className={`flex items-center gap-2.5 px-5 pt-4 pb-3 border-b ${border}`}>
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center p-1">
-          <img src={opeddLogoInverse} alt="Opedd" className="w-full h-full object-contain" />
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center">
+          <OpeddMark size={18} className="text-white" />
         </div>
         <span className={`text-[11px] font-semibold tracking-[0.08em] uppercase ${textMuted}`}>Opedd License</span>
       </div>
@@ -96,7 +104,7 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
 
       {/* Footer */}
       <div className={`flex items-center justify-center gap-1.5 py-3 border-t ${border}`}>
-        <img src={opeddLogo} alt="Opedd" className="h-3 opacity-40" />
+        <OpeddMark size={12} className={`${textMuted} opacity-60`} />
         <span className={`text-[10px] ${textMuted}`}>Powered by Opedd Protocol</span>
       </div>
     </div>
@@ -134,8 +142,8 @@ const WidgetBadge = ({ dark = false }: { dark?: boolean }) => {
 
   return (
     <div className={`inline-flex items-center gap-2 rounded-full ${bg} border ${border} ${shadow} pl-2 pr-3 py-1.5`}>
-      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center p-0.5">
-        <img src={opeddLogoInverse} alt="Opedd" className="w-full h-full object-contain" />
+      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center">
+        <OpeddMark size={13} className="text-white" />
       </div>
       <span className={`text-xs font-semibold ${text}`}>From $10.00</span>
       <span className={`text-[10px] ${textMuted}`}>· 12</span>
