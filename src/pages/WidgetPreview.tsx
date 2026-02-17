@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo.png";
+import opeddLogoInverse from "@/assets/opedd-logo-inverse.png";
 
 const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
   const [selectedPrice, setSelectedPrice] = useState<"human" | "ai">("human");
@@ -22,8 +23,8 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
     <div className={`w-[360px] rounded-2xl ${bg} border ${border} ${cardShadow} overflow-hidden`}>
       {/* Header */}
       <div className={`flex items-center gap-2.5 px-5 pt-4 pb-3 border-b ${border}`}>
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">OP</span>
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center p-1">
+          <img src={opeddLogoInverse} alt="Opedd" className="w-full h-full object-contain" />
         </div>
         <span className={`text-[11px] font-semibold tracking-[0.08em] uppercase ${textMuted}`}>Opedd License</span>
       </div>
@@ -133,8 +134,8 @@ const WidgetBadge = ({ dark = false }: { dark?: boolean }) => {
 
   return (
     <div className={`inline-flex items-center gap-2 rounded-full ${bg} border ${border} ${shadow} pl-2 pr-3 py-1.5`}>
-      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center">
-        <span className="text-white text-[7px] font-bold tracking-wider">OP</span>
+      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center p-0.5">
+        <img src={opeddLogoInverse} alt="Opedd" className="w-full h-full object-contain" />
       </div>
       <span className={`text-xs font-semibold ${text}`}>From $10.00</span>
       <span className={`text-[10px] ${textMuted}`}>· 12</span>
