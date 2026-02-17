@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Large blue speech-bubble / teardrop shape -->
+  <path d="M55 10C34.6 10 18 26.6 18 47c0 10.2 4.1 19.4 10.8 26.1L26 90c0 0 0 0 0 0l2-1c3.5-2 7.5-4 11-5.2C42.5 85.2 46.2 86 50 86h5c20.4 0 37-16.6 37-37S75.4 10 55 10Z" fill="#4A50E2"/>
+  <!-- Pink/magenta circle overlapping top-left -->
+  <circle cx="32" cy="28" r="16" fill="#D1267D"/>
+  <!-- Dark overlap intersection -->
+  <clipPath id="ov">
+    <circle cx="32" cy="28" r="16"/>
+  </clipPath>
+  <path d="M55 10C34.6 10 18 26.6 18 47c0 10.2 4.1 19.4 10.8 26.1L26 90l2-1c3.5-2 7.5-4 11-5.2C42.5 85.2 46.2 86 50 86h5c20.4 0 37-16.6 37-37S75.4 10 55 10Z" fill="#1E0A3C" opacity="0.75" clip-path="url(#ov)"/>
+</svg>
