@@ -132,7 +132,7 @@ const WidgetBadge = ({ dark = false }: { dark?: boolean }) => {
 
   return (
     <div className={`inline-flex items-center gap-2 rounded-full ${bg} border ${border} ${shadow} pl-2 pr-3 py-1.5`}>
-      <div className={`w-5 h-5 rounded-md flex items-center justify-center ${dark ? "" : "bg-[#040042] p-0.5"}`}>
+      <div className="w-5 h-5 flex items-center justify-center">
         <img src={opeddIcon} alt="Opedd" className="w-full h-full object-contain" />
       </div>
       <span className={`text-xs font-semibold ${text}`}>From $10.00</span>
