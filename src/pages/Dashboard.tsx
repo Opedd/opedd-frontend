@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
+import { useDebounce } from "@/hooks/useDebounce";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Bot, AlertTriangle, HelpCircle, Rss, List, CheckSquare } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Bot, AlertTriangle, HelpCircle, Rss, List, CheckSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -27,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Asset, AssetStatus, AccessType } from "@/types/asset";
+import { Asset, AssetStatus, AccessType, PaginatedResponse } from "@/types/asset";
 import { mapDbAssetToUiAsset, DbAsset } from "@/types/asset";
 
 type StatusFilter = "all" | "protected" | "syncing" | "pending" | "failed";
@@ -36,11 +37,16 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { contentSources, licenses } = useAuthenticatedApi();
+  const PAGE_SIZE = 30;
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 300);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [totalAssets, setTotalAssets] = useState(0);
+  const [protectedCount, setProtectedCount] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single" | "enterprise">("choice");
   const [registryTab, setRegistryTab] = useState<"sources" | "library">("sources");
@@ -74,62 +80,65 @@ export default function Dashboard() {
     setIsAddModalOpen(true);
   };
 
-  const fetchAssets = async () => {
+  // Fetch sources once (stable, doesn't depend on filters)
+  const fetchSources = useCallback(async () => {
+    if (!user) return;
+    const sourcesResult = await supabase
+      .from("rss_sources")
+      .select("id, name, platform")
+      .eq("user_id", user.id);
+
+    const sources = sourcesResult.data || [];
+    const lookup: Record<string, string> = {};
+    const platLookup: Record<string, string> = {};
+    sources.forEach((s) => { lookup[s.id] = s.name; platLookup[s.id] = s.platform || ""; });
+    setSourceLookup(lookup);
+    setPlatformLookup(platLookup);
+    setSourceList(sources);
+  }, [user]);
+
+  const fetchAssets = useCallback(async () => {
     if (!user) return;
     try {
       setIsLoading(true);
-      
-      const sourcesResult = await supabase
-        .from("rss_sources")
-        .select("id, name, platform")
-        .eq("user_id", user.id);
-
-      const sources = sourcesResult.data || [];
-      const lookup: Record<string, string> = {};
-      const platLookup: Record<string, string> = {};
-      sources.forEach((s) => { lookup[s.id] = s.name; platLookup[s.id] = s.platform || ""; });
-      setSourceLookup(lookup);
-      setPlatformLookup(platLookup);
-      setSourceList(sources);
-      
-      try {
-        const apiAssets = await licenses.list<DbAsset[]>();
-        console.log("[Dashboard] Raw assets from API:", Array.isArray(apiAssets) ? apiAssets.length : 0, "items");
-        console.log("[Dashboard] First asset:", Array.isArray(apiAssets) ? apiAssets[0] : apiAssets);
-        const mappedAssets: Asset[] = (Array.isArray(apiAssets) ? apiAssets : []).map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
-        setAssets(mappedAssets);
-      } catch (apiErr: any) {
-        console.warn("[Dashboard] Licenses API fallback to local DB:", apiErr?.message);
-        const assetsResult = await supabase.from("assets").select("*").eq("user_id", user.id);
-        const localAssets = assetsResult.data || [];
-        console.log("[Dashboard] Raw assets from DB:", localAssets.length, "items");
-        console.log("[Dashboard] First asset:", localAssets[0]);
-        const mappedAssets: Asset[] = localAssets.map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
-        setAssets(mappedAssets);
-      }
+      const result = await licenses.list<PaginatedResponse<DbAsset>>({
+        page,
+        limit: PAGE_SIZE,
+        search: debouncedSearch || undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        source_id: sourceFilter !== "all" ? sourceFilter : undefined,
+      });
+      console.log("[Dashboard] Page", result.page, "of", Math.ceil(result.total / result.limit), "— total:", result.total);
+      const mappedAssets: Asset[] = (Array.isArray(result.data) ? result.data : []).map((item: any) => mapDbAssetToUiAsset(item as DbAsset));
+      setAssets(mappedAssets);
+      setTotalAssets(result.total);
+      setProtectedCount(result.protectedCount);
     } catch (err: any) {
-      console.warn("[Dashboard] Non-critical fetch error:", err?.message || err);
+      console.warn("[Dashboard] Fetch error:", err?.message || err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, page, debouncedSearch, statusFilter, sourceFilter, licenses]);
 
+  // Fetch sources on mount
+  useEffect(() => {
+    fetchSources();
+  }, [fetchSources]);
+
+  // Fetch assets when filters/page change
   useEffect(() => {
     fetchAssets();
-  }, [user]);
+  }, [fetchAssets]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, statusFilter, sourceFilter]);
 
   if (!user) return null;
 
-  const filteredAssets = assets.filter((a) => {
-    const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || a.status === statusFilter;
-    const matchesSource = sourceFilter === "all" || 
-      (sourceFilter === "direct" ? !a.source_id : a.source_id === sourceFilter);
-    return matchesSearch && matchesStatus && matchesSource;
-  });
-
   const totalRevenue = assets.reduce((sum, a) => sum + a.revenue, 0);
-  const protectedCount = assets.filter((a) => a.status === "protected" || a.status === "verified").length;
+  const totalPages = Math.ceil(totalAssets / PAGE_SIZE);
 
   const getFilterLabel = (filter: StatusFilter) => {
     switch (filter) {
@@ -166,7 +175,7 @@ export default function Dashboard() {
           </div>
 
           {/* Onboarding Cards — show when no assets */}
-          {!isLoading && assets.length === 0 && (
+          {!isLoading && totalAssets === 0 && (
             <OnboardingCards
               onSyncClick={() => { setModalInitialView("publication"); setIsAddModalOpen(true); }}
               onRegisterClick={() => { setModalInitialView("single"); setIsAddModalOpen(true); }}
@@ -179,7 +188,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
-                <p className="text-2xl font-bold text-[#040042] mt-1">{assets.length}</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
@@ -256,7 +265,7 @@ export default function Dashboard() {
                     <CheckSquare size={14} />
                     {selectionMode ? `${selectedIds.size} Selected` : "Select"}
                   </Button>
-                  <span className="text-sm text-[#040042]/50">{assets.length} asset{assets.length !== 1 ? 's' : ''}</span>
+                  <span className="text-sm text-[#040042]/50">{totalAssets} asset{totalAssets !== 1 ? 's' : ''}</span>
                 </div>
               )}
             </div>
@@ -275,8 +284,8 @@ export default function Dashboard() {
                   <input
                     type="text"
                     placeholder="Search assets..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     className="w-full bg-white border border-[#E8F2FB] rounded-xl py-2.5 pl-11 pr-4 text-sm text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]/40 transition-all"
                   />
                 </div>
@@ -330,7 +339,7 @@ export default function Dashboard() {
 
               {/* Asset Grid */}
               <AssetGrid
-                assets={filteredAssets}
+                assets={assets}
                 onViewDetails={(asset) => {
                   setSelectedAsset(asset);
                   setIsAssetDetailsOpen(true);
@@ -342,6 +351,40 @@ export default function Dashboard() {
                 onToggleSelect={toggleSelect}
                 selectionMode={selectionMode}
               />
+
+              {/* Pagination */}
+              {totalAssets > PAGE_SIZE && (
+                <div className="flex items-center justify-between pt-4">
+                  <p className="text-sm text-[#040042]/50">
+                    Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalAssets)} of {totalAssets}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => p - 1)}
+                      className="h-8 rounded-lg border-[#E8F2FB] text-[#040042]/60"
+                    >
+                      <ChevronLeft size={14} className="mr-1" />
+                      Previous
+                    </Button>
+                    <span className="text-sm font-medium px-3 text-[#040042]">
+                      {page} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages}
+                      onClick={() => setPage((p) => p + 1)}
+                      className="h-8 rounded-lg border-[#E8F2FB] text-[#040042]/60"
+                    >
+                      Next
+                      <ChevronRight size={14} className="ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

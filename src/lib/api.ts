@@ -116,6 +116,41 @@ export async function edgeFetch<T>(
   return data.data as T;
 }
 
+// Direct Edge Function fetch returning full envelope (for paginated responses)
+export async function edgeFetchPaginated<T>(
+  url: string,
+  options: RequestInit = {},
+  accessToken?: string | null
+): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  if (accessToken) {
+    headers['Authorization'] = 'Bearer ' + accessToken;
+  }
+
+  console.log('[API] Edge fetch (paginated):', url);
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  console.log('[API] Edge response status:', response.status);
+
+  const result = await safeParseJson(response) as { success?: boolean; data?: unknown; total?: number; page?: number; limit?: number; protectedCount?: number; error?: { message: string } };
+
+  if (!result.success) {
+    throw new Error(result.error?.message || 'API request failed');
+  }
+
+  // Return the full envelope (data + total + page + limit + protectedCount)
+  return { data: result.data, total: result.total, page: result.page, limit: result.limit, protectedCount: result.protectedCount } as T;
+}
+
 // Convenience methods (via proxy)
 export const api = {
   get: <T>(path: string, token?: string | null) =>
@@ -133,8 +168,16 @@ export const api = {
 
 // Licenses API (direct Edge Function)
 export const licensesApi = {
-  list: <T>(token?: string | null) =>
-    edgeFetch<T>(API.licenses, { method: 'GET' }, token),
+  list: <T>(params?: { page?: number; limit?: number; search?: string; status?: string; source_id?: string }, token?: string | null) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.search) qs.set("search", params.search);
+    if (params?.status && params.status !== "all") qs.set("status", params.status);
+    if (params?.source_id && params.source_id !== "all") qs.set("source_id", params.source_id);
+    const url = API.licenses + (qs.toString() ? "?" + qs.toString() : "");
+    return edgeFetchPaginated<T>(url, { method: 'GET' }, token);
+  },
 
   create: <T>(body: { title: string; description?: string; licenseType?: string; metadata?: Record<string, unknown> }, token?: string | null) =>
     edgeFetch<T>(API.licenses, { method: 'POST', body: JSON.stringify(body) }, token),

@@ -46,9 +46,9 @@ export function useAuthenticatedApi() {
 
   // Licenses API with auto-injected token
   const licenses = {
-    list: useCallback(async <T>() => {
+    list: useCallback(async <T>(params?: { page?: number; limit?: number; search?: string; status?: string; source_id?: string }) => {
       const token = await getAccessToken();
-      return licensesApi.list<T>(token);
+      return licensesApi.list<T>(params, token);
     }, [getAccessToken]),
 
     create: useCallback(async <T>(body: { 

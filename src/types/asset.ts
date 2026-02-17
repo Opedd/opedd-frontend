@@ -45,6 +45,15 @@ export interface Asset {
   total_revenue?: number | null;
 }
 
+// Paginated response from backend
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  protectedCount: number;
+}
+
 // Database asset structure (matches current Supabase schema)
 export interface DbAsset {
   id: string;
