@@ -21,6 +21,7 @@ import LicensePublicCheckout from "./pages/LicensePublicCheckout";
 import LicenseByUrl from "./pages/LicenseByUrl";
 import LicenseVerify from "./pages/LicenseVerify";
 import Registry from "./pages/Registry";
+import WidgetPreview from "./pages/WidgetPreview";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/verify" element={<LicenseVerify />} />
             <Route path="/verify/:key" element={<LicenseVerify />} />
             <Route path="/registry" element={<Registry />} />
+            <Route path="/widget-preview" element={<WidgetPreview />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
