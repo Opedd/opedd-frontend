@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
-import opeddIconLight from "@/assets/opedd-icon-light.png";
-import opeddIconDark from "@/assets/opedd-icon-dark.png";
+import opeddIcon from "@/assets/opedd-icon.svg";
 const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
   const [selectedPrice, setSelectedPrice] = useState<"human" | "ai">("human");
   const [isIndividual, setIsIndividual] = useState(false);
@@ -22,8 +21,8 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
     <div className={`w-[360px] rounded-2xl ${bg} border ${border} ${cardShadow} overflow-hidden`}>
       {/* Header */}
       <div className={`flex items-center gap-2.5 px-5 pt-4 pb-3 border-b ${border}`}>
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center">
-          <img src={opeddIconLight} alt="Opedd" className="w-5 h-5 object-contain" />
+        <div className="w-7 h-7 rounded-lg overflow-hidden">
+          <img src={opeddIcon} alt="Opedd" className="w-full h-full" />
         </div>
         <span className={`text-[11px] font-semibold tracking-[0.08em] uppercase ${textMuted}`}>Opedd License</span>
       </div>
@@ -95,7 +94,7 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
 
       {/* Footer */}
       <div className={`flex items-center justify-center gap-1.5 py-3 border-t ${border}`}>
-        <img src={opeddIconLight} alt="Opedd" className="h-3 opacity-60" />
+        <img src={opeddIcon} alt="Opedd" className="h-3.5 w-3.5 opacity-60" />
         <span className={`text-[10px] ${textMuted}`}>Powered by Opedd Protocol</span>
       </div>
     </div>
@@ -133,8 +132,8 @@ const WidgetBadge = ({ dark = false }: { dark?: boolean }) => {
 
   return (
     <div className={`inline-flex items-center gap-2 rounded-full ${bg} border ${border} ${shadow} pl-2 pr-3 py-1.5`}>
-      <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] flex items-center justify-center">
-        <img src={opeddIconLight} alt="Opedd" className="w-4 h-4 object-contain" />
+      <div className="w-5 h-5 rounded-md overflow-hidden">
+        <img src={opeddIcon} alt="Opedd" className="w-full h-full" />
       </div>
       <span className={`text-xs font-semibold ${text}`}>From $10.00</span>
       <span className={`text-[10px] ${textMuted}`}>· 12</span>
