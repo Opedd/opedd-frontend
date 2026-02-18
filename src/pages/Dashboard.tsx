@@ -157,19 +157,19 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
-        <div className="p-5 pt-20 lg:pt-5 max-w-7xl w-full mx-auto space-y-5">
+        <div className="p-6 pt-20 lg:pt-6 max-w-7xl w-full mx-auto space-y-6">
           {/* Page Title & Action */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <LayoutDashboard size={18} className="text-[#4A26ED]" />
-              <h1 className="text-lg font-semibold text-[#040042]">Registry</h1>
+            <div className="flex items-center gap-3">
+              <LayoutDashboard size={22} className="text-[#4A26ED]" />
+              <h1 className="text-xl font-bold text-[#040042]">Registry</h1>
             </div>
 
             <button
               onClick={openRegisterModal}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-9 px-5 rounded-md font-medium text-sm flex items-center gap-2 transition-colors"
+              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-10 px-5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-[#4A26ED]/20"
             >
-              <Plus size={16} />
+              <Plus size={18} />
               Register Content
             </button>
           </div>
@@ -186,19 +186,19 @@ export default function Dashboard() {
           {/* Compact Metrics */}
           <TooltipProvider>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-md border border-gray-200 p-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
-                <p className="text-xl font-semibold text-[#040042] mt-1">{totalAssets}</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
               </div>
-              <div className="bg-white rounded-md border border-gray-200 p-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
-                <p className="text-xl font-semibold text-[#040042] mt-1">{protectedCount}</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">{protectedCount}</p>
               </div>
-              <div className="bg-white rounded-md border border-gray-200 p-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                 <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
-                <p className="text-xl font-semibold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
               </div>
-              <div className="bg-white rounded-md border border-amber-200 p-4 relative overflow-hidden hover:border-amber-300 transition-colors cursor-pointer">
+              <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors cursor-pointer">
                 <div className="absolute top-2 right-2 flex items-center gap-1.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -210,7 +210,7 @@ export default function Dashboard() {
                       <p>Revenue lost to unlicensed AI scraping. Protect your assets to enable billing.</p>
                     </TooltipContent>
                   </Tooltip>
-                  <div className="w-6 h-6 rounded-md bg-amber-100 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
                     <Bot size={14} className="text-amber-600" />
                   </div>
                 </div>
@@ -218,7 +218,7 @@ export default function Dashboard() {
                   <AlertTriangle size={10} />
                   Unlicensed AI Scrapes
                 </p>
-                <p className="text-xl font-semibold text-amber-600 mt-1">142</p>
+                <p className="text-2xl font-bold text-amber-600 mt-1">142</p>
                 <p className="text-[10px] text-amber-500/70 mt-1">This week</p>
               </div>
             </div>
@@ -227,19 +227,19 @@ export default function Dashboard() {
           {/* Sources / Library Tabs */}
           <Tabs value={registryTab} onValueChange={(v) => setRegistryTab(v as "sources" | "library")} className="w-full">
             <div className="flex items-center justify-between">
-              <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-md">
+              <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-xl">
                 <TabsTrigger
                   value="sources"
-                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded px-3 py-1.5 text-xs font-medium text-[#040042]/60 transition-colors gap-2"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-5 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
                 >
-                  <Rss size={14} />
+                  <Rss size={15} />
                   Sources
                 </TabsTrigger>
                 <TabsTrigger
                   value="library"
-                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded px-3 py-1.5 text-xs font-medium text-[#040042]/60 transition-colors gap-2"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-5 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
                 >
-                  <List size={14} />
+                  <List size={15} />
                   Library
                 </TabsTrigger>
               </TabsList>
@@ -256,7 +256,7 @@ export default function Dashboard() {
                         setSelectionMode(true);
                       }
                     }}
-                    className={`h-8 text-xs gap-1.5 rounded-md ${
+                    className={`h-8 text-xs gap-1.5 rounded-lg ${
                       selectionMode 
                         ? "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white" 
                         : "border-[#E8F2FB] text-[#040042]/60 hover:border-[#4A26ED]/40"
@@ -265,7 +265,7 @@ export default function Dashboard() {
                     <CheckSquare size={14} />
                     {selectionMode ? `${selectedIds.size} Selected` : "Select"}
                   </Button>
-                  <span className="text-xs text-[#040042]/50">{totalAssets} asset{totalAssets !== 1 ? 's' : ''}</span>
+                  <span className="text-sm text-[#040042]/50">{totalAssets} asset{totalAssets !== 1 ? 's' : ''}</span>
                 </div>
               )}
             </div>
@@ -278,35 +278,35 @@ export default function Dashboard() {
             {/* Library Tab */}
             <TabsContent value="library" className="mt-4">
               {/* Search & Filter Bar */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40" size={16} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40" size={18} />
                   <input
                     type="text"
                     placeholder="Search assets..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="w-full bg-white border border-[#E8F2FB] rounded-md py-2 pl-10 pr-4 text-sm text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]/40 transition-colors"
+                    className="w-full bg-white border border-[#E8F2FB] rounded-xl py-2.5 pl-11 pr-4 text-sm text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]/40 transition-all"
                   />
                 </div>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E8F2FB] rounded-md text-sm text-[#040042] hover:border-[#4A26ED]/40 transition-colors">
-                      <Filter size={14} className="text-[#040042]/50" />
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E8F2FB] rounded-xl text-sm text-[#040042] hover:border-[#4A26ED]/40 transition-all">
+                      <Filter size={16} className="text-[#040042]/50" />
                       <span className="font-medium">{getFilterLabel(statusFilter)}</span>
                       <ChevronDown size={14} className="text-[#040042]/50" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] rounded-md w-40">
-                    <DropdownMenuItem onClick={() => setStatusFilter("all")} className={`cursor-pointer rounded-md ${statusFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>All Assets</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter("protected")} className={`cursor-pointer rounded-md ${statusFilter === "protected" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                  <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] shadow-lg rounded-xl w-40">
+                    <DropdownMenuItem onClick={() => setStatusFilter("all")} className={`cursor-pointer rounded-lg ${statusFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>All Assets</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("protected")} className={`cursor-pointer rounded-lg ${statusFilter === "protected" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
                       <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />Protected
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter("syncing")} className={`cursor-pointer rounded-md ${statusFilter === "syncing" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                    <DropdownMenuItem onClick={() => setStatusFilter("syncing")} className={`cursor-pointer rounded-lg ${statusFilter === "syncing" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
                       <span className="w-2 h-2 rounded-full bg-[#4A26ED] mr-2" />Syncing
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter("pending")} className={`cursor-pointer rounded-md ${statusFilter === "pending" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                    <DropdownMenuItem onClick={() => setStatusFilter("pending")} className={`cursor-pointer rounded-lg ${statusFilter === "pending" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
                       <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />Pending
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -316,19 +316,19 @@ export default function Dashboard() {
                 {sourceList.length > 0 && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E8F2FB] rounded-md text-sm text-[#040042] hover:border-[#4A26ED]/40 transition-colors">
-                        <Rss size={14} className="text-[#040042]/50" />
+                      <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E8F2FB] rounded-xl text-sm text-[#040042] hover:border-[#4A26ED]/40 transition-all">
+                        <Rss size={16} className="text-[#040042]/50" />
                         <span className="font-medium truncate max-w-[120px]">
                           {sourceFilter === "all" ? "All Sources" : sourceFilter === "direct" ? "Direct Upload" : sourceLookup[sourceFilter] || "Source"}
                         </span>
                         <ChevronDown size={14} className="text-[#040042]/50" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] rounded-md w-48">
-                      <DropdownMenuItem onClick={() => setSourceFilter("all")} className={`cursor-pointer rounded-md ${sourceFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>All Sources</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSourceFilter("direct")} className={`cursor-pointer rounded-md ${sourceFilter === "direct" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>Direct Upload</DropdownMenuItem>
+                    <DropdownMenuContent align="start" className="bg-white border-[#E8F2FB] shadow-lg rounded-xl w-48">
+                      <DropdownMenuItem onClick={() => setSourceFilter("all")} className={`cursor-pointer rounded-lg ${sourceFilter === "all" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>All Sources</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSourceFilter("direct")} className={`cursor-pointer rounded-lg ${sourceFilter === "direct" ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>Direct Upload</DropdownMenuItem>
                       {sourceList.map((s) => (
-                        <DropdownMenuItem key={s.id} onClick={() => setSourceFilter(s.id)} className={`cursor-pointer rounded-md truncate ${sourceFilter === s.id ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
+                        <DropdownMenuItem key={s.id} onClick={() => setSourceFilter(s.id)} className={`cursor-pointer rounded-lg truncate ${sourceFilter === s.id ? "bg-[#4A26ED]/5 text-[#4A26ED]" : ""}`}>
                           {s.name}
                         </DropdownMenuItem>
                       ))}
@@ -355,7 +355,7 @@ export default function Dashboard() {
               {/* Pagination */}
               {totalAssets > PAGE_SIZE && (
                 <div className="flex items-center justify-between pt-4">
-                  <p className="text-xs text-[#040042]/50">
+                  <p className="text-sm text-[#040042]/50">
                     Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalAssets)} of {totalAssets}
                   </p>
                   <div className="flex items-center gap-2">
@@ -364,12 +364,12 @@ export default function Dashboard() {
                       size="sm"
                       disabled={page <= 1}
                       onClick={() => setPage((p) => p - 1)}
-                      className="h-8 rounded-md border-[#E8F2FB] text-[#040042]/60"
+                      className="h-8 rounded-lg border-[#E8F2FB] text-[#040042]/60"
                     >
                       <ChevronLeft size={14} className="mr-1" />
                       Previous
                     </Button>
-                    <span className="text-xs font-medium px-3 text-[#040042]">
+                    <span className="text-sm font-medium px-3 text-[#040042]">
                       {page} / {totalPages}
                     </span>
                     <Button
@@ -377,7 +377,7 @@ export default function Dashboard() {
                       size="sm"
                       disabled={page >= totalPages}
                       onClick={() => setPage((p) => p + 1)}
-                      className="h-8 rounded-md border-[#E8F2FB] text-[#040042]/60"
+                      className="h-8 rounded-lg border-[#E8F2FB] text-[#040042]/60"
                     >
                       Next
                       <ChevronRight size={14} className="ml-1" />

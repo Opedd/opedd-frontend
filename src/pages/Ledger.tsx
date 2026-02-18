@@ -252,20 +252,20 @@ export default function Ledger() {
     switch (type) {
       case "ai_ingestion":
         return (
-          <div className="w-8 h-8 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
-            <Sparkles size={16} className="text-[#4A26ED]" />
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+            <Sparkles size={18} className="text-[#4A26ED]" />
           </div>
         );
       case "human_license":
         return (
-          <div className="w-8 h-8 rounded-md bg-[#D1009A]/10 flex items-center justify-center">
-            <User size={16} className="text-[#D1009A]" />
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#D1009A]/10 to-[#E91E9A]/10 flex items-center justify-center">
+            <User size={18} className="text-[#D1009A]" />
           </div>
         );
       default:
         return (
-          <div className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center">
-            <ArrowUpRight size={16} className="text-slate-600" />
+          <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
+            <ArrowUpRight size={18} className="text-slate-600" />
           </div>
         );
     }
@@ -329,23 +329,25 @@ export default function Ledger() {
         <DashboardHeader />
 
         <motion.div 
-          className="p-5 pt-20 lg:pt-5 max-w-7xl w-full mx-auto space-y-5"
+          className="p-8 pt-20 lg:pt-8 max-w-7xl w-full mx-auto space-y-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* Page Header with Export Button */}
           <motion.div className="flex items-center justify-between" variants={itemVariants}>
-            <div className="flex items-center gap-2">
-              <Wallet size={18} className="text-[#4A26ED]" />
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center">
+                <Wallet size={24} className="text-[#4A26ED]" />
+              </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-semibold text-[#040042]">Revenue Ledger</h1>
+                  <h1 className="text-2xl font-bold text-[#040042]">Revenue Ledger</h1>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button className="w-5 h-5 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
-                          <HelpCircle size={12} className="text-[#040042]/50" />
+                        <button className="w-6 h-6 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
+                          <HelpCircle size={14} className="text-[#040042]/50" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="max-w-[220px] text-xs">
@@ -354,51 +356,54 @@ export default function Ledger() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <p className="text-[#040042]/60 text-xs">IP licensing revenue & verified settlements</p>
+                <p className="text-[#040042]/60 text-sm">IP licensing revenue & verified settlements</p>
               </div>
             </div>
             
             <Button
               onClick={handleExportCSV}
               disabled={isExporting || transactions.length === 0}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3d1ecc] hover:to-[#6b2ed4] text-white font-medium px-5 h-9 rounded-md transition-colors"
+              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3d1ecc] hover:to-[#6b2ed4] text-white font-medium px-5 h-11 rounded-xl shadow-md hover:shadow-lg transition-all"
             >
               {isExporting ? (
-                <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</>
+                <><Loader2 size={18} className="mr-2 animate-spin" />Exporting...</>
               ) : (
-                <><Download size={16} className="mr-2" />Export CSV</>
+                <><Download size={18} className="mr-2" />Export CSV</>
               )}
             </Button>
           </motion.div>
 
           {/* Metric Cards Row */}
-          <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-4" variants={itemVariants}>
-            {/* Total Revenue — uniform white */}
-            <div className="bg-white rounded-md border border-gray-200 p-4">
-              <TrendingUp size={18} className="text-[#4A26ED] mb-2" />
-              <p className="text-[#040042]/50 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-              <p className="text-xl font-semibold text-[#040042] mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>
+          <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-5" variants={itemVariants}>
+            {/* Total Revenue */}
+            <div className="bg-gradient-to-br from-[#040042] to-[#1a1a5c] rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#4A26ED]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="relative">
+                <TrendingUp size={20} className="text-white/70 mb-3" />
+                <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+                <p className="text-3xl font-bold mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>
+              </div>
             </div>
 
             {/* Total Transactions */}
-            <div className="bg-white rounded-md border border-gray-200 p-4">
-              <FileCheck size={18} className="text-[#4A26ED] mb-2" />
-              <p className="text-[#040042]/50 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-              <p className="text-xl font-semibold text-[#040042] mt-1">{metrics.totalTransactions}</p>
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+              <FileCheck size={20} className="text-[#4A26ED] mb-3" />
+              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
+              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.totalTransactions}</p>
             </div>
 
             {/* Human Licenses */}
-            <div className="bg-white rounded-md border border-gray-200 p-4">
-              <User size={18} className="text-[#D1009A] mb-2" />
-              <p className="text-[#040042]/50 text-xs font-medium uppercase tracking-wider">Human Licenses</p>
-              <p className="text-xl font-semibold text-[#040042] mt-1">{metrics.humanLicenses}</p>
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+              <User size={20} className="text-[#D1009A] mb-3" />
+              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Human Licenses</p>
+              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.humanLicenses}</p>
             </div>
 
             {/* AI Licenses */}
-            <div className="bg-white rounded-md border border-gray-200 p-4">
-              <Sparkles size={18} className="text-[#4A26ED] mb-2" />
-              <p className="text-[#040042]/50 text-xs font-medium uppercase tracking-wider">AI Licenses</p>
-              <p className="text-xl font-semibold text-[#040042] mt-1">{metrics.aiLicenses}</p>
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+              <Sparkles size={20} className="text-[#4A26ED] mb-3" />
+              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">AI Licenses</p>
+              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.aiLicenses}</p>
             </div>
           </motion.div>
 
@@ -407,14 +412,14 @@ export default function Ledger() {
             {!hasTransactions ? (
               <EmptyState onAddClick={() => navigate("/dashboard")} />
             ) : (
-              <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between mb-3">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className="font-semibold text-[#040042] text-sm">Transaction History</h2>
-                      <p className="text-xs text-[#040042]/60">All IP licensing revenue</p>
+                      <h2 className="font-bold text-[#040042] text-lg">Transaction History</h2>
+                      <p className="text-sm text-[#040042]/60">All IP licensing revenue</p>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-md">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
                       <Shield size={14} className="text-[#4A26ED]" />
                       <span className="text-xs font-medium text-[#040042]/70">Verified by Opedd Protocol</span>
                     </div>
@@ -427,7 +432,7 @@ export default function Ledger() {
                       <span className="text-xs font-medium uppercase tracking-wider">Filters</span>
                     </div>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 rounded-md">
+                      <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -438,7 +443,7 @@ export default function Ledger() {
                       </SelectContent>
                     </Select>
                     <Select value={typeFilter} onValueChange={setTypeFilter}>
-                      <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200 rounded-md">
+                      <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg">
                         <SelectValue placeholder="Type" />
                       </SelectTrigger>
                       <SelectContent>

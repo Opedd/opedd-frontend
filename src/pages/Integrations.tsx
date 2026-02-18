@@ -295,28 +295,30 @@ export default function Integrations() {
       <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
-        <div className="p-5 pt-20 lg:pt-5 max-w-5xl w-full mx-auto space-y-6">
+        <div className="p-8 pt-20 lg:pt-8 max-w-5xl w-full mx-auto space-y-10">
           {/* Page Header */}
-          <div className="flex items-center gap-2">
-            <Plug size={18} className="text-[#4A26ED]" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg">
+              <Plug size={24} className="text-white" />
+            </div>
             <div>
-              <h1 className="text-lg font-semibold text-[#040042]">Workflow Connectors</h1>
-              <p className="text-[#040042]/60 text-xs">Connect external services to power your licensing workflows</p>
+              <h1 className="text-2xl font-bold text-[#040042]">Workflow Connectors</h1>
+              <p className="text-[#040042]/60 text-sm">Connect external services to power your licensing workflows</p>
             </div>
           </div>
 
           {/* Section 1: Widget Customizer */}
-          <section className="space-y-3">
+          <section className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Palette size={16} className="text-[#D1009A]" />
-                <h2 className="font-semibold text-[#040042] text-sm">Opedd Widget Customizer</h2>
+                <Palette size={18} className="text-[#D1009A]" />
+                <h2 className="font-bold text-[#040042]">Opedd Widget Customizer</h2>
               </div>
-              <span className="text-xs text-[#040042]/50 bg-[#D1009A]/10 px-2 py-1 rounded-md">
+              <span className="text-xs text-[#040042]/50 bg-[#D1009A]/10 px-2 py-1 rounded-full">
                 Embed on your site
               </span>
             </div>
-            <p className="text-xs text-[#040042]/60 -mt-1">
+            <p className="text-sm text-[#040042]/60 -mt-2">
               Design your licensing widget, copy the embed code, and paste it on your site. One tag handles both human and AI licensing.
             </p>
             
@@ -324,18 +326,18 @@ export default function Integrations() {
           </section>
 
           {/* Section 2: Payment Connectors Grid */}
-          <section className="space-y-3">
+          <section className="space-y-4">
             <div className="flex items-center gap-2">
-              <Plug size={16} className="text-[#4A26ED]" />
-              <h2 className="font-semibold text-[#040042] text-sm">Payment Connectors</h2>
+              <Plug size={18} className="text-[#4A26ED]" />
+              <h2 className="font-bold text-[#040042]">Payment Connectors</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Stripe Card */}
-              <div className="bg-white rounded-md border border-[#E8F2FB] p-4 hover:border-gray-300 transition-colors flex flex-col">
+              <div className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md transition-all flex flex-col">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-center">
-                    <CreditCard size={20} className="text-[#635BFF]" />
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+                    <CreditCard size={22} className="text-[#635BFF]" />
                   </div>
                   {getStripeStatusBadge()}
                 </div>
@@ -346,7 +348,7 @@ export default function Integrations() {
                   size="sm"
                   onClick={isStripeFullyConnected ? handleOpenStripeDashboard : handleConnectStripe}
                   disabled={isStripeConnecting || isStripeLoading}
-                  className="mt-4 w-full h-8 text-xs gap-1.5"
+                  className="mt-4 w-full h-9 text-xs gap-1.5"
                 >
                   {isStripeConnecting ? (
                     <><Loader2 size={12} className="animate-spin" /> Connecting...</>
@@ -361,10 +363,10 @@ export default function Integrations() {
               </div>
 
               {/* Wallet Card — Coming Soon */}
-              <div className="bg-white rounded-md border border-[#E8F2FB] p-4 hover:border-gray-300 transition-colors flex flex-col">
+              <div className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md transition-all flex flex-col">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-center">
-                    <Wallet size={20} className="text-[#4A26ED]" />
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+                    <Wallet size={22} className="text-[#4A26ED]" />
                   </div>
                   <Badge variant="outline" className="text-[10px] bg-slate-50 text-slate-500 border-slate-200">
                     Coming Soon
@@ -376,7 +378,7 @@ export default function Integrations() {
                   variant="ghost"
                   size="sm"
                   disabled
-                  className="mt-4 w-full h-8 text-xs gap-1.5"
+                  className="mt-4 w-full h-9 text-xs gap-1.5"
                 >
                   Notify Me
                 </Button>
@@ -385,16 +387,16 @@ export default function Integrations() {
           </section>
 
           {/* Section 3: Webhook Configuration */}
-          <section id="webhook-section" className="space-y-3">
+          <section id="webhook-section" className="space-y-4">
             <div className="flex items-center gap-2">
-              <Webhook size={16} className="text-emerald-600" />
-              <h2 className="font-semibold text-[#040042] text-sm">Webhooks</h2>
+              <Webhook size={18} className="text-emerald-600" />
+              <h2 className="font-bold text-[#040042]">Webhooks</h2>
             </div>
-            <p className="text-xs text-[#040042]/60 -mt-1">
+            <p className="text-sm text-[#040042]/60 -mt-2">
               Advanced: receive real-time events when licenses are purchased or verified
             </p>
 
-            <div className="bg-white rounded-md border border-[#E8F2FB] p-4 space-y-4">
+            <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm space-y-5">
               {webhookStatus?.configured ? (
                 <>
                   {/* Configured state */}
@@ -439,10 +441,10 @@ export default function Integrations() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-md border-slate-200">Cancel</AlertDialogCancel>
+                            <AlertDialogCancel className="rounded-xl border-slate-200">Cancel</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={handleRemoveWebhook}
-                              className="bg-red-600 hover:bg-red-700 text-white rounded-md"
+                              className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
                             >
                               Yes, Remove
                             </AlertDialogAction>
@@ -454,7 +456,7 @@ export default function Integrations() {
 
                   {/* Deliveries table */}
                   {showDeliveries && (
-                    <div className="border border-slate-100 rounded-md overflow-hidden">
+                    <div className="border border-slate-100 rounded-xl overflow-hidden">
                       <div className="bg-slate-50 px-4 py-2 border-b border-slate-100">
                         <p className="text-xs font-semibold text-[#040042]">Recent Deliveries</p>
                       </div>
@@ -467,7 +469,7 @@ export default function Integrations() {
                       ) : (
                         <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
                           {webhookDeliveries.map((d, i) => (
-                            <div key={d.id || i} className="flex items-center justify-between px-4 py-2.5 text-xs hover:bg-gray-50 transition-colors">
+                            <div key={d.id || i} className="flex items-center justify-between px-4 py-2.5 text-xs">
                               <div className="flex items-center gap-3">
                                 <code className="text-[#040042] font-mono">{d.event_type}</code>
                                 <Badge
@@ -503,12 +505,12 @@ export default function Integrations() {
                           value={webhookUrl}
                           onChange={(e) => setWebhookUrl(e.target.value)}
                           placeholder="https://yoursite.com/api/webhooks/opedd"
-                          className="bg-slate-50 border-slate-200 h-9 rounded-md flex-1 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                          className="bg-slate-50 border-slate-200 h-11 rounded-xl flex-1 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
                         />
                         <Button
                           onClick={handleSaveWebhook}
                           disabled={isSavingWebhook || !webhookUrl.trim()}
-                          className="h-9 px-5 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-md font-medium"
+                          className="h-11 px-5 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl font-medium"
                         >
                           {isSavingWebhook ? <Loader2 size={14} className="animate-spin" /> : "Save Webhook"}
                         </Button>
@@ -517,20 +519,20 @@ export default function Integrations() {
 
                     {/* Webhook secret display (shown once after creation) */}
                     {webhookSecret && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-md p-4 space-y-2">
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
                         <div className="flex items-start gap-2">
                           <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-amber-800 font-medium">Save this secret — it won't be shown again</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-white border border-amber-200 rounded-md px-3 py-2 overflow-hidden">
+                          <div className="flex-1 bg-white border border-amber-200 rounded-lg px-3 py-2 overflow-hidden">
                             <code className="text-xs font-mono text-[#040042] truncate block">{webhookSecret}</code>
                           </div>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={handleCopyWebhookSecret}
-                            className="h-8 px-3 border-amber-200 hover:bg-amber-100 rounded-md"
+                            className="h-9 px-3 border-amber-200 hover:bg-amber-100 rounded-lg"
                           >
                             {webhookSecretCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                           </Button>

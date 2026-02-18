@@ -97,18 +97,20 @@ export default function Insights() {
       <DashboardSidebar />
       <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
-        <motion.div className="p-5 pt-20 lg:pt-5 max-w-7xl w-full mx-auto space-y-5" variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div className="p-8 pt-20 lg:pt-8 max-w-7xl w-full mx-auto space-y-8" variants={containerVariants} initial="hidden" animate="visible">
           {/* Header */}
-          <motion.div className="flex items-center gap-2" variants={itemVariants}>
-            <BarChart3 size={18} className="text-[#4A26ED]" />
+          <motion.div className="flex items-center gap-3" variants={itemVariants}>
+            <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center">
+              <BarChart3 size={24} className="text-[#4A26ED]" />
+            </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-semibold text-[#040042]">Insights</h1>
+                <h1 className="text-2xl font-bold text-[#040042]">Insights</h1>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="w-5 h-5 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
-                        <HelpCircle size={12} className="text-[#040042]/50" />
+                      <button className="w-6 h-6 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
+                        <HelpCircle size={14} className="text-[#040042]/50" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-[220px] text-xs">
@@ -117,40 +119,45 @@ export default function Insights() {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <p className="text-[#040042]/60 text-xs">Licensing analytics & revenue trends</p>
+              <p className="text-[#040042]/60 text-sm">Licensing analytics & revenue trends</p>
             </div>
           </motion.div>
 
           {!hasData ? (
-            <motion.div variants={itemVariants} className="bg-white rounded-md border border-gray-200 p-16 text-center">
+            <motion.div variants={itemVariants} className="bg-white rounded-2xl border border-gray-200 p-16 text-center shadow-sm">
               <BarChart3 size={48} className="mx-auto text-slate-200 mb-4" />
-              <h2 className="text-lg font-semibold text-[#040042] mb-2">No transactions yet</h2>
-              <p className="text-[#040042]/50 text-xs max-w-md mx-auto">
+              <h2 className="text-xl font-bold text-[#040042] mb-2">No transactions yet</h2>
+              <p className="text-[#040042]/50 text-sm max-w-md mx-auto">
                 Analytics will appear here once you start receiving licensing transactions. Head to your Registry to set up content and pricing.
               </p>
             </motion.div>
           ) : (
             <>
-              {/* Metric Cards — uniform white */}
-              <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
-                <div className="bg-white rounded-md border border-gray-200 p-4">
-                  <TrendingUp size={18} className="text-[#4A26ED] mb-2" />
-                  <p className="text-[#040042]/50 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-                  <p className="text-xl font-semibold text-[#040042] mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
+              {/* Metric Cards */}
+              <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-5" variants={itemVariants}>
+                {/* Total Revenue */}
+                <div className="bg-gradient-to-br from-[#040042] to-[#1a1a5c] rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[#4A26ED]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                  <div className="relative">
+                    <TrendingUp size={20} className="text-white/70 mb-3" />
+                    <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+                    <p className="text-3xl font-bold mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-md border border-gray-200 p-4">
-                  <FileCheck size={18} className="text-[#4A26ED] mb-2" />
-                  <p className="text-[#040042]/50 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-                  <p className="text-xl font-semibold text-[#040042] mt-1">{totalTransactions}</p>
+                {/* Total Transactions */}
+                <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+                  <FileCheck size={20} className="text-[#4A26ED] mb-3" />
+                  <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
+                  <p className="text-3xl font-bold text-[#040042] mt-1">{totalTransactions}</p>
                 </div>
               </motion.div>
 
               {/* Revenue Chart */}
               {chartData.length > 0 && (
-                <motion.div variants={itemVariants} className="bg-white rounded-md border border-gray-200 p-4">
-                  <h2 className="font-semibold text-[#040042] text-sm mb-1">Revenue Over Time</h2>
-                  <p className="text-xs text-[#040042]/60 mb-4">Daily revenue breakdown</p>
+                <motion.div variants={itemVariants} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h2 className="font-bold text-[#040042] text-lg mb-1">Revenue Over Time</h2>
+                  <p className="text-sm text-[#040042]/60 mb-6">Daily revenue breakdown</p>
                   <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={chartData}>
                       <defs>
@@ -163,7 +170,7 @@ export default function Insights() {
                       <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#040042" }} tickLine={false} axisLine={false} />
                       <YAxis tick={{ fontSize: 12, fill: "#040042" }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
                       <RechartsTooltip
-                        contentStyle={{ borderRadius: 6, border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
+                        contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                         formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
                       />
                       <Area type="monotone" dataKey="revenue" stroke="#4A26ED" fill="url(#gradRevenue)" strokeWidth={2} />
@@ -173,12 +180,12 @@ export default function Insights() {
               )}
 
               {/* Bottom Grid: Top Articles + License Split */}
-              <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-4" variants={itemVariants}>
+              <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-6" variants={itemVariants}>
                 {/* Top Articles */}
-                <div className="bg-white rounded-md border border-gray-200 overflow-hidden">
-                  <div className="p-4 border-b border-gray-200">
-                    <h2 className="font-semibold text-[#040042] text-sm">Top Articles</h2>
-                    <p className="text-xs text-[#040042]/60">By revenue</p>
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="p-5 border-b border-gray-200">
+                    <h2 className="font-bold text-[#040042] text-lg">Top Articles</h2>
+                    <p className="text-sm text-[#040042]/60">By revenue</p>
                   </div>
                   {topArticles.length > 0 ? (
                     <Table>
@@ -191,7 +198,7 @@ export default function Insights() {
                       </TableHeader>
                       <TableBody>
                         {topArticles.map((a) => (
-                          <TableRow key={a.id} className="border-gray-100 hover:bg-gray-50 transition-colors">
+                          <TableRow key={a.id} className="border-gray-100">
                             <TableCell className="font-medium text-[#040042] text-sm max-w-[200px] truncate">{decodeText(a.title)}</TableCell>
                             <TableCell className="text-right text-[#040042]/70 text-sm">{a.count}</TableCell>
                             <TableCell className="text-right font-bold text-emerald-600 text-sm">${a.revenue.toFixed(2)}</TableCell>
@@ -205,9 +212,9 @@ export default function Insights() {
                 </div>
 
                 {/* License Type Split */}
-                <div className="bg-white rounded-md border border-gray-200 p-4">
-                  <h2 className="font-semibold text-[#040042] text-sm mb-1">License Split</h2>
-                  <p className="text-xs text-[#040042]/60 mb-4">Human vs AI licenses</p>
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h2 className="font-bold text-[#040042] text-lg mb-1">License Split</h2>
+                  <p className="text-sm text-[#040042]/60 mb-4">Human vs AI licenses</p>
                   {pieData.length > 0 ? (
                     <div className="flex items-center justify-center">
                       <ResponsiveContainer width={200} height={200}>

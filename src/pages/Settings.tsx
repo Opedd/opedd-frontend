@@ -496,17 +496,19 @@ export default function Settings() {
       <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
         <DashboardHeader />
 
-        <div className="p-5 pt-20 lg:pt-5 max-w-4xl w-full mx-auto space-y-5">
+        <div className="p-8 pt-20 lg:pt-8 max-w-4xl w-full mx-auto space-y-8">
           {/* Page Header */}
           <div>
             <p className="text-sm text-[#040042]/50 mb-1">
               Organization / <span className="text-[#040042]/70">Settings</span>
             </p>
-            <div className="flex items-center gap-2">
-              <SettingsIcon size={18} className="text-[#4A26ED]" />
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center border border-[#4A26ED]/20">
+                <SettingsIcon size={24} className="text-[#4A26ED]" />
+              </div>
               <div>
-                <h1 className="text-lg font-semibold text-[#040042]">Settings</h1>
-                <p className="text-[#040042]/60 text-xs">Manage your profile, team, and payouts</p>
+                <h1 className="text-2xl font-bold text-[#040042]">Settings</h1>
+                <p className="text-[#040042]/60 text-sm">Manage your profile, team, and payouts</p>
               </div>
             </div>
           </div>
@@ -517,26 +519,26 @@ export default function Settings() {
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-white border border-[#E8F2FB] rounded-md p-1 h-auto">
+              <TabsList className="grid w-full grid-cols-3 bg-white border border-[#E8F2FB] rounded-xl p-1.5 h-auto shadow-sm">
                 <TabsTrigger 
                   value="profile" 
-                  className="flex items-center gap-2 py-2 px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-md transition-colors text-xs font-medium"
+                  className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
                 >
-                  <User size={14} />
+                  <User size={16} />
                   <span>Profile</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="team" 
-                  className="flex items-center gap-2 py-2 px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-md transition-colors text-xs font-medium"
+                  className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
                 >
-                  <Users size={14} />
+                  <Users size={16} />
                   <span>Team</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="payouts" 
-                  className="flex items-center gap-2 py-2 px-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-md transition-colors text-xs font-medium"
+                  className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
                 >
-                  <CreditCard size={14} />
+                  <CreditCard size={16} />
                   <span>Payouts</span>
                 </TabsTrigger>
               </TabsList>
@@ -556,17 +558,17 @@ export default function Settings() {
                       {/* Stats Row */}
                       {profile && (
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-slate-50 rounded-md p-4 border border-slate-100 flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-md bg-[#4A26ED]/10 flex items-center justify-center">
+                          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
                               <FileText size={18} className="text-[#4A26ED]" />
                             </div>
                             <div>
-                              <p className="text-xl font-semibold text-[#040042]">{profile.article_count}</p>
+                              <p className="text-2xl font-bold text-[#040042]">{profile.article_count}</p>
                               <p className="text-xs text-slate-500">Articles</p>
                             </div>
                           </div>
-                          <div className="bg-slate-50 rounded-md p-4 border border-slate-100 flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                               <BarChart3 size={18} className="text-emerald-600" />
                             </div>
                             <div>

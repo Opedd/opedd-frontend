@@ -50,7 +50,7 @@ export function MobileSidebar() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-y-0 left-0 w-64 bg-[#040042] z-50 lg:hidden shadow-2xl"
+            className="fixed inset-y-0 left-0 w-72 bg-[#040042] z-50 lg:hidden shadow-2xl"
           >
             {/* Header with Close Button */}
             <div className="p-5 pb-6 border-b border-white/5 flex items-center justify-between">
@@ -81,13 +81,13 @@ export function MobileSidebar() {
                       to={item.path}
                       onClick={() => setIsOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all group",
                         isActive
-                          ? "bg-white/10 text-[#FDFEFF] border-l-2 border-white"
-                          : "text-white/50 hover:bg-white/5 hover:text-white/80 border-l-2 border-transparent"
+                          ? "bg-white/10 text-[#FDFEFF]"
+                          : "text-white/50 hover:bg-white/5 hover:text-white/80"
                       )}
                     >
-                      <Icon size={18} strokeWidth={1.5} />
+                      <Icon size={20} strokeWidth={1.5} />
                       <span className="font-medium text-sm">{item.title}</span>
                     </NavLink>
                   </motion.div>
