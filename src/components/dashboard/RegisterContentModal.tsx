@@ -62,6 +62,17 @@ interface MockArticle {
   status: "pending" | "syncing" | "complete";
 }
 
+// Derive RSS feed URL from a site URL based on platform
+const deriveRssUrl = (siteUrl: string, platform: string): string => {
+  const base = siteUrl.replace(/\/+$/, ""); // strip trailing slashes
+  switch (platform) {
+    case "ghost": return base + "/rss";
+    case "wordpress": return base + "/feed";
+    case "beehiiv": return base + "/feed";
+    default: return base + "/feed";
+  }
+};
+
 // Detect platform from URL
 const detectPlatform = (url: string): { name: string; logo: string; supportsWidget: boolean } | null => {
   const lowerUrl = url.toLowerCase();
@@ -395,6 +406,170 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     }
   };
 
+  // Core sync logic — used by both RSS form and widget install path
+  const runSync = async (syncFeedUrl: string, syncHumanPrice: string, syncAiPrice: string, registrationPath: string = "newsletter_feed") => {
+    if (!user) return;
+
+    setIsConnecting(true);
+
+    try {
+      // Generate verification token
+      const token = generateVerificationCode();
+
+      // Detect platform from URL for metadata
+      const platform = detectPlatform(syncFeedUrl);
+
+      // Generate content hash from feed URL
+      const contentHash = generateContentHash(syncFeedUrl);
+
+      // Determine access type based on pricing
+      const hasHuman = parseFloat(syncHumanPrice) > 0;
+      const hasAi = syncAiPrice && parseFloat(syncAiPrice) > 0;
+      const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
+
+      // Extract pub name from URL
+      let pubName = "Your Publication";
+      try {
+        const url = new URL(syncFeedUrl.startsWith("http") ? syncFeedUrl : `https://${syncFeedUrl}`);
+        pubName = url.hostname.split(".")[0];
+        if (pubName === "www") pubName = url.hostname.split(".")[1] || "Your Publication";
+        pubName = pubName.charAt(0).toUpperCase() + pubName.slice(1);
+      } catch {}
+
+      // Use feed preview name if available (only for RSS form path)
+      if (feedPreview?.title && registrationPath === "newsletter_feed") {
+        const previewName = feedPreview.title;
+        pubName = previewName.startsWith('Publication:') ? previewName.replace('Publication: ', '') : previewName;
+      }
+
+      // Step 1: Create content source via authenticated API (token auto-injected)
+      const platformType = (platform?.name.toLowerCase() || "other") as "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
+
+      const sourceData = await contentSources.create<{ id: string; verification_token?: string }>({
+        url: syncFeedUrl,
+        name: pubName,
+        platform: platformType,
+        human_price: parseFloat(syncHumanPrice) || 4.99,
+        ai_price: syncAiPrice ? parseFloat(syncAiPrice) : undefined,
+      });
+
+      console.log("[RegisterContentModal] Created content source via API:", sourceData);
+
+      // Start the syncing animation after source creation
+      setIsConnecting(false);
+      setView("syncing");
+
+      // Use the source ID as the registered asset ID
+      const externalSourceId = sourceData.id;
+      setRegisteredAssetId(externalSourceId);
+
+      // Use verification token from API response or generated one
+      const verificationTokenFromApi = sourceData.verification_token || token;
+      setVerificationToken(verificationTokenFromApi);
+      setVerificationCode(verificationTokenFromApi);
+
+      // Step 2: Insert local rss_sources record so Sources tab shows the pipe
+      let localSourceId: string | null = null;
+      try {
+        const { data: localSource, error: srcErr } = await supabase
+          .from("rss_sources")
+          .insert({
+            user_id: user.id,
+            name: pubName,
+            feed_url: syncFeedUrl,
+            platform: platformType,
+            sync_status: "active",
+            last_synced_at: new Date().toISOString(),
+            registration_path: registrationPath,
+          })
+          .select("id")
+          .single();
+        if (srcErr) throw srcErr;
+        localSourceId = localSource.id;
+        console.log("[RegisterContentModal] Local rss_sources record created:", localSourceId);
+      } catch (localErr) {
+        console.warn("[RegisterContentModal] Failed to insert local source:", localErr);
+      }
+
+      // Step 3: Trigger RSS sync to import articles (token auto-injected)
+      let syncedArticles: any[] | null = null;
+      try {
+        await contentSources.sync(externalSourceId);
+        console.log("[RegisterContentModal] RSS sync triggered for source:", externalSourceId);
+
+        // Try to fetch the synced articles from the API
+        try {
+          syncedArticles = await contentSources.listAssets<any[]>();
+        } catch {
+          console.warn("[RegisterContentModal] Could not fetch synced articles from API");
+        }
+      } catch (syncError) {
+        console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
+      }
+
+      // Step 4: Mirror synced articles into local assets table
+      if (localSourceId) {
+        const articlesToInsert = (syncedArticles && syncedArticles.length > 0)
+          ? syncedArticles.map((a: any) => ({
+              user_id: user.id,
+              title: a.title || "Untitled Article",
+              description: a.description || null,
+              source_url: a.sourceUrl || a.url || null,
+              publication_id: localSourceId,
+              human_price: parseFloat(syncHumanPrice) || 4.99,
+              ai_price: syncAiPrice ? parseFloat(syncAiPrice) : null,
+              license_type: accessType,
+              licensing_enabled: true,
+              verification_token: verificationTokenFromApi,
+              verification_status: "pending",
+              content_hash: a.contentHash || generateContentHash(a.title || syncFeedUrl),
+            }))
+          : [{
+              user_id: user.id,
+              title: `${pubName} – Publication Feed`,
+              description: `Articles synced from ${syncFeedUrl}`,
+              source_url: syncFeedUrl,
+              publication_id: localSourceId,
+              human_price: parseFloat(syncHumanPrice) || 4.99,
+              ai_price: syncAiPrice ? parseFloat(syncAiPrice) : null,
+              license_type: accessType,
+              licensing_enabled: true,
+              verification_token: verificationTokenFromApi,
+              verification_status: "pending",
+              content_hash: contentHash,
+            }];
+
+        try {
+          await supabase.from("assets").insert(articlesToInsert);
+          // Update article count on local source
+          await supabase.from("rss_sources").update({
+            article_count: articlesToInsert.length,
+          }).eq("id", localSourceId);
+          console.log("[RegisterContentModal] Inserted", articlesToInsert.length, "local assets");
+        } catch (insertErr) {
+          console.warn("[RegisterContentModal] Failed to insert local assets:", insertErr);
+        }
+      }
+
+      // Refresh dashboard data
+      onSuccess?.();
+    } catch (error: any) {
+      console.warn("[RegisterContentModal] Publication sync failed:", error?.message || error);
+      setIsConnecting(false);
+
+      const errorMsg = error?.message || "";
+      const isPublisherNotFound = errorMsg.toLowerCase().includes("publisher not found");
+
+      toast({
+        title: isPublisherNotFound ? "Publisher Profile Missing" : "Sync Failed",
+        description: isPublisherNotFound
+          ? "Your publisher profile hasn't been created on the licensing network yet. Please complete your profile in Settings first."
+          : `Could not sync publication: ${errorMsg || "Unknown error. Please try again."}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handlePublicationSync = async () => {
     if (!feedUrl.trim()) {
       toast({
@@ -414,154 +589,22 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       return;
     }
 
-    // Start connecting state then syncing animation
-    setIsConnecting(true);
+    await runSync(feedUrl, pubHumanPrice, pubAiPrice, "newsletter_feed");
+  };
 
-    try {
-      // Generate verification token
-      const token = generateVerificationCode();
-      
-      // Detect platform from URL for metadata
-      const platform = detectPlatform(feedUrl);
-      
-      // Generate content hash from feed URL
-      const contentHash = generateContentHash(feedUrl);
-      
-      // Determine access type based on pricing
-      const hasHuman = parseFloat(pubHumanPrice) > 0;
-      const hasAi = pubAiPrice && parseFloat(pubAiPrice) > 0;
-      const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
-      
-      // Get the publication name from preview or URL
-      const pubName = feedPreview?.title || feedUrl;
-      const cleanPubName = pubName.startsWith('Publication:') ? pubName.replace('Publication: ', '') : pubName;
-      
-      // Step 1: Create content source via authenticated API (token auto-injected)
-      const platformType = (platform?.name.toLowerCase() || "other") as "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
-      
-      const sourceData = await contentSources.create<{ id: string; verification_token?: string }>({
-        url: feedUrl,
-        name: cleanPubName,
-        platform: platformType,
-        human_price: parseFloat(pubHumanPrice) || 4.99,
-        ai_price: pubAiPrice ? parseFloat(pubAiPrice) : undefined,
-      });
-      
-      console.log("[RegisterContentModal] Created content source via API:", sourceData);
-      
-      // Start the syncing animation after source creation
-      setIsConnecting(false);
-      setView("syncing");
-      
-      // Use the source ID as the registered asset ID
-      const externalSourceId = sourceData.id;
-      setRegisteredAssetId(externalSourceId);
-      
-      // Use verification token from API response or generated one
-      const verificationTokenFromApi = sourceData.verification_token || token;
-      setVerificationToken(verificationTokenFromApi);
-      setVerificationCode(verificationTokenFromApi);
-      
-      // Step 2: Insert local rss_sources record so Sources tab shows the pipe
-      let localSourceId: string | null = null;
-      try {
-        const { data: localSource, error: srcErr } = await supabase
-          .from("rss_sources")
-          .insert({
-            user_id: user.id,
-            name: cleanPubName,
-            feed_url: feedUrl,
-            platform: platformType,
-            sync_status: "active",
-            last_synced_at: new Date().toISOString(),
-            registration_path: "newsletter_feed",
-          })
-          .select("id")
-          .single();
-        if (srcErr) throw srcErr;
-        localSourceId = localSource.id;
-        console.log("[RegisterContentModal] Local rss_sources record created:", localSourceId);
-      } catch (localErr) {
-        console.warn("[RegisterContentModal] Failed to insert local source:", localErr);
-      }
-      
-      // Step 3: Trigger RSS sync to import articles (token auto-injected)
-      let syncedArticles: any[] | null = null;
-      try {
-        await contentSources.sync(externalSourceId);
-        console.log("[RegisterContentModal] RSS sync triggered for source:", externalSourceId);
-        
-        // Try to fetch the synced articles from the API
-        try {
-          syncedArticles = await contentSources.listAssets<any[]>();
-        } catch {
-          console.warn("[RegisterContentModal] Could not fetch synced articles from API");
-        }
-      } catch (syncError) {
-        console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
-      }
-      
-      // Step 4: Mirror synced articles into local assets table
-      if (localSourceId) {
-        const articlesToInsert = (syncedArticles && syncedArticles.length > 0)
-          ? syncedArticles.map((a: any) => ({
-              user_id: user.id,
-              title: a.title || "Untitled Article",
-              description: a.description || null,
-              source_url: a.sourceUrl || a.url || null,
-              publication_id: localSourceId,
-              human_price: parseFloat(pubHumanPrice) || 4.99,
-              ai_price: pubAiPrice ? parseFloat(pubAiPrice) : null,
-              license_type: accessType,
-              licensing_enabled: true,
-              verification_token: verificationTokenFromApi,
-              verification_status: "pending",
-              content_hash: a.contentHash || generateContentHash(a.title || feedUrl),
-            }))
-          : [{
-              user_id: user.id,
-              title: `${cleanPubName} – Publication Feed`,
-              description: `Articles synced from ${feedUrl}`,
-              source_url: feedUrl,
-              publication_id: localSourceId,
-              human_price: parseFloat(pubHumanPrice) || 4.99,
-              ai_price: pubAiPrice ? parseFloat(pubAiPrice) : null,
-              license_type: accessType,
-              licensing_enabled: true,
-              verification_token: verificationTokenFromApi,
-              verification_status: "pending",
-              content_hash: contentHash,
-            }];
-        
-        try {
-          await supabase.from("assets").insert(articlesToInsert);
-          // Update article count on local source
-          await supabase.from("rss_sources").update({
-            article_count: articlesToInsert.length,
-          }).eq("id", localSourceId);
-          console.log("[RegisterContentModal] Inserted", articlesToInsert.length, "local assets");
-        } catch (insertErr) {
-          console.warn("[RegisterContentModal] Failed to insert local assets:", insertErr);
-        }
-      }
-      
-      // Refresh dashboard data
-      onSuccess?.();
-    } catch (error: any) {
-      console.warn("[RegisterContentModal] Publication sync failed:", error?.message || error);
-      setIsConnecting(false);
-      
-      const errorMsg = error?.message || "";
-      const isPublisherNotFound = errorMsg.toLowerCase().includes("publisher not found");
-      
-      toast({
-        title: isPublisherNotFound ? "Publisher Profile Missing" : "Sync Failed",
-        description: isPublisherNotFound 
-          ? "Your publisher profile hasn't been created on the licensing network yet. Please complete your profile in Settings first."
-          : `Could not sync publication: ${errorMsg || "Unknown error. Please try again."}`,
-        variant: "destructive",
-      });
-    }
+  // Handler for widget install path — derives RSS URL and runs sync
+  const handleWidgetSyncAndDone = async (siteUrl: string, humanPrice: string, aiPrice: string) => {
+    if (!user) return;
+    const rssUrl = deriveRssUrl(siteUrl, selectedPlatform || "other");
+
+    // Update state so the syncing animation / pub-success view can reference them
+    setFeedUrl(rssUrl);
+    setPubHumanPrice(humanPrice);
+    setPubAiPrice(aiPrice);
+    setShowPlatformSetup(false);
+
+    // Run sync directly with the values (don't rely on state)
+    await runSync(rssUrl, humanPrice, aiPrice, "widget_install");
   };
 
   const handleSingleSubmit = async () => {
@@ -1033,6 +1076,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 platform={selectedPlatform}
                 publisherId={publisherProfileId}
                 onDone={handleClose}
+                onSyncAndDone={handleWidgetSyncAndDone}
                 onUseRss={() => {
                   setShowPlatformSetup(false);
                   setSelectedPlatform(null);

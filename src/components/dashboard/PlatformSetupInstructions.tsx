@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Shield, Check, Copy, Rss } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 interface PlatformSetupInstructionsProps {
@@ -8,11 +10,12 @@ interface PlatformSetupInstructionsProps {
   publisherId: string;
   onDone: () => void;
   onUseRss: () => void;
+  onSyncAndDone: (siteUrl: string, humanPrice: string, aiPrice: string) => void;
 }
 
 const WIDGET_BASE_URL = "https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget";
 
-const PLATFORM_STEPS: Record<string, { title: string; steps: string[]; note?: string }> = {
+const PLATFORM_STEPS: Record<string, { title: string; steps: string[]; note?: string; urlPlaceholder: string }> = {
   ghost: {
     title: "Ghost",
     steps: [
@@ -21,6 +24,7 @@ const PLATFORM_STEPS: Record<string, { title: string; steps: string[]; note?: st
       "Paste the code below into the Site Header field",
       "Click Save",
     ],
+    urlPlaceholder: "https://yoursite.ghost.io",
   },
   wordpress: {
     title: "WordPress",
@@ -30,6 +34,7 @@ const PLATFORM_STEPS: Record<string, { title: string; steps: string[]; note?: st
       "Click Update File",
     ],
     note: "Alternatively, install the Opedd WordPress plugin for a no-code setup.",
+    urlPlaceholder: "https://yoursite.wordpress.com",
   },
   beehiiv: {
     title: "Beehiiv",
@@ -39,6 +44,7 @@ const PLATFORM_STEPS: Record<string, { title: string; steps: string[]; note?: st
       "Paste the code below",
       "Click Save",
     ],
+    urlPlaceholder: "https://yourname.beehiiv.com",
   },
   other: {
     title: "Custom CMS",
@@ -48,6 +54,7 @@ const PLATFORM_STEPS: Record<string, { title: string; steps: string[]; note?: st
       "Paste the code below before the closing </head> tag",
       "Save and publish",
     ],
+    urlPlaceholder: "https://yoursite.com",
   },
 };
 
@@ -56,9 +63,13 @@ export function PlatformSetupInstructions({
   publisherId,
   onDone,
   onUseRss,
+  onSyncAndDone,
 }: PlatformSetupInstructionsProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [siteUrl, setSiteUrl] = useState("");
+  const [humanPrice, setHumanPrice] = useState("4.99");
+  const [aiPrice, setAiPrice] = useState("");
 
   const config = PLATFORM_STEPS[platform];
 
@@ -77,8 +88,31 @@ export function PlatformSetupInstructions({
     }
   };
 
+  const handleDone = () => {
+    if (siteUrl.trim()) {
+      onSyncAndDone(siteUrl.trim(), humanPrice, aiPrice);
+    } else {
+      onDone();
+    }
+  };
+
   return (
     <div className="space-y-5">
+      {/* Site URL input */}
+      <div className="space-y-2">
+        <Label className="text-sm font-bold text-[#040042]">Your {config.title} site URL</Label>
+        <Input
+          value={siteUrl}
+          onChange={(e) => setSiteUrl(e.target.value)}
+          placeholder={config.urlPlaceholder}
+          className="!bg-white !text-[#040042] border-slate-200 h-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+          style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+        />
+        <p className="text-xs text-slate-500">
+          We'll also sync your articles via RSS so they appear in your dashboard with pricing
+        </p>
+      </div>
+
       {/* Step-by-step instructions */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-[#040042] flex items-center gap-2">
@@ -129,6 +163,52 @@ export function PlatformSetupInstructions({
         </div>
       </div>
 
+      {/* Pricing fields */}
+      <div className="bg-slate-50 rounded-xl p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <Shield size={16} className="text-[#4A26ED]" />
+          <span className="text-sm font-semibold text-[#040042]">Global License Fees</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold text-[#040042]">Human Republication *</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
+              <Input
+                type="number"
+                value={humanPrice}
+                onChange={(e) => setHumanPrice(e.target.value)}
+                placeholder="4.99"
+                className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
+                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <p className="text-xs text-slate-400">Per article license</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold text-[#040042]">AI Ingestion <span className="text-slate-400 font-normal">(optional)</span></Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
+              <Input
+                type="number"
+                value={aiPrice}
+                onChange={(e) => setAiPrice(e.target.value)}
+                placeholder="49.99"
+                className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
+                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <p className="text-xs text-slate-400">LLM training rights</p>
+          </div>
+        </div>
+      </div>
+
       {/* Auto-registration note */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
         <Shield size={14} className="text-emerald-600 mt-0.5 flex-shrink-0" />
@@ -147,10 +227,10 @@ export function PlatformSetupInstructions({
           Use RSS Sync Instead
         </button>
         <Button
-          onClick={onDone}
+          onClick={handleDone}
           className="h-10 px-6 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
         >
-          Done
+          {siteUrl.trim() ? "Sync & Done" : "Done"}
         </Button>
       </div>
     </div>
