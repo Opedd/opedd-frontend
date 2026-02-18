@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 interface AuthContextType {
   user: User | null;
@@ -33,6 +34,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+
+      // Check for pending invite token after sign-in
+      if (_event === "SIGNED_IN" && session?.access_token) {
+        const pendingToken = localStorage.getItem("pending_invite_token");
+        if (pendingToken) {
+          localStorage.removeItem("pending_invite_token");
+          fetch(`${EXT_SUPABASE_URL}/functions/v1/accept-invite`, {
+            method: "POST",
+            headers: {
+              apikey: EXT_ANON_KEY,
+              Authorization: `Bearer ${session.access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ token: pendingToken }),
+          })
+            .then((res) => res.json())
+            .then((result) => {
+              if (result.success && result.data?.joined) {
+                console.log("[AuthContext] Auto-accepted team invite for", result.data.publisher_name);
+              }
+            })
+            .catch((err) => {
+              console.warn("[AuthContext] Failed to auto-accept invite:", err);
+            });
+        }
+      }
     });
 
     return () => subscription.unsubscribe();

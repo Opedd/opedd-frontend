@@ -28,7 +28,10 @@ import {
   Camera,
   AlertTriangle,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Trash2,
+  Send,
+  Clock
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -121,6 +124,15 @@ export default function Settings() {
   const [isStripeLoading, setIsStripeLoading] = useState(false);
   const [isStripeConnecting, setIsStripeConnecting] = useState(false);
 
+  // Team state
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
+  const [teamInvitations, setTeamInvitations] = useState<Array<{ id: string; email: string; role: string; created_at: string; expires_at: string }>>([]);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [isInviting, setIsInviting] = useState(false);
+  const [isLoadingTeam, setIsLoadingTeam] = useState(false);
+  const [teamLoaded, setTeamLoaded] = useState(false);
+
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
     if (!token) throw new Error("Not authenticated");
@@ -192,6 +204,98 @@ export default function Settings() {
     }
   }, [apiHeaders]);
 
+  const fetchTeam = useCallback(async () => {
+    setIsLoadingTeam(true);
+    try {
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "list_team" }),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        setTeamMembers(result.data.members || []);
+        setTeamInvitations(result.data.invitations || []);
+        setCurrentUserRole(result.data.current_user_role || null);
+        setTeamLoaded(true);
+      }
+    } catch (err) {
+      console.warn("[Settings] Team fetch failed:", err);
+    } finally {
+      setIsLoadingTeam(false);
+    }
+  }, [apiHeaders]);
+
+  const handleInviteMember = async () => {
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({ title: "Invalid Email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    setIsInviting(true);
+    try {
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "invite_member", email }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setInviteEmail("");
+        toast({ title: "Invitation Sent", description: `An invite has been sent to ${email}.` });
+        fetchTeam();
+      } else {
+        throw new Error(result.error || "Failed to send invitation");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Invite Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "remove_member", member_id: memberId }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        toast({ title: "Member Removed", description: "The team member has been removed." });
+        fetchTeam();
+      } else {
+        throw new Error(result.error || "Failed to remove member");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Remove Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    }
+  };
+
+  const handleCancelInvitation = async (invitationId: string) => {
+    try {
+      const headers = await apiHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "cancel_invitation", invitation_id: invitationId }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        toast({ title: "Invitation Cancelled", description: "The pending invitation has been cancelled." });
+        fetchTeam();
+      } else {
+        throw new Error(result.error || "Failed to cancel invitation");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Cancel Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
@@ -202,6 +306,13 @@ export default function Settings() {
       fetchStripeStatus();
     }
   }, [activeTab, stripeStatus, isStripeLoading, fetchStripeStatus]);
+
+  // Fetch team when team tab is selected
+  useEffect(() => {
+    if (activeTab === "team" && !teamLoaded && !isLoadingTeam) {
+      fetchTeam();
+    }
+  }, [activeTab, teamLoaded, isLoadingTeam, fetchTeam]);
 
   if (!user) return null;
 
@@ -758,7 +869,7 @@ export default function Settings() {
                   )}
                 </TabsContent>
 
-                {/* TAB 2: Team — Coming Soon */}
+                {/* TAB 2: Team */}
                 <TabsContent value="team" className="mt-6" forceMount={activeTab === "team" ? true : undefined}>
                   {activeTab === "team" && (
                     <motion.div
@@ -769,18 +880,167 @@ export default function Settings() {
                       exit="exit"
                       className="space-y-6"
                     >
-                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-12 shadow-sm text-center">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
-                          <Users size={28} className="text-[#4A26ED]" />
+                      {isLoadingTeam ? (
+                        <div className="flex items-center justify-center py-20">
+                          <Loader2 className="animate-spin text-[#4A26ED]" size={32} />
                         </div>
-                        <h2 className="font-bold text-[#040042] text-xl mb-2">Team Management</h2>
-                        <p className="text-[#040042]/60 text-sm max-w-md mx-auto">
-                          Currently, one account per publication. Team management with roles and invitations is coming soon.
-                        </p>
-                        <Badge variant="outline" className="mt-4 border-[#4A26ED]/30 text-[#4A26ED] bg-[#4A26ED]/5 font-medium">
-                          Coming Soon
-                        </Badge>
-                      </div>
+                      ) : (
+                        <>
+                          {/* Invite Member (owner only) */}
+                          {currentUserRole === "owner" && (
+                            <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+                                  <Send size={16} className="text-[#4A26ED]" />
+                                </div>
+                                <div>
+                                  <h2 className="font-bold text-[#040042]">Invite Team Member</h2>
+                                  <p className="text-slate-500 text-xs">Send an invitation to join your team as a member</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex-1 relative">
+                                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                  <Input
+                                    type="email"
+                                    placeholder="colleague@email.com"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }}
+                                    className="bg-slate-50 border-slate-200 h-12 rounded-xl pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                                  />
+                                </div>
+                                <Button
+                                  onClick={handleInviteMember}
+                                  disabled={isInviting || !inviteEmail.trim()}
+                                  className="h-12 px-6 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl font-semibold shadow-lg shadow-[#4A26ED]/20"
+                                >
+                                  {isInviting ? (
+                                    <><Loader2 size={14} className="mr-2 animate-spin" />Sending...</>
+                                  ) : (
+                                    <><Send size={14} className="mr-2" />Send Invite</>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Team Members */}
+                          <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                            <div className="flex items-center gap-2 mb-4">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+                                <Users size={16} className="text-[#4A26ED]" />
+                              </div>
+                              <h2 className="font-bold text-[#040042]">Team Members ({teamMembers.length})</h2>
+                            </div>
+                            <div className="divide-y divide-slate-100">
+                              {teamMembers.map((member) => (
+                                <div key={member.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center text-sm font-bold text-[#4A26ED] uppercase">
+                                      {member.email.charAt(0)}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium text-[#040042]">{member.email}</p>
+                                      <p className="text-xs text-slate-400">
+                                        Joined {new Date(member.joined_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className={member.role === "owner"
+                                        ? "bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-medium"
+                                        : "bg-slate-50 text-slate-600 border-slate-200 font-medium"
+                                      }
+                                    >
+                                      {member.role === "owner" ? "Owner" : "Member"}
+                                    </Badge>
+                                    {currentUserRole === "owner" && member.role !== "owner" && (
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                          >
+                                            <Trash2 size={14} />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="bg-white">
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
+                                              <AlertTriangle size={20} className="text-amber-500" />
+                                              Remove Team Member?
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription className="text-slate-600">
+                                              This will remove <strong>{member.email}</strong> from your team. They will lose access to the dashboard and content management.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel className="rounded-xl border-slate-200">Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => handleRemoveMember(member.id)}
+                                              className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+                                            >
+                                              Remove Member
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                              {teamMembers.length === 0 && (
+                                <p className="text-sm text-slate-400 py-4 text-center">No team members yet.</p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Pending Invitations */}
+                          {teamInvitations.length > 0 && (
+                            <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center border border-amber-500/20">
+                                  <Clock size={16} className="text-amber-600" />
+                                </div>
+                                <h2 className="font-bold text-[#040042]">Pending Invitations ({teamInvitations.length})</h2>
+                              </div>
+                              <div className="divide-y divide-slate-100">
+                                {teamInvitations.map((inv) => (
+                                  <div key={inv.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+                                        <Mail size={16} className="text-amber-600" />
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-medium text-[#040042]">{inv.email}</p>
+                                        <p className="text-xs text-slate-400">
+                                          Sent {new Date(inv.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                          {" "}&middot;{" "}
+                                          Expires {new Date(inv.expires_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    {currentUserRole === "owner" && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleCancelInvitation(inv.id)}
+                                        className="h-8 px-3 text-slate-400 hover:text-red-500 hover:bg-red-50 text-xs"
+                                      >
+                                        Cancel
+                                      </Button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </motion.div>
                   )}
                 </TabsContent>

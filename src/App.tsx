@@ -22,6 +22,7 @@ import LicenseByUrl from "./pages/LicenseByUrl";
 import LicenseVerify from "./pages/LicenseVerify";
 import Registry from "./pages/Registry";
 import WidgetPreview from "./pages/WidgetPreview";
+import AcceptInvite from "./pages/AcceptInvite";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/verify/:key" element={<LicenseVerify />} />
             <Route path="/registry" element={<Registry />} />
             <Route path="/widget-preview" element={<WidgetPreview />} />
+            <Route path="/invite/:token" element={<AcceptInvite />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
