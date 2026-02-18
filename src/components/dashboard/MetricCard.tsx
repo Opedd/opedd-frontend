@@ -19,12 +19,12 @@ export function MetricCard({ label, value, accentColor = "default" }: MetricCard
   };
 
   return (
-    <div className="bg-white border border-[#040042]/5 p-8 rounded-[2rem] shadow-lg hover:shadow-xl transition-shadow group">
-      <p className="text-[#040042]/50 text-xs font-semibold mb-3 uppercase tracking-widest">
+    <div className="bg-white border border-gray-200 p-4 rounded-md transition-colors hover:border-gray-300">
+      <p className="text-[#040042]/50 text-xs font-semibold mb-1 uppercase tracking-widest">
         {label}
       </p>
       <p
-        className={`text-5xl font-bold ${getValueColor()} tracking-tight group-hover:scale-105 transition-transform origin-left`}
+        className={`text-2xl font-semibold ${getValueColor()} tracking-tight`}
       >
         {value}
       </p>

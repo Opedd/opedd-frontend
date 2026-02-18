@@ -21,7 +21,7 @@ export function DashboardSidebar() {
       <MobileSidebar />
       
       {/* Desktop Sidebar - Hidden on mobile/tablet */}
-      <aside className="hidden lg:flex w-60 bg-[#040042] border-r border-white/5 flex-col shrink-0 min-h-screen">
+      <aside className="hidden lg:flex w-52 bg-[#040042] border-r border-white/5 flex-col shrink-0 min-h-screen">
         {/* Logo */}
         <div className="p-5 pb-6 border-b border-white/5">
           <img src={opeddLogo} alt="Opedd" className="h-8" />
@@ -37,13 +37,13 @@ export function DashboardSidebar() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                   isActive
-                    ? "bg-white/10 text-[#FDFEFF]"
-                    : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                    ? "bg-white/10 text-[#FDFEFF] border-l-2 border-white"
+                    : "text-white/50 hover:bg-white/5 hover:text-white/80 border-l-2 border-transparent"
                 }`}
               >
-                <Icon size={20} strokeWidth={1.5} />
+                <Icon size={18} strokeWidth={1.5} />
                 <span className="font-medium text-sm">{item.title}</span>
               </NavLink>
             );
