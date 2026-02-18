@@ -9,22 +9,22 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_0_20px_hsl(245_83%_54%/0.4)]",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-soft-white/20 bg-background hover:bg-muted hover:text-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-muted hover:text-foreground",
         link: "text-foreground underline-offset-4 hover:underline hover:text-accent",
         // Opedd custom variants - Oxford Blue primary CTAs
-        oxford: "bg-gradient-to-r from-oxford to-oxford-glow text-white hover:shadow-[0_0_25px_hsl(245_83%_54%/0.4)] hover:-translate-y-0.5",
-        "ghost-oxford": "border border-foreground/30 bg-transparent text-foreground hover:border-oxford hover:text-oxford hover:shadow-[0_0_15px_hsl(245_83%_54%/0.2)]",
-        "hero-primary": "bg-gradient-to-r from-oxford to-oxford-glow text-white font-semibold hover:shadow-[0_0_30px_hsl(245_83%_54%/0.5)] hover:-translate-y-1 transition-all duration-300",
-        "hero-ghost": "border border-foreground/30 bg-transparent text-foreground hover:border-oxford hover:text-oxford hover:shadow-[0_0_15px_hsl(245_83%_54%/0.2)] transition-all duration-300",
+        oxford: "bg-gradient-to-r from-oxford to-oxford-glow text-white hover:opacity-90",
+        "ghost-oxford": "border border-foreground/30 bg-transparent text-foreground hover:border-oxford hover:text-oxford",
+        "hero-primary": "bg-gradient-to-r from-oxford to-oxford-glow text-white font-semibold hover:opacity-90 transition-colors duration-300",
+        "hero-ghost": "border border-foreground/30 bg-transparent text-foreground hover:border-oxford hover:text-oxford transition-colors duration-300",
         // Navy variant for light backgrounds
-        navy: "bg-navy-deep text-white hover:bg-navy-deep/90 hover:shadow-lg",
+        navy: "bg-navy-deep text-white hover:bg-navy-deep/90",
         // Legacy plum variants for secondary/hover accents
-        plum: "bg-gradient-to-r from-plum to-plum-glow text-white hover:shadow-[0_0_20px_hsl(322_100%_41%/0.3)] hover:-translate-y-0.5",
-        "ghost-plum": "border border-accent/50 bg-transparent text-accent hover:bg-accent/10 hover:shadow-[0_0_15px_hsl(322_100%_41%/0.2)]",
+        plum: "bg-gradient-to-r from-plum to-plum-glow text-white hover:opacity-90",
+        "ghost-plum": "border border-accent/50 bg-transparent text-accent hover:bg-accent/10",
       },
       size: {
         default: "h-10 px-4 py-2",
