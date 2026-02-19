@@ -30,30 +30,46 @@ const NotFound = () => {
 
       <main className="flex-1 flex items-center justify-center px-6 py-16">
         <div className="text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#040042] to-[#0A0066] rounded-2xl mb-8">
-            <span className="text-3xl font-bold text-white font-mono">404</span>
-          </div>
+          <Link to="/" className="inline-block mb-8">
+            <img src={opeddLogoColor} alt="Opedd" className="h-12 mx-auto" />
+          </Link>
 
-          <h1 className="text-2xl font-bold text-[#040042] mb-3">Page not found</h1>
-          <p className="text-[#040042]/60 mb-8 leading-relaxed">
-            The page <code className="text-sm bg-[#040042]/5 px-2 py-0.5 rounded font-mono">{location.pathname}</code> doesn't exist or has been moved.
-          </p>
+          <div className="bg-white rounded-2xl border border-[#E8F2FB] p-8 shadow-sm mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#040042] to-[#0A0066] rounded-2xl mb-6">
+              <span className="text-3xl font-bold text-white font-mono">404</span>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
-            <button
-              onClick={() => window.history.back()}
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 border border-[#040042]/10 text-[#040042] rounded-xl font-medium hover:bg-white transition-all"
-            >
-              <ArrowLeft size={16} />
-              Go Back
-            </button>
+            <h1 className="text-2xl font-bold text-[#040042] mb-3">Page not found</h1>
+            <p className="text-[#040042]/60 mb-8 leading-relaxed">
+              The page <code className="text-sm bg-[#040042]/5 px-2 py-0.5 rounded font-mono">{location.pathname}</code> doesn't exist or has been moved.
+            </p>
+
             <Link
-              to={user ? "/dashboard" : "/"}
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-medium hover:shadow-lg hover:shadow-[#4A26ED]/30 transition-all"
+              to="/"
+              className="inline-flex items-center justify-center gap-2 w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#4A26ED]/30 transition-all mb-3"
             >
-              {user ? <LayoutDashboard size={16} /> : <Home size={16} />}
-              {user ? "Dashboard" : "Home"}
+              <Home size={18} />
+              Return to Homepage
             </Link>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => window.history.back()}
+                className="inline-flex items-center justify-center gap-2 flex-1 h-12 border border-[#040042]/10 text-[#040042] rounded-xl font-medium hover:bg-[#F2F9FF] transition-all"
+              >
+                <ArrowLeft size={16} />
+                Go Back
+              </button>
+              {user && (
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center justify-center gap-2 flex-1 h-12 border border-[#040042]/10 text-[#040042] rounded-xl font-medium hover:bg-[#F2F9FF] transition-all"
+                >
+                  <LayoutDashboard size={16} />
+                  Dashboard
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="bg-white rounded-xl border border-[#E8F2FB] p-5 shadow-sm">
