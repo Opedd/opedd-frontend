@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -68,20 +68,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Computed access token from current session
   const accessToken = session?.access_token ?? null;
 
-  // Async getter that refreshes the session if needed
-  const getAccessToken = async (): Promise<string | null> => {
+  // Use a ref so getAccessToken always sees the latest session without
+  // needing session as a dependency (which would break memoization)
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+
+  // Async getter that refreshes the session if needed — stable reference
+  const getAccessToken = useCallback(async (): Promise<string | null> => {
+    const currentSession = sessionRef.current;
     // First try the current session
-    if (session?.access_token) {
+    if (currentSession?.access_token) {
       // Check if token is still valid (has more than 60 seconds left)
-      const expiresAt = session.expires_at;
+      const expiresAt = currentSession.expires_at;
       if (expiresAt && expiresAt > Math.floor(Date.now() / 1000) + 60) {
-        return session.access_token;
+        return currentSession.access_token;
       }
     }
 
     // Refresh session to get a fresh token
     const { data: { session: freshSession }, error } = await supabase.auth.getSession();
-    
+
     if (error) {
       console.error("[AuthContext] Failed to refresh session:", error);
       return null;
@@ -94,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return null;
-  };
+  }, []);
 
   const logout = async () => {
     await supabase.auth.signOut();
