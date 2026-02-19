@@ -35,6 +35,7 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("signup");
   const [showPassword, setShowPassword] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
 
   const validateForm = (): string | null => {
@@ -91,7 +92,7 @@ export default function Signup() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -316,6 +317,39 @@ export default function Signup() {
       <div className="space-y-3">
         <button
           type="button"
+          disabled={isResending}
+          onClick={async () => {
+            setIsResending(true);
+            try {
+              const { error } = await supabase.auth.resend({
+                type: "signup",
+                email,
+                options: {
+                  emailRedirectTo: `${window.location.origin}/auth/callback`,
+                },
+              });
+              if (error) throw error;
+              toast({
+                title: "Email Resent",
+                description: "A new verification email has been sent",
+              });
+            } catch (err) {
+              toast({
+                title: "Failed to Resend",
+                description: err instanceof Error ? err.message : "Try again later",
+                variant: "destructive",
+              });
+            } finally {
+              setIsResending(false);
+            }
+          }}
+          className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-medium hover:shadow-lg hover:shadow-[#4A26ED]/30 disabled:opacity-50 transition-all"
+        >
+          {isResending ? "Sending..." : "Resend Verification Email"}
+        </button>
+
+        <button
+          type="button"
           onClick={() => {
             setViewMode("signup");
             setEmail("");
@@ -328,9 +362,9 @@ export default function Signup() {
         >
           Use a Different Email
         </button>
-        
+
         <p className="text-xs text-[#040042]/40">
-          Didn't receive the email? Check your spam folder
+          Didn't receive the email? Check your spam folder or click resend above
         </p>
       </div>
     </div>

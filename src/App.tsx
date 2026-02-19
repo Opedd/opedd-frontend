@@ -23,6 +23,9 @@ import LicenseVerify from "./pages/LicenseVerify";
 import Registry from "./pages/Registry";
 import WidgetPreview from "./pages/WidgetPreview";
 import AcceptInvite from "./pages/AcceptInvite";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +55,9 @@ const App = () => (
               <Route path="/registry" element={<Registry />} />
               <Route path="/widget-preview" element={<WidgetPreview />} />
               <Route path="/invite/:token" element={<AcceptInvite />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
