@@ -3,13 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useDebounce } from "@/hooks/useDebounce";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Bot, AlertTriangle, HelpCircle, Rss, List, CheckSquare, ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Rss, List, CheckSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -184,45 +178,20 @@ export default function Dashboard() {
           )}
 
           {/* Compact Metrics */}
-          <TooltipProvider>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
-                <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
-                <p className="text-2xl font-bold text-[#040042] mt-1">{protectedCount}</p>
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
-                <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
-              </div>
-              <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors cursor-pointer">
-                <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="w-5 h-5 rounded-full bg-amber-100/80 flex items-center justify-center hover:bg-amber-200 transition-colors">
-                        <HelpCircle size={12} className="text-amber-600" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[200px] text-xs">
-                      <p>Revenue lost to unlicensed AI scraping. Protect your assets to enable billing.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Bot size={14} className="text-amber-600" />
-                  </div>
-                </div>
-                <p className="text-amber-600 text-xs font-medium uppercase tracking-wide flex items-center gap-1">
-                  <AlertTriangle size={10} />
-                  Unlicensed AI Scrapes
-                </p>
-                <p className="text-2xl font-bold text-amber-600 mt-1">142</p>
-                <p className="text-[10px] text-amber-500/70 mt-1">This week</p>
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
             </div>
-          </TooltipProvider>
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">{protectedCount}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
+            </div>
+          </div>
 
           {/* Sources / Library Tabs */}
           <Tabs value={registryTab} onValueChange={(v) => setRegistryTab(v as "sources" | "library")} className="w-full">

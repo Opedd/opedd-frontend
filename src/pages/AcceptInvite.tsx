@@ -135,8 +135,12 @@ export default function AcceptInvite() {
   const handleSignupAndJoin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password.length < 6) {
-      toast({ title: "Password too short", description: "Password must be at least 6 characters.", variant: "destructive" });
+    if (password.length < 8) {
+      toast({ title: "Password too short", description: "Password must be at least 8 characters.", variant: "destructive" });
+      return;
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      toast({ title: "Weak password", description: "Password must include uppercase, lowercase, and a number.", variant: "destructive" });
       return;
     }
     if (password !== confirmPassword) {
@@ -259,11 +263,11 @@ export default function AcceptInvite() {
                       <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Minimum 6 characters"
+                        placeholder="Min 8 chars, uppercase, lowercase, number"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        minLength={6}
+                        minLength={8}
                         className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pl-11 pr-11"
                       />
                       <button
@@ -287,7 +291,7 @@ export default function AcceptInvite() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        minLength={6}
+                        minLength={8}
                         className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pl-11"
                       />
                     </div>

@@ -52,7 +52,7 @@ export function DashboardSidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-white/5">
-          <p className="text-white/30 text-xs text-center">© 2025 Opedd</p>
+          <p className="text-white/30 text-xs text-center">© 2026 Opedd</p>
         </div>
       </aside>
     </>

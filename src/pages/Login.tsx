@@ -125,7 +125,7 @@ export default function Login() {
             Access your Publisher Portal to manage assets, track revenue, and control AI licensing.
           </p>
         </div>
-        <p className="text-white/40 text-sm">© 2025 Opedd. All rights reserved.</p>
+        <p className="text-white/40 text-sm">© 2026 Opedd. All rights reserved.</p>
       </div>
 
       {/* Right Panel - Form */}

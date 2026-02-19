@@ -58,6 +58,15 @@ export default function Signup() {
     if (password.length < 8) {
       return "Password must be at least 8 characters long";
     }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number";
+    }
 
     return null;
   };
@@ -236,7 +245,7 @@ export default function Signup() {
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          <p className="text-xs text-[#040042]/50">Must be at least 8 characters</p>
+          <p className="text-xs text-[#040042]/50">Min 8 characters, with uppercase, lowercase, and a number</p>
         </div>
 
         <button
@@ -344,7 +353,7 @@ export default function Signup() {
             Join publishers who are monetizing AI training and protecting their intellectual property.
           </p>
         </div>
-        <p className="text-white/40 text-sm">© 2025 Opedd. All rights reserved.</p>
+        <p className="text-white/40 text-sm">© 2026 Opedd. All rights reserved.</p>
       </div>
 
       {/* Right Panel - Form */}

@@ -222,7 +222,7 @@ export default function UpdatePassword() {
             Create a strong password to keep your content and revenue safe.
           </p>
         </div>
-        <p className="text-white/40 text-sm">© 2025 Opedd. All rights reserved.</p>
+        <p className="text-white/40 text-sm">© 2026 Opedd. All rights reserved.</p>
       </div>
 
       {/* Right Panel - Form */}
