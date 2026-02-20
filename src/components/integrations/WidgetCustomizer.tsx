@@ -410,35 +410,35 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
             )}
           </Button>
         </div>
-        <pre className="bg-[#040042] text-slate-100 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
+        <pre className="bg-white border border-gray-200 text-slate-700 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
           <code>
-            <span className="text-slate-500">{"<"}</span>
+            <span className="text-slate-400">{"<"}</span>
             <span className="text-[#7C3AED]">script</span>
-            <span className="text-slate-400"> src=</span>
-            <span className="text-emerald-400">"https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"</span>
+            <span className="text-slate-500"> src=</span>
+            <span className="text-emerald-600">"https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"</span>
             {"\n"}
-            <span className="text-slate-400">  data-publisher-id=</span>
-            <span className="text-emerald-400">"{publisherId}"</span>
+            <span className="text-slate-500">  data-publisher-id=</span>
+            <span className="text-emerald-600">"{publisherId}"</span>
             {"\n"}
-            <span className="text-slate-400">  data-color=</span>
-            <span className="text-amber-400">"{primaryColor}"</span>
+            <span className="text-slate-500">  data-color=</span>
+            <span className="text-amber-600">"{primaryColor}"</span>
             {"\n"}
-            <span className="text-slate-400">  data-radius=</span>
-            <span className="text-amber-400">"{borderRadius[0]}"</span>
+            <span className="text-slate-500">  data-radius=</span>
+            <span className="text-amber-600">"{borderRadius[0]}"</span>
             {"\n"}
-            <span className="text-slate-400">  data-theme=</span>
-            <span className="text-amber-400">"{darkTheme ? 'dark' : 'light'}"</span>
+            <span className="text-slate-500">  data-theme=</span>
+            <span className="text-amber-600">"{darkTheme ? 'dark' : 'light'}"</span>
             {"\n"}
-            <span className="text-slate-400">  data-text=</span>
-            <span className="text-amber-400">"{labelText}"</span>
+            <span className="text-slate-500">  data-text=</span>
+            <span className="text-amber-600">"{labelText}"</span>
             {"\n"}
-            <span className="text-slate-400">  data-frontend-url=</span>
-            <span className="text-amber-400">"{typeof window !== 'undefined' ? window.location.origin : ''}"</span>
-            <span className="text-slate-500">{">"}</span>
+            <span className="text-slate-500">  data-frontend-url=</span>
+            <span className="text-amber-600">"{typeof window !== 'undefined' ? window.location.origin : ''}"</span>
+            <span className="text-slate-400">{">"}</span>
             {"\n"}
-            <span className="text-slate-500">{"</"}</span>
+            <span className="text-slate-400">{"</"}</span>
             <span className="text-[#7C3AED]">script</span>
-            <span className="text-slate-500">{">"}</span>
+            <span className="text-slate-400">{">"}</span>
           </code>
         </pre>
       </div>

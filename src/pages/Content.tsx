@@ -140,9 +140,9 @@ export default function Content() {
                 }
               }}
               className={`h-8 text-xs gap-1.5 rounded-lg ${
-                selectionMode 
-                  ? "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white" 
-                  : "border-[#E8F2FB] text-[#040042]/60 hover:border-[#4A26ED]/40"
+                selectionMode
+                  ? "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                  : "border-[#E8F2FB] text-slate-400 hover:bg-[#040042] hover:text-white hover:border-[#040042]"
               }`}
             >
               <CheckSquare size={14} />

@@ -3,25 +3,35 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Rss, 
-  Trash2, 
-  RefreshCw, 
-  Loader2, 
+import {
+  Rss,
+  Trash2,
+  RefreshCw,
+  Loader2,
   ExternalLink,
   Clock,
   Globe,
   ShieldCheck,
   DollarSign,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
 import { SourcePricingModal } from "@/components/dashboard/SourcePricingModal";
 
@@ -66,6 +76,8 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   const [verifyModalSource, setVerifyModalSource] = useState<Source | null>(null);
   const [tokenLookup, setTokenLookup] = useState<Record<string, string>>({});
   const [pricingSource, setPricingSource] = useState<Source | null>(null);
+  const [deleteConfirmSource, setDeleteConfirmSource] = useState<Source | null>(null);
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
 
   const fetchSources = async () => {
     if (!user) return;
@@ -377,7 +389,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                             size="sm"
                             onClick={() => handleResync(source)}
                             disabled={isSyncing}
-                            className="h-8 text-xs gap-1.5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042] transition-colors"
                           >
                             {isSyncing ? (
                               <Loader2 size={12} className="animate-spin" />
@@ -398,7 +410,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                           <Button
                             size="sm"
                             onClick={() => setPricingSource(source)}
-                            className="h-8 text-xs gap-1.5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042] transition-colors"
                           >
                             <DollarSign size={12} />
                             Set Pricing
@@ -437,7 +449,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                     variant="ghost"
                     size="sm"
                     asChild
-                    className="h-8 text-xs gap-1.5 text-[#040042]/60"
+                    className="h-8 text-xs gap-1.5 text-slate-400 hover:text-[#040042] hover:bg-transparent"
                   >
                     <a href={source.feed_url.startsWith("http") ? source.feed_url : `https://${source.feed_url}`} target="_blank" rel="noopener noreferrer">
                       <ExternalLink size={12} />
@@ -451,7 +463,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleDelete(source)}
+                  onClick={() => { setDeleteConfirmSource(source); setDeleteConfirmInput(""); }}
                   className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 gap-1.5"
                 >
                   <Trash2 size={12} />
@@ -492,6 +504,60 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           onSuccess={fetchSources}
         />
       )}
+
+      {/* Remove Source Confirmation Dialog */}
+      <Dialog
+        open={!!deleteConfirmSource}
+        onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
+      >
+        <DialogContent className="bg-white max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={18} className="text-red-500" />
+              </div>
+              <DialogTitle className="text-[#040042]">Remove Source</DialogTitle>
+            </div>
+            <DialogDescription className="text-slate-500 text-sm">
+              This will permanently disconnect <strong className="text-[#040042]">{deleteConfirmSource?.name}</strong> and remove all synced articles from your library. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <p className="text-xs text-slate-500">
+              Type <strong className="text-[#040042] font-mono">{deleteConfirmSource?.name}</strong> to confirm:
+            </p>
+            <Input
+              value={deleteConfirmInput}
+              onChange={(e) => setDeleteConfirmInput(e.target.value)}
+              placeholder={deleteConfirmSource?.name}
+              className="border-slate-200 focus:border-red-400 focus:ring-red-400/20 h-11"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
+              className="border-slate-200 text-slate-600 rounded-lg"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={deleteConfirmInput !== deleteConfirmSource?.name}
+              onClick={() => {
+                if (deleteConfirmSource) {
+                  handleDelete(deleteConfirmSource);
+                  setDeleteConfirmSource(null);
+                  setDeleteConfirmInput("");
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-40"
+            >
+              <Trash2 size={14} className="mr-2" />
+              Remove Source
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

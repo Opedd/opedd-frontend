@@ -464,7 +464,7 @@ export default function Settings() {
                               </div>
                               <div>
                                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploadingLogo} className="border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg">
+                                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploadingLogo} className="border-slate-200 bg-transparent text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042] rounded-lg transition-colors">
                                   {isUploadingLogo ? <><Loader2 size={14} className="mr-2 animate-spin" /> Uploading...</> : <><Upload size={14} className="mr-2" /> Upload Logo</>}
                                 </Button>
                                 <p className="text-xs text-slate-400 mt-1.5">Max 2MB. JPG, PNG, or SVG.</p>
@@ -663,16 +663,21 @@ export default function Settings() {
                   {activeTab === "api-keys" && (
                     <motion.div key="api-keys" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                       {/* Publisher ID */}
-                      <div className="bg-[#040042] rounded-xl p-6 shadow-sm">
-                        <div className="mb-4">
-                          <h2 className="font-bold text-white">Publisher ID</h2>
-                          <p className="text-white/50 text-xs mt-0.5">Use this ID in the Widget script</p>
+                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
+                            <FileText size={16} className="text-[#4A26ED]" />
+                          </div>
+                          <div>
+                            <h2 className="font-bold text-[#040042]">Publisher ID</h2>
+                            <p className="text-slate-500 text-xs">Use this ID in the Widget script</p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 overflow-hidden">
-                            <code className="text-sm text-emerald-400 font-mono truncate block">{publisherId}</code>
+                          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
+                            <code className="text-sm text-emerald-600 font-mono truncate block">{publisherId}</code>
                           </div>
-                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium flex-shrink-0 transition-all">
+                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#040042] hover:bg-[#040042]/80 text-white rounded-lg font-medium flex-shrink-0 transition-all">
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>
