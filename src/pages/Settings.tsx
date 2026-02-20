@@ -396,7 +396,7 @@ export default function Settings() {
 
   return (
     <DashboardLayout title="Settings">
-        <div className="p-8 max-w-4xl w-full mx-auto space-y-0">
+        <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="animate-spin text-[#4A26ED]" size={32} />
@@ -430,35 +430,26 @@ export default function Settings() {
                       {/* Stats Row */}
                       {profile && (
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
-                              <FileText size={18} className="text-[#4A26ED]" />
-                            </div>
+                          <div className="bg-white rounded-xl p-4 border border-[#E5E7EB] shadow-sm flex items-center gap-3">
+                            <FileText size={18} className="text-[#4A26ED]" />
                             <div>
                               <p className="text-2xl font-bold text-[#040042]">{profile.article_count}</p>
-                              <p className="text-xs text-slate-500">Articles</p>
+                              <p className="text-xs text-[#6B7280]">Articles</p>
                             </div>
                           </div>
-                          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                              <BarChart3 size={18} className="text-emerald-600" />
-                            </div>
+                          <div className="bg-white rounded-xl p-4 border border-[#E5E7EB] shadow-sm flex items-center gap-3">
+                            <BarChart3 size={18} className="text-emerald-600" />
                             <div>
                               <p className="text-2xl font-bold text-[#040042]">{profile.transaction_count}</p>
-                              <p className="text-xs text-slate-500">Transactions</p>
+                              <p className="text-xs text-[#6B7280]">Transactions</p>
                             </div>
                           </div>
                         </div>
                       )}
 
                       {/* Publisher Profile Card */}
-                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                        <div className="flex items-center gap-2 mb-6">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
-                            <User size={16} className="text-[#4A26ED]" />
-                          </div>
-                          <h2 className="font-bold text-[#040042]">Publisher Profile</h2>
-                        </div>
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <h2 className="font-bold text-[#040042] mb-6">Publisher Profile</h2>
                         <div className="grid gap-5">
                           {/* Logo Upload */}
                           <div className="space-y-2">
@@ -510,15 +501,10 @@ export default function Settings() {
                       </div>
 
                       {/* Pricing Defaults Card */}
-                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                        <div className="flex items-center gap-2 mb-6">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 flex items-center justify-center border border-emerald-500/20">
-                            <DollarSign size={16} className="text-emerald-600" />
-                          </div>
-                          <div>
-                            <h2 className="font-bold text-[#040042]">Pricing Defaults</h2>
-                            <p className="text-slate-500 text-xs">Standard prices applied to newly synced articles</p>
-                          </div>
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="mb-6">
+                          <h2 className="font-bold text-[#040042]">Pricing Defaults</h2>
+                          <p className="text-[#6B7280] text-xs mt-0.5">Standard prices applied to newly synced articles</p>
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -542,7 +528,7 @@ export default function Settings() {
                       </div>
 
                       {/* Save Button */}
-                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-14 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-semibold text-base disabled:opacity-50 transition-all active:scale-[0.98]">
+                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
                     </motion.div>
@@ -572,15 +558,10 @@ export default function Settings() {
                         <>
                           {/* Invite Member (owner only) */}
                           {currentUserRole === "owner" && (
-                            <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                              <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
-                                  <Send size={16} className="text-[#4A26ED]" />
-                                </div>
-                                <div>
-                                  <h2 className="font-bold text-[#040042]">Invite Team Member</h2>
-                                  <p className="text-slate-500 text-xs">Send an invitation to join your team as a member</p>
-                                </div>
+                            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                              <div className="mb-4">
+                                <h2 className="font-bold text-[#040042]">Invite Team Member</h2>
+                                <p className="text-[#6B7280] text-xs mt-0.5">Send an invitation to join your team as a member</p>
                               </div>
                               <div className="flex items-center gap-3">
                                 <div className="flex-1 relative">
@@ -595,13 +576,8 @@ export default function Settings() {
                           )}
 
                           {/* Team Members */}
-                          <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
-                                <Users size={16} className="text-[#4A26ED]" />
-                              </div>
-                              <h2 className="font-bold text-[#040042]">Team Members ({teamMembers.length})</h2>
-                            </div>
+                          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                            <h2 className="font-bold text-[#040042] mb-4">Team Members ({teamMembers.length})</h2>
                             <div className="divide-y divide-slate-100">
                               {teamMembers.map((member) => (
                                 <div key={member.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
@@ -648,13 +624,8 @@ export default function Settings() {
 
                           {/* Pending Invitations */}
                           {teamInvitations.length > 0 && (
-                            <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                              <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center border border-amber-500/20">
-                                  <Clock size={16} className="text-amber-600" />
-                                </div>
-                                <h2 className="font-bold text-[#040042]">Pending Invitations ({teamInvitations.length})</h2>
-                              </div>
+                            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                              <h2 className="font-bold text-[#040042] mb-4">Pending Invitations ({teamInvitations.length})</h2>
                               <div className="divide-y divide-slate-100">
                                 {teamInvitations.map((inv) => (
                                   <div key={inv.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
@@ -692,18 +663,13 @@ export default function Settings() {
                   {activeTab === "api-keys" && (
                     <motion.div key="api-keys" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                       {/* Publisher ID */}
-                      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 shadow-lg">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                            <FileText size={16} className="text-white" />
-                          </div>
-                          <div>
-                            <h2 className="font-bold text-white">Publisher ID</h2>
-                            <p className="text-slate-400 text-xs">Use this ID in the Widget script</p>
-                          </div>
+                      <div className="bg-[#040042] rounded-xl p-6 shadow-sm">
+                        <div className="mb-4">
+                          <h2 className="font-bold text-white">Publisher ID</h2>
+                          <p className="text-white/50 text-xs mt-0.5">Use this ID in the Widget script</p>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-3 overflow-hidden">
+                          <div className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 overflow-hidden">
                             <code className="text-sm text-emerald-400 font-mono truncate block">{publisherId}</code>
                           </div>
                           <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium flex-shrink-0 transition-all">
@@ -713,15 +679,10 @@ export default function Settings() {
                       </div>
 
                       {/* API Key */}
-                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                        <div className="flex items-center gap-2 mb-6">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center border border-amber-500/20">
-                            <Key size={16} className="text-amber-600" />
-                          </div>
-                          <div>
-                            <h2 className="font-bold text-[#040042]">API Key</h2>
-                            <p className="text-slate-500 text-xs">For programmatic access to your Opedd account</p>
-                          </div>
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="mb-6">
+                          <h2 className="font-bold text-[#040042]">API Key</h2>
+                          <p className="text-[#6B7280] text-xs mt-0.5">For programmatic access to your Opedd account</p>
                         </div>
 
                         <div className="space-y-4">

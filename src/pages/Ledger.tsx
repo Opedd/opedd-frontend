@@ -317,92 +317,74 @@ export default function Ledger() {
   }
 
   return (
-    <DashboardLayout title="Transactions" subtitle="Revenue & settlements">
+    <DashboardLayout title="Transactions" subtitle="All licensing revenue and settlements">
         <motion.div 
-          className="p-8 max-w-7xl w-full mx-auto space-y-8"
+          className="p-8 max-w-6xl w-full mx-auto space-y-6"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* Page Header with Export Button */}
           <motion.div className="flex items-center justify-between" variants={itemVariants}>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center">
-                <Wallet size={24} className="text-[#4A26ED]" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-[#040042]">Revenue Ledger</h1>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button className="w-6 h-6 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
-                          <HelpCircle size={14} className="text-[#040042]/50" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[220px] text-xs">
-                        <p>Track all your IP licensing revenue and settlements in one place.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <p className="text-[#040042]/60 text-sm">IP licensing revenue & verified settlements</p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-[#040042]">Transactions</h1>
+              <p className="text-sm text-[#6B7280] mt-0.5">All licensing revenue and settlements</p>
             </div>
             
             <Button
               onClick={handleExportCSV}
               disabled={isExporting || transactions.length === 0}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3d1ecc] hover:to-[#6b2ed4] text-white font-medium px-5 h-11 rounded-xl shadow-md hover:shadow-lg transition-all"
+              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-medium px-4 py-2 rounded-lg"
             >
               {isExporting ? (
-                <><Loader2 size={18} className="mr-2 animate-spin" />Exporting...</>
+                <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</>
               ) : (
-                <><Download size={18} className="mr-2" />Export CSV</>
+                <><Download size={16} className="mr-2" />Export CSV</>
               )}
             </Button>
           </motion.div>
 
           {/* Metric Cards Row */}
-          <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-5" variants={itemVariants}>
+          <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-4" variants={itemVariants}>
             {/* Total Revenue */}
-            <div className="bg-gradient-to-br from-[#040042] to-[#1a1a5c] rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#4A26ED]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              <div className="relative">
-                <TrendingUp size={20} className="text-white/70 mb-3" />
-                <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-                <p className="text-3xl font-bold mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>
-              </div>
+            <div className="bg-[#040042] rounded-xl p-6 text-white shadow-sm">
+              <TrendingUp size={18} className="text-white/60 mb-3" />
+              <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+              <p className="text-2xl font-bold mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>
             </div>
 
             {/* Total Transactions */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-              <FileCheck size={20} className="text-[#4A26ED] mb-3" />
+            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+              <FileCheck size={18} className="text-[#4A26ED] mb-3" />
               <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.totalTransactions}</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">{metrics.totalTransactions}</p>
             </div>
 
             {/* Human Licenses */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-              <User size={20} className="text-[#D1009A] mb-3" />
+            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+              <User size={18} className="text-[#D1009A] mb-3" />
               <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Human Licenses</p>
-              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.humanLicenses}</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">{metrics.humanLicenses}</p>
             </div>
 
             {/* AI Licenses */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-              <Sparkles size={20} className="text-[#4A26ED] mb-3" />
+            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+              <Sparkles size={18} className="text-[#4A26ED] mb-3" />
               <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">AI Licenses</p>
-              <p className="text-3xl font-bold text-[#040042] mt-1">{metrics.aiLicenses}</p>
+              <p className="text-2xl font-bold text-[#040042] mt-1">{metrics.aiLicenses}</p>
             </div>
           </motion.div>
 
           {/* Transaction History or Empty State */}
           <motion.div variants={itemVariants}>
             {!hasTransactions ? (
-              <EmptyState onAddClick={() => navigate("/dashboard")} />
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
+                <Wallet size={40} className="mx-auto text-[#D1D5DB] mb-4" />
+                <h3 className="text-base font-semibold text-[#111] mb-1">No transactions yet</h3>
+                <p className="text-sm text-[#6B7280] max-w-xs mx-auto">Transactions will appear here once you start receiving licensing revenue.</p>
+              </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex items-center justify-between mb-4">
                     <div>

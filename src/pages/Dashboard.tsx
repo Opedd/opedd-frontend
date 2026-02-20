@@ -51,7 +51,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout title="Dashboard">
-      <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+      <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
         {/* Action Button */}
         <div className="flex items-center justify-end">
           <button
@@ -74,17 +74,17 @@ export default function Dashboard() {
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
             <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
             <p className="text-2xl font-bold text-[#040042] mt-1">{protectedCount}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
-            <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
+          <div className="bg-[#040042] rounded-xl p-6 shadow-sm">
+            <p className="text-white/60 text-xs font-medium uppercase tracking-wide">Total Revenue</p>
+            <p className="text-2xl font-bold text-white mt-1">${totalRevenue.toFixed(2)}</p>
           </div>
         </div>
 

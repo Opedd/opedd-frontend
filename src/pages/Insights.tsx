@@ -89,42 +89,39 @@ export default function Insights() {
 
   return (
     <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
-        <motion.div className="p-8 max-w-7xl w-full mx-auto space-y-8" variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div className="p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
           {/* Header removed - DashboardLayout top bar handles it */}
 
           {!hasData ? (
-            <motion.div variants={itemVariants} className="bg-white rounded-2xl border border-gray-200 p-16 text-center shadow-sm">
-              <BarChart3 size={48} className="mx-auto text-slate-200 mb-4" />
-              <h2 className="text-xl font-bold text-[#040042] mb-2">No transactions yet</h2>
-              <p className="text-[#040042]/50 text-sm max-w-md mx-auto">
-                Analytics will appear here once you start receiving licensing transactions. Head to your Registry to set up content and pricing.
+            <motion.div variants={itemVariants} className="bg-white rounded-xl border border-[#E5E7EB] p-16 text-center shadow-sm">
+              <BarChart3 size={40} className="mx-auto text-[#D1D5DB] mb-4" />
+              <h3 className="text-base font-semibold text-[#111] mb-1">No transactions yet</h3>
+              <p className="text-sm text-[#6B7280] max-w-xs mx-auto">
+                Analytics will appear here once you start receiving licensing transactions.
               </p>
             </motion.div>
           ) : (
             <>
               {/* Metric Cards */}
-              <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-5" variants={itemVariants}>
+              <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
                 {/* Total Revenue */}
-                <div className="bg-gradient-to-br from-[#040042] to-[#1a1a5c] rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-[#4A26ED]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                  <div className="relative">
-                    <TrendingUp size={20} className="text-white/70 mb-3" />
-                    <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-                    <p className="text-3xl font-bold mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
-                  </div>
+                <div className="bg-[#040042] rounded-xl p-6 text-white shadow-sm">
+                  <TrendingUp size={18} className="text-white/60 mb-3" />
+                  <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+                  <p className="text-2xl font-bold mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
                 </div>
 
                 {/* Total Transactions */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-                  <FileCheck size={20} className="text-[#4A26ED] mb-3" />
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                  <FileCheck size={18} className="text-[#4A26ED] mb-3" />
                   <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-                  <p className="text-3xl font-bold text-[#040042] mt-1">{totalTransactions}</p>
+                  <p className="text-2xl font-bold text-[#040042] mt-1">{totalTransactions}</p>
                 </div>
               </motion.div>
 
               {/* Revenue Chart */}
               {chartData.length > 0 && (
-                <motion.div variants={itemVariants} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <motion.div variants={itemVariants} className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6">
                   <h2 className="font-bold text-[#040042] text-lg mb-1">Revenue Over Time</h2>
                   <p className="text-sm text-[#040042]/60 mb-6">Daily revenue breakdown</p>
                   <ResponsiveContainer width="100%" height={300}>
@@ -151,7 +148,7 @@ export default function Insights() {
               {/* Bottom Grid: Top Articles + License Split */}
               <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-6" variants={itemVariants}>
                 {/* Top Articles */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                   <div className="p-5 border-b border-gray-200">
                     <h2 className="font-bold text-[#040042] text-lg">Top Articles</h2>
                     <p className="text-sm text-[#040042]/60">By revenue</p>
@@ -181,7 +178,7 @@ export default function Insights() {
                 </div>
 
                 {/* License Type Split */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6">
                   <h2 className="font-bold text-[#040042] text-lg mb-1">License Split</h2>
                   <p className="text-sm text-[#040042]/60 mb-4">Human vs AI licenses</p>
                   {pieData.length > 0 ? (
