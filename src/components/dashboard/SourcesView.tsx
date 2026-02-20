@@ -292,16 +292,32 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             >
               <div className="flex items-start gap-4">
                 {/* Platform Icon */}
-                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 flex-shrink-0">
-                  {logo ? (
+                {logo ? (
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 flex-shrink-0">
                     <img src={logo} alt={source.platform || ""} className="w-full h-full object-contain" />
-                  ) : faviconUrl ? (
-                    <img src={faviconUrl} alt={source.name} className="w-8 h-8 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; (e.currentTarget.nextElementSibling as HTMLElement).style.display = ""; }} />
-                  ) : (
+                  </div>
+                ) : faviconUrl ? (
+                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
+                    <img
+                      src={faviconUrl}
+                      alt={source.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const el = e.currentTarget;
+                        el.style.display = "none";
+                        const fallback = el.parentElement;
+                        if (fallback) {
+                          fallback.classList.add("bg-slate-50", "border", "border-slate-200", "flex", "items-center", "justify-center");
+                          fallback.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
                     <Globe size={20} className="text-slate-400" />
-                  )}
-                  {faviconUrl && <Globe size={20} className="text-slate-400" style={{ display: "none" }} />}
-                </div>
+                  </div>
+                )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -440,27 +456,6 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       </Tooltip>
                     </TooltipProvider>
 
-                    {/* Sync Now — manual trigger */}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleResync(source)}
-                            disabled={isSyncing}
-                            className="h-8 w-8 p-0 text-[#040042]/40 hover:text-[#4A26ED]"
-                          >
-                            {isSyncing ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Rss size={14} />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Sync now — don't wait 12 hours</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                   </>
                 )}
 

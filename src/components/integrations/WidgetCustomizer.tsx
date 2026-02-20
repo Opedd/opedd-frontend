@@ -390,8 +390,8 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
 
     </div>
 
-      {/* Embed Code — standalone card matching webhook container */}
-      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+      {/* Embed Code — standalone card matching Publisher ID container */}
+      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-[#040042] mb-1">Embed on Your Site</h3>
