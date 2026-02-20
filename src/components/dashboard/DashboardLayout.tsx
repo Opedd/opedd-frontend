@@ -3,10 +3,8 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
-  FileText,
   Wallet,
   BarChart3,
-  Key,
   Webhook,
   Settings,
   LogOut,
@@ -43,14 +41,12 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { title: "Content", path: "/dashboard/content", icon: FileText },
   { title: "Transactions", path: "/ledger", icon: Wallet },
   { title: "Insights", path: "/insights", icon: BarChart3 },
 ];
 
 const devNavItems = [
-  { title: "API Keys", path: "/settings", icon: Key, hash: "?tab=api" },
-  { title: "Webhooks", path: "/integrations", icon: Webhook, hash: "#webhook-section" },
+  { title: "Webhooks", path: "/integrations", icon: Webhook },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
@@ -140,7 +136,6 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
   const displayName = user?.email?.split("@")[0] || "Publisher";
 
   const isActive = (path: string) => {
-    if (path === "/dashboard/content") return location.pathname === "/dashboard" && location.search === "";
     if (path === "/dashboard") return location.pathname === "/dashboard";
     return location.pathname === path;
   };
@@ -182,11 +177,11 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
 
         {devNavItems.map((item) => {
           const Icon = item.icon;
-          const active = location.pathname === item.path && !item.hash;
+          const active = location.pathname === item.path;
           return (
             <NavLink
               key={item.title}
-              to={item.path + (item.hash || "")}
+              to={item.path}
               onClick={onItemClick}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
@@ -360,7 +355,6 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
                   <div className="w-7 h-7 rounded-full bg-[#4A26ED] flex items-center justify-center">
                     <span className="text-[11px] font-bold text-white">{getInitial()}</span>
                   </div>
-                  <span className="text-[13px] font-medium text-[#111] hidden sm:inline">{displayName}</span>
                   <ChevronDown size={12} className={cn("text-[#A3A3A3] transition-transform", profileOpen && "rotate-180")} />
                 </button>
               </DropdownMenuTrigger>

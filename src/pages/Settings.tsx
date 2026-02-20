@@ -489,53 +489,35 @@ export default function Settings() {
   const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
 
   return (
-    <DashboardLayout title="Settings" subtitle="Manage your account">
-        <div className="p-8 max-w-4xl w-full mx-auto space-y-8">
-          {/* Page Header */}
-          <div>
-            <p className="text-sm text-[#040042]/50 mb-1">
-              Organization / <span className="text-[#040042]/70">Settings</span>
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center border border-[#4A26ED]/20">
-                <SettingsIcon size={24} className="text-[#4A26ED]" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-[#040042]">Settings</h1>
-                <p className="text-[#040042]/60 text-sm">Manage your profile, team, and payouts</p>
-              </div>
-            </div>
-          </div>
-
+    <DashboardLayout title="Settings">
+        <div className="p-8 max-w-4xl w-full mx-auto space-y-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="animate-spin text-[#4A26ED]" size={32} />
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-white border border-[#E8F2FB] rounded-xl p-1.5 h-auto shadow-sm">
-                <TabsTrigger 
-                  value="profile" 
-                  className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
-                >
-                  <User size={16} />
-                  <span>Profile</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="team" 
-                  className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
-                >
-                  <Users size={16} />
-                  <span>Team</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="payouts" 
-                  className="flex items-center gap-2 py-3 px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#4A26ED] data-[state=active]:to-[#7C3AED] data-[state=active]:text-white rounded-lg transition-all font-medium"
-                >
-                  <CreditCard size={16} />
-                  <span>Payouts</span>
-                </TabsTrigger>
-              </TabsList>
+              {/* Resend-style underline tabs */}
+              <div className="border-b border-[#E5E5E5]">
+                <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
+                  {[
+                    { value: "profile", label: "Profile" },
+                    { value: "api-keys", label: "API Keys" },
+                    { value: "payouts", label: "Stripe" },
+                    { value: "team", label: "Team" },
+                    { value: "embed", label: "Embed Snippets" },
+                    { value: "ai-policy", label: "AI Policy" },
+                  ].map((tab) => (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[13px] font-medium tracking-tight text-[#737373] transition-colors data-[state=active]:border-[#111] data-[state=active]:text-[#111] data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-[#111]"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
 
               <AnimatePresence mode="wait">
                 {/* TAB 1: Profile */}
@@ -666,144 +648,6 @@ export default function Settings() {
                         </div>
                       </div>
 
-                      {/* Developer Section - Publisher ID */}
-                      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 shadow-lg">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                            <FileText size={16} className="text-white" />
-                          </div>
-                          <div>
-                            <h2 className="font-bold text-white">Developer</h2>
-                            <p className="text-slate-400 text-xs">Use this ID in the Widget script</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 overflow-hidden">
-                            <code className="text-sm text-emerald-400 font-mono truncate block">
-                              {publisherId}
-                            </code>
-                          </div>
-                          <Button
-                            size="sm"
-                            onClick={handleCopyPublisherId}
-                            className="h-11 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium flex-shrink-0 transition-all"
-                          >
-                            {publisherIdCopied ? (
-                              <><Check size={14} className="mr-2" />Copied</>
-                            ) : (
-                              <><Copy size={14} className="mr-2" />Copy ID</>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* API Key Section */}
-                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
-                        <div className="flex items-center gap-2 mb-6">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center border border-amber-500/20">
-                            <Key size={16} className="text-amber-600" />
-                          </div>
-                          <div>
-                            <h2 className="font-bold text-[#040042]">API Key</h2>
-                            <p className="text-slate-500 text-xs">For programmatic access to your Opedd account</p>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          {apiKey ? (
-                            <>
-                              <div className="flex items-center gap-3">
-                                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 overflow-hidden relative">
-                                  <code className="text-sm text-[#040042] font-mono truncate block">
-                                    {apiKeyRevealed 
-                                      ? apiKey 
-                                      : apiKey.slice(0, 10) + "•".repeat(20)
-                                    }
-                                  </code>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setApiKeyRevealed(!apiKeyRevealed)}
-                                  className="h-11 px-3 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl transition-all"
-                                  title={apiKeyRevealed ? "Hide API Key" : "Reveal API Key"}
-                                >
-                                  {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={handleCopyApiKey}
-                                  className="h-11 px-4 bg-[#040042] hover:bg-[#040042]/90 text-white rounded-xl font-medium transition-all"
-                                >
-                                  {apiKeyCopied ? (
-                                    <><Check size={14} className="mr-2" />Copied</>
-                                  ) : (
-                                    <><Copy size={14} className="mr-2" />Copy</>
-                                  )}
-                                </Button>
-                              </div>
-                              
-                              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                                <p className="text-xs text-slate-500">
-                                  <Shield size={12} className="inline mr-1 text-amber-500" />
-                                  Keep this key secret. Regenerating will invalidate the current key.
-                                </p>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      disabled={isRegenerating}
-                                      className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium transition-all"
-                                    >
-                                      {isRegenerating ? (
-                                        <><RefreshCw size={14} className="mr-2 animate-spin" />Regenerating...</>
-                                      ) : (
-                                        <><RefreshCw size={14} className="mr-2" />Regenerate Key</>
-                                      )}
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-white">
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
-                                        <AlertTriangle size={20} className="text-amber-500" />
-                                        Regenerate API Key?
-                                      </AlertDialogTitle>
-                                      <AlertDialogDescription className="text-slate-600">
-                                        This will invalidate your current API key immediately. Any integrations using the old key will stop working. You'll need to update all services with the new key.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel className="rounded-xl border-slate-200">Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={handleRegenerateApiKey}
-                                        className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
-                                      >
-                                        Yes, Regenerate Key
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="text-center py-4">
-                              <p className="text-sm text-slate-500 mb-3">No API key generated yet.</p>
-                              <Button
-                                onClick={handleRegenerateApiKey}
-                                disabled={isRegenerating}
-                                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
-                              >
-                                {isRegenerating ? (
-                                  <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</>
-                                ) : (
-                                  <><Key size={14} className="mr-2" />Generate API Key</>
-                                )}
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
 
                       {/* Pricing Defaults Card */}
                       <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
@@ -1179,6 +1023,205 @@ export default function Settings() {
                             <p className="text-xs text-slate-500 mt-1">All Time</p>
                           </div>
                         </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </TabsContent>
+
+                {/* TAB: API Keys */}
+                <TabsContent value="api-keys" className="mt-6" forceMount={activeTab === "api-keys" ? true : undefined}>
+                  {activeTab === "api-keys" && (
+                    <motion.div
+                      key="api-keys"
+                      variants={tabContentVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      className="space-y-6"
+                    >
+                      {/* Publisher ID */}
+                      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 shadow-lg">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                            <FileText size={16} className="text-white" />
+                          </div>
+                          <div>
+                            <h2 className="font-bold text-white">Publisher ID</h2>
+                            <p className="text-slate-400 text-xs">Use this ID in the Widget script</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 overflow-hidden">
+                            <code className="text-sm text-emerald-400 font-mono truncate block">
+                              {publisherId}
+                            </code>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={handleCopyPublisherId}
+                            className="h-11 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium flex-shrink-0 transition-all"
+                          >
+                            {publisherIdCopied ? (
+                              <><Check size={14} className="mr-2" />Copied</>
+                            ) : (
+                              <><Copy size={14} className="mr-2" />Copy ID</>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* API Key */}
+                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+                        <div className="flex items-center gap-2 mb-6">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center border border-amber-500/20">
+                            <Key size={16} className="text-amber-600" />
+                          </div>
+                          <div>
+                            <h2 className="font-bold text-[#040042]">API Key</h2>
+                            <p className="text-slate-500 text-xs">For programmatic access to your Opedd account</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          {apiKey ? (
+                            <>
+                              <div className="flex items-center gap-3">
+                                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 overflow-hidden">
+                                  <code className="text-sm text-[#040042] font-mono truncate block">
+                                    {apiKeyRevealed ? apiKey : apiKey.slice(0, 10) + "•".repeat(20)}
+                                  </code>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setApiKeyRevealed(!apiKeyRevealed)}
+                                  className="h-11 px-3 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl transition-all"
+                                >
+                                  {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={handleCopyApiKey}
+                                  className="h-11 px-4 bg-[#040042] hover:bg-[#040042]/90 text-white rounded-xl font-medium transition-all"
+                                >
+                                  {apiKeyCopied ? (
+                                    <><Check size={14} className="mr-2" />Copied</>
+                                  ) : (
+                                    <><Copy size={14} className="mr-2" />Copy</>
+                                  )}
+                                </Button>
+                              </div>
+                              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                                <p className="text-xs text-slate-500">
+                                  <Shield size={12} className="inline mr-1 text-amber-500" />
+                                  Keep this key secret. Regenerating will invalidate the current key.
+                                </p>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={isRegenerating}
+                                      className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium transition-all"
+                                    >
+                                      {isRegenerating ? (
+                                        <><RefreshCw size={14} className="mr-2 animate-spin" />Regenerating...</>
+                                      ) : (
+                                        <><RefreshCw size={14} className="mr-2" />Regenerate Key</>
+                                      )}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="bg-white">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
+                                        <AlertTriangle size={20} className="text-amber-500" />
+                                        Regenerate API Key?
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription className="text-slate-600">
+                                        This will invalidate your current API key immediately. Any integrations using the old key will stop working.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel className="rounded-xl border-slate-200">Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={handleRegenerateApiKey}
+                                        className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+                                      >
+                                        Yes, Regenerate Key
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-center py-4">
+                              <p className="text-sm text-slate-500 mb-3">No API key generated yet.</p>
+                              <Button
+                                onClick={handleRegenerateApiKey}
+                                disabled={isRegenerating}
+                                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+                              >
+                                {isRegenerating ? (
+                                  <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</>
+                                ) : (
+                                  <><Key size={14} className="mr-2" />Generate API Key</>
+                                )}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </TabsContent>
+
+                {/* TAB: Embed Snippets */}
+                <TabsContent value="embed" className="mt-6" forceMount={activeTab === "embed" ? true : undefined}>
+                  {activeTab === "embed" && (
+                    <motion.div
+                      key="embed"
+                      variants={tabContentVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      className="space-y-6"
+                    >
+                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 shadow-sm text-center">
+                        <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center mx-auto mb-4">
+                          <FileText size={24} className="text-[#4A26ED]" />
+                        </div>
+                        <h2 className="font-bold text-[#040042] text-lg mb-2">Embed Snippets</h2>
+                        <p className="text-sm text-slate-500 max-w-md mx-auto">
+                          Visit the <strong>Connectors</strong> page to customize and grab your embed code for the Opedd licensing widget.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </TabsContent>
+
+                {/* TAB: AI Policy */}
+                <TabsContent value="ai-policy" className="mt-6" forceMount={activeTab === "ai-policy" ? true : undefined}>
+                  {activeTab === "ai-policy" && (
+                    <motion.div
+                      key="ai-policy"
+                      variants={tabContentVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      className="space-y-6"
+                    >
+                      <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 shadow-sm text-center">
+                        <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center mx-auto mb-4">
+                          <Shield size={24} className="text-[#4A26ED]" />
+                        </div>
+                        <h2 className="font-bold text-[#040042] text-lg mb-2">AI Defense Policy</h2>
+                        <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">
+                          Configure how AI crawlers and training models interact with your content. Coming soon.
+                        </p>
+                        <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500 border-slate-200">
+                          Coming Soon
+                        </Badge>
                       </div>
                     </motion.div>
                   )}
