@@ -23,7 +23,7 @@ export function DashboardSidebar() {
       <MobileSidebar />
       
       {/* Desktop Sidebar - Hidden on mobile/tablet */}
-      <aside className="hidden lg:flex w-60 bg-[#040042] border-r border-white/5 flex-col shrink-0 min-h-screen">
+      <aside className="hidden lg:flex w-60 bg-[#040042] border-r border-white/5 flex-col shrink-0 h-screen sticky top-0 overflow-y-auto">
         {/* Logo */}
         <div className="p-5 pb-6 border-b border-white/5">
           <img src={opeddLogo} alt="Opedd" className="h-8" />

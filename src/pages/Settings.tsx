@@ -115,11 +115,12 @@ export default function Settings() {
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
   const [teamInvitations, setTeamInvitations] = useState<Array<{ id: string; email: string; role: string; created_at: string; expires_at: string }>>([]);
-  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("owner");
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
   const [isLoadingTeam, setIsLoadingTeam] = useState(false);
   const [teamLoaded, setTeamLoaded] = useState(false);
+  const [teamError, setTeamError] = useState(false);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -164,6 +165,7 @@ export default function Settings() {
 
   const fetchTeam = useCallback(async () => {
     setIsLoadingTeam(true);
+    setTeamError(false);
     try {
       const headers = await apiHeaders();
       const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
@@ -175,13 +177,20 @@ export default function Settings() {
       if (result.success && result.data) {
         setTeamMembers(result.data.members || []);
         setTeamInvitations(result.data.invitations || []);
-        setCurrentUserRole(result.data.current_user_role || null);
-        setTeamLoaded(true);
+        if (result.data.current_user_role) {
+          setCurrentUserRole(result.data.current_user_role);
+        }
+      } else {
+        console.warn("[Settings] Team fetch returned error:", result.error);
+        setTeamError(true);
       }
     } catch (err) {
       console.warn("[Settings] Team fetch failed:", err);
+      setTeamError(true);
     } finally {
       setIsLoadingTeam(false);
+      // Always mark as loaded to prevent infinite retry loop
+      setTeamLoaded(true);
     }
   }, [apiHeaders]);
 
@@ -547,6 +556,17 @@ export default function Settings() {
                       {isLoadingTeam ? (
                         <div className="flex items-center justify-center py-20">
                           <Loader2 className="animate-spin text-[#4A26ED]" size={32} />
+                        </div>
+                      ) : teamError ? (
+                        <div className="flex flex-col items-center justify-center py-16 gap-4">
+                          <p className="text-slate-500 text-sm">Failed to load team data.</p>
+                          <Button
+                            variant="outline"
+                            onClick={() => { setTeamLoaded(false); setTeamError(false); }}
+                            className="border-[#4A26ED] text-[#4A26ED] hover:bg-[#4A26ED]/5 rounded-xl"
+                          >
+                            Try Again
+                          </Button>
                         </div>
                       ) : (
                         <>
