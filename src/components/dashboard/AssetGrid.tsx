@@ -8,9 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Asset, AssetStatus } from "@/types/asset";
 
 import substackLogo from "@/assets/platforms/substack.svg";
-import ghostLogo from "@/assets/platforms/ghost.png";
+import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
-import beehiivLogo from "@/assets/platforms/beehiiv.png";
+import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 import mediumLogo from "@/assets/platforms/medium.svg";
 
 const platformLogos: Record<string, string> = {

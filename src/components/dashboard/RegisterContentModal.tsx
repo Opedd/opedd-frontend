@@ -40,11 +40,13 @@ import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModa
 import { PlatformSetupInstructions } from "@/components/dashboard/PlatformSetupInstructions";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
-// Platform logos
-import substackLogo from "@/assets/platforms/substack.svg";
-import ghostLogo from "@/assets/platforms/ghost.png";
-import wordpressLogo from "@/assets/platforms/wordpress.svg";
-import beehiivLogo from "@/assets/platforms/beehiiv.png";
+// Platform logos (Simple Icons CDN — transparent SVGs with brand colors)
+const PLATFORM_LOGOS = {
+  substack: "https://cdn.simpleicons.org/substack/FF6719",
+  ghost: "https://cdn.simpleicons.org/ghost/15171A",
+  beehiiv: "https://cdn.simpleicons.org/beehiiv/FC4A1A",
+  wordpress: "https://cdn.simpleicons.org/wordpress/21759B",
+};
 
 interface RegisterContentModalProps {
   open: boolean;
@@ -76,10 +78,10 @@ const deriveRssUrl = (siteUrl: string, platform: string): string => {
 // Detect platform from URL
 const detectPlatform = (url: string): { name: string; logo: string; supportsWidget: boolean } | null => {
   const lowerUrl = url.toLowerCase();
-  if (lowerUrl.includes("substack.com")) return { name: "Substack", logo: substackLogo, supportsWidget: false };
-  if (lowerUrl.includes("ghost.io") || lowerUrl.includes("ghost.org")) return { name: "Ghost", logo: ghostLogo, supportsWidget: true };
-  if (lowerUrl.includes("beehiiv.com")) return { name: "Beehiiv", logo: beehiivLogo, supportsWidget: true };
-  if (lowerUrl.includes("wordpress.com") || lowerUrl.includes("wp.com")) return { name: "WordPress", logo: wordpressLogo, supportsWidget: true };
+  if (lowerUrl.includes("substack.com")) return { name: "Substack", logo: PLATFORM_LOGOS.substack, supportsWidget: false };
+  if (lowerUrl.includes("ghost.io") || lowerUrl.includes("ghost.org")) return { name: "Ghost", logo: PLATFORM_LOGOS.ghost, supportsWidget: true };
+  if (lowerUrl.includes("beehiiv.com")) return { name: "Beehiiv", logo: PLATFORM_LOGOS.beehiiv, supportsWidget: true };
+  if (lowerUrl.includes("wordpress.com") || lowerUrl.includes("wp.com")) return { name: "WordPress", logo: PLATFORM_LOGOS.wordpress, supportsWidget: true };
   return null;
 };
 
@@ -700,10 +702,10 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   // Platform icons for display with placeholders
   const platformIcons: { name: string; logo: string | null; placeholder: string; supportsWidget: boolean; platformKey: "ghost" | "wordpress" | "beehiiv" | "other" | null }[] = [
-    { name: "Substack", logo: substackLogo, placeholder: "yourname.substack.com/feed", supportsWidget: false, platformKey: null },
-    { name: "Ghost", logo: ghostLogo, placeholder: "yoursite.ghost.io/rss", supportsWidget: true, platformKey: "ghost" },
-    { name: "Beehiiv", logo: beehiivLogo, placeholder: "yourname.beehiiv.com/feed", supportsWidget: true, platformKey: "beehiiv" },
-    { name: "WordPress", logo: wordpressLogo, placeholder: "yoursite.wordpress.com/feed", supportsWidget: true, platformKey: "wordpress" },
+    { name: "Substack", logo: PLATFORM_LOGOS.substack, placeholder: "yourname.substack.com/feed", supportsWidget: false, platformKey: null },
+    { name: "Ghost", logo: PLATFORM_LOGOS.ghost, placeholder: "yoursite.ghost.io/rss", supportsWidget: true, platformKey: "ghost" },
+    { name: "Beehiiv", logo: PLATFORM_LOGOS.beehiiv, placeholder: "yourname.beehiiv.com/feed", supportsWidget: true, platformKey: "beehiiv" },
+    { name: "WordPress", logo: PLATFORM_LOGOS.wordpress, placeholder: "yoursite.wordpress.com/feed", supportsWidget: true, platformKey: "wordpress" },
     { name: "Other", logo: null, placeholder: "", supportsWidget: true, platformKey: "other" },
   ];
 
@@ -1056,11 +1058,11 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   key={platform.name}
                   onClick={() => handlePlatformClick(platform)}
                   title={platform.supportsWidget ? `Install widget on ${platform.name}` : `Use ${platform.name} RSS template`}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white border-2 border-slate-200 hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all duration-200 group hover:scale-[1.03] cursor-pointer"
+                  className="flex flex-col items-center gap-2 py-3 px-2 rounded-xl bg-[#F8F9FF] border-2 border-[#E8F2FB] hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all duration-200 group hover:scale-[1.03] cursor-pointer"
                 >
-                  <div className="w-10 h-10 flex items-center justify-center">
+                  <div className="w-9 h-9 flex items-center justify-center">
                     {platform.logo ? (
-                      <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
+                      <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain mix-blend-multiply" />
                     ) : (
                       <Globe size={26} className="text-slate-400 group-hover:text-[#4A26ED] transition-colors" />
                     )}
