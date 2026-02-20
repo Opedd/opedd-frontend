@@ -391,7 +391,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
     </div>
 
       {/* Embed Code — standalone card matching Publisher ID container */}
-      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+      <div className="bg-[#F8F9FF] rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-[#040042] mb-1">Embed on Your Site</h3>
@@ -413,7 +413,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
             )}
           </Button>
         </div>
-        <pre className="bg-white border border-gray-200 text-slate-700 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
+        <pre className="bg-white border border-slate-200 text-slate-700 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
           <code>
             <span className="text-slate-400">{"<"}</span>
             <span className="text-[#7C3AED]">script</span>
