@@ -113,7 +113,7 @@ export default function Payments() {
 
   return (
     <DashboardLayout title="Payments">
-      <div className="p-8 max-w-4xl w-full mx-auto space-y-0">
+      <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Global tab style */}
           <div className="border-b border-[#E5E7EB]">
@@ -136,20 +136,14 @@ export default function Payments() {
           {/* Stripe Tab */}
           <TabsContent value="stripe" className="mt-6">
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm overflow-hidden relative">
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-[#635BFF]/20 to-[#8B5CF6]/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="flex items-start justify-between mb-6 relative">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#635BFF] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-lg shadow-[#635BFF]/25">
-                      <CreditCard size={24} className="text-white" />
-                    </div>
-                    <div>
-                      <h2 className="font-bold text-[#040042] text-lg">Stripe Connect</h2>
-                      <p className="text-slate-500 text-sm">Receive payouts directly to your bank</p>
-                    </div>
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h2 className="font-bold text-[#040042] text-lg">Stripe Connect</h2>
+                    <p className="text-[#6B7280] text-sm mt-0.5">Receive payouts directly to your bank</p>
                   </div>
                   {isStripeLoading ? (
-                    <Loader2 size={18} className="animate-spin text-slate-400" />
+                    <Loader2 size={18} className="animate-spin text-[#6B7280]" />
                   ) : (
                     <Badge
                       variant="outline"
@@ -158,7 +152,7 @@ export default function Payments() {
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                           : isStripePartial
                           ? "bg-amber-50 text-amber-700 border-amber-200"
-                          : "bg-slate-50 text-slate-600 border-slate-200"
+                          : "bg-white text-[#6B7280] border-[#E5E7EB]"
                       }`}
                     >
                       {isStripeFullyConnected ? "Connected" : isStripePartial ? "Setup Incomplete" : "Not Connected"}
@@ -169,18 +163,18 @@ export default function Payments() {
                 {isStripeFullyConnected ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
+                      <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 flex items-center gap-3">
                         {stripeStatus?.charges_enabled ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-red-400" />}
                         <div>
                           <p className="text-sm font-medium text-[#040042]">Charges</p>
-                          <p className="text-xs text-slate-500">{stripeStatus?.charges_enabled ? "Enabled" : "Disabled"}</p>
+                          <p className="text-xs text-[#6B7280]">{stripeStatus?.charges_enabled ? "Enabled" : "Disabled"}</p>
                         </div>
                       </div>
-                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
+                      <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 flex items-center gap-3">
                         {stripeStatus?.payouts_enabled ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-red-400" />}
                         <div>
                           <p className="text-sm font-medium text-[#040042]">Payouts</p>
-                          <p className="text-xs text-slate-500">{stripeStatus?.payouts_enabled ? "Enabled" : "Disabled"}</p>
+                          <p className="text-xs text-[#6B7280]">{stripeStatus?.payouts_enabled ? "Enabled" : "Disabled"}</p>
                         </div>
                       </div>
                     </div>
@@ -194,14 +188,12 @@ export default function Payments() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div className="bg-white border border-[#E5E7EB] rounded-xl p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Shield size={18} className="text-slate-500" />
-                        </div>
+                        <Shield size={18} className="text-[#6B7280] mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="font-medium text-[#040042] text-sm">Secure Payment Processing</p>
-                          <p className="text-xs text-slate-500 mt-1">
+                          <p className="text-xs text-[#6B7280] mt-1">
                             Connect your Stripe account to receive payouts from content licensing.
                             Your financial data is encrypted and never stored on our servers.
                           </p>
@@ -230,13 +222,11 @@ export default function Payments() {
 
           {/* Wallet Tab */}
           <TabsContent value="wallet" className="mt-6">
-            <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 shadow-sm text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center mx-auto mb-4">
-                <Wallet size={24} className="text-[#4A26ED]" />
-              </div>
-              <h2 className="font-bold text-[#040042] text-lg mb-2">Wallet Connect</h2>
-              <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">
-                Wallet Connect coming soon — accept crypto payments directly from your audience.
+            <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
+              <Wallet size={40} className="mx-auto text-[#D1D5DB] mb-4" />
+              <h3 className="text-base font-semibold text-[#111] mb-1">Wallet Connect</h3>
+              <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-4">
+                Coming soon — accept crypto payments directly from your audience.
               </p>
               <Button disabled className="bg-[#4A26ED]/20 text-[#4A26ED]/50 rounded-lg cursor-not-allowed">
                 Connect Wallet

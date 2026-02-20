@@ -175,7 +175,7 @@ export default function Connectors() {
 
   return (
     <DashboardLayout title="Connectors">
-      <div className="p-8 max-w-4xl w-full mx-auto space-y-0">
+      <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Global tab style */}
           <div className="border-b border-[#E5E7EB]">
@@ -204,7 +204,7 @@ export default function Connectors() {
           {/* Webhooks Tab */}
           <TabsContent value="webhooks" className="mt-6">
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm space-y-5">
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-5">
                 {webhookStatus?.configured ? (
                   <>
                     <div className="flex items-center justify-between">
