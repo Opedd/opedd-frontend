@@ -150,7 +150,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-end">
             <button
               onClick={openRegisterModal}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-9 px-4 rounded-md font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
+              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white h-9 px-4 rounded-lg font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
             >
               <Plus size={16} />
               Register Content
@@ -184,18 +184,18 @@ export default function Dashboard() {
 
           {/* Sources / Library Tabs */}
           <Tabs value={registryTab} onValueChange={(v) => setRegistryTab(v as "sources" | "library")} className="w-full">
-            <div className="flex items-center justify-between">
-              <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-xl">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB]">
+            <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
                 <TabsTrigger
                   value="sources"
-                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-5 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
+                  className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[14px] font-normal tracking-tight text-[#6B7280] transition-colors data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-[#1f2937] gap-2"
                 >
                   <Rss size={15} />
                   Sources
                 </TabsTrigger>
                 <TabsTrigger
                   value="library"
-                  className="data-[state=active]:bg-white data-[state=active]:text-[#040042] data-[state=active]:shadow-sm rounded-lg px-5 py-2 text-sm font-medium text-[#040042]/60 transition-all gap-2"
+                  className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[14px] font-normal tracking-tight text-[#6B7280] transition-colors data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-[#1f2937] gap-2"
                 >
                   <List size={15} />
                   Library

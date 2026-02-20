@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -13,7 +13,8 @@ import UpdatePassword from "./pages/UpdatePassword";
 import Dashboard from "./pages/Dashboard";
 import Insights from "./pages/Insights";
 import Ledger from "./pages/Ledger";
-import Integrations from "./pages/Integrations";
+import Connectors from "./pages/Connectors";
+import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
 import LicenseSuccess from "./pages/LicenseSuccess";
 import NotFound from "./pages/NotFound";
@@ -45,8 +46,11 @@ const App = () => (
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
               <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
-              <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
+              <Route path="/connectors" element={<ProtectedRoute><Connectors /></ProtectedRoute>} />
+              <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              {/* Redirect old routes */}
+              <Route path="/integrations" element={<Navigate to="/connectors" replace />} />
               <Route path="/license/success" element={<LicenseSuccess />} />
               <Route path="/l/:id" element={<LicensePublicCheckout />} />
               <Route path="/l" element={<LicenseByUrl />} />
@@ -58,7 +62,6 @@ const App = () => (
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

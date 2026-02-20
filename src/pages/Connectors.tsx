@@ -1,0 +1,344 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Webhook,
+  Trash2,
+  Loader2,
+  Copy,
+  Check,
+  Eye,
+  AlertTriangle,
+  Shield,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
+
+interface WebhookStatus {
+  configured: boolean;
+  url: string | null;
+}
+
+interface WebhookDelivery {
+  id: string;
+  event_type: string;
+  status: "success" | "failed";
+  status_code: number;
+  timestamp: string;
+}
+
+export default function Connectors() {
+  const { user, getAccessToken } = useAuth();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("widget");
+
+  // Webhook state
+  const [webhookStatus, setWebhookStatus] = useState<WebhookStatus | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [isSavingWebhook, setIsSavingWebhook] = useState(false);
+  const [webhookSecret, setWebhookSecret] = useState<string | null>(null);
+  const [webhookSecretCopied, setWebhookSecretCopied] = useState(false);
+  const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
+  const [isLoadingDeliveries, setIsLoadingDeliveries] = useState(false);
+  const [showDeliveries, setShowDeliveries] = useState(false);
+  const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
+  const [publisherId, setPublisherId] = useState<string | null>(null);
+
+  const apiHeaders = useCallback(async () => {
+    const token = await getAccessToken();
+    if (!token) throw new Error("Not authenticated");
+    return {
+      apikey: EXT_ANON_KEY,
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+  }, [getAccessToken]);
+
+  const postAction = useCallback(async (action: string, extra?: Record<string, unknown>) => {
+    const headers = await apiHeaders();
+    const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ action, ...extra }),
+    });
+    return res.json();
+  }, [apiHeaders]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const headers = await apiHeaders();
+        const profileRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, { headers });
+        const profileResult = await profileRes.json();
+        if (profileResult.success && profileResult.data) {
+          setPublisherId(profileResult.data.id);
+          if (profileResult.data.webhook) {
+            setWebhookStatus(profileResult.data.webhook);
+          } else {
+            setWebhookStatus({ configured: false, url: null });
+          }
+        }
+      } catch (err) {
+        console.warn("[Connectors] Load failed:", err);
+        setWebhookStatus({ configured: false, url: null });
+      }
+    };
+    load();
+  }, [apiHeaders]);
+
+  if (!user) return null;
+
+  const handleSaveWebhook = async () => {
+    if (!webhookUrl.trim()) return;
+    setIsSavingWebhook(true);
+    try {
+      const result = await postAction("set_webhook", { webhook_url: webhookUrl.trim() });
+      if (result.success && result.data) {
+        setWebhookStatus({ configured: true, url: webhookUrl.trim() });
+        if (result.data.webhook_secret) setWebhookSecret(result.data.webhook_secret);
+        toast({ title: "Webhook Saved", description: "Your webhook endpoint has been configured." });
+      } else {
+        throw new Error(result.error?.message || "Failed to save webhook");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Save Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsSavingWebhook(false);
+    }
+  };
+
+  const handleRemoveWebhook = async () => {
+    setIsRemovingWebhook(true);
+    try {
+      const result = await postAction("remove_webhook");
+      if (result.success) {
+        setWebhookStatus({ configured: false, url: null });
+        setWebhookUrl("");
+        setWebhookSecret(null);
+        setShowDeliveries(false);
+        setWebhookDeliveries([]);
+        toast({ title: "Webhook Removed", description: "Your webhook endpoint has been removed." });
+      } else {
+        throw new Error(result.error?.message || "Failed to remove webhook");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Remove Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsRemovingWebhook(false);
+    }
+  };
+
+  const handleViewDeliveries = async () => {
+    setIsLoadingDeliveries(true);
+    setShowDeliveries(true);
+    try {
+      const result = await postAction("webhook_deliveries");
+      if (result.success && result.data) {
+        setWebhookDeliveries(Array.isArray(result.data) ? result.data.slice(0, 20) : []);
+      }
+    } catch (err) {
+      console.warn("[Connectors] Deliveries fetch failed:", err);
+    } finally {
+      setIsLoadingDeliveries(false);
+    }
+  };
+
+  const handleCopyWebhookSecret = async () => {
+    if (!webhookSecret) return;
+    try {
+      await navigator.clipboard.writeText(webhookSecret);
+      setWebhookSecretCopied(true);
+      setTimeout(() => setWebhookSecretCopied(false), 2000);
+    } catch {
+      toast({ title: "Copy Failed", variant: "destructive" });
+    }
+  };
+
+  const supportedWebhookEvents = ["license.issued", "license.paid", "license.verified", "license.revoked"];
+
+  return (
+    <DashboardLayout title="Connectors">
+      <div className="p-8 max-w-4xl w-full mx-auto space-y-0">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Global tab style */}
+          <div className="border-b border-[#E5E7EB]">
+            <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
+              {[
+                { value: "widget", label: "Widget" },
+                { value: "webhooks", label: "Webhooks" },
+                { value: "ai-policy", label: "AI Policy" },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[14px] font-normal tracking-tight text-[#6B7280] transition-colors data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-[#1f2937]"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
+          {/* Widget Tab */}
+          <TabsContent value="widget" className="mt-6">
+            <WidgetCustomizer publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
+          </TabsContent>
+
+          {/* Webhooks Tab */}
+          <TabsContent value="webhooks" className="mt-6">
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm space-y-5">
+                {webhookStatus?.configured ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-[#040042]">Endpoint URL</p>
+                        <p className="text-xs text-slate-500 font-mono mt-1 truncate max-w-md">{webhookStatus.url || "—"}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={handleViewDeliveries} disabled={isLoadingDeliveries} className="h-8 text-xs gap-1.5 border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/5">
+                          {isLoadingDeliveries ? <Loader2 size={12} className="animate-spin" /> : <Eye size={12} />}
+                          View Deliveries
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" disabled={isRemovingWebhook} className="h-8 text-xs gap-1.5 border-red-200 text-red-600 hover:bg-red-50">
+                              {isRemovingWebhook ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                              Remove
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-white">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
+                                <AlertTriangle size={20} className="text-amber-500" />Remove Webhook?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-slate-600">
+                                This will permanently remove your webhook endpoint. You'll stop receiving event notifications.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleRemoveWebhook} className="bg-red-600 hover:bg-red-700 text-white rounded-lg">
+                                Yes, Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+
+                    {showDeliveries && (
+                      <div className="border border-slate-100 rounded-xl overflow-hidden">
+                        <div className="bg-slate-50 px-4 py-2 border-b border-slate-100">
+                          <p className="text-xs font-semibold text-[#040042]">Recent Deliveries</p>
+                        </div>
+                        {isLoadingDeliveries ? (
+                          <div className="flex items-center justify-center py-8"><Loader2 size={20} className="animate-spin text-slate-400" /></div>
+                        ) : webhookDeliveries.length === 0 ? (
+                          <div className="text-center py-8 text-sm text-slate-400">No deliveries yet</div>
+                        ) : (
+                          <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                            {webhookDeliveries.map((d, i) => (
+                              <div key={d.id || i} className="flex items-center justify-between px-4 py-2.5 text-xs">
+                                <div className="flex items-center gap-3">
+                                  <code className="text-[#040042] font-mono">{d.event_type}</code>
+                                  <Badge variant="outline" className={`text-[10px] ${d.status === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+                                    {d.status === "success" ? "Success" : "Failed"}
+                                  </Badge>
+                                  <span className="text-slate-400">{d.status_code}</span>
+                                </div>
+                                <span className="text-slate-400">{new Date(d.timestamp).toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-[#040042] mb-1">Webhook URL</p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={webhookUrl}
+                          onChange={(e) => setWebhookUrl(e.target.value)}
+                          placeholder="https://yoursite.com/api/webhooks/opedd"
+                          className="bg-slate-50 border-slate-200 h-11 rounded-lg flex-1 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                        />
+                        <Button
+                          onClick={handleSaveWebhook}
+                          disabled={isSavingWebhook || !webhookUrl.trim()}
+                          className="h-11 px-5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium"
+                        >
+                          {isSavingWebhook ? <Loader2 size={14} className="animate-spin" /> : "Save Webhook"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {webhookSecret && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-amber-800 font-medium">Save this secret — it won't be shown again</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-white border border-amber-200 rounded-lg px-3 py-2 overflow-hidden">
+                            <code className="text-xs font-mono text-[#040042] truncate block">{webhookSecret}</code>
+                          </div>
+                          <Button size="sm" variant="outline" onClick={handleCopyWebhookSecret} className="h-9 px-3 border-amber-200 hover:bg-amber-100 rounded-lg">
+                            {webhookSecretCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-xs font-medium text-slate-500 mb-2">Supported Events</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {supportedWebhookEvents.map((evt) => (
+                          <Badge key={evt} variant="outline" className="text-[10px] font-mono bg-slate-50 text-slate-600 border-slate-200">{evt}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* AI Policy Tab */}
+          <TabsContent value="ai-policy" className="mt-6">
+            <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 shadow-sm text-center">
+              <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center mx-auto mb-4">
+                <Shield size={24} className="text-[#4A26ED]" />
+              </div>
+              <h2 className="font-bold text-[#040042] text-lg mb-2">AI Defense Policy</h2>
+              <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">
+                Configure how AI crawlers and training models interact with your content. Coming soon.
+              </p>
+              <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500 border-slate-200">Coming Soon</Badge>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </DashboardLayout>
+  );
+}

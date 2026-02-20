@@ -1,11 +1,10 @@
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   Wallet,
   BarChart3,
-  Webhook,
   Settings,
   LogOut,
   Bell,
@@ -17,8 +16,11 @@ import {
   RefreshCw,
   Menu,
   X,
+  FileText,
+  CreditCard,
+  Zap,
+  BookOpen,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,13 +42,14 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 const mainNavItems = [
-  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Registry", path: "/dashboard", icon: LayoutDashboard },
   { title: "Transactions", path: "/ledger", icon: Wallet },
   { title: "Insights", path: "/insights", icon: BarChart3 },
 ];
 
-const devNavItems = [
-  { title: "Webhooks", path: "/integrations", icon: Webhook },
+const integrationNavItems = [
+  { title: "Connectors", path: "/connectors", icon: Zap },
+  { title: "Payments", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
@@ -78,7 +81,6 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [bellOpen, setBellOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
@@ -151,6 +153,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
 
       {/* Main Nav */}
       <nav className="flex-1 px-3 pt-4 space-y-0.5">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/30">Main</p>
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -162,8 +165,8 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
                 active
-                  ? "bg-white/[0.08] text-white"
-                  : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+                  ? "bg-[#0A0066] text-white"
+                  : "text-[#A5B4FC] hover:text-white hover:bg-white/[0.04]"
               )}
             >
               <Icon size={18} strokeWidth={1.5} />
@@ -175,9 +178,10 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
         {/* Divider */}
         <div className="!my-3 border-t border-white/[0.06]" />
 
-        {devNavItems.map((item) => {
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/30">Integrations</p>
+        {integrationNavItems.map((item) => {
           const Icon = item.icon;
-          const active = location.pathname === item.path;
+          const active = isActive(item.path);
           return (
             <NavLink
               key={item.title}
@@ -186,8 +190,8 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
                 active
-                  ? "bg-white/[0.08] text-white"
-                  : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+                  ? "bg-[#0A0066] text-white"
+                  : "text-[#A5B4FC] hover:text-white hover:bg-white/[0.04]"
               )}
             >
               <Icon size={18} strokeWidth={1.5} />
@@ -197,17 +201,45 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
         })}
       </nav>
 
-      {/* Bottom user section */}
+      {/* Bottom section */}
+      <div className="px-3 pb-2">
+        {/* Docs link */}
+        <a
+          href="https://docs.opedd.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-[#A5B4FC] hover:text-white hover:bg-white/[0.04] transition-colors"
+        >
+          <BookOpen size={18} strokeWidth={1.5} />
+          Documentation
+        </a>
+      </div>
+
+      {/* User section */}
       <div className="px-3 py-4 border-t border-white/[0.06]">
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-[#4A26ED] flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-white">{getInitial()}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium text-white truncate">{displayName}</p>
-            <p className="text-[11px] text-white/40 truncate">{user?.email}</p>
-          </div>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-3 px-3 py-2 w-full rounded-md hover:bg-white/[0.04] transition-colors">
+              <div className="w-8 h-8 rounded-full bg-[#4A26ED] flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-bold text-white">{getInitial()}</span>
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[13px] font-medium text-white truncate">{displayName}</p>
+                <p className="text-[11px] text-white/40 truncate">{user?.email}</p>
+              </div>
+              <ChevronDown size={14} className="text-white/30 flex-shrink-0" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-48 bg-white border-[#E5E5E5] shadow-lg z-50">
+            <DropdownMenuItem asChild className="cursor-pointer text-[13px] py-2">
+              <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-[#E5E5E5]" />
+            <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-[13px] py-2" onClick={() => logout()}>
+              <LogOut className="mr-2 h-4 w-4" />Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   );
@@ -217,7 +249,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-3.5 left-4 z-50 lg:hidden w-10 h-10 bg-[#111] rounded-lg flex items-center justify-center"
+        className="fixed top-3.5 left-4 z-50 lg:hidden w-10 h-10 bg-[#040042] rounded-lg flex items-center justify-center"
         aria-label="Open menu"
       >
         <Menu size={20} className="text-white" />
@@ -244,7 +276,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-y-0 left-0 w-[260px] bg-[#111] z-50 lg:hidden flex flex-col"
+            className="fixed inset-y-0 left-0 w-[260px] bg-[#040042] z-50 lg:hidden flex flex-col"
           >
             <button
               onClick={() => setMobileOpen(false)}
@@ -258,7 +290,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-[240px] bg-[#111] flex-col shrink-0 min-h-screen sticky top-0">
+      <aside className="hidden lg:flex w-[240px] bg-[#040042] flex-col shrink-0 min-h-screen sticky top-0">
         <SidebarNav />
       </aside>
 
@@ -277,9 +309,8 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
             )}
           </div>
 
-          {/* Right side */}
+          {/* Right side — notification bell only */}
           <div className="flex items-center gap-1">
-            {/* Notifications */}
             <Popover open={bellOpen} onOpenChange={setBellOpen}>
               <PopoverTrigger asChild>
                 <button className="relative p-2 rounded-md hover:bg-[#F5F5F5] transition-colors">
@@ -337,42 +368,6 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
                 </div>
               </PopoverContent>
             </Popover>
-
-            {/* Docs link */}
-            <a
-              href="https://docs.opedd.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-md hover:bg-[#F5F5F5] transition-colors text-[13px] font-medium text-[#737373] hover:text-[#111] hidden sm:flex items-center gap-1"
-            >
-              Docs
-            </a>
-
-            {/* Profile dropdown */}
-            <DropdownMenu open={profileOpen} onOpenChange={setProfileOpen}>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[#F5F5F5] transition-colors ml-1">
-                  <div className="w-7 h-7 rounded-full bg-[#4A26ED] flex items-center justify-center">
-                    <span className="text-[11px] font-bold text-white">{getInitial()}</span>
-                  </div>
-                  <ChevronDown size={12} className={cn("text-[#A3A3A3] transition-transform", profileOpen && "rotate-180")} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white border-[#E5E5E5] shadow-lg z-50">
-                <DropdownMenuItem asChild className="cursor-pointer text-[13px] py-2">
-                  <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer text-[13px] py-2">
-                  <a href="https://docs.opedd.io" target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" />Documentation
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-[#E5E5E5]" />
-                <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-[13px] py-2" onClick={() => logout()}>
-                  <LogOut className="mr-2 h-4 w-4" />Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </header>
 
