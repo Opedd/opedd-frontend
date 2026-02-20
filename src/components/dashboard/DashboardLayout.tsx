@@ -247,7 +247,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
   );
 
   return (
-    <div className="flex min-h-screen bg-[#FAFAFA] overflow-hidden">
+    <div className="flex h-screen bg-[#FAFAFA] overflow-hidden">
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
@@ -292,12 +292,12 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-[240px] bg-[#040042] flex-col shrink-0 min-h-screen sticky top-0">
+      <aside className="hidden lg:flex w-[240px] bg-[#040042] flex-col shrink-0 h-full overflow-y-auto">
         <SidebarNav />
       </aside>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
         <header className="h-12 flex items-center justify-between px-6 border-b border-[#E5E5E5] bg-white sticky top-0 z-20">
           {/* Page title */}

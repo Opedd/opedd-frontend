@@ -384,66 +384,63 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
             </motion.div>
           </AnimatePresence>
 
-          {/* Code Snippet Generator */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-bold text-[#040042]">Copy Embed Code</Label>
-              <Button
-                size="sm"
-                onClick={handleCopyCode}
-                className={cn(
-                  "h-9 px-4 font-semibold transition-all",
-                  codeCopied
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                    : "bg-[#040042] hover:bg-[#040042]/90 text-white"
-                )}
-              >
-                {codeCopied ? (
-                  <>
-                    <Check size={14} className="mr-1.5" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy size={14} className="mr-1.5" />
-                    Copy Code
-                  </>
-                )}
-              </Button>
-            </div>
-            <pre className="bg-[#040042] text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
-              <code>
-                <span className="text-slate-500">{"<"}</span>
-                <span className="text-[#7C3AED]">script</span>
-                <span className="text-slate-400"> src=</span>
-                <span className="text-emerald-400">"https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"</span>
-                {"\n"}
-                <span className="text-slate-400">  data-publisher-id=</span>
-                <span className="text-emerald-400">"{publisherId}"</span>
-                {"\n"}
-                <span className="text-slate-400">  data-color=</span>
-                <span className="text-amber-400">"{primaryColor}"</span>
-                {"\n"}
-                <span className="text-slate-400">  data-radius=</span>
-                <span className="text-amber-400">"{borderRadius[0]}"</span>
-                {"\n"}
-                <span className="text-slate-400">  data-theme=</span>
-                <span className="text-amber-400">"{darkTheme ? 'dark' : 'light'}"</span>
-                {"\n"}
-                <span className="text-slate-400">  data-text=</span>
-                <span className="text-amber-400">"{labelText}"</span>
-                {"\n"}
-                <span className="text-slate-400">  data-frontend-url=</span>
-                <span className="text-amber-400">"{typeof window !== 'undefined' ? window.location.origin : ''}"</span>
-                <span className="text-slate-500">{">"}</span>
-                {"\n"}
-                <span className="text-slate-500">{"</"}</span>
-                <span className="text-[#7C3AED]">script</span>
-                <span className="text-slate-500">{">"}</span>
-              </code>
-            </pre>
-          </div>
         </div>
+      </div>
+
+      {/* Embed Code — full-width standalone section below the customizer */}
+      <div className="border-t border-[#E8F2FB] p-8">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-base font-bold text-[#040042] mb-1">Embed on Your Site</h3>
+            <p className="text-sm text-slate-500">Copy this snippet and paste it into your site's HTML where you want the widget to appear.</p>
+          </div>
+          <Button
+            onClick={handleCopyCode}
+            className={cn(
+              "h-10 px-5 font-semibold transition-all flex-shrink-0 ml-6",
+              codeCopied
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                : "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+            )}
+          >
+            {codeCopied ? (
+              <><Check size={15} className="mr-2" />Copied!</>
+            ) : (
+              <><Copy size={15} className="mr-2" />Copy Embed Code</>
+            )}
+          </Button>
+        </div>
+        <pre className="bg-[#040042] text-slate-100 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
+          <code>
+            <span className="text-slate-500">{"<"}</span>
+            <span className="text-[#7C3AED]">script</span>
+            <span className="text-slate-400"> src=</span>
+            <span className="text-emerald-400">"https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"</span>
+            {"\n"}
+            <span className="text-slate-400">  data-publisher-id=</span>
+            <span className="text-emerald-400">"{publisherId}"</span>
+            {"\n"}
+            <span className="text-slate-400">  data-color=</span>
+            <span className="text-amber-400">"{primaryColor}"</span>
+            {"\n"}
+            <span className="text-slate-400">  data-radius=</span>
+            <span className="text-amber-400">"{borderRadius[0]}"</span>
+            {"\n"}
+            <span className="text-slate-400">  data-theme=</span>
+            <span className="text-amber-400">"{darkTheme ? 'dark' : 'light'}"</span>
+            {"\n"}
+            <span className="text-slate-400">  data-text=</span>
+            <span className="text-amber-400">"{labelText}"</span>
+            {"\n"}
+            <span className="text-slate-400">  data-frontend-url=</span>
+            <span className="text-amber-400">"{typeof window !== 'undefined' ? window.location.origin : ''}"</span>
+            <span className="text-slate-500">{">"}</span>
+            {"\n"}
+            <span className="text-slate-500">{"</"}</span>
+            <span className="text-[#7C3AED]">script</span>
+            <span className="text-slate-500">{">"}</span>
+          </code>
+        </pre>
       </div>
     </div>
   );
