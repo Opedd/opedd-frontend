@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { supabase } from "@/integrations/supabase/client";
 import { Plus } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { OnboardingCards } from "@/components/dashboard/OnboardingCards";
+import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
@@ -28,7 +28,6 @@ export default function Dashboard() {
       const result = await licenses.list<PaginatedResponse<DbAsset>>({ page: 1, limit: 1 });
       setTotalAssets(result.total);
       setProtectedCount(result.protectedCount);
-      // Fetch a larger set to compute revenue
       if (result.total > 0) {
         const fullResult = await licenses.list<PaginatedResponse<DbAsset>>({ page: 1, limit: 100 });
         const rev = (Array.isArray(fullResult.data) ? fullResult.data : []).reduce((sum: number, a: any) => sum + (a.total_revenue || 0), 0);
@@ -87,6 +86,12 @@ export default function Dashboard() {
             <p className="text-[#D1009A] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
             <p className="text-2xl font-bold text-[#040042] mt-1">${totalRevenue.toFixed(2)}</p>
           </div>
+        </div>
+
+        {/* Sources Section */}
+        <div>
+          <h2 className="text-lg font-semibold text-[#040042] mb-4">Sources</h2>
+          <SourcesView onAddSource={openRegisterModal} />
         </div>
       </div>
 
