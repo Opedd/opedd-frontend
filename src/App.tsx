@@ -16,6 +16,7 @@ import Ledger from "./pages/Ledger";
 import Connectors from "./pages/Connectors";
 import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
+import Content from "./pages/Content";
 import LicenseSuccess from "./pages/LicenseSuccess";
 import NotFound from "./pages/NotFound";
 import LicensePublicCheckout from "./pages/LicensePublicCheckout";
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
               <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
               <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
               <Route path="/connectors" element={<ProtectedRoute><Connectors /></ProtectedRoute>} />

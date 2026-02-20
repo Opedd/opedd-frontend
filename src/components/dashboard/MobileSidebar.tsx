@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen, Library } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { cn } from "@/lib/utils";
 
 const mainNavItems = [
-  { title: "Registry", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Content", path: "/content", icon: Library },
   { title: "Transactions", path: "/ledger", icon: Wallet },
   { title: "Insights", path: "/insights", icon: BarChart3 },
 ];
@@ -134,7 +135,7 @@ export function MobileSidebar() {
             {/* Docs link */}
             <div className="px-3 pb-2">
               <a
-                href="https://docs.opedd.io"
+                href="https://docs.opedd.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 px-4 py-3 rounded-md text-[#A5B4FC] hover:text-white hover:bg-white/5 transition-all"

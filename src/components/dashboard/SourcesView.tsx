@@ -374,11 +374,10 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
-                            variant="outline"
                             size="sm"
                             onClick={() => handleResync(source)}
                             disabled={isSyncing}
-                            className="h-8 text-xs gap-1.5"
+                            className="h-8 text-xs gap-1.5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
                           >
                             {isSyncing ? (
                               <Loader2 size={12} className="animate-spin" />
@@ -397,10 +396,9 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
-                            variant="outline"
                             size="sm"
                             onClick={() => setPricingSource(source)}
-                            className="h-8 text-xs gap-1.5"
+                            className="h-8 text-xs gap-1.5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
                           >
                             <DollarSign size={12} />
                             Set Pricing

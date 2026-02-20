@@ -42,7 +42,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 const mainNavItems = [
-  { title: "Registry", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Content", path: "/content", icon: FileText },
   { title: "Transactions", path: "/ledger", icon: Wallet },
   { title: "Insights", path: "/insights", icon: BarChart3 },
 ];
@@ -139,6 +140,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
+    if (path === "/content") return location.pathname === "/content";
     return location.pathname === path;
   };
 
@@ -205,7 +207,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
       <div className="px-3 pb-2">
         {/* Docs link */}
         <a
-          href="https://docs.opedd.io"
+          href="https://docs.opedd.com"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-[#A5B4FC] hover:text-white hover:bg-white/[0.04] transition-colors"
