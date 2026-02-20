@@ -72,6 +72,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
   const statBgClr = darkTheme ? "hsla(244,50%,18%,0.6)" : "hsl(210,100%,97%)";
 
   return (
+    <div className="space-y-6">
     <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden">
       <div className="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#E8F2FB]">
         {/* Left Side: Control Panel */}
@@ -387,8 +388,10 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
         </div>
       </div>
 
-      {/* Embed Code — full-width standalone section below the customizer */}
-      <div className="border-t border-[#E8F2FB] p-8">
+    </div>
+
+      {/* Embed Code — standalone card matching webhook container */}
+      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-[#040042] mb-1">Embed on Your Site</h3>
@@ -445,3 +448,4 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
     </div>
   );
 }
+

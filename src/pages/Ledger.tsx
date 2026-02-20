@@ -347,7 +347,7 @@ export default function Ledger() {
           {/* Metric Cards Row */}
           <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-4" variants={itemVariants}>
             {/* Total Revenue */}
-            <div className="bg-[#040042] rounded-xl p-6 text-white shadow-sm">
+            <div className="bg-[#0A0066] rounded-xl p-6 text-white shadow-sm">
               <TrendingUp size={18} className="text-white/60 mb-3" />
               <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
               <p className="text-2xl font-bold mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>

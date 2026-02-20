@@ -82,7 +82,7 @@ export default function Dashboard() {
             <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
             <p className="text-2xl font-bold text-[#040042] mt-1">{protectedCount}</p>
           </div>
-          <div className="bg-[#040042] rounded-xl p-4 shadow-sm">
+          <div className="bg-[#0A0066] rounded-xl p-4 shadow-sm">
             <p className="text-white/60 text-xs font-medium uppercase tracking-wide">Total Revenue</p>
             <p className="text-2xl font-bold text-white mt-1">${totalRevenue.toFixed(2)}</p>
           </div>

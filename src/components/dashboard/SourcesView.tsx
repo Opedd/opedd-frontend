@@ -263,7 +263,24 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       {/* Source Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sources.map((source) => {
-          const logo = platformLogos[source.platform || ""] || null;
+          const platformKey = (source.platform || "").toLowerCase();
+          const logo = (() => {
+            if (platformKey && platformLogos[platformKey]) return platformLogos[platformKey];
+            // Detect platform from feed URL as fallback
+            const url = (source.feed_url || "").toLowerCase();
+            if (url.includes("substack.com")) return substackLogo;
+            if (url.includes("ghost.io") || url.includes(".ghost.")) return ghostLogo;
+            if (url.includes("beehiiv.com")) return beehiivLogo;
+            if (url.includes("medium.com")) return mediumLogo;
+            return null;
+          })();
+          const faviconUrl = !logo ? (() => {
+            try {
+              const raw = source.feed_url?.startsWith("http") ? source.feed_url : `https://${source.feed_url}`;
+              const domain = new URL(raw).hostname;
+              return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            } catch { return null; }
+          })() : null;
           const isVerified = source.sync_status === "active";
           const isPending = !isVerified;
           const isSyncing = syncingId === source.id;
@@ -278,9 +295,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 flex-shrink-0">
                   {logo ? (
                     <img src={logo} alt={source.platform || ""} className="w-full h-full object-contain" />
+                  ) : faviconUrl ? (
+                    <img src={faviconUrl} alt={source.name} className="w-8 h-8 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; (e.currentTarget.nextElementSibling as HTMLElement).style.display = ""; }} />
                   ) : (
                     <Globe size={20} className="text-slate-400" />
                   )}
+                  {faviconUrl && <Globe size={20} className="text-slate-400" style={{ display: "none" }} />}
                 </div>
 
                 {/* Info */}
@@ -389,7 +409,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                             size="sm"
                             onClick={() => handleResync(source)}
                             disabled={isSyncing}
-                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042] transition-colors"
+                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#0A0066] hover:text-white hover:border-[#0A0066] transition-colors"
                           >
                             {isSyncing ? (
                               <Loader2 size={12} className="animate-spin" />
@@ -410,7 +430,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                           <Button
                             size="sm"
                             onClick={() => setPricingSource(source)}
-                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042] transition-colors"
+                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#0A0066] hover:text-white hover:border-[#0A0066] transition-colors"
                           >
                             <DollarSign size={12} />
                             Set Pricing

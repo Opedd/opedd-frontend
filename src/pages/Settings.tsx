@@ -43,6 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface StripeConnect {
@@ -311,22 +312,19 @@ export default function Settings() {
       toast({ title: "File too large", description: "Logo must be under 2MB", variant: "destructive" });
       return;
     }
+    if (!profile?.id) {
+      toast({ title: "Not ready", description: "Please wait for your profile to load", variant: "destructive" });
+      return;
+    }
     setIsUploadingLogo(true);
     try {
-      const token = await getAccessToken();
-      if (!token || !profile?.id) throw new Error("Not authenticated");
-      const ext = file.name.split(".").pop() || "png";
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
       const path = `${profile.id}/logo.${ext}`;
-      const uploadRes = await fetch(
-        `${EXT_SUPABASE_URL}/storage/v1/object/publisher-logos/${path}`,
-        {
-          method: "POST",
-          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, "x-upsert": "true" },
-          body: file,
-        }
-      );
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const publicUrl = `${EXT_SUPABASE_URL}/storage/v1/object/public/publisher-logos/${path}`;
+      const { error: uploadError } = await supabase.storage
+        .from("publisher-logos")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) throw new Error(uploadError.message);
+      const { data: { publicUrl } } = supabase.storage.from("publisher-logos").getPublicUrl(path);
       const headers = await apiHeaders();
       await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
         method: "PATCH",
@@ -463,10 +461,10 @@ export default function Settings() {
                                 )}
                               </div>
                               <div>
-                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploadingLogo} className="border-slate-200 bg-transparent text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042] rounded-lg transition-colors">
-                                  {isUploadingLogo ? <><Loader2 size={14} className="mr-2 animate-spin" /> Uploading...</> : <><Upload size={14} className="mr-2" /> Upload Logo</>}
-                                </Button>
+                                <label className={`cursor-pointer inline-flex items-center gap-2 h-9 px-4 text-sm font-medium border rounded-lg transition-colors ${isUploadingLogo ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed" : "border-slate-200 bg-transparent text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042]"}`}>
+                                  {isUploadingLogo ? <><Loader2 size={14} className="animate-spin" /> Uploading...</> : <><Upload size={14} /> Upload Logo</>}
+                                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" disabled={isUploadingLogo} onChange={handleLogoUpload} />
+                                </label>
                                 <p className="text-xs text-slate-400 mt-1.5">Max 2MB. JPG, PNG, or SVG.</p>
                               </div>
                             </div>
@@ -677,7 +675,7 @@ export default function Settings() {
                           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
                             <code className="text-sm text-emerald-600 font-mono truncate block">{publisherId}</code>
                           </div>
-                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#040042] hover:bg-[#040042]/80 text-white rounded-lg font-medium flex-shrink-0 transition-all">
+                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0 transition-all">
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>

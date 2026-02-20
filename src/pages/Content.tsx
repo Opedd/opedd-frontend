@@ -130,7 +130,7 @@ export default function Content() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
-              variant={selectionMode ? "default" : "outline"}
+              variant={selectionMode ? "default" : "ghost"}
               size="sm"
               onClick={() => {
                 if (selectionMode) {
@@ -139,10 +139,10 @@ export default function Content() {
                   setSelectionMode(true);
                 }
               }}
-              className={`h-8 text-xs gap-1.5 rounded-lg ${
+              className={`h-8 text-xs gap-1.5 rounded-lg border ${
                 selectionMode
-                  ? "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
-                  : "border-[#E8F2FB] text-slate-400 hover:bg-[#040042] hover:text-white hover:border-[#040042]"
+                  ? "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white border-transparent"
+                  : "border-[#E8F2FB] text-slate-400 hover:bg-transparent hover:text-[#040042] hover:border-[#040042]"
               }`}
             >
               <CheckSquare size={14} />
