@@ -301,7 +301,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                     <img
                       src={faviconUrl}
                       alt={source.name}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain mix-blend-multiply"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         const globe = e.currentTarget.nextElementSibling as HTMLElement;
