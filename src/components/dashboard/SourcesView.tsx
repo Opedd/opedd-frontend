@@ -278,7 +278,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             try {
               const raw = source.feed_url?.startsWith("http") ? source.feed_url : `https://${source.feed_url}`;
               const domain = new URL(raw).hostname;
-              return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+              return `https://logo.clearbit.com/${domain}`;
             } catch { return null; }
           })() : null;
           const isVerified = source.sync_status === "active";
@@ -297,21 +297,18 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                     <img src={logo} alt={source.platform || ""} className="w-full h-full object-contain" />
                   </div>
                 ) : faviconUrl ? (
-                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 flex-shrink-0">
                     <img
                       src={faviconUrl}
                       alt={source.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       onError={(e) => {
-                        const el = e.currentTarget;
-                        el.style.display = "none";
-                        const fallback = el.parentElement;
-                        if (fallback) {
-                          fallback.classList.add("bg-slate-50", "border", "border-slate-200", "flex", "items-center", "justify-center");
-                          fallback.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
-                        }
+                        e.currentTarget.style.display = "none";
+                        const globe = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (globe) globe.style.display = "";
                       }}
                     />
+                    <Globe size={20} className="text-slate-400" style={{ display: "none" }} />
                   </div>
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
