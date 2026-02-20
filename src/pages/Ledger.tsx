@@ -2,8 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { decodeText } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { TransactionReceiptDrawer } from "@/components/dashboard/TransactionReceiptDrawer";
 import { Sparkline } from "@/components/dashboard/Sparkline";
 import { EmptyState } from "@/components/dashboard/EmptyState";
@@ -309,27 +308,18 @@ export default function Ledger() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
-        <DashboardSidebar />
-        <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
-          <DashboardHeader />
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 size={40} className="animate-spin text-[#4A26ED]" />
-          </div>
-        </main>
-      </div>
+      <DashboardLayout title="Transactions">
+        <div className="flex-1 flex items-center justify-center py-20">
+          <Loader2 size={40} className="animate-spin text-[#4A26ED]" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
-      <DashboardSidebar />
-
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
-        <DashboardHeader />
-
+    <DashboardLayout title="Transactions" subtitle="Revenue & settlements">
         <motion.div 
-          className="p-8 pt-20 lg:pt-8 max-w-7xl w-full mx-auto space-y-8"
+          className="p-8 max-w-7xl w-full mx-auto space-y-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -514,14 +504,12 @@ export default function Ledger() {
             )}
           </motion.div>
         </motion.div>
-      </main>
-
       {/* Transaction Receipt Drawer */}
       <TransactionReceiptDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         transaction={selectedTransaction}
       />
-    </div>
+    </DashboardLayout>
   );
 }

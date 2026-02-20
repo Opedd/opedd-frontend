@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { 
   Settings as SettingsIcon, 
@@ -490,13 +489,8 @@ export default function Settings() {
   const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
 
   return (
-    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
-      <DashboardSidebar />
-
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
-        <DashboardHeader />
-
-        <div className="p-8 pt-20 lg:pt-8 max-w-4xl w-full mx-auto space-y-8">
+    <DashboardLayout title="Settings" subtitle="Manage your account">
+        <div className="p-8 max-w-4xl w-full mx-auto space-y-8">
           {/* Page Header */}
           <div>
             <p className="text-sm text-[#040042]/50 mb-1">
@@ -1193,7 +1187,6 @@ export default function Settings() {
             </Tabs>
           )}
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }

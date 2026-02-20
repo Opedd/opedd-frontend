@@ -5,8 +5,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Plus, Search, Filter, ChevronDown, Rss, List, CheckSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { AssetGrid } from "@/components/dashboard/AssetGrid";
 import { AssetDetailDrawer } from "@/components/dashboard/AssetDetailDrawer";
 import { SourcesView } from "@/components/dashboard/SourcesView";
@@ -145,25 +144,15 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
-      <DashboardSidebar />
-
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
-        <DashboardHeader />
-
-        <div className="p-6 pt-20 lg:pt-6 max-w-7xl w-full mx-auto space-y-6">
-          {/* Page Title & Action */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <LayoutDashboard size={22} className="text-[#4A26ED]" />
-              <h1 className="text-xl font-bold text-[#040042]">Registry</h1>
-            </div>
-
+    <DashboardLayout title="Registry">
+        <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+          {/* Action Button */}
+          <div className="flex items-center justify-end">
             <button
               onClick={openRegisterModal}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-10 px-5 rounded-xl font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-[#4A26ED]/20"
+              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white h-9 px-4 rounded-md font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               Register Content
             </button>
           </div>
@@ -357,7 +346,6 @@ export default function Dashboard() {
             </TabsContent>
           </Tabs>
         </div>
-      </main>
 
       {/* Floating Price Bar */}
       <FloatingPriceBar
@@ -405,6 +393,6 @@ export default function Dashboard() {
           setIsPricingModalOpen(true);
         }}
       />
-    </div>
+    </DashboardLayout>
   );
 }

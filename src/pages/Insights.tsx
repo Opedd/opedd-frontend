@@ -7,8 +7,7 @@ import { decodeText } from "@/lib/utils";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
@@ -76,13 +75,9 @@ export default function Insights() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
-        <DashboardSidebar />
-        <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
-          <DashboardHeader />
-          <div className="flex-1 flex items-center justify-center"><Loader2 size={40} className="animate-spin text-[#4A26ED]" /></div>
-        </main>
-      </div>
+      <DashboardLayout title="Insights">
+        <div className="flex-1 flex items-center justify-center py-20"><Loader2 size={40} className="animate-spin text-[#4A26ED]" /></div>
+      </DashboardLayout>
     );
   }
 
@@ -93,35 +88,9 @@ export default function Insights() {
   ].filter(d => d.value > 0);
 
   return (
-    <div className="flex min-h-screen bg-white text-[#040042] overflow-hidden">
-      <DashboardSidebar />
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-white">
-        <DashboardHeader />
-        <motion.div className="p-8 pt-20 lg:pt-8 max-w-7xl w-full mx-auto space-y-8" variants={containerVariants} initial="hidden" animate="visible">
-          {/* Header */}
-          <motion.div className="flex items-center gap-3" variants={itemVariants}>
-            <div className="w-12 h-12 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-xl flex items-center justify-center">
-              <BarChart3 size={24} className="text-[#4A26ED]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-[#040042]">Insights</h1>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="w-6 h-6 rounded-full bg-[#F2F9FF] flex items-center justify-center hover:bg-[#E8F2FB] transition-colors">
-                        <HelpCircle size={14} className="text-[#040042]/50" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-[220px] text-xs">
-                      <p>Analytics overview of your licensing activity and revenue trends.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <p className="text-[#040042]/60 text-sm">Licensing analytics & revenue trends</p>
-            </div>
-          </motion.div>
+    <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
+        <motion.div className="p-8 max-w-7xl w-full mx-auto space-y-8" variants={containerVariants} initial="hidden" animate="visible">
+          {/* Header removed - DashboardLayout top bar handles it */}
 
           {!hasData ? (
             <motion.div variants={itemVariants} className="bg-white rounded-2xl border border-gray-200 p-16 text-center shadow-sm">
@@ -254,7 +223,6 @@ export default function Insights() {
             </>
           )}
         </motion.div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }
