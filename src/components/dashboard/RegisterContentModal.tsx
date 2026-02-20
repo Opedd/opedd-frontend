@@ -1050,22 +1050,22 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             <>
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
             {/* Platform Icons - Interactive Buttons */}
-            <div className="flex items-center justify-center gap-3 pb-2">
+            <div className="grid grid-cols-5 gap-2">
               {platformIcons.map((platform) => (
                 <button
                   key={platform.name}
                   onClick={() => handlePlatformClick(platform)}
-                  className="flex flex-col items-center gap-1.5 group"
                   title={platform.supportsWidget ? `Install widget on ${platform.name}` : `Use ${platform.name} RSS template`}
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white border-2 border-slate-200 hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all duration-200 group hover:scale-[1.03] cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-white border-2 border-slate-200 flex items-center justify-center p-2 hover:border-[#4A26ED] hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all cursor-pointer group-hover:scale-105">
+                  <div className="w-10 h-10 flex items-center justify-center">
                     {platform.logo ? (
                       <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
                     ) : (
-                      <Globe size={22} className="text-slate-400 group-hover:text-[#4A26ED] transition-colors" />
+                      <Globe size={26} className="text-slate-400 group-hover:text-[#4A26ED] transition-colors" />
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-400 font-medium group-hover:text-[#4A26ED] transition-colors">{platform.name}</span>
+                  <span className="text-xs text-slate-500 font-semibold group-hover:text-[#4A26ED] transition-colors leading-tight text-center">{platform.name}</span>
                 </button>
               ))}
             </div>
