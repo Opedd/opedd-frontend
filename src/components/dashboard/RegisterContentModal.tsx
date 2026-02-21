@@ -474,29 +474,19 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         pubName = previewName.startsWith('Publication:') ? previewName.replace('Publication: ', '') : previewName;
       }
 
-      // Step 1: Create content source via authenticated API (token auto-injected)
+      // Step 1: Get access token for authenticated edge function calls
       const platformType = (platform?.name.toLowerCase() || "other") as "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) throw new Error("Not authenticated");
 
-      const sourceData = await contentSources.create<{ id: string; verification_token?: string }>({
-        url: syncFeedUrl,
-        name: pubName,
-        platform: platformType,
-        human_price: parseFloat(syncHumanPrice) || 4.99,
-        ai_price: syncAiPrice ? parseFloat(syncAiPrice) : undefined,
-      });
-
-      console.log("[RegisterContentModal] Created content source via API:", sourceData);
-
-      // Start the syncing animation after source creation
+      // Start the syncing animation
       setIsConnecting(false);
       setView("syncing");
 
-      // Use the source ID as the registered asset ID
-      const externalSourceId = sourceData.id;
-      setRegisteredAssetId(externalSourceId);
-
-      // Use verification token from API response or generated one
-      const verificationTokenFromApi = sourceData.verification_token || token;
+      // Set local tracking state
+      setRegisteredAssetId(crypto.randomUUID());
+      const verificationTokenFromApi = token;
       setVerificationToken(verificationTokenFromApi);
       setVerificationCode(verificationTokenFromApi);
 
@@ -523,64 +513,20 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         console.warn("[RegisterContentModal] Failed to insert local source:", localErr);
       }
 
-      // Step 3: Trigger RSS sync to import articles (token auto-injected)
-      let syncedArticles: any[] | null = null;
+      // Step 3: Trigger RSS sync to import articles via edge function
       try {
-        await contentSources.sync(externalSourceId);
-        console.log("[RegisterContentModal] RSS sync triggered for source:", externalSourceId);
-
-        // Try to fetch the synced articles from the API
-        try {
-          syncedArticles = await contentSources.listAssets<any[]>();
-        } catch {
-          console.warn("[RegisterContentModal] Could not fetch synced articles from API");
-        }
+        await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: EXT_ANON_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ sourceUrl: syncFeedUrl }),
+        });
+        console.log("[RegisterContentModal] RSS sync triggered for:", syncFeedUrl);
       } catch (syncError) {
-        console.log("[RegisterContentModal] RSS sync not available yet:", syncError);
-      }
-
-      // Step 4: Mirror synced articles into local assets table
-      if (localSourceId) {
-        const articlesToInsert = (syncedArticles && syncedArticles.length > 0)
-          ? syncedArticles.map((a: any) => ({
-              user_id: user.id,
-              title: a.title || "Untitled Article",
-              description: a.description || null,
-              source_url: a.sourceUrl || a.url || null,
-              publication_id: localSourceId,
-              human_price: parseFloat(syncHumanPrice) || 4.99,
-              ai_price: syncAiPrice ? parseFloat(syncAiPrice) : null,
-              license_type: accessType,
-              licensing_enabled: true,
-              verification_token: verificationTokenFromApi,
-              verification_status: "pending",
-              content_hash: a.contentHash || generateContentHash(a.title || syncFeedUrl),
-            }))
-          : [{
-              user_id: user.id,
-              title: `${pubName} – Publication Feed`,
-              description: `Articles synced from ${syncFeedUrl}`,
-              source_url: syncFeedUrl,
-              publication_id: localSourceId,
-              human_price: parseFloat(syncHumanPrice) || 4.99,
-              ai_price: syncAiPrice ? parseFloat(syncAiPrice) : null,
-              license_type: accessType,
-              licensing_enabled: true,
-              verification_token: verificationTokenFromApi,
-              verification_status: "pending",
-              content_hash: contentHash,
-            }];
-
-        try {
-          await supabase.from("assets").insert(articlesToInsert);
-          // Update article count on local source
-          await supabase.from("rss_sources").update({
-            article_count: articlesToInsert.length,
-          }).eq("id", localSourceId);
-          console.log("[RegisterContentModal] Inserted", articlesToInsert.length, "local assets");
-        } catch (insertErr) {
-          console.warn("[RegisterContentModal] Failed to insert local assets:", insertErr);
-        }
+        console.log("[RegisterContentModal] RSS sync failed:", syncError);
       }
 
       // Refresh dashboard data
@@ -982,6 +928,83 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         </Dialog>
       );
     }
+
+    const updateFeedRow = (index: number, field: "url" | "tag", value: string) => {
+      setEnterpriseFeeds(prev => prev.map((f, i) => i === index ? { ...f, [field]: value } : f));
+    };
+
+    const removeFeedRow = (index: number) => {
+      setEnterpriseFeeds(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleEnterpriseSubmit = async () => {
+      const validFeeds = enterpriseFeeds.filter(f => f.url.trim());
+      if (validFeeds.length === 0) {
+        toast({ title: "At least one feed required", variant: "destructive" });
+        return;
+      }
+      if (!user) return;
+
+      setIsConnecting(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token;
+        if (!accessToken) throw new Error("Not authenticated");
+
+        for (const feed of validFeeds) {
+          const platform = detectPlatform(feed.url);
+          const platformType = (platform?.name.toLowerCase() || "other") as "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
+          const feedName = feed.tag ? `${enterpriseOrgName || "Org"} — ${feed.tag}` : (enterpriseOrgName || feed.url);
+
+          // Insert local rss_sources record with bulk_enterprise path
+          try {
+            await supabase.from("rss_sources").insert({
+              user_id: user.id,
+              name: feedName,
+              feed_url: feed.url,
+              platform: platformType,
+              sync_status: "active",
+              last_synced_at: new Date().toISOString(),
+              registration_path: "bulk_enterprise",
+            });
+          } catch (localErr) {
+            console.warn("[RegisterContentModal] Failed to insert local enterprise source:", localErr);
+          }
+
+          try {
+            await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: EXT_ANON_KEY,
+                Authorization: `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify({ sourceUrl: feed.url }),
+            });
+          } catch {
+            // sync may not be immediately available
+          }
+        }
+
+        setIsConnecting(false);
+        setView("syncing");
+
+        setTimeout(() => {
+          onSuccess?.();
+        }, 1500);
+
+        toast({
+          title: "Sources Registered",
+          description: `${validFeeds.length} feed(s) are now syncing.`,
+        });
+      } catch (error) {
+        console.error("Enterprise registration error:", error);
+        setIsConnecting(false);
+        toast({ title: "Registration Failed", description: "Could not register feeds.", variant: "destructive" });
+      }
+    };
+
+    const tagSuggestions = ["Politics", "Research", "Business", "Technology", "Opinion", "Culture"];
 
     // Platform-specific step 2
     return (
