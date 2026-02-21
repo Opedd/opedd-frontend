@@ -507,28 +507,18 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         open={!!deleteConfirmSource}
         onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
       >
-        <DialogContent hideCloseButton className="bg-white max-w-md rounded-2xl border border-[#E5E7EB] p-0 overflow-hidden">
-          {/* Header */}
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle size={18} className="text-red-500" />
-              </div>
-              <div>
-                <DialogTitle className="text-[#040042] text-base font-semibold">Remove Source</DialogTitle>
-                <DialogDescription className="sr-only">Confirm source removal</DialogDescription>
-              </div>
-            </div>
-            <p className="text-sm text-[#040042]/60 leading-relaxed">
+        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+          <DialogHeader className="space-y-0 mb-5">
+            <DialogTitle className="text-lg font-semibold text-[#040042]">Remove Source</DialogTitle>
+            <DialogDescription className="text-sm text-[#040042]/50 mt-1.5 leading-relaxed">
               This will permanently disconnect <span className="font-semibold text-[#040042]">{deleteConfirmSource?.name}</span> and remove all synced articles from your library. This action cannot be undone.
-            </p>
-          </div>
+            </DialogDescription>
+          </DialogHeader>
 
-          {/* Confirmation input */}
-          <div className="px-6 pb-4 space-y-2">
-            <p className="text-xs font-medium text-[#040042]/50">
-              Type <span className="font-mono font-semibold text-[#040042]">{deleteConfirmSource?.name}</span> to confirm:
-            </p>
+          <div className="space-y-2 mb-6">
+            <label className="text-xs font-medium text-[#040042]/50">
+              Type <span className="font-mono font-semibold text-[#040042]">{deleteConfirmSource?.name}</span> to confirm
+            </label>
             <Input
               value={deleteConfirmInput}
               onChange={(e) => setDeleteConfirmInput(e.target.value)}
@@ -537,8 +527,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             />
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 bg-slate-50 border-t border-[#E5E7EB] flex items-center justify-end gap-3">
+          <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
             <Button
               variant="outline"
               onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
@@ -555,12 +544,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                   setDeleteConfirmInput("");
                 }
               }}
-              className="bg-red-500 hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
+              className="bg-[#EF4444] hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
             >
               <Trash2 size={14} className="mr-1.5" />
               Remove Source
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
