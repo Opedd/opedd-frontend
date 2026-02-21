@@ -86,7 +86,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     try {
       const [sourcesRes, publisherRes] = await Promise.all([
         supabase.from("rss_sources").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("publishers").select("logo_url").eq("user_id", user.id).maybeSingle(),
+        (supabase.from as any)("publishers").select("logo_url").eq("user_id", user.id).maybeSingle(),
       ]);
       if (sourcesRes.error) throw sourcesRes.error;
       setSources(sourcesRes.data || []);
