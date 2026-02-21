@@ -59,21 +59,19 @@ export default function Content() {
   const fetchActiveImport = useCallback(async () => {
     if (!user) return;
     try {
-      const { data: pub } = await supabase
-        .from("publishers")
+      const { data: pub } = await (supabase.from as any)("publishers")
         .select("id")
         .eq("user_id", user.id)
         .single();
       if (!pub) return;
-      const { data } = await supabase
-        .from("import_queue")
+      const { data } = await (supabase.from as any)("import_queue")
         .select("status, inserted_count, total_urls, created_at")
         .eq("publisher_id", pub.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
       if (data && (data.status === "processing" || data.status === "done")) {
-        setActiveImport(data);
+        setActiveImport(data as any);
       }
     } catch {
       // No import queue records
