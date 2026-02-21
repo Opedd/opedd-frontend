@@ -24,6 +24,7 @@ import {
   Clipboard,
   Check,
   CheckCircle,
+  CheckCircle2,
   Upload,
   File,
   Globe,
@@ -31,7 +32,10 @@ import {
   Copy,
   Plug,
   ArrowRight,
-  Plus
+  ArrowLeft,
+  Plus,
+  AlertCircle,
+  Sparkles
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -225,6 +229,18 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   // Connecting state (for triggering RSS import)
   const [isConnecting, setIsConnecting] = useState(false);
 
+  // Platform-specific import step state
+  type SelectedPlatformType = "substack" | "beehiiv" | "ghost" | "wordpress" | "other" | null;
+  const [pubStep, setPubStep] = useState<"select" | "import">("select");
+  const [pubPlatform, setPubPlatform] = useState<SelectedPlatformType>(null);
+  const [pubDomainInput, setPubDomainInput] = useState("");
+  const [isSitemapImporting, setIsSitemapImporting] = useState(false);
+  const [sitemapImportResult, setSitemapImportResult] = useState<{ count: number } | null>(null);
+  const [detectedFeeds, setDetectedFeeds] = useState<{ sitemap_urls: string[]; rss_urls: string[]; estimated_article_count: number } | null>(null);
+  const [isDetectingFeeds, setIsDetectingFeeds] = useState(false);
+  const [selectedFeedUrl, setSelectedFeedUrl] = useState<string | null>(null);
+  const [useRssFallback, setUseRssFallback] = useState(false);
+
   // Enterprise (Media Org) multi-feed state
   interface EnterpriseFeed {
     url: string;
@@ -296,6 +312,15 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setEnterpriseAiPrice("");
     setShowPlatformSetup(false);
     setSelectedPlatform(null);
+    setPubStep("select");
+    setPubPlatform(null);
+    setPubDomainInput("");
+    setIsSitemapImporting(false);
+    setSitemapImportResult(null);
+    setDetectedFeeds(null);
+    setIsDetectingFeeds(false);
+    setSelectedFeedUrl(null);
+    setUseRssFallback(false);
   };
 
   const handleClose = () => {
@@ -706,201 +731,280 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   };
 
   // Platform icons for display with placeholders
-  const platformIcons: { name: string; logo: string | null; placeholder: string; supportsWidget: boolean; platformKey: "ghost" | "wordpress" | "beehiiv" | "other" | null }[] = [
-    { name: "Substack", logo: PLATFORM_LOGOS.substack, placeholder: "yourname.substack.com/feed", supportsWidget: false, platformKey: null },
-    { name: "Ghost", logo: PLATFORM_LOGOS.ghost, placeholder: "yoursite.ghost.io/rss", supportsWidget: true, platformKey: "ghost" },
-    { name: "Beehiiv", logo: PLATFORM_LOGOS.beehiiv, placeholder: "yourname.beehiiv.com/feed", supportsWidget: true, platformKey: "beehiiv" },
-    { name: "WordPress", logo: PLATFORM_LOGOS.wordpress, placeholder: "yoursite.wordpress.com/feed", supportsWidget: true, platformKey: "wordpress" },
-    { name: "Other", logo: null, placeholder: "", supportsWidget: true, platformKey: "other" },
+  const platformIcons: { name: string; logo: string | null; platformKey: SelectedPlatformType }[] = [
+    { name: "Substack", logo: PLATFORM_LOGOS.substack, platformKey: "substack" },
+    { name: "Ghost", logo: PLATFORM_LOGOS.ghost, platformKey: "ghost" },
+    { name: "Beehiiv", logo: PLATFORM_LOGOS.beehiiv, platformKey: "beehiiv" },
+    { name: "WordPress", logo: PLATFORM_LOGOS.wordpress, platformKey: "wordpress" },
+    { name: "Other", logo: null, platformKey: "other" },
   ];
 
-  const handlePlatformClick = (platform: typeof platformIcons[number]) => {
-    if (platform.supportsWidget && platform.platformKey && publisherProfileId) {
-      setSelectedPlatform(platform.platformKey);
-      setShowPlatformSetup(true);
-    } else {
-      // RSS-only (Substack) or no publisher profile yet — fill the RSS URL template
-      if (platform.placeholder) {
-        setFeedUrl(`https://${platform.placeholder}`);
-      }
-      setShowPlatformSetup(false);
-      setSelectedPlatform(null);
+  const handlePlatformSelect = (platformKey: SelectedPlatformType) => {
+    setPubPlatform(platformKey);
+    setPubStep("import");
+    setPubDomainInput("");
+    setDetectedFeeds(null);
+    setSelectedFeedUrl(null);
+    setUseRssFallback(false);
+    setSitemapImportResult(null);
+  };
+
+  // Import sitemap helper
+  const importSitemap = async (sitemapUrl: string) => {
+    setIsSitemapImporting(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ sitemap_url: sitemapUrl }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error || "Import failed");
+      setSitemapImportResult({ count: result.data?.new_articles_inserted || 0 });
+      onSuccess?.();
+    } catch (err) {
+      toast({
+        title: "Import failed",
+        description: err instanceof Error ? err.message : "Could not import sitemap",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSitemapImporting(false);
     }
   };
 
-  // CHOICE VIEW
-  if (view === "choice") {
-    return (
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
-          {/* Header */}
-          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center">
-                  <Shield size={24} className="text-[#4A26ED]" />
-                </div>
-                <div>
-                  <h1 className="text-[#040042] font-bold text-lg leading-tight">Register Content</h1>
-                  <p className="text-[#040042]/60 text-sm">What are you licensing today?</p>
-                </div>
-              </div>
-              <button
-                onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
-              >
-                <X size={16} className="text-[#040042]/60" />
-              </button>
-            </div>
-          </div>
+  // Detect feeds helper
+  const detectFeeds = async (domain: string) => {
+    setIsDetectingFeeds(true);
+    setDetectedFeeds(null);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain)}`, {
+        headers: {
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        setDetectedFeeds(result.data);
+      } else {
+        setDetectedFeeds({ sitemap_urls: [], rss_urls: [], estimated_article_count: 0 });
+      }
+    } catch {
+      setDetectedFeeds({ sitemap_urls: [], rss_urls: [], estimated_article_count: 0 });
+    } finally {
+      setIsDetectingFeeds(false);
+    }
+  };
 
-          {/* Options */}
-          <div className="p-6 space-y-4">
-            {/* Single Feed (Newsletter) */}
-            <button
-              onClick={() => setView("publication")}
-              className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 text-left transition-all duration-200 group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A26ED]/20 to-[#7C3AED]/20 flex items-center justify-center flex-shrink-0 group-hover:from-[#4A26ED] group-hover:to-[#7C3AED] transition-all">
-                  <Link2 size={24} className="text-[#4A26ED] group-hover:text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#040042] text-base mb-1">Single Feed (Newsletter)</h3>
-                  <p className="text-sm text-slate-500">Connect one RSS feed, Substack, or Ghost URL to sync and license every post.</p>
-                </div>
-              </div>
-            </button>
+  // Handle RSS import for Substack/Beehiiv
+  const handleRssImport = async () => {
+    if (!pubDomainInput.trim()) return;
+    const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    const rssUrl = `https://${domain}/feed`;
+    setFeedUrl(rssUrl);
+    setPubHumanPrice(pubHumanPrice);
+    setPubAiPrice(pubAiPrice);
+    await runSync(rssUrl, pubHumanPrice, pubAiPrice, "newsletter_feed");
+  };
 
-            {/* Bulk / Enterprise (Media Org) */}
-            <button
-              onClick={() => setView("enterprise")}
-              className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-[#D1009A] hover:bg-[#D1009A]/5 text-left transition-all duration-200 group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D1009A]/20 to-[#FF4DA6]/20 flex items-center justify-center flex-shrink-0 group-hover:from-[#D1009A] group-hover:to-[#FF4DA6] transition-all">
-                  <Globe size={24} className="text-[#D1009A] group-hover:text-white" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-[#040042] text-base">Bulk / Enterprise (Media Org)</h3>
+  // Handle Ghost sitemap import
+  const handleGhostImport = async () => {
+    if (!pubDomainInput.trim()) return;
+    const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    await importSitemap(`https://${domain}/sitemap.xml`);
+  };
+
+  // Handle WordPress sitemap import (detect first)
+  const handleWordpressImport = async () => {
+    if (!pubDomainInput.trim()) return;
+    const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    // First detect feeds to find sitemap URL
+    setIsDetectingFeeds(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(`https://${domain}`)}`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      if (result.success && result.data?.sitemap_urls?.length > 0) {
+        setIsDetectingFeeds(false);
+        await importSitemap(result.data.sitemap_urls[0]);
+      } else {
+        setIsDetectingFeeds(false);
+        toast({ title: "No sitemap found", description: "Try using RSS feed instead.", variant: "destructive" });
+      }
+    } catch {
+      setIsDetectingFeeds(false);
+      toast({ title: "Detection failed", description: "Could not detect feeds.", variant: "destructive" });
+    }
+  };
+
+  // Handle Other platform — detect feeds
+  const handleOtherDetect = async () => {
+    if (!pubDomainInput.trim()) return;
+    const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    await detectFeeds(`https://${domain}`);
+  };
+
+  // Handle confirmed import from Other platform detected feed
+  const handleOtherConfirmImport = async () => {
+    if (!selectedFeedUrl) return;
+    // If it's a sitemap URL, use import-sitemap
+    if (selectedFeedUrl.includes("sitemap")) {
+      await importSitemap(selectedFeedUrl);
+    } else {
+      // RSS feed — use the sync flow
+      setFeedUrl(selectedFeedUrl);
+      await runSync(selectedFeedUrl, pubHumanPrice, pubAiPrice, "newsletter_feed");
+    }
+  };
+
+  // PUBLICATION SYNC VIEW
+  if (view === "publication") {
+    // Step 1: Platform selection
+    if (pubStep === "select") {
+      return (
+        <Dialog open={open} onOpenChange={handleClose}>
+          <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A26ED]/20 to-[#7C3AED]/20 flex items-center justify-center">
+                    <Link2 size={24} className="text-[#4A26ED]" />
                   </div>
-                  <p className="text-sm text-slate-500">Add multiple feeds, sitemaps, and tag them by vertical (Politics, Research, etc.).</p>
+                  <div>
+                    <h1 className="text-[#040042] font-bold text-lg leading-tight">Sync Publication</h1>
+                    <p className="text-[#040042]/60 text-sm">Select your publishing platform</p>
+                  </div>
+                </div>
+                <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                  <X size={16} className="text-[#040042]/60" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <p className="text-sm text-slate-500">We'll recommend the best import method for your platform.</p>
+              <div className="grid grid-cols-5 gap-2">
+                {platformIcons.map((platform) => (
+                  <button
+                    key={platform.name}
+                    onClick={() => handlePlatformSelect(platform.platformKey)}
+                    className="flex flex-col items-center gap-2 py-3 px-2 rounded-xl bg-[#F8F9FF] border-2 border-[#E8F2FB] hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all duration-200 group hover:scale-[1.03] cursor-pointer"
+                  >
+                    <div className="w-9 h-9 flex items-center justify-center">
+                      {platform.logo ? (
+                        <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
+                      ) : (
+                        <Globe size={26} className="text-slate-400 group-hover:text-[#4A26ED] transition-colors" />
+                      )}
+                    </div>
+                    <span className="text-xs text-slate-500 font-semibold group-hover:text-[#4A26ED] transition-colors leading-tight text-center">{platform.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Or use RSS directly */}
+              <div className="pt-2 border-t border-slate-100">
+                <p className="text-xs text-slate-400 mb-3">Or paste an RSS feed URL directly:</p>
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Rss size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+                    <Input
+                      value={feedUrl}
+                      onChange={(e) => setFeedUrl(e.target.value)}
+                      placeholder="https://yourname.substack.com/feed"
+                      className="!bg-white !text-[#040042] border-slate-200 h-12 pl-10 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                    />
+                  </div>
                 </div>
               </div>
-            </button>
+            </div>
 
-            {/* Register Single Work */}
-            <button
-              onClick={() => setView("single")}
-              className="w-full p-5 rounded-xl border-2 border-slate-200 bg-white hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all duration-200 group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:from-teal-500 group-hover:to-emerald-500 transition-all">
-                  <Upload size={24} className="text-teal-600 group-hover:text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#040042] text-base mb-1">Register Single Work</h3>
-                  <p className="text-sm text-slate-500">Upload an article, PDF, or text to license a one-off piece of content.</p>
-                </div>
+            {/* Footer — only show if RSS URL entered directly */}
+            {feedUrl.trim() && (
+              <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+                <Button
+                  onClick={handlePublicationSync}
+                  disabled={isSubmitting || isConnecting || !feedUrl.trim()}
+                  className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                >
+                  {isConnecting ? (
+                    <><Loader2 size={18} className="mr-2 animate-spin" />Connecting...</>
+                  ) : (
+                    <><Shield size={18} className="mr-2" />Sync & Protect Content</>
+                  )}
+                </Button>
               </div>
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-  // ENTERPRISE / MEDIA ORG VIEW
-  if (view === "enterprise") {
-    const addFeedRow = () => {
-      setEnterpriseFeeds(prev => [...prev, { url: "", tag: "" }]);
-    };
+            )}
+          </DialogContent>
+        </Dialog>
+      );
+    }
 
-    const updateFeedRow = (index: number, field: "url" | "tag", value: string) => {
-      setEnterpriseFeeds(prev => prev.map((f, i) => i === index ? { ...f, [field]: value } : f));
-    };
+    // Step 2: Platform-specific import — or success state
+    if (sitemapImportResult) {
+      return (
+        <Dialog open={open} onOpenChange={handleClose}>
+          <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+            <div className="p-8 text-center space-y-5">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+                <CheckCircle2 size={32} className="text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#040042] mb-1">Import Complete!</h2>
+                <p className="text-sm text-slate-500">
+                  {sitemapImportResult.count > 0
+                    ? `${sitemapImportResult.count} articles imported and ready for licensing.`
+                    : "Your content has been processed."}
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  handleClose();
+                  navigate("/content");
+                }}
+                className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
+              >
+                Go to Content Library
+                <ArrowRight size={16} className="ml-2" />
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      );
+    }
 
-    const removeFeedRow = (index: number) => {
-      setEnterpriseFeeds(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const handleEnterpriseSubmit = async () => {
-      const validFeeds = enterpriseFeeds.filter(f => f.url.trim());
-      if (validFeeds.length === 0) {
-        toast({ title: "At least one feed required", variant: "destructive" });
-        return;
-      }
-      if (!user) return;
-
-      setIsConnecting(true);
-      try {
-        for (const feed of validFeeds) {
-          const platform = detectPlatform(feed.url);
-          const platformType = (platform?.name.toLowerCase() || "other") as "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
-          const feedName = feed.tag ? `${enterpriseOrgName || "Org"} — ${feed.tag}` : (enterpriseOrgName || feed.url);
-
-          const sourceData = await contentSources.create<{ id: string }>({
-            url: feed.url,
-            name: feedName,
-            platform: platformType,
-            human_price: parseFloat(enterpriseHumanPrice) || 4.99,
-            ai_price: enterpriseAiPrice ? parseFloat(enterpriseAiPrice) : undefined,
-          });
-
-          // Insert local rss_sources record with bulk_enterprise path
-          try {
-            await supabase.from("rss_sources").insert({
-              user_id: user.id,
-              name: feedName,
-              feed_url: feed.url,
-              platform: platformType,
-              sync_status: "active",
-              last_synced_at: new Date().toISOString(),
-              registration_path: "bulk_enterprise",
-            });
-          } catch (localErr) {
-            console.warn("[RegisterContentModal] Failed to insert local enterprise source:", localErr);
-          }
-
-          try {
-            await contentSources.sync(sourceData.id);
-          } catch {
-            // sync may not be immediately available
-          }
-        }
-
-        setIsConnecting(false);
-        setView("syncing");
-
-        setTimeout(() => {
-          onSuccess?.();
-        }, 1500);
-
-        toast({
-          title: "Sources Registered",
-          description: `${validFeeds.length} feed(s) are now syncing.`,
-        });
-      } catch (error) {
-        console.error("Enterprise registration error:", error);
-        setIsConnecting(false);
-        toast({ title: "Registration Failed", description: "Could not register feeds.", variant: "destructive" });
-      }
-    };
-
-    const tagSuggestions = ["Politics", "Research", "Business", "Technology", "Opinion", "Culture"];
-
+    // Platform-specific step 2
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-xl rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
           <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D1009A]/20 to-[#FF4DA6]/20 flex items-center justify-center">
-                  <Globe size={24} className="text-[#D1009A]" />
-                </div>
+                <button
+                  onClick={() => { setPubStep("select"); setPubPlatform(null); }}
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                >
+                  <ArrowLeft size={16} className="text-[#040042]/60" />
+                </button>
                 <div>
-                  <h1 className="text-[#040042] font-bold text-lg leading-tight">Media Organization Setup</h1>
-                  <p className="text-[#040042]/60 text-sm">Add multiple feeds and tag by vertical</p>
+                  <h1 className="text-[#040042] font-bold text-lg leading-tight">
+                    {pubPlatform === "substack" && "Substack Import"}
+                    {pubPlatform === "beehiiv" && "Beehiiv Import"}
+                    {pubPlatform === "ghost" && "Ghost Import"}
+                    {pubPlatform === "wordpress" && "WordPress Import"}
+                    {pubPlatform === "other" && "Import Content"}
+                  </h1>
+                  <p className="text-[#040042]/60 text-sm">Connect your content source</p>
                 </div>
               </div>
               <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
@@ -910,421 +1014,334 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-5">
-            <div className="space-y-2">
-              <Label className="text-sm font-bold text-[#040042]">Organization Name</Label>
-              <Input
-                value={enterpriseOrgName}
-                onChange={(e) => setEnterpriseOrgName(e.target.value)}
-                placeholder="e.g. GZero Media, Drop Site News"
-                className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#D1009A] focus:ring-[#D1009A]/20 placeholder:text-slate-400"
-                style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-bold text-[#040042]">Content Feeds</Label>
-                <button onClick={addFeedRow} className="text-xs font-medium text-[#4A26ED] hover:text-[#3B1ED1] transition-colors flex items-center gap-1">
-                  <Plus size={14} />
-                  Add Feed
-                </button>
-              </div>
-
-              {enterpriseFeeds.map((feed, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Rss size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-                    <Input
-                      value={feed.url}
-                      onChange={(e) => updateFeedRow(index, "url", e.target.value)}
-                      placeholder="https://feed-url.com/rss"
-                      className="!bg-white !text-[#040042] border-slate-200 h-10 pl-9 text-sm focus:border-[#D1009A] focus:ring-[#D1009A]/20 placeholder:text-slate-400"
-                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                    />
-                  </div>
+            {/* SUBSTACK */}
+            {pubPlatform === "substack" && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-[#040042]">Enter your Substack URL</Label>
                   <Input
-                    value={feed.tag}
-                    onChange={(e) => updateFeedRow(index, "tag", e.target.value)}
-                    placeholder="Tag (e.g. Politics)"
-                    className="!bg-white !text-[#040042] border-slate-200 h-10 w-36 text-sm focus:border-[#D1009A] focus:ring-[#D1009A]/20 placeholder:text-slate-400"
+                    value={pubDomainInput}
+                    onChange={(e) => setPubDomainInput(e.target.value)}
+                    placeholder="yourpublication.substack.com"
+                    className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
                     style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                   />
-                  {enterpriseFeeds.length > 1 && (
-                    <button onClick={() => removeFeedRow(index)} className="w-10 h-10 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0">
-                      <X size={14} className="text-red-500" />
-                    </button>
-                  )}
+                  <p className="text-xs text-slate-400">Don't include https:// — just the domain</p>
                 </div>
-              ))}
-
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                <span className="text-[10px] text-slate-400 mr-1">Suggestions:</span>
-                {["Politics", "Research", "Business", "Technology", "Opinion", "Culture"].map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => {
-                      const idx = enterpriseFeeds.findIndex(f => !f.tag.trim());
-                      if (idx >= 0) updateFeedRow(idx, "tag", tag);
-                    }}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-[#D1009A]/10 hover:text-[#D1009A] transition-colors"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-slate-50 rounded-xl p-4 space-y-4">
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-[#D1009A]" />
-                <span className="text-sm font-semibold text-[#040042]">Global License Fees</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">Human Republication</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#040042]/50 font-medium">$</span>
-                    <Input type="number" value={enterpriseHumanPrice} onChange={(e) => setEnterpriseHumanPrice(e.target.value)} placeholder="4.99" className="border-slate-200 h-11 pl-7 bg-white" step="0.01" min="0" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">AI Ingestion</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#040042]/50 font-medium">$</span>
-                    <Input type="number" value={enterpriseAiPrice} onChange={(e) => setEnterpriseAiPrice(e.target.value)} placeholder="49.99" className="border-slate-200 h-11 pl-7 bg-white" step="0.01" min="0" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sticky Footer */}
-          <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-            <Button
-              onClick={handleEnterpriseSubmit}
-              disabled={isConnecting}
-              className="w-full h-12 bg-gradient-to-r from-[#D1009A] to-[#FF4DA6] hover:from-[#B8008A] hover:to-[#E6449A] text-white font-semibold"
-            >
-              {isConnecting ? (
-                <><Loader2 size={18} className="mr-2 animate-spin" />Syncing & Protecting...</>
-              ) : (
-                <><Shield size={18} className="mr-2" />Sync & Protect {enterpriseFeeds.filter(f => f.url.trim()).length} Feed{enterpriseFeeds.filter(f => f.url.trim()).length !== 1 ? 's' : ''}</>
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // PUBLICATION SYNC VIEW
-  if (view === "publication") {
-    // Show empty state if checkIntegrations is true and no active integrations
-    const showEmptyState = checkIntegrations && !hasActiveIntegrations && !integrationsLoading;
-    
-    return (
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-          {/* Light Header */}
-          <div className="bg-white border-b border-[#E8F2FB] px-6 py-5 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4A26ED]/20 to-[#7C3AED]/20 flex items-center justify-center">
-                  <Link2 size={24} className="text-[#4A26ED]" />
-                </div>
-                <div>
-                  <h1 className="text-[#040042] font-bold text-lg leading-tight">Sync Publication</h1>
-                  <p className="text-[#040042]/60 text-sm">Connect your RSS feed to auto-license content</p>
-                </div>
-              </div>
-              <button
-                onClick={handleClose}
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
-              >
-                <X size={16} className="text-[#040042]/60" />
-              </button>
-            </div>
-          </div>
-
-          {/* Empty State - No Active Integrations */}
-          {integrationsLoading ? (
-            <div className="p-8 text-center">
-              <Loader2 size={32} className="text-[#4A26ED] animate-spin mx-auto" />
-              <p className="text-sm text-slate-500 mt-4">Loading...</p>
-            </div>
-          ) : (
-            /* Form + Sticky Footer */
-            <>
-            <div className="flex-1 overflow-y-auto p-6 space-y-5">
-            {/* Platform Icons - Interactive Buttons */}
-            <div className="grid grid-cols-5 gap-2">
-              {platformIcons.map((platform) => (
-                <button
-                  key={platform.name}
-                  onClick={() => handlePlatformClick(platform)}
-                  title={platform.supportsWidget ? `Install widget on ${platform.name}` : `Use ${platform.name} RSS template`}
-                  className="flex flex-col items-center gap-2 py-3 px-2 rounded-xl bg-[#F8F9FF] border-2 border-[#E8F2FB] hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all duration-200 group hover:scale-[1.03] cursor-pointer"
-                >
-                  <div className="w-9 h-9 flex items-center justify-center">
-                    {platform.logo ? (
-                      <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
-                    ) : (
-                      <Globe size={26} className="text-slate-400 group-hover:text-[#4A26ED] transition-colors" />
-                    )}
-                  </div>
-                  <span className="text-xs text-slate-500 font-semibold group-hover:text-[#4A26ED] transition-colors leading-tight text-center">{platform.name}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Platform Setup Instructions (widget install flow) */}
-            {showPlatformSetup && selectedPlatform && publisherProfileId ? (
-              <PlatformSetupInstructions
-                platform={selectedPlatform}
-                publisherId={publisherProfileId}
-                onDone={handleClose}
-                onSyncAndDone={handleWidgetSyncAndDone}
-                onUseRss={() => {
-                  setShowPlatformSetup(false);
-                  setSelectedPlatform(null);
-                  // Fill the matching RSS template
-                  const templates: Record<string, string> = {
-                    ghost: "https://yoursite.ghost.io/rss",
-                    wordpress: "https://yoursite.wordpress.com/feed",
-                    beehiiv: "https://yourname.beehiiv.com/feed",
-                  };
-                  if (templates[selectedPlatform]) {
-                    setFeedUrl(templates[selectedPlatform]);
-                  }
-                }}
-              />
-            ) : (
-            <>
-            <div className="space-y-2">
-              <Label className="text-sm font-bold text-[#040042]">RSS Feed or Site URL</Label>
-              <div className="relative">
-                <Rss size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
-                <Input
-                  value={feedUrl}
-                  onChange={(e) => setFeedUrl(e.target.value)}
-                  placeholder="https://yourname.substack.com/feed"
-                  className="!bg-white !text-[#040042] border-slate-200 h-12 pl-10 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
-                  style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                />
-              </div>
-              <p className="text-xs text-slate-500">
-                We'll fetch and license all articles from this feed
-              </p>
-
-              {/* Substack RSS-only note */}
-              {detectedPlatform && !detectedPlatform.supportsWidget && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 animate-in fade-in-0 duration-200">
-                  <p className="text-xs text-blue-700">
-                    {detectedPlatform.name} doesn't support custom JS injection, so we'll use RSS sync to automatically import your content.
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex gap-2">
+                  <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700">
+                    Substack doesn't expose a full archive. We'll import your latest articles. New articles will auto-register when readers visit them via the widget.
                   </p>
                 </div>
-              )}
-
-              {/* Platform Helper Hint — shown when URL looks invalid */}
-              {feedUrl.length > 5 && !feedUrl.includes('.') && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-                  <p className="text-xs font-semibold text-amber-800 mb-1.5">💡 Platform Helper</p>
-                  <div className="space-y-1 text-xs text-amber-700">
-                    <p><strong>Substack:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yourname.substack.com/feed</code></p>
-                    <p><strong>Ghost:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yoursite.ghost.io/rss</code></p>
-                    <p><strong>Beehiiv:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yourname.beehiiv.com/feed</code></p>
-                    <p><strong>WordPress:</strong> <code className="bg-amber-100 px-1 rounded text-amber-900">yoursite.com/feed</code></p>
-                  </div>
-                </div>
-              )}
-
-              {/* Also show hint when URL has a dot but no /feed or /rss and no platform detected */}
-              {feedUrl.length > 10 && feedUrl.includes('.') && !detectedPlatform && !feedUrl.match(/\/(feed|rss|atom)/i) && !feedPreview?.isLoading && (
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 animate-in fade-in-0 duration-200">
-                  <p className="text-xs text-slate-500">
-                    💡 Tip: Most RSS feeds end with <code className="bg-slate-100 px-1 rounded text-[#040042]">/feed</code> or <code className="bg-slate-100 px-1 rounded text-[#040042]">/rss</code>. Try appending that to your URL.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* URL Preview Card with Fetching State */}
-            {feedPreview && (
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
-                <div className="flex items-center gap-3">
-                  {detectedPlatform ? (
-                    <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center p-2">
-                      <img src={detectedPlatform.logo} alt={detectedPlatform.name} className="w-full h-full object-contain" />
-                    </div>
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-slate-200 flex items-center justify-center">
-                      <Globe size={20} className="text-slate-400" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      {feedPreview.isLoading ? (
-                        <>
-                          <p className="text-sm font-semibold text-[#040042] truncate">
-                            {detectedPlatform ? `${detectedPlatform.name} Publication` : "Publication"}
-                          </p>
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#4A26ED]/10 text-[#4A26ED]">
-                            <Loader2 size={10} className="animate-spin" />
-                            <span className="text-[10px] font-medium">Validating...</span>
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-sm font-semibold text-[#040042] truncate">
-                          {feedPreview.title}
-                        </p>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 truncate">
-                      {feedPreview.isLoading ? feedUrl : feedPreview.description}
-                    </p>
-                  </div>
-                  <div className={`w-16 h-16 rounded-lg bg-gradient-to-br from-[#040042] to-[#4A26ED] flex items-center justify-center flex-shrink-0 p-2 ${feedPreview.isLoading ? 'animate-pulse' : ''}`}>
-                    <img src={opeddLogo} alt="Opedd" className="w-full h-full object-contain" />
-                  </div>
-                </div>
-                {!feedPreview.isLoading && (
-                  <div className="mt-3 pt-3 border-t border-slate-200 flex items-center gap-2">
-                    <CheckCircle size={12} className="text-emerald-500" />
-                    <span className="text-xs text-slate-600">Feed detected • Ready to sync articles</span>
-                  </div>
-                )}
-              </div>
+              </>
             )}
 
-            {/* Sync Method Info - Platform-specific */}
-            {detectedPlatform && !feedPreview?.isLoading && feedPreview && (() => {
-              const platformName = detectedPlatform.name.toLowerCase();
-              const isWebhook = platformName === "ghost" || platformName === "beehiiv";
-              const webhookUrl = `https://api.opedd.io/webhooks/${user?.id?.slice(0, 8) || "pub"}/ingest`;
+            {/* BEEHIIV */}
+            {pubPlatform === "beehiiv" && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-[#040042]">Enter your Beehiiv URL</Label>
+                  <Input
+                    value={pubDomainInput}
+                    onChange={(e) => setPubDomainInput(e.target.value)}
+                    placeholder="yourpublication.beehiiv.com"
+                    className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                  />
+                  <p className="text-xs text-slate-400">Don't include https:// — just the domain</p>
+                </div>
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex gap-2">
+                  <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700">
+                    Beehiiv doesn't expose a full archive. We'll import your latest articles. New articles will auto-register when readers visit them via the widget.
+                  </p>
+                </div>
+              </>
+            )}
 
-              return (
-                <div className={`rounded-xl border overflow-hidden animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ${isWebhook ? 'border-emerald-200 bg-emerald-50/50' : 'border-blue-200 bg-blue-50/50'}`}>
-                  <div className={`px-4 py-3 flex items-center gap-2 border-b ${isWebhook ? 'border-emerald-200 bg-emerald-50' : 'border-blue-200 bg-blue-50'}`}>
-                    <Badge variant="outline" className={`text-[10px] px-2 py-0 font-semibold ${isWebhook ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-blue-100 text-blue-700 border-blue-300'}`}>
-                      {isWebhook ? '⚡ Real-time' : '🔄 Scheduled'}
-                    </Badge>
-                    <span className="text-sm font-semibold text-[#040042]">
-                      {isWebhook ? 'Webhook Sync' : 'Automated Sync'}
-                    </span>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    {isWebhook ? (
-                      <>
-                        <p className="text-xs text-slate-600">
-                          Real-time sync: Add this webhook URL to your <strong>{detectedPlatform.name}</strong> settings to get instant content updates.
-                        </p>
-                        <div className="bg-slate-900 rounded-lg p-3 flex items-center justify-between gap-3">
-                          <code className="text-xs text-emerald-400 font-mono truncate">{webhookUrl}</code>
-                          <Button
-                            size="sm"
-                            onClick={() => handleCopy(webhookUrl, "verification")}
-                            className="h-7 px-2.5 bg-white/10 hover:bg-white/20 text-white text-xs flex-shrink-0"
+            {/* GHOST */}
+            {pubPlatform === "ghost" && !useRssFallback && (
+              <>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+                  <CheckCircle2 size={12} />
+                  Recommended: Full archive import
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-[#040042]">Enter your Ghost site URL</Label>
+                  <Input
+                    value={pubDomainInput}
+                    onChange={(e) => setPubDomainInput(e.target.value)}
+                    placeholder="yoursite.com"
+                    className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                  />
+                  <p className="text-xs text-slate-400">Don't include https:// — just the domain</p>
+                </div>
+              </>
+            )}
+
+            {/* GHOST RSS FALLBACK */}
+            {pubPlatform === "ghost" && useRssFallback && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-[#040042]">Enter your Ghost site URL</Label>
+                  <Input
+                    value={pubDomainInput}
+                    onChange={(e) => setPubDomainInput(e.target.value)}
+                    placeholder="yoursite.com"
+                    className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                  />
+                </div>
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex gap-2">
+                  <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700">
+                    RSS will import your latest ~50 articles. For a full archive, go back and use sitemap import.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* WORDPRESS */}
+            {pubPlatform === "wordpress" && !useRssFallback && (
+              <>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+                  <CheckCircle2 size={12} />
+                  Recommended: Full archive import
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-[#040042]">Enter your WordPress site URL</Label>
+                  <Input
+                    value={pubDomainInput}
+                    onChange={(e) => setPubDomainInput(e.target.value)}
+                    placeholder="yoursite.com"
+                    className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                  />
+                  <p className="text-xs text-slate-500">WordPress sitemaps can contain your full article archive (thousands of articles).</p>
+                </div>
+              </>
+            )}
+
+            {/* WORDPRESS RSS FALLBACK */}
+            {pubPlatform === "wordpress" && useRssFallback && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-[#040042]">Enter your WordPress site URL</Label>
+                  <Input
+                    value={pubDomainInput}
+                    onChange={(e) => setPubDomainInput(e.target.value)}
+                    placeholder="yoursite.com"
+                    className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* OTHER */}
+            {pubPlatform === "other" && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-[#040042]">Enter your publication URL</Label>
+                  <Input
+                    value={pubDomainInput}
+                    onChange={(e) => setPubDomainInput(e.target.value)}
+                    placeholder="yoursite.com"
+                    className="!bg-white !text-[#040042] border-slate-200 h-12 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
+                  />
+                  <p className="text-xs text-slate-400">Don't include https:// — just the domain</p>
+                </div>
+
+                {/* Detection results */}
+                {detectedFeeds && (
+                  <div className="space-y-3">
+                    {detectedFeeds.sitemap_urls.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sitemap (recommended)</p>
+                        {detectedFeeds.sitemap_urls.map((url) => (
+                          <button
+                            key={url}
+                            onClick={() => setSelectedFeedUrl(url)}
+                            className={`w-full p-3 rounded-xl border text-left text-sm transition-all ${
+                              selectedFeedUrl === url
+                                ? "border-[#4A26ED] bg-[#4A26ED]/5"
+                                : "border-slate-200 hover:border-slate-300"
+                            }`}
                           >
-                            {copiedVerification ? <Check size={12} /> : <Copy size={12} />}
-                          </Button>
-                        </div>
-                        <p className="text-[10px] text-slate-400">
-                          Go to {detectedPlatform.name} → Settings → Integrations → Webhooks → Paste this URL
+                            <p className="font-medium text-[#040042] truncate">{url}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">Full archive import</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {detectedFeeds.rss_urls.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">RSS feeds</p>
+                        {detectedFeeds.rss_urls.map((url) => (
+                          <button
+                            key={url}
+                            onClick={() => setSelectedFeedUrl(url)}
+                            className={`w-full p-3 rounded-xl border text-left text-sm transition-all ${
+                              selectedFeedUrl === url
+                                ? "border-[#4A26ED] bg-[#4A26ED]/5"
+                                : "border-slate-200 hover:border-slate-300"
+                            }`}
+                          >
+                            <p className="font-medium text-[#040042] truncate">{url}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">Latest articles</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {detectedFeeds.sitemap_urls.length === 0 && detectedFeeds.rss_urls.length === 0 && (
+                      <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex gap-2">
+                        <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-700">
+                          No feeds detected. Articles will auto-register when readers visit them via the widget.
                         </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xs text-slate-600">
-                          Automated Sync: Opedd will scan your <strong>{detectedPlatform.name}</strong> feed every 12 hours for new content.
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-blue-700">
-                          <Rss size={12} />
-                          <span>No setup required — we handle everything automatically</span>
-                        </div>
-                      </>
+                      </div>
                     )}
                   </div>
-                </div>
-              );
-            })()}
-
-            <div className="bg-slate-50 rounded-xl p-4 space-y-4">
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-[#4A26ED]" />
-                <span className="text-sm font-semibold text-[#040042]">Global License Fees</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">Human Republication *</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
-                    <Input
-                      type="number"
-                      value={pubHumanPrice}
-                      onChange={(e) => setPubHumanPrice(e.target.value)}
-                      placeholder="4.99"
-                      className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
-                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-                  <p className="text-xs text-slate-400">Per article license</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#040042]">AI Ingestion <span className="text-slate-400 font-normal">(optional)</span></Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium z-10">$</span>
-                    <Input
-                      type="number"
-                      value={pubAiPrice}
-                      onChange={(e) => setPubAiPrice(e.target.value)}
-                      placeholder="49.99"
-                      className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
-                      style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-                  <p className="text-xs text-slate-400">LLM training rights</p>
-                </div>
-              </div>
-            </div>
-            </>
-            )}
-            </div>
-
-            {/* Sticky Footer — only show for RSS form, not platform setup */}
-            {!showPlatformSetup && (
-            <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-              <Button
-                onClick={handlePublicationSync}
-                disabled={isSubmitting || isConnecting || !feedUrl.trim()}
-                className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isConnecting ? (
-                  <>
-                    <Loader2 size={18} className="mr-2 animate-spin" />
-                    Connecting...
-                  </>
-                ) : feedPreview?.isLoading ? (
-                  <>
-                    <Loader2 size={18} className="mr-2 animate-spin" />
-                    Validating URL...
-                  </>
-                ) : (
-                  <>
-                    <Shield size={18} className="mr-2" />
-                    Sync & Protect Content
-                  </>
-
                 )}
-              </Button>
-            </div>
+              </>
             )}
-            </>
+
+            {/* Importing spinner */}
+            {isSitemapImporting && (
+              <div className="flex items-center justify-center gap-3 py-4">
+                <Loader2 size={20} className="text-[#4A26ED] animate-spin" />
+                <p className="text-sm text-slate-600 font-medium">Importing your content...</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          {!isSitemapImporting && (
+            <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] space-y-3">
+              {/* Substack / Beehiiv — RSS import */}
+              {(pubPlatform === "substack" || pubPlatform === "beehiiv") && (
+                <Button
+                  onClick={handleRssImport}
+                  disabled={!pubDomainInput.trim() || isConnecting}
+                  className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                >
+                  {isConnecting ? (
+                    <><Loader2 size={18} className="mr-2 animate-spin" />Importing...</>
+                  ) : (
+                    <><Rss size={18} className="mr-2" />Import via RSS</>
+                  )}
+                </Button>
+              )}
+
+              {/* Ghost — sitemap primary or RSS fallback */}
+              {pubPlatform === "ghost" && !useRssFallback && (
+                <>
+                  <Button
+                    onClick={handleGhostImport}
+                    disabled={!pubDomainInput.trim() || isSitemapImporting}
+                    className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                  >
+                    <Sparkles size={18} className="mr-2" />
+                    Import Full Archive (Sitemap)
+                  </Button>
+                  <button
+                    onClick={() => setUseRssFallback(true)}
+                    className="w-full text-center text-sm text-slate-500 hover:text-[#4A26ED] transition-colors"
+                  >
+                    Use RSS feed instead
+                  </button>
+                </>
+              )}
+              {pubPlatform === "ghost" && useRssFallback && (
+                <Button
+                  onClick={handleRssImport}
+                  disabled={!pubDomainInput.trim() || isConnecting}
+                  className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                >
+                  {isConnecting ? (
+                    <><Loader2 size={18} className="mr-2 animate-spin" />Importing...</>
+                  ) : (
+                    <><Rss size={18} className="mr-2" />Import via RSS</>
+                  )}
+                </Button>
+              )}
+
+              {/* WordPress — sitemap primary or RSS fallback */}
+              {pubPlatform === "wordpress" && !useRssFallback && (
+                <>
+                  <Button
+                    onClick={handleWordpressImport}
+                    disabled={!pubDomainInput.trim() || isDetectingFeeds || isSitemapImporting}
+                    className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                  >
+                    {isDetectingFeeds ? (
+                      <><Loader2 size={18} className="mr-2 animate-spin" />Detecting sitemap...</>
+                    ) : (
+                      <><Sparkles size={18} className="mr-2" />Import Full Archive (Sitemap)</>
+                    )}
+                  </Button>
+                  <button
+                    onClick={() => setUseRssFallback(true)}
+                    className="w-full text-center text-sm text-slate-500 hover:text-[#4A26ED] transition-colors"
+                  >
+                    Use RSS feed instead
+                  </button>
+                </>
+              )}
+              {pubPlatform === "wordpress" && useRssFallback && (
+                <Button
+                  onClick={handleRssImport}
+                  disabled={!pubDomainInput.trim() || isConnecting}
+                  className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                >
+                  {isConnecting ? (
+                    <><Loader2 size={18} className="mr-2 animate-spin" />Importing...</>
+                  ) : (
+                    <><Rss size={18} className="mr-2" />Import via RSS</>
+                  )}
+                </Button>
+              )}
+
+              {/* Other — detect or confirm */}
+              {pubPlatform === "other" && !detectedFeeds && (
+                <Button
+                  onClick={handleOtherDetect}
+                  disabled={!pubDomainInput.trim() || isDetectingFeeds}
+                  className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                >
+                  {isDetectingFeeds ? (
+                    <><Loader2 size={18} className="mr-2 animate-spin" />Detecting feeds...</>
+                  ) : (
+                    <><Globe size={18} className="mr-2" />Detect Feeds</>
+                  )}
+                </Button>
+              )}
+              {pubPlatform === "other" && detectedFeeds && selectedFeedUrl && (
+                <Button
+                  onClick={handleOtherConfirmImport}
+                  disabled={isConnecting || isSitemapImporting}
+                  className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+                >
+                  {isConnecting || isSitemapImporting ? (
+                    <><Loader2 size={18} className="mr-2 animate-spin" />Importing...</>
+                  ) : (
+                    <><Sparkles size={18} className="mr-2" />Import Content</>
+                  )}
+                </Button>
+              )}
+              {pubPlatform === "other" && detectedFeeds && !selectedFeedUrl && detectedFeeds.sitemap_urls.length === 0 && detectedFeeds.rss_urls.length === 0 && (
+                <Button
+                  onClick={handleClose}
+                  variant="outline"
+                  className="w-full h-12"
+                >
+                  Skip for now →
+                </Button>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>
