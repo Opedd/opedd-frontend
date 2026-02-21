@@ -78,19 +78,19 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   const [pricingSource, setPricingSource] = useState<Source | null>(null);
   const [deleteConfirmSource, setDeleteConfirmSource] = useState<Source | null>(null);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
+  const [publisherLogoUrl, setPublisherLogoUrl] = useState<string | null>(null);
 
   const fetchSources = async () => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("rss_sources")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setSources(data || []);
+      const [sourcesRes, publisherRes] = await Promise.all([
+        supabase.from("rss_sources").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("publishers").select("logo_url").eq("user_id", user.id).maybeSingle(),
+      ]);
+      if (sourcesRes.error) throw sourcesRes.error;
+      setSources(sourcesRes.data || []);
+      setPublisherLogoUrl(publisherRes.data?.logo_url || null);
     } catch (err) {
       console.error("Error fetching sources:", err);
     } finally {
@@ -263,10 +263,10 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       {/* Source Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sources.map((source) => {
+          // Detect platform logo (small badge indicator)
           const platformKey = (source.platform || "").toLowerCase();
-          const logo = (() => {
+          const platformLogo = (() => {
             if (platformKey && platformLogos[platformKey]) return platformLogos[platformKey];
-            // Detect platform from feed URL as fallback
             const url = (source.feed_url || "").toLowerCase();
             if (url.includes("substack.com")) return substackLogo;
             if (url.includes("ghost.io") || url.includes(".ghost.")) return ghostLogo;
@@ -274,13 +274,6 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             if (url.includes("medium.com")) return mediumLogo;
             return null;
           })();
-          const faviconUrl = !logo ? (() => {
-            try {
-              const raw = source.feed_url?.startsWith("http") ? source.feed_url : `https://${source.feed_url}`;
-              const domain = new URL(raw).hostname;
-              return `https://logo.clearbit.com/${domain}`;
-            } catch { return null; }
-          })() : null;
           const isVerified = source.sync_status === "active";
           const isPending = !isVerified;
           const isSyncing = syncingId === source.id;
@@ -291,30 +284,22 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
               className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md transition-all"
             >
               <div className="flex items-start gap-4">
-                {/* Platform Icon */}
-                {logo ? (
-                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 flex-shrink-0">
-                    <img src={logo} alt={source.platform || ""} className="w-full h-full object-contain" />
+                {/* Publication logo (from settings) with platform badge overlay */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden">
+                    {publisherLogoUrl ? (
+                      <img src={publisherLogoUrl} alt={source.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Globe size={20} className="text-slate-400" />
+                    )}
                   </div>
-                ) : faviconUrl ? (
-                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 flex-shrink-0">
-                    <img
-                      src={faviconUrl}
-                      alt={source.name}
-                      className="w-full h-full object-contain mix-blend-multiply"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        const globe = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (globe) globe.style.display = "";
-                      }}
-                    />
-                    <Globe size={20} className="text-slate-400" style={{ display: "none" }} />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
-                    <Globe size={20} className="text-slate-400" />
-                  </div>
-                )}
+                  {/* Small platform badge */}
+                  {platformLogo && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-slate-200 flex items-center justify-center p-0.5">
+                      <img src={platformLogo} alt={platformKey} className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">

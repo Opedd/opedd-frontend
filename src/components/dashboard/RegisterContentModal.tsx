@@ -40,41 +40,17 @@ import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModa
 import { PlatformSetupInstructions } from "@/components/dashboard/PlatformSetupInstructions";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
-// Inline SVG platform icons — no external dependencies, transparent backgrounds
-const SubstackIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="#FF6719" className={className} aria-hidden>
-    <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z" />
-  </svg>
-);
-const GhostIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} aria-hidden>
-    <path fill="#15171A" d="M5 9A7 7 0 0 0 19 9L19 20 17 18 15 20 13 18 11 20 9 18 7 20 5 20Z" />
-    <circle fill="white" cx="10" cy="11" r="1.2" />
-    <circle fill="white" cx="14" cy="11" r="1.2" />
-  </svg>
-);
-const BeehiivIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} aria-hidden>
-    <path fill="#FC4A1A" d="M12 2L2 7.5v9L12 22l10-5.5v-9L12 2zm0 2.5l7.5 4.1v7L12 19.5 4.5 15.6v-7L12 4.5z" />
-    <path fill="#FC4A1A" d="M9 9h4a1.5 1.5 0 010 3H9V9zm0 4.5h4.5a1.5 1.5 0 010 3H9v-3z" />
-    <path fill="white" d="M9 9h4a1.5 1.5 0 010 3H9V9z" opacity="0.3" />
-    <rect fill="white" x="9" y="9" width="5.5" height="1" rx="0.5" />
-    <rect fill="white" x="9" y="12" width="6" height="1" rx="0.5" />
-    <rect fill="white" x="9" y="14.5" width="5.5" height="1" rx="0.5" />
-  </svg>
-);
-const WordPressIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="#21759B" className={className} aria-hidden>
-    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zM3.5 12c0-1.232.254-2.404.7-3.47L7.93 19.244A8.517 8.517 0 013.5 12zm8.5 8.5a8.517 8.517 0 01-2.44-.358L12 12.17l2.52 6.912A8.517 8.517 0 0112 20.5zm1.148-.153l3.44-9.972c.564-1.41.752-2.538.752-3.544 0-.364-.024-.702-.068-1.013A8.5 8.5 0 0120.5 12a8.49 8.49 0 01-7.352 8.347zM8.05 8.378c.374-.02.71-.04.71-.04.336-.04.296-.532-.04-.512 0 0-1.005.08-1.654.08-.61 0-1.634-.08-1.634-.08-.336-.02-.376.493-.04.512 0 0 .317.02.653.04l.97 2.657-1.362 4.083L4.27 8.378c.376-.02.71-.04.71-.04.336-.04.297-.532-.04-.512 0 0-1.004.08-1.653.08-.116 0-.253-.003-.398-.007A8.493 8.493 0 0112 3.5c2.227 0 4.258.854 5.774 2.25-.037-.002-.072-.006-.11-.006-.61 0-1.042.532-1.042 1.103 0 .512.296.945.61 1.457.237.414.513.946.513 1.713 0 .532-.204 1.15-.473 2.007l-.62 2.073-2.245-6.678z" />
-  </svg>
-);
+// Platform logos — local SVG assets bundled by Vite (transparent, no CDN dependency)
+import substackLogo from "@/assets/platforms/substack.svg";
+import ghostLogo from "@/assets/platforms/ghost.svg";
+import wordpressLogo from "@/assets/platforms/wordpress.svg";
+import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 
-// CDN URLs still used by detectPlatform (for the URL input preview)
 const PLATFORM_LOGOS = {
-  substack: "https://cdn.simpleicons.org/substack/FF6719",
-  ghost: "https://cdn.simpleicons.org/ghost/15171A",
-  beehiiv: "https://cdn.simpleicons.org/beehiiv/FC4A1A",
-  wordpress: "https://cdn.simpleicons.org/wordpress/21759B",
+  substack: substackLogo,
+  ghost: ghostLogo,
+  beehiiv: beehiivLogo,
+  wordpress: wordpressLogo,
 };
 
 interface RegisterContentModalProps {
@@ -730,12 +706,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   };
 
   // Platform icons for display with placeholders
-  const platformIcons: { name: string; icon: React.ReactNode; placeholder: string; supportsWidget: boolean; platformKey: "ghost" | "wordpress" | "beehiiv" | "other" | null }[] = [
-    { name: "Substack", icon: <SubstackIcon className="w-full h-full" />, placeholder: "yourname.substack.com/feed", supportsWidget: false, platformKey: null },
-    { name: "Ghost", icon: <GhostIcon className="w-full h-full" />, placeholder: "yoursite.ghost.io/rss", supportsWidget: true, platformKey: "ghost" },
-    { name: "Beehiiv", icon: <BeehiivIcon className="w-full h-full" />, placeholder: "yourname.beehiiv.com/feed", supportsWidget: true, platformKey: "beehiiv" },
-    { name: "WordPress", icon: <WordPressIcon className="w-full h-full" />, placeholder: "yoursite.wordpress.com/feed", supportsWidget: true, platformKey: "wordpress" },
-    { name: "Other", icon: null, placeholder: "", supportsWidget: true, platformKey: "other" },
+  const platformIcons: { name: string; logo: string | null; placeholder: string; supportsWidget: boolean; platformKey: "ghost" | "wordpress" | "beehiiv" | "other" | null }[] = [
+    { name: "Substack", logo: PLATFORM_LOGOS.substack, placeholder: "yourname.substack.com/feed", supportsWidget: false, platformKey: null },
+    { name: "Ghost", logo: PLATFORM_LOGOS.ghost, placeholder: "yoursite.ghost.io/rss", supportsWidget: true, platformKey: "ghost" },
+    { name: "Beehiiv", logo: PLATFORM_LOGOS.beehiiv, placeholder: "yourname.beehiiv.com/feed", supportsWidget: true, platformKey: "beehiiv" },
+    { name: "WordPress", logo: PLATFORM_LOGOS.wordpress, placeholder: "yoursite.wordpress.com/feed", supportsWidget: true, platformKey: "wordpress" },
+    { name: "Other", logo: null, placeholder: "", supportsWidget: true, platformKey: "other" },
   ];
 
   const handlePlatformClick = (platform: typeof platformIcons[number]) => {
@@ -1090,8 +1066,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   className="flex flex-col items-center gap-2 py-3 px-2 rounded-xl bg-[#F8F9FF] border-2 border-[#E8F2FB] hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 hover:shadow-md hover:shadow-[#4A26ED]/10 transition-all duration-200 group hover:scale-[1.03] cursor-pointer"
                 >
                   <div className="w-9 h-9 flex items-center justify-center">
-                    {platform.icon ? (
-                      platform.icon
+                    {platform.logo ? (
+                      <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
                     ) : (
                       <Globe size={26} className="text-slate-400 group-hover:text-[#4A26ED] transition-colors" />
                     )}
