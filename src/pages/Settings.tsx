@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
-import { 
-  User, 
-  Globe, 
-  Users, 
+import {
+  User,
+  Globe,
+  Users,
   Shield,
   Check,
   Copy,
@@ -24,7 +24,8 @@ import {
   AlertTriangle,
   Trash2,
   Send,
-  Clock
+  Clock,
+  XCircle
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,6 +72,8 @@ interface PublisherProfile {
   webhook_url: string | null;
   webhook: { configured: boolean; url: string } | null;
   created_at: string;
+  excluded_url_patterns?: string[];
+  pricing_rules?: Record<string, any> | null;
 }
 
 const tabContentVariants = {
@@ -112,6 +115,13 @@ export default function Settings() {
   // Logo state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  // Content tab state
+  const [excludedPatterns, setExcludedPatterns] = useState<string[]>([]);
+  const [newPattern, setNewPattern] = useState("");
+  const [categoryRules, setCategoryRules] = useState<Array<{ category: string; human: string; ai: string }>>([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [isSavingContent, setIsSavingContent] = useState(false);
 
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
@@ -155,6 +165,15 @@ export default function Settings() {
         setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "5.00");
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "10.00");
         setLogoPreview(d.logo_url || null);
+        setExcludedPatterns(d.excluded_url_patterns || []);
+        // Load category pricing rules
+        const cats = (d.pricing_rules as any)?.categories || {};
+        const catArray = Object.entries(cats).map(([category, prices]: [string, any]) => ({
+          category,
+          human: String(prices.human ?? ""),
+          ai: String(prices.ai ?? ""),
+        }));
+        setCategoryRules(catArray);
         // Derive stripe status from publisher fields if stripe_connect not present — kept for profile context only
       }
     } catch (err) {
@@ -406,6 +425,7 @@ export default function Settings() {
                 <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
                   {[
                     { value: "profile", label: "Profile" },
+                    { value: "content", label: "Content" },
                     { value: "api-keys", label: "API Keys" },
                     { value: "team", label: "Team" },
                   ].map((tab) => (
@@ -737,6 +757,193 @@ export default function Settings() {
                             </div>
                           )}
                         </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </TabsContent>
+
+                {/* TAB: Content */}
+                <TabsContent value="content" className="mt-6" forceMount={activeTab === "content" ? true : undefined}>
+                  {activeTab === "content" && (
+                    <motion.div key="content" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-8">
+
+                      {/* Category Pricing */}
+                      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-5">
+                        <div>
+                          <h3 className="text-base font-semibold text-[#040042]">Category Pricing</h3>
+                          <p className="text-sm text-[#6B7280] mt-0.5">Override default prices for specific content categories. Articles without a category use your default prices.</p>
+                        </div>
+                        <div className="space-y-2">
+                          {categoryRules.length === 0 && (
+                            <p className="text-sm text-slate-400 italic">No category overrides set. Articles use your default prices.</p>
+                          )}
+                          {categoryRules.map((rule, i) => (
+                            <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                              <span className="text-sm font-medium text-[#040042] flex-1 capitalize">{rule.category}</span>
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-slate-400">Human</span>
+                                <div className="relative w-20">
+                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                  <input
+                                    type="number" min="0" step="1"
+                                    value={rule.human}
+                                    onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, human: e.target.value } : r))}
+                                    className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-slate-400">AI</span>
+                                <div className="relative w-20">
+                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                  <input
+                                    type="number" min="0" step="1"
+                                    value={rule.ai}
+                                    onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, ai: e.target.value } : r))}
+                                    className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
+                                  />
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => setCategoryRules(prev => prev.filter((_, j) => j !== i))}
+                                className="text-slate-400 hover:text-red-500 transition-colors ml-1"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Category name (e.g. politics)"
+                            value={newCategory}
+                            onChange={e => setNewCategory(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === "Enter" && newCategory.trim()) {
+                                const cat = newCategory.trim().toLowerCase();
+                                if (!categoryRules.find(r => r.category === cat)) {
+                                  setCategoryRules(prev => [...prev, { category: cat, human: "", ai: "" }]);
+                                }
+                                setNewCategory("");
+                              }
+                            }}
+                            className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm text-[#040042] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const cat = newCategory.trim().toLowerCase();
+                              if (cat && !categoryRules.find(r => r.category === cat)) {
+                                setCategoryRules(prev => [...prev, { category: cat, human: "", ai: "" }]);
+                              }
+                              setNewCategory("");
+                            }}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* URL Exclusion Rules */}
+                      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-5">
+                        <div>
+                          <h3 className="text-base font-semibold text-[#040042]">URL Exclusion Rules</h3>
+                          <p className="text-sm text-[#6B7280] mt-0.5">URLs matching these patterns will be skipped during sitemap import and widget auto-registration. Use * as wildcard.</p>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Built-in exclusions (always active)</p>
+                          <div className="flex flex-wrap gap-2">
+                            {["/about*", "/careers*", "/contact*", "/advertise*", "/privacy*", "/terms*", "/subscribe*", "/tag*", "/author*", "/search*", "/login*", "/rss*"].map(p => (
+                              <span key={p} className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded-lg font-mono">{p}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Your custom exclusions</p>
+                          {excludedPatterns.length === 0 && (
+                            <p className="text-sm text-slate-400 italic">No custom exclusions.</p>
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {excludedPatterns.map((p, i) => (
+                              <span key={i} className="flex items-center gap-1.5 px-2 py-1 bg-[#4A26ED]/5 border border-[#4A26ED]/15 text-[#4A26ED] text-xs rounded-lg font-mono">
+                                {p}
+                                <button onClick={() => setExcludedPatterns(prev => prev.filter((_, j) => j !== i))} className="hover:text-red-500">
+                                  <XCircle size={12} />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            <input
+                              type="text"
+                              placeholder="/section-to-exclude/*"
+                              value={newPattern}
+                              onChange={e => setNewPattern(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === "Enter" && newPattern.trim()) {
+                                  const pat = newPattern.trim();
+                                  if (!excludedPatterns.includes(pat)) setExcludedPatterns(prev => [...prev, pat]);
+                                  setNewPattern("");
+                                }
+                              }}
+                              className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-[#040042] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const pat = newPattern.trim();
+                                if (pat && !excludedPatterns.includes(pat)) setExcludedPatterns(prev => [...prev, pat]);
+                                setNewPattern("");
+                              }}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Save button */}
+                      <div className="flex justify-end">
+                        <Button
+                          disabled={isSavingContent}
+                          onClick={async () => {
+                            setIsSavingContent(true);
+                            try {
+                              const headers = await apiHeaders();
+                              // Build pricing_rules object from categoryRules state
+                              const categories: Record<string, any> = {};
+                              for (const rule of categoryRules) {
+                                if (rule.category) {
+                                  categories[rule.category] = {
+                                    human: parseFloat(rule.human) || 0,
+                                    ai: parseFloat(rule.ai) || 0,
+                                  };
+                                }
+                              }
+                              const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                                method: "PATCH",
+                                headers,
+                                body: JSON.stringify({
+                                  excluded_url_patterns: excludedPatterns,
+                                  pricing_rules: { categories },
+                                }),
+                              });
+                              const result = await res.json();
+                              if (!res.ok || !result.success) throw new Error(result.error || "Save failed");
+                              toast({ title: "Content settings saved" });
+                            } catch (err) {
+                              toast({ title: "Save failed", description: err instanceof Error ? err.message : "Please try again", variant: "destructive" });
+                            } finally {
+                              setIsSavingContent(false);
+                            }
+                          }}
+                          className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6"
+                        >
+                          {isSavingContent ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Content Settings"}
+                        </Button>
                       </div>
                     </motion.div>
                   )}

@@ -25,6 +25,7 @@ import LicenseVerify from "./pages/LicenseVerify";
 import Registry from "./pages/Registry";
 import WidgetPreview from "./pages/WidgetPreview";
 import AcceptInvite from "./pages/AcceptInvite";
+import Onboarding from "./pages/Onboarding";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AuthCallback from "./pages/AuthCallback";
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/verify/:key" element={<LicenseVerify />} />
               <Route path="/registry" element={<Registry />} />
               <Route path="/widget-preview" element={<WidgetPreview />} />
+              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
               <Route path="/invite/:token" element={<AcceptInvite />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />

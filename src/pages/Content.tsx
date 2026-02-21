@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useDebounce } from "@/hooks/useDebounce";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Search, Filter, ChevronDown, Rss, CheckSquare, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, Filter, ChevronDown, Rss, CheckSquare, ChevronLeft, ChevronRight, Globe, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { AssetGrid } from "@/components/dashboard/AssetGrid";
 import { AssetDetailDrawer } from "@/components/dashboard/AssetDetailDrawer";
@@ -11,6 +11,7 @@ import { RegisterContentModal } from "@/components/dashboard/RegisterContentModa
 import { FloatingPriceBar } from "@/components/dashboard/FloatingPriceBar";
 import { BulkPricingModal } from "@/components/dashboard/BulkPricingModal";
 import { useToast } from "@/hooks/use-toast";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,71 @@ export default function Content() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+
+  // Sitemap import state
+  const [sitemapUrl, setSitemapUrl] = useState("");
+  const [showSitemapInput, setShowSitemapInput] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [activeImport, setActiveImport] = useState<{ status: string; inserted_count: number; total_urls: number } | null>(null);
+
+  const fetchActiveImport = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data: pub } = await supabase
+        .from("publishers")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+      if (!pub) return;
+      const { data } = await supabase
+        .from("import_queue")
+        .select("status, inserted_count, total_urls, created_at")
+        .eq("publisher_id", pub.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (data && (data.status === "processing" || data.status === "done")) {
+        setActiveImport(data);
+      }
+    } catch {
+      // No import queue records
+    }
+  }, [user]);
+
+  const triggerSitemapImport = async () => {
+    if (!sitemapUrl.trim()) return;
+    setIsImporting(true);
+    try {
+      const token = await (user as any)?.getAccessToken?.() || "";
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({ sitemap_url: sitemapUrl.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error || "Import failed");
+      toast({
+        title: "Import complete",
+        description: `${result.data.new_articles_inserted} new articles imported`,
+      });
+      setSitemapUrl("");
+      setShowSitemapInput(false);
+      fetchAssets();
+      fetchActiveImport();
+    } catch (err) {
+      toast({
+        title: "Import failed",
+        description: err instanceof Error ? err.message : "Could not import sitemap",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -108,6 +174,7 @@ export default function Content() {
   useEffect(() => { fetchSources(); }, [fetchSources]);
   useEffect(() => { fetchAssets(); }, [fetchAssets]);
   useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter, sourceFilter]);
+  useEffect(() => { fetchActiveImport(); }, [fetchActiveImport]);
 
   if (!user) return null;
 
@@ -126,6 +193,52 @@ export default function Content() {
   return (
     <DashboardLayout title="Content" subtitle="Manage your registered articles and content sources">
       <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
+
+        {/* Import Progress Banner */}
+        {activeImport && activeImport.status === "processing" && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <Loader2 size={16} className="text-blue-500 animate-spin flex-shrink-0" />
+            <p className="text-sm text-blue-700 font-medium flex-1">Importing articles from sitemap...</p>
+          </div>
+        )}
+        {activeImport && activeImport.status === "done" && activeImport.inserted_count > 0 && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
+            <p className="text-sm text-emerald-700 font-medium flex-1">
+              {activeImport.inserted_count.toLocaleString()} articles imported from sitemap
+            </p>
+            <button onClick={() => setActiveImport(null)} className="text-emerald-500 hover:text-emerald-700">
+              <XCircle size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Sitemap import input */}
+        {showSitemapInput && (
+          <div className="bg-white border border-[#E8F2FB] rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-[#040042]">Import from Sitemap</p>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="https://example.com/sitemap.xml"
+                value={sitemapUrl}
+                onChange={e => setSitemapUrl(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && triggerSitemapImport()}
+                className="flex-1 bg-[#F2F9FF] border border-[#E8F2FB] rounded-lg px-3 py-2 text-sm text-[#040042] placeholder:text-[#040042]/40 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+              />
+              <Button
+                onClick={triggerSitemapImport}
+                disabled={!sitemapUrl.trim() || isImporting}
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-4"
+              >
+                {isImporting ? <Loader2 size={14} className="animate-spin" /> : "Import"}
+              </Button>
+              <Button variant="outline" onClick={() => setShowSitemapInput(false)} className="px-3">✕</Button>
+            </div>
+            <p className="text-xs text-slate-400">We'll filter out non-article URLs (careers, about, etc.) automatically.</p>
+          </div>
+        )}
+
         {/* Top bar: Select + Register */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -150,13 +263,23 @@ export default function Content() {
             </Button>
             <span className="text-sm text-[#040042]/50">{totalAssets} asset{totalAssets !== 1 ? 's' : ''}</span>
           </div>
-          <button
-            onClick={openRegisterModal}
-            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white h-9 px-4 rounded-lg font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
-          >
-            <Plus size={16} />
-            Register Content
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSitemapInput(v => !v)}
+              title="Import from Sitemap"
+              className="h-9 px-3 rounded-lg font-medium text-sm flex items-center gap-2 border border-[#E8F2FB] text-[#040042]/60 hover:border-[#4A26ED]/40 hover:text-[#4A26ED] transition-all"
+            >
+              <Globe size={15} />
+              Import Sitemap
+            </button>
+            <button
+              onClick={openRegisterModal}
+              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white h-9 px-4 rounded-lg font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <Plus size={16} />
+              Register Content
+            </button>
+          </div>
         </div>
 
         {/* Search & Filter Bar */}
