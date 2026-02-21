@@ -531,7 +531,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             <Button
               variant="outline"
               onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
-              className="border-[#E5E7EB] text-[#040042]/60 hover:text-[#040042] rounded-lg h-9 px-4 text-sm font-medium"
+              className="bg-white border-[#E5E7EB] text-[#040042]/60 hover:bg-slate-50 hover:text-[#040042] rounded-lg h-9 px-4 text-sm font-medium"
             >
               Cancel
             </Button>
