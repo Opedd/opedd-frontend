@@ -4,17 +4,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { TransactionReceiptDrawer } from "@/components/dashboard/TransactionReceiptDrawer";
+import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { Sparkline } from "@/components/dashboard/Sparkline";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Wallet, 
-  TrendingUp, 
-  FileCheck, 
-  Sparkles, 
-  User, 
+import {
+  Wallet,
+  TrendingUp,
+  FileCheck,
+  Sparkles,
+  User,
   Shield,
   ArrowUpRight,
   Download,
@@ -22,7 +23,8 @@ import {
   Loader2,
   HelpCircle,
   Filter,
-  Eye
+  Eye,
+  Archive
 } from "lucide-react";
 import {
   Tooltip,
@@ -50,7 +52,7 @@ import {
 
 interface Transaction {
   id: string;
-  type: "ai_ingestion" | "human_license" | "payout";
+  type: "ai_ingestion" | "human_license" | "archive_license" | "payout";
   description: string;
   amount: number;
   date: string;
@@ -67,6 +69,8 @@ interface Transaction {
   aiLabName?: string;
   aiModel?: string;
   tokenVolume?: number;
+  validFrom?: string;
+  validUntil?: string;
 }
 
 // Animation variants
@@ -98,6 +102,7 @@ export default function Ledger() {
   const { toast } = useToast();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -147,21 +152,26 @@ export default function Ledger() {
         const txList = result.data?.transactions || [];
         const mapped: Transaction[] = txList.map((tx: any) => {
           const isAI = tx.license_type === "ai";
+          const isArchive = tx.license_type === "archive";
           return {
             id: tx.id,
-            type: isAI ? "ai_ingestion" : "human_license",
-            description: isAI ? "AI Training License" : "Human Republication License",
+            type: isArchive ? "archive_license" : isAI ? "ai_ingestion" : "human_license",
+            description: isArchive ? "Archive License" : isAI ? "AI Training License" : "Human Republication License",
             amount: Number(tx.amount),
             date: new Date(tx.created_at).toISOString().split("T")[0],
             status: mapStatus(tx.status),
-            assetTitle: tx.article_title || "Unknown Asset",
+            assetTitle: isArchive ? (tx.publisher_name || "Archive License") : (tx.article_title || "Unknown Asset"),
             assetId: tx.article_id,
             licenseeEmail: tx.buyer_email,
             licenseKey: tx.license_key,
             buyerName: tx.buyer_name,
             buyerOrganization: tx.buyer_organization,
             intendedUse: tx.intended_use,
-            licenseTerms: isAI
+            validFrom: tx.valid_from,
+            validUntil: tx.valid_until,
+            licenseTerms: isArchive
+              ? "Site-wide archive license covering all publisher content in the specified date range. Non-exclusive, non-transferable."
+              : isAI
               ? "Non-exclusive license for AI model training. Valid for 12 months."
               : "Single-use republication license. Attribution required.",
           };
@@ -263,6 +273,12 @@ export default function Ledger() {
             <User size={18} className="text-[#D1009A]" />
           </div>
         );
+      case "archive_license":
+        return (
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 flex items-center justify-center">
+            <Archive size={18} className="text-amber-600" />
+          </div>
+        );
       default:
         return (
           <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
@@ -284,6 +300,12 @@ export default function Ledger() {
         return (
           <Badge className="bg-[#D1009A]/10 text-[#D1009A] border border-[#D1009A]/20 hover:bg-[#D1009A]/10 font-medium">
             <User size={12} className="mr-1" /> Human
+          </Badge>
+        );
+      case "archive_license":
+        return (
+          <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium">
+            <Archive size={12} className="mr-1" /> Archive
           </Badge>
         );
       default:
@@ -333,17 +355,27 @@ export default function Ledger() {
               <p className="text-sm text-[#6B7280] mt-0.5">All licensing revenue and settlements</p>
             </div>
             
-            <Button
-              onClick={handleExportCSV}
-              disabled={isExporting || transactions.length === 0}
-              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-medium px-4 py-2 rounded-lg"
-            >
-              {isExporting ? (
-                <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</>
-              ) : (
-                <><Download size={16} className="mr-2" />Export CSV</>
-              )}
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setArchiveModalOpen(true)}
+                variant="outline"
+                className="border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/5 font-medium px-4 py-2 rounded-lg"
+              >
+                <Archive size={16} className="mr-2" />
+                Issue Archive License
+              </Button>
+              <Button
+                onClick={handleExportCSV}
+                disabled={isExporting || transactions.length === 0}
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-medium px-4 py-2 rounded-lg"
+              >
+                {isExporting ? (
+                  <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</>
+                ) : (
+                  <><Download size={16} className="mr-2" />Export CSV</>
+                )}
+              </Button>
+            </div>
           </motion.div>
 
           {/* Metric Cards Row */}
@@ -493,6 +525,12 @@ export default function Ledger() {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         transaction={selectedTransaction}
+      />
+      {/* Issue Archive License Modal */}
+      <IssueArchiveLicenseModal
+        open={archiveModalOpen}
+        onOpenChange={setArchiveModalOpen}
+        onSuccess={fetchTransactions}
       />
     </DashboardLayout>
   );

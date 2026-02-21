@@ -12,12 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { EXT_SUPABASE_URL } from "@/lib/constants";
-import { 
-  Sparkles, 
-  User, 
-  FileText, 
-  ExternalLink, 
-  Copy, 
+import {
+  Sparkles,
+  User,
+  FileText,
+  ExternalLink,
+  Copy,
   CheckCircle2,
   Link2,
   Shield,
@@ -26,13 +26,15 @@ import {
   Hash,
   Download,
   Building2,
-  Briefcase
+  Briefcase,
+  Archive,
+  Calendar
 } from "lucide-react";
 import { useState } from "react";
 
 interface Transaction {
   id: string;
-  type: "ai_ingestion" | "human_license" | "payout";
+  type: "ai_ingestion" | "human_license" | "archive_license" | "payout";
   description: string;
   amount: number;
   date: string;
@@ -50,6 +52,8 @@ interface Transaction {
   aiLabName?: string;
   aiModel?: string;
   tokenVolume?: number;
+  validFrom?: string;
+  validUntil?: string;
 }
 
 interface TransactionReceiptDrawerProps {
@@ -93,6 +97,15 @@ export function TransactionReceiptDrawer({
     }
   };
 
+  const handleDownloadInvoice = () => {
+    if (transaction.licenseKey) {
+      window.open(
+        `${EXT_SUPABASE_URL}/functions/v1/invoice?key=${encodeURIComponent(transaction.licenseKey)}`,
+        "_blank"
+      );
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "settled":
@@ -112,6 +125,8 @@ export function TransactionReceiptDrawer({
         return <Sparkles className="text-[#4A26ED]" size={20} />;
       case "human_license":
         return <User className="text-[#D1009A]" size={20} />;
+      case "archive_license":
+        return <Archive className="text-amber-600" size={20} />;
       case "payout":
         return <FileText className="text-[#040042]" size={20} />;
     }
@@ -121,6 +136,7 @@ export function TransactionReceiptDrawer({
     switch (transaction.type) {
       case "ai_ingestion": return "AI Ingestion License";
       case "human_license": return "Human Republication License";
+      case "archive_license": return "Archive License";
       case "payout": return "Payout to Bank";
     }
   };
@@ -179,7 +195,19 @@ export function TransactionReceiptDrawer({
               </div>
             </div>
 
-            {transaction.assetTitle && (
+            {transaction.type === "archive_license" && transaction.validFrom && transaction.validUntil ? (
+              <div>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Coverage Period</p>
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                  <Calendar size={16} className="text-amber-600 flex-shrink-0" />
+                  <p className="text-amber-800 font-medium text-sm">
+                    {new Date(transaction.validFrom).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                    {" – "}
+                    {new Date(transaction.validUntil).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                  </p>
+                </div>
+              </div>
+            ) : transaction.assetTitle ? (
               <div>
                 <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-1">Associated Article</p>
                 <div className="flex items-center gap-2">
@@ -187,7 +215,7 @@ export function TransactionReceiptDrawer({
                   <p className="text-[#040042] font-medium">{transaction.assetTitle}</p>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* License Key */}
             {transaction.licenseKey && (
@@ -328,6 +356,17 @@ export function TransactionReceiptDrawer({
             >
               <Download size={16} />
               Download License Certificate
+            </Button>
+          )}
+          {/* Download Invoice */}
+          {transaction.licenseKey && (
+            <Button
+              onClick={handleDownloadInvoice}
+              variant="outline"
+              className="w-full h-11 gap-2 border-slate-200 text-slate-700 hover:bg-slate-50"
+            >
+              <FileText size={16} />
+              Download Invoice PDF
             </Button>
           )}
         </div>
