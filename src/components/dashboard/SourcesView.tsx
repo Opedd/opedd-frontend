@@ -507,34 +507,42 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         open={!!deleteConfirmSource}
         onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
       >
-        <DialogContent className="bg-white max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
+        <DialogContent hideCloseButton className="bg-white max-w-md rounded-2xl border border-[#E5E7EB] p-0 overflow-hidden">
+          {/* Header */}
+          <div className="px-6 pt-6 pb-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
                 <AlertTriangle size={18} className="text-red-500" />
               </div>
-              <DialogTitle className="text-[#040042]">Remove Source</DialogTitle>
+              <div>
+                <DialogTitle className="text-[#040042] text-base font-semibold">Remove Source</DialogTitle>
+                <DialogDescription className="sr-only">Confirm source removal</DialogDescription>
+              </div>
             </div>
-            <DialogDescription className="text-slate-500 text-sm">
-              This will permanently disconnect <strong className="text-[#040042]">{deleteConfirmSource?.name}</strong> and remove all synced articles from your library. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 py-2">
-            <p className="text-xs text-slate-500">
-              Type <strong className="text-[#040042] font-mono">{deleteConfirmSource?.name}</strong> to confirm:
+            <p className="text-sm text-[#040042]/60 leading-relaxed">
+              This will permanently disconnect <span className="font-semibold text-[#040042]">{deleteConfirmSource?.name}</span> and remove all synced articles from your library. This action cannot be undone.
+            </p>
+          </div>
+
+          {/* Confirmation input */}
+          <div className="px-6 pb-4 space-y-2">
+            <p className="text-xs font-medium text-[#040042]/50">
+              Type <span className="font-mono font-semibold text-[#040042]">{deleteConfirmSource?.name}</span> to confirm:
             </p>
             <Input
               value={deleteConfirmInput}
               onChange={(e) => setDeleteConfirmInput(e.target.value)}
               placeholder={deleteConfirmSource?.name}
-              className="border-slate-200 focus:border-red-400 focus:ring-red-400/20 h-11"
+              className="bg-white border-slate-200 focus:border-[#4A26ED]/40 focus:ring-[#4A26ED]/10 h-10 rounded-lg text-sm"
             />
           </div>
-          <DialogFooter className="gap-2">
+
+          {/* Footer */}
+          <div className="px-6 py-4 bg-slate-50 border-t border-[#E5E7EB] flex items-center justify-end gap-3">
             <Button
               variant="outline"
               onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
-              className="border-slate-200 text-slate-600 rounded-lg"
+              className="border-[#E5E7EB] text-[#040042]/60 hover:text-[#040042] rounded-lg h-9 px-4 text-sm font-medium"
             >
               Cancel
             </Button>
@@ -547,12 +555,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                   setDeleteConfirmInput("");
                 }
               }}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-40"
+              className="bg-red-500 hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
             >
-              <Trash2 size={14} className="mr-2" />
+              <Trash2 size={14} className="mr-1.5" />
               Remove Source
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
