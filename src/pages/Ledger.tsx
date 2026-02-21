@@ -222,14 +222,16 @@ export default function Ledger() {
     toast({ title: "Preparing your report...", description: "Your CSV export will be ready shortly." });
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const headers = ["ID", "Type", "Article", "Buyer", "Amount", "Date", "Status", "License Key"];
+    const headers = ["Date", "Article", "Buyer Name", "Organization", "Email", "Intended Use", "Type", "Amount ($)", "Status", "License Key"];
     const rows = transactions.map(tx => [
-      tx.id,
-      tx.type === "ai_ingestion" ? "AI" : "Human",
-      tx.assetTitle || "—",
-      tx.licenseeEmail || "Anonymous",
-      tx.amount.toFixed(2),
       tx.date,
+      `"${(tx.assetTitle || "—").replace(/"/g, '""')}"`,
+      `"${(tx.buyerName || "—").replace(/"/g, '""')}"`,
+      `"${(tx.buyerOrganization || "—").replace(/"/g, '""')}"`,
+      tx.licenseeEmail || "—",
+      tx.intendedUse || "—",
+      tx.type === "ai_ingestion" ? "AI" : "Human",
+      tx.amount.toFixed(2),
       tx.status,
       tx.licenseKey || "—",
     ]);
