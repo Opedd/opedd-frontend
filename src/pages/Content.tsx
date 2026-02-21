@@ -39,6 +39,7 @@ export default function Content() {
   const [totalAssets, setTotalAssets] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single" | "enterprise">("choice");
+  const [modalKey, setModalKey] = useState(0);
   const [sourceLookup, setSourceLookup] = useState<Record<string, string>>({});
   const [platformLookup, setPlatformLookup] = useState<Record<string, string>>({});
   const [sourceList, setSourceList] = useState<{ id: string; name: string }[]>([]);
@@ -92,6 +93,7 @@ export default function Content() {
   }, []);
 
   const openRegisterModal = () => {
+    setModalKey(k => k + 1);
     setModalInitialView("choice");
     setIsAddModalOpen(true);
   };
@@ -342,6 +344,7 @@ export default function Content() {
 
       {/* Register Content Modal */}
       <RegisterContentModal
+        key={modalKey}
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         initialView={modalInitialView}

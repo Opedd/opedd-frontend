@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single" | "enterprise">("choice");
+  const [modalKey, setModalKey] = useState(0);
 
   const fetchMetrics = useCallback(async () => {
     if (!user) return;
@@ -45,6 +46,7 @@ export default function Dashboard() {
   if (!user) return null;
 
   const openRegisterModal = () => {
+    setModalKey(k => k + 1);
     setModalInitialView("choice");
     setIsAddModalOpen(true);
   };
@@ -66,9 +68,9 @@ export default function Dashboard() {
         {/* Onboarding Cards — show when no assets */}
         {!isLoading && totalAssets === 0 && (
           <OnboardingCards
-            onSyncClick={() => { setModalInitialView("publication"); setIsAddModalOpen(true); }}
-            onRegisterClick={() => { setModalInitialView("single"); setIsAddModalOpen(true); }}
-            onEnterpriseClick={() => { setModalInitialView("enterprise"); setIsAddModalOpen(true); }}
+            onSyncClick={() => { setModalKey(k => k + 1); setModalInitialView("publication"); setIsAddModalOpen(true); }}
+            onRegisterClick={() => { setModalKey(k => k + 1); setModalInitialView("single"); setIsAddModalOpen(true); }}
+            onEnterpriseClick={() => { setModalKey(k => k + 1); setModalInitialView("enterprise"); setIsAddModalOpen(true); }}
           />
         )}
 
@@ -97,6 +99,7 @@ export default function Dashboard() {
 
       {/* Register Content Modal */}
       <RegisterContentModal
+        key={modalKey}
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         initialView={modalInitialView}
