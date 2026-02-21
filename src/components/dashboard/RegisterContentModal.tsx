@@ -328,6 +328,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     onOpenChange(false);
   };
 
+  // Reset all state whenever the modal is opened fresh
+  useEffect(() => {
+    if (open) {
+      resetForm();
+      setView(initialView);
+    }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Syncing animation effect
   useEffect(() => {
     if (view !== "syncing") return;
@@ -336,7 +344,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval);
-          setTimeout(() => setView("pub-success"), 500);
           return 100;
         }
         return prev + 2;
@@ -369,6 +376,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       clearTimeout(finalTimeout);
     };
   }, [view, articles.length, totalArticles]);
+
+  // Transition from syncing → pub-success once progress hits 100 (proper cleanup)
+  useEffect(() => {
+    if (view !== "syncing" || progress < 100) return;
+    const t = setTimeout(() => setView("pub-success"), 500);
+    return () => clearTimeout(t);
+  }, [progress, view]);
 
   // File handling
   const handleFileSelect = (file: File) => {
