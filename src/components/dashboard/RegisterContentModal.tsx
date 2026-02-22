@@ -1700,7 +1700,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     );
   }
 
-  // SUCCESS VIEW (for single work)
+  // SUCCESS VIEW (for single work — only when view is explicitly "success")
+  if (view !== "success") {
+    // Unknown/unhandled view — redirect to publication platform picker
+    setView("publication");
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent hideCloseButton className="bg-slate-50 border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">

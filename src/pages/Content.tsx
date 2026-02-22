@@ -94,7 +94,7 @@ export default function Content() {
 
   const openRegisterModal = () => {
     setModalKey(k => k + 1);
-    setModalInitialView("choice");
+    setModalInitialView("publication");
     setIsAddModalOpen(true);
   };
 
