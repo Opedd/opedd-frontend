@@ -12,9 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Rss, 
-  FileText, 
+import {
+  Rss,
   Loader2,
   Shield,
   X,
@@ -28,12 +27,9 @@ import {
   File,
   FileUp,
   Globe,
-  Image as ImageIcon,
   Copy,
-  Plug,
   ArrowRight,
   ArrowLeft,
-  Plus,
   AlertCircle,
   Sparkles,
   RefreshCw

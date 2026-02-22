@@ -4,11 +4,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 export const API = {
   baseUrl: EDGE_FUNCTION_BASE,
 
-  // Auth endpoints
-  login: EDGE_FUNCTION_BASE + '/auth-login',
-  logout: EDGE_FUNCTION_BASE + '/auth-logout',
-  authCheck: EDGE_FUNCTION_BASE + '/auth-check',
-
   // Direct Edge Function endpoints
   licenses: EDGE_FUNCTION_BASE + '/licenses',
 
