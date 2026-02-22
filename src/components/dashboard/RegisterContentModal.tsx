@@ -1717,9 +1717,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             platform: "other" as const,
             sync_status: "active",
             last_synced_at: new Date().toISOString(),
-            registration_path: "newsletter_feed",
+            registration_path: "bulk_enterprise",
           });
-          await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+          const syncRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -1728,12 +1728,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             },
             body: JSON.stringify({ sourceUrl: feed.url.trim() }),
           });
+          if (!syncRes.ok) {
+            const errData = await syncRes.json().catch(() => ({}));
+            console.warn("[RegisterContentModal] Enterprise sync failed for", feed.url, errData);
+          }
         }
         setIsConnecting(false);
         setView("syncing");
         onSuccess?.();
       } catch (error: any) {
         setIsConnecting(false);
+        setView("enterprise");
         toast({
           title: "Registration Failed",
           description: error?.message || "Could not register sources. Please try again.",
