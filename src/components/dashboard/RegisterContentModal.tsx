@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,8 +41,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
-import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
-import { PlatformSetupInstructions } from "@/components/dashboard/PlatformSetupInstructions";
 import { OnboardingCards } from "@/components/dashboard/OnboardingCards";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
@@ -69,12 +66,7 @@ interface RegisterContentModalProps {
   checkIntegrations?: boolean;
 }
 
-type ModalView = "choice" | "publication" | "single" | "enterprise" | "syncing" | "pub-success" | "success";
-
-interface MockArticle {
-  title: string;
-  status: "pending" | "syncing" | "complete";
-}
+type ModalView = "choice" | "publication" | "single" | "enterprise" | "success";
 
 // Derive RSS feed URL from a site URL based on platform
 const deriveRssUrl = (siteUrl: string, platform: string): string => {
@@ -126,15 +118,10 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   const [view, setView] = useState<ModalView>(initialView);
   const [verificationCode, setVerificationCode] = useState("");
-  const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [copiedVerification, setCopiedVerification] = useState(false);
 
   // Publisher profile ID (for widget code)
   const [publisherProfileId, setPublisherProfileId] = useState<string | null>(null);
-
-  // Platform setup state (widget install flow)
-  const [showPlatformSetup, setShowPlatformSetup] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<"ghost" | "wordpress" | "beehiiv" | "other" | null>(null);
   
   // Check for active integrations (for empty state)
   const [hasActiveIntegrations, setHasActiveIntegrations] = useState(true);
@@ -145,8 +132,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     if (open) {
       setView(initialView);
       setVerificationCode(generateVerificationCode());
-      setShowPlatformSetup(false);
-      setSelectedPlatform(null);
 
       // Check for active integrations if needed
       if (checkIntegrations && initialView === "publication" && user) {
@@ -199,15 +184,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   const [pubHumanPrice, setPubHumanPrice] = useState("4.99");
   const [pubAiPrice, setPubAiPrice] = useState("");
   
-  // Syncing state
-  const [progress, setProgress] = useState(0);
-  const [currentArticle, setCurrentArticle] = useState(0);
-  const [totalArticles] = useState(45);
-  const [articles, setArticles] = useState<MockArticle[]>([
-    { title: "The Future of Digital Publishing", status: "pending" },
-    { title: "Why AI Licensing Matters in 2025", status: "pending" },
-    { title: "Building a Sustainable Content Business", status: "pending" },
-  ]);
 
   // Single work form
   const [title, setTitle] = useState("");
@@ -307,19 +283,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setUploadedFile(null);
     setInputMode("file");
     setRegisteredAssetId(null);
-    setVerificationToken(null);
     setCopiedWidget(false);
     setCopiedLink(false);
     setCopiedVerification(false);
-    setProgress(0);
-    setCurrentArticle(0);
-    setArticles(prev => prev.map(a => ({ ...a, status: "pending" })));
     setEnterpriseOrgName("");
     setEnterpriseSitemapUrl("");
     setEnterpriseHumanPrice("4.99");
     setEnterpriseAiPrice("");
-    setShowPlatformSetup(false);
-    setSelectedPlatform(null);
     setPubStep("select");
     setPubPlatform(null);
     setPubDomainInput("");
@@ -346,54 +316,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       setView(initialView);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Syncing animation effect
-  useEffect(() => {
-    if (view !== "syncing") return;
-
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 100);
-
-    const articleInterval = setInterval(() => {
-      setCurrentArticle(prev => Math.min(prev + 1, totalArticles));
-    }, 110);
-
-    const statusTimeouts = articles.map((_, index) => 
-      setTimeout(() => {
-        setArticles(prev => 
-          prev.map((article, i) => ({
-            ...article,
-            status: i <= index ? (i < index ? "complete" : "syncing") : "pending"
-          }))
-        );
-      }, (index + 1) * 1200)
-    );
-
-    const finalTimeout = setTimeout(() => {
-      setArticles(prev => prev.map(a => ({ ...a, status: "complete" })));
-    }, 4000);
-
-    return () => {
-      clearInterval(progressInterval);
-      clearInterval(articleInterval);
-      statusTimeouts.forEach(clearTimeout);
-      clearTimeout(finalTimeout);
-    };
-  }, [view, articles.length, totalArticles]);
-
-  // Transition from syncing → pub-success once progress hits 100 (proper cleanup)
-  useEffect(() => {
-    if (view !== "syncing" || progress < 100) return;
-    const t = setTimeout(() => setView("pub-success"), 500);
-    return () => clearTimeout(t);
-  }, [progress, view]);
 
   // File handling
   const handleFileSelect = (file: File) => {
@@ -613,21 +535,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     await runSync(feedUrl, pubHumanPrice, pubAiPrice, "newsletter_feed");
   };
 
-  // Handler for widget install path — derives RSS URL and runs sync
-  const handleWidgetSyncAndDone = async (siteUrl: string, humanPrice: string, aiPrice: string) => {
-    if (!user) return;
-    const rssUrl = deriveRssUrl(siteUrl, selectedPlatform || "other");
-
-    // Update state so the syncing animation / pub-success view can reference them
-    setFeedUrl(rssUrl);
-    setPubHumanPrice(humanPrice);
-    setPubAiPrice(aiPrice);
-    setShowPlatformSetup(false);
-
-    // Run sync directly with the values (don't rely on state)
-    await runSync(rssUrl, humanPrice, aiPrice, "widget_install");
-  };
-
   const handleSingleSubmit = async () => {
     if (!title.trim()) {
       toast({
@@ -650,38 +557,29 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setIsSubmitting(true);
 
     try {
-      // Generate content hash from title + description
-      const contentHash = generateContentHash(`${title}${description || ''}`);
-      
-      // Determine access type based on pricing
-      const hasHuman = parseFloat(humanPrice) > 0;
-      const hasAi = aiPrice && parseFloat(aiPrice) > 0;
-      const accessType = hasHuman && hasAi ? "both" : hasAi ? "ai" : "human";
-      
-      // Create asset with correct DB column names
+      // Look up publisher record for this user (required to write to licenses table)
+      const { data: publisher } = await supabase
+        .from("publishers")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!publisher?.id) {
+        throw new Error("Publisher profile not found. Please complete your publisher setup first.");
+      }
+
+      // Write to licenses table (same as imported articles — shows in dashboard + content library)
       const { data, error } = await supabase
-        .from("assets")
+        .from("licenses")
         .insert({
-          user_id: user.id,
+          publisher_id: publisher.id,
           title: title,
-          description: description || null,
-          content: description || null,
           source_url: articleUrl || null,
           human_price: parseFloat(humanPrice) || 4.99,
           ai_price: aiPrice ? parseFloat(aiPrice) : null,
           licensing_enabled: true,
-          total_revenue: 0,
-          human_licenses_sold: 0,
-          ai_licenses_sold: 0,
-          license_type: accessType, // DB column is license_type, not access_type
-          content_hash: contentHash,
-          verification_status: "auto-verified", // Single works are auto-verified on upload
-          metadata: {
-            url: articleUrl || null,
-            type: uploadedFile ? "document" : "article",
-            filename: uploadedFile?.name || null,
-          },
-        })
+          status: "pending",
+        } as any)
         .select("id")
         .single();
 
@@ -705,17 +603,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const getArticleStatusIcon = (status: MockArticle["status"]) => {
-    switch (status) {
-      case "complete":
-        return <Check size={14} className="text-emerald-500" />;
-      case "syncing":
-        return <Loader2 size={14} className="text-[#4A26ED] animate-spin" />;
-      default:
-        return <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" />;
     }
   };
 
@@ -1751,109 +1638,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   }
 
   // SYNCING VIEW
-  if (view === "syncing") {
-    return (
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
-          {/* Header */}
-          <div className="bg-[#040042] px-6 py-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <img src={opeddLogo} alt="Opedd" className="h-8" />
-                <div className="h-6 w-px bg-white/20" />
-                <div>
-                  <h1 className="text-white font-bold text-lg leading-tight">Syncing & Protecting</h1>
-                  <p className="text-[#A78BFA] text-sm">Securing your content rights</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div className="p-6 space-y-6">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#4A26ED]/10 mb-4">
-                <Loader2 size={32} className="text-[#4A26ED] animate-spin" />
-              </div>
-              <p className="text-sm text-slate-600">
-                Registering {currentArticle}/{totalArticles} articles...
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-slate-600">
-                <span>Progress</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-
-            <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                <FileText size={12} />
-                <span>Syncing & Protecting Articles</span>
-              </div>
-              <div className="space-y-2">
-                {articles.map((article, index) => (
-                  <div 
-                    key={index}
-                    className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-                      article.status === "syncing" 
-                        ? "bg-[#4A26ED]/5 border border-[#4A26ED]/20" 
-                        : article.status === "complete"
-                        ? "bg-emerald-50/50"
-                        : "bg-white border border-slate-100"
-                    }`}
-                  >
-                    {getArticleStatusIcon(article.status)}
-                    <span className={`text-sm flex-1 truncate ${
-                      article.status === "complete" 
-                        ? "text-[#040042]" 
-                        : article.status === "syncing"
-                        ? "text-[#4A26ED] font-medium"
-                        : "text-slate-400"
-                    }`}>
-                      {article.title}
-                    </span>
-                    {article.status === "complete" && (
-                      <span className="text-xs text-emerald-600 font-medium">Protected</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // PUBLICATION SUCCESS VIEW — show VerifyOwnershipModal in registration mode
-  if (view === "pub-success") {
-    const code = verificationToken || verificationCode;
-    const detectedPlatformForVerify = detectPlatform(feedUrl);
-    const platformType = detectedPlatformForVerify?.name.toLowerCase() || "other";
-
-    return (
-      <VerifyOwnershipModal
-        open={open}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) handleClose();
-        }}
-        source={{
-          id: registeredAssetId || "",
-          name: feedPreview?.title || feedUrl,
-          platform: platformType,
-          verification_token: code,
-        }}
-        registrationMode
-        onVerified={() => {
-          onSuccess?.();
-        }}
-      />
-    );
-  }
-
   // SINGLE WORK VIEW
   if (view === "single") {
     return (
