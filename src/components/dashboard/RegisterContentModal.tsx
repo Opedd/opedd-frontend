@@ -35,7 +35,8 @@ import {
   ArrowLeft,
   Plus,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -241,6 +242,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   const [selectedFeedUrl, setSelectedFeedUrl] = useState<string | null>(null);
   const [useRssFallback, setUseRssFallback] = useState(false);
 
+  // Inline verification state (shown after import completes)
+  const [verificationState, setVerificationState] = useState<{
+    token: string;
+    platform: string;
+    sourceId: string;
+    sourceName: string;
+    count: number;
+  } | null>(null);
+  const [inlineVerifyResult, setInlineVerifyResult] = useState<"idle" | "loading" | "success" | "failed">("idle");
+  const [copiedInlineCode, setCopiedInlineCode] = useState<"none" | "visible" | "meta">("none");
+
   // Enterprise (Media Org) multi-feed state
   interface EnterpriseFeed {
     url: string;
@@ -321,6 +333,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setIsDetectingFeeds(false);
     setSelectedFeedUrl(null);
     setUseRssFallback(false);
+    setVerificationState(null);
+    setInlineVerifyResult("idle");
+    setCopiedInlineCode("none");
   };
 
   const handleClose = () => {
@@ -494,23 +509,45 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const accessToken = session?.access_token;
       if (!accessToken) throw new Error("Not authenticated");
 
-      // Step 2: Insert local rss_sources record so Sources tab shows the pipe
-      // Include verification_token so "Verify Ownership" works from Sources tab
+      // Step 2: Insert local rss_sources record — capture ID for inline verification
+      let rssSourceId = "";
       try {
-        await supabase
+        // Check for existing source first (re-registration after delete)
+        const { data: existingSource } = await supabase
           .from("rss_sources")
-          .insert({
-            user_id: user.id,
-            name: pubName,
-            feed_url: syncFeedUrl,
-            platform: platformType,
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("feed_url", syncFeedUrl)
+          .maybeSingle();
+
+        if (existingSource?.id) {
+          // Update existing source with new token
+          await supabase.from("rss_sources").update({
+            verification_token: token,
             sync_status: "active",
             last_synced_at: new Date().toISOString(),
-            registration_path: registrationPath,
-            verification_token: token,
-          });
+            verification_status: "pending",
+          }).eq("id", existingSource.id);
+          rssSourceId = existingSource.id;
+        } else {
+          const { data: insertedSource } = await supabase
+            .from("rss_sources")
+            .insert({
+              user_id: user.id,
+              name: pubName,
+              feed_url: syncFeedUrl,
+              platform: platformType,
+              sync_status: "active",
+              last_synced_at: new Date().toISOString(),
+              registration_path: registrationPath,
+              verification_token: token,
+            })
+            .select("id")
+            .single();
+          rssSourceId = insertedSource?.id || "";
+        }
       } catch (localErr) {
-        console.warn("[RegisterContentModal] Failed to insert local source:", localErr);
+        console.warn("[RegisterContentModal] Failed to insert/update local source:", localErr);
       }
 
       // Step 3: Trigger RSS sync BEFORE showing animation — surface real errors
@@ -528,13 +565,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         throw new Error(errData?.error?.message || errData?.message || `Could not sync feed (${syncRes.status})`);
       }
 
-      // Step 4: Sync succeeded — show the success screen (same pattern as sitemap import)
+      // Step 4: Sync succeeded — show inline verification step
       const syncData = await syncRes.json().catch(() => ({}));
       const importedCount = syncData.data?.items_imported ?? syncData.data?.items_found ?? 0;
       setIsConnecting(false);
-      setSitemapImportResult({ count: importedCount });
-      // Stay in "publication" view — sitemapImportResult block renders the success screen
-
+      setVerificationState({
+        token,
+        platform: platformType,
+        sourceId: rssSourceId,
+        sourceName: pubName,
+        count: importedCount,
+      });
       onSuccess?.();
     } catch (error: any) {
       console.warn("[RegisterContentModal] Publication sync failed:", error?.message || error);
@@ -701,8 +742,8 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setSitemapImportResult(null);
   };
 
-  // Import sitemap helper
-  const importSitemap = async (sitemapUrl: string) => {
+  // Import sitemap helper — returns count on success, -1 on error
+  const importSitemap = async (sitemapUrl: string): Promise<number> => {
     setIsSitemapImporting(true);
     try {
       const token = await getAccessToken();
@@ -717,16 +758,62 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || "Import failed");
-      setSitemapImportResult({ count: result.data?.new_articles_inserted || 0 });
-      onSuccess?.();
+      return result.data?.new_articles_inserted || 0;
     } catch (err) {
       toast({
         title: "Import failed",
         description: err instanceof Error ? err.message : "Could not import sitemap",
         variant: "destructive",
       });
+      return -1;
     } finally {
       setIsSitemapImporting(false);
+    }
+  };
+
+  // Helper: insert (or update) an rss_sources record with a fresh verification token
+  const insertSourceWithToken = async (params: {
+    feedUrl: string;
+    platform: string;
+    pubName: string;
+    registrationPath: string;
+  }): Promise<{ token: string; sourceId: string }> => {
+    const tok = generateVerificationCode();
+    try {
+      const { data: existing } = await supabase
+        .from("rss_sources")
+        .select("id")
+        .eq("user_id", user!.id)
+        .eq("feed_url", params.feedUrl)
+        .maybeSingle();
+
+      if (existing?.id) {
+        await supabase.from("rss_sources").update({
+          verification_token: tok,
+          sync_status: "active",
+          verification_status: "pending",
+          last_synced_at: new Date().toISOString(),
+        }).eq("id", existing.id);
+        return { token: tok, sourceId: existing.id };
+      }
+
+      const { data } = await supabase
+        .from("rss_sources")
+        .insert({
+          user_id: user!.id,
+          name: params.pubName,
+          feed_url: params.feedUrl,
+          platform: params.platform,
+          sync_status: "active",
+          last_synced_at: new Date().toISOString(),
+          registration_path: params.registrationPath,
+          verification_token: tok,
+        })
+        .select("id")
+        .single();
+      return { token: tok, sourceId: data?.id || "" };
+    } catch {
+      return { token: tok, sourceId: "" };
     }
   };
 
@@ -767,18 +854,50 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     await runSync(rssUrl, pubHumanPrice, pubAiPrice, "newsletter_feed");
   };
 
-  // Handle Ghost sitemap import
+  // Handle Ghost import — sitemap first, verification after
   const handleGhostImport = async () => {
     if (!pubDomainInput.trim()) return;
     const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
-    await importSitemap(`https://${domain}/sitemap.xml`);
+    const rawName = domain.split(".")[0];
+    const pubName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+    const sitemapUrl = `https://${domain}/sitemap.xml`;
+
+    if (useRssFallback) {
+      // RSS fallback — use runSync which handles rss_sources + verificationState
+      const rssUrl = `https://${domain}/rss`;
+      setFeedUrl(rssUrl);
+      await runSync(rssUrl, pubHumanPrice, pubAiPrice, "sitemap_import");
+      return;
+    }
+
+    const { token, sourceId } = await insertSourceWithToken({
+      feedUrl: sitemapUrl,
+      platform: "ghost",
+      pubName,
+      registrationPath: "sitemap_import",
+    });
+
+    const count = await importSitemap(sitemapUrl);
+    if (count >= 0) {
+      setVerificationState({ token, platform: "ghost", sourceId, sourceName: pubName, count });
+      onSuccess?.();
+    }
   };
 
-  // Handle WordPress sitemap import (detect first)
+  // Handle WordPress import — detect sitemap, verification after
   const handleWordpressImport = async () => {
     if (!pubDomainInput.trim()) return;
     const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
-    // First detect feeds to find sitemap URL
+    const rawName = domain.split(".")[0];
+    const pubName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+
+    if (useRssFallback) {
+      const rssUrl = `https://${domain}/feed`;
+      setFeedUrl(rssUrl);
+      await runSync(rssUrl, pubHumanPrice, pubAiPrice, "sitemap_import");
+      return;
+    }
+
     setIsDetectingFeeds(true);
     try {
       const token = await getAccessToken();
@@ -787,11 +906,22 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       });
       if (!res.ok) throw new Error(`Feed detection failed (${res.status})`);
       const result = await res.json();
+      setIsDetectingFeeds(false);
+
       if (result.success && result.data?.sitemap_urls?.length > 0) {
-        setIsDetectingFeeds(false);
-        await importSitemap(result.data.sitemap_urls[0]);
+        const sitemapUrl = result.data.sitemap_urls[0];
+        const { token: verifyToken, sourceId } = await insertSourceWithToken({
+          feedUrl: sitemapUrl,
+          platform: "wordpress",
+          pubName,
+          registrationPath: "sitemap_import",
+        });
+        const count = await importSitemap(sitemapUrl);
+        if (count >= 0) {
+          setVerificationState({ token: verifyToken, platform: "wordpress", sourceId, sourceName: pubName, count });
+          onSuccess?.();
+        }
       } else {
-        setIsDetectingFeeds(false);
         toast({ title: "No sitemap found", description: "Try using RSS feed instead.", variant: "destructive" });
       }
     } catch {
@@ -810,18 +940,233 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   // Handle confirmed import from Other platform detected feed
   const handleOtherConfirmImport = async () => {
     if (!selectedFeedUrl) return;
-    // If it's a sitemap URL, use import-sitemap
+    const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    const rawName = domain.split(".")[0];
+    const pubName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+
     if (selectedFeedUrl.includes("sitemap")) {
-      await importSitemap(selectedFeedUrl);
+      // Sitemap path — insert source record with token, then import
+      const { token, sourceId } = await insertSourceWithToken({
+        feedUrl: selectedFeedUrl,
+        platform: "other",
+        pubName,
+        registrationPath: "sitemap_import",
+      });
+      const count = await importSitemap(selectedFeedUrl);
+      if (count >= 0) {
+        setVerificationState({ token, platform: "other", sourceId, sourceName: pubName, count });
+        onSuccess?.();
+      }
     } else {
-      // RSS feed — use the sync flow
+      // RSS feed — runSync handles rss_sources insert + verificationState
       setFeedUrl(selectedFeedUrl);
       await runSync(selectedFeedUrl, pubHumanPrice, pubAiPrice, "newsletter_feed");
     }
   };
 
+  // Verify ownership inline after import
+  const handleInlineVerify = async () => {
+    if (!verificationState) return;
+    setInlineVerifyResult("loading");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) throw new Error("Not authenticated");
+
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/verify-source`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ source_id: verificationState.sourceId }),
+      });
+      const result = await res.json();
+
+      if (result.success && result.data?.verified) {
+        setInlineVerifyResult("success");
+      } else {
+        setInlineVerifyResult("failed");
+        if (result.data?.message) {
+          toast({ title: "Not verified yet", description: result.data.message, variant: "destructive" });
+        }
+      }
+    } catch {
+      setInlineVerifyResult("failed");
+    }
+  };
+
   // PUBLICATION SYNC VIEW
   if (view === "publication") {
+    // Show inline verification if import just completed
+    if (verificationState) {
+      const { token: vToken, platform: vPlatform, sourceName: vSourceName, count: vCount } = verificationState;
+      const noMetaTag = vPlatform === "substack" || vPlatform === "beehiiv";
+      const isWordPress = vPlatform === "wordpress";
+      const visibleCode = `Verify with Opedd: ${vToken}`;
+      const metaCode = `<meta name="opedd-verification" content="${vToken}" />`;
+
+      const platformInstructions: Record<string, string> = {
+        substack: "Go to Substack Dashboard → Settings → Publication details → paste the code in your About section → Save.",
+        beehiiv: "Go to beehiiv Dashboard → Settings → Publication → paste the code in your About section → Save.",
+        ghost: "Go to Ghost Admin → Settings → Code Injection → Site Header → paste the meta tag → Save.",
+        wordpress: "Add the meta tag to your theme's header.php, or install the Opedd plugin for one-click verification.",
+        other: "Add the meta tag to your website's <head> section, or paste the visible code on your About page or homepage.",
+      };
+      const vInstructions = platformInstructions[vPlatform] || platformInstructions["other"];
+
+      if (inlineVerifyResult === "success") {
+        return (
+          <Dialog open={open} onOpenChange={handleClose}>
+            <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+              <div className="p-8 text-center space-y-5">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+                  <CheckCircle size={32} className="text-emerald-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#040042] mb-1">Ownership Verified!</h2>
+                  <p className="text-sm text-slate-500"><strong>{vSourceName}</strong> is verified — licensing is now active for your content.</p>
+                  {vCount > 0 && <p className="text-xs text-slate-400 mt-1">{vCount} articles imported and ready for licensing.</p>}
+                </div>
+                <Button
+                  onClick={() => { handleClose(); navigate("/content"); }}
+                  className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
+                >
+                  Go to Content Library
+                  <ArrowRight size={16} className="ml-2" />
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      }
+
+      return (
+        <Dialog open={open} onOpenChange={handleClose}>
+          <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Shield size={20} className="text-[#A78BFA]" />
+                  <div>
+                    <h1 className="text-white font-bold text-base leading-tight">Verify Ownership</h1>
+                    <p className="text-[#A78BFA] text-sm truncate max-w-[250px]">{vSourceName}</p>
+                  </div>
+                </div>
+                <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              {/* Import success banner */}
+              {vCount > 0 && (
+                <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
+                  <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
+                  <p className="text-sm text-emerald-800 font-medium">{vCount} articles imported — verify to activate licensing</p>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-base font-bold text-[#040042]">Verify your publication</h3>
+                <p className="text-sm text-slate-500 mt-1">Add the code below to prove you own <strong>{vSourceName}</strong>. This unlocks licensing for your content.</p>
+              </div>
+
+              {/* Verification code box */}
+              <div className="bg-[#040042] rounded-xl p-5">
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2 font-medium">Verification Code</p>
+                <div className="flex items-center justify-between gap-3">
+                  <code className="text-xl md:text-2xl font-mono font-bold text-white tracking-[0.2em] leading-none">{vToken}</code>
+                  <Button
+                    size="sm"
+                    onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }}
+                    className="bg-white/10 hover:bg-white/20 text-white border-none h-9 px-3 flex-shrink-0"
+                  >
+                    {copiedInlineCode === "visible" ? <><Check size={14} className="mr-1.5" />Copied</> : <><Copy size={14} className="mr-1.5" />Copy</>}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Platform instructions */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <p className="text-sm text-[#040042] leading-relaxed">{vInstructions}</p>
+              </div>
+
+              {/* Option A: Visible text (always shown) */}
+              <div className="space-y-3">
+                <div className="rounded-xl border border-slate-200 overflow-hidden">
+                  <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+                    <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-semibold">{noMetaTag ? "Code" : "Option A"}</Badge>
+                    <span className="text-xs font-semibold text-[#040042]">Visible text — About / Bio</span>
+                  </div>
+                  <div className="p-3">
+                    <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                      <code className="text-xs text-emerald-400 font-mono truncate">{visibleCode}</code>
+                      <button onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }} className="text-white/60 hover:text-white flex-shrink-0">
+                        {copiedInlineCode === "visible" ? <Check size={12} /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option B: Meta tag — NOT for Substack/Beehiiv */}
+                {!noMetaTag && (
+                  <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+                      <Badge variant="outline" className="text-[10px] px-2 py-0 bg-teal-50 text-teal-700 border-teal-200 font-semibold">Option B</Badge>
+                      <span className="text-xs font-semibold text-[#040042]">Hidden — Meta Tag{isWordPress && <span className="text-slate-400 font-normal ml-1">(or install plugin)</span>}</span>
+                    </div>
+                    <div className="p-3">
+                      <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                        <code className="text-xs text-emerald-400 font-mono truncate">{metaCode}</code>
+                        <button onClick={() => { navigator.clipboard.writeText(metaCode); setCopiedInlineCode("meta"); setTimeout(() => setCopiedInlineCode("none"), 2000); }} className="text-white/60 hover:text-white flex-shrink-0">
+                          {copiedInlineCode === "meta" ? <Check size={12} /> : <Copy size={12} />}
+                        </button>
+                      </div>
+                      {isWordPress && (
+                        <p className="text-xs text-slate-400 mt-2">WordPress users can also use the <span className="text-[#4A26ED]">Opedd plugin</span> for automatic verification.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {inlineVerifyResult === "failed" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2">
+                  <AlertCircle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700">Code not found yet. Make sure you've saved your changes, then try again.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex gap-3">
+              <Button variant="outline" onClick={handleClose} className="flex-1 h-11">
+                Verify Later
+              </Button>
+              <Button
+                onClick={handleInlineVerify}
+                disabled={inlineVerifyResult === "loading"}
+                className="flex-1 h-11 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
+              >
+                {inlineVerifyResult === "loading" ? (
+                  <><Loader2 size={16} className="animate-spin mr-2" />Verifying…</>
+                ) : inlineVerifyResult === "failed" ? (
+                  <><RefreshCw size={16} className="mr-2" />Try Again</>
+                ) : (
+                  <>I've Added It <ArrowRight size={16} className="ml-1.5" /></>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+
     // Step 1: Platform selection
     if (pubStep === "select") {
       return (
@@ -904,39 +1249,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       );
     }
 
-    // Step 2: Platform-specific import — or success state
-    if (sitemapImportResult) {
-      return (
-        <Dialog open={open} onOpenChange={handleClose}>
-          <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
-            <div className="p-8 text-center space-y-5">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
-                <CheckCircle2 size={32} className="text-emerald-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-[#040042] mb-1">Import Complete!</h2>
-                <p className="text-sm text-slate-500">
-                  {sitemapImportResult.count > 0
-                    ? `${sitemapImportResult.count} articles imported and ready for licensing.`
-                    : "Your content has been processed."}
-                </p>
-              </div>
-              <Button
-                onClick={() => {
-                  handleClose();
-                  navigate("/content");
-                }}
-                className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
-              >
-                Go to Content Library
-                <ArrowRight size={16} className="ml-2" />
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      );
-    }
-
     const updateFeedRow = (index: number, field: "url" | "tag", value: string) => {
       setEnterpriseFeeds(prev => prev.map((f, i) => i === index ? { ...f, [field]: value } : f));
     };
@@ -973,6 +1285,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               platform: platformType,
               sync_status: "active",
               last_synced_at: new Date().toISOString(),
+              verification_token: generateVerificationCode(),
               registration_path: "bulk_enterprise",
             });
           } catch (localErr) {
