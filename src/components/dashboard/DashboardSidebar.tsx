@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { MobileSidebar } from "./MobileSidebar";
 
@@ -53,7 +53,14 @@ export function DashboardSidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-white/5 space-y-3">
+          <NavLink
+            to="/pricing"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 text-xs font-medium transition-colors"
+          >
+            <ArrowUpCircle size={14} />
+            Upgrade plan
+          </NavLink>
           <p className="text-white/30 text-xs text-center">© 2026 Opedd</p>
         </div>
       </aside>
