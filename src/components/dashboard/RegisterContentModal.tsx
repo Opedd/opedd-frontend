@@ -519,7 +519,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ sourceUrl: syncFeedUrl }),
+        body: JSON.stringify({ sourceUrl: syncFeedUrl, humanPrice: parseFloat(syncHumanPrice) || 0, aiPrice: parseFloat(syncAiPrice) || 0 }),
       });
       if (!syncRes.ok) {
         const errData = await syncRes.json().catch(() => ({}));
@@ -741,6 +741,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           Authorization: `Bearer ${token}`,
         },
       });
+      if (!res.ok) throw new Error(`Feed detection failed (${res.status})`);
       const result = await res.json();
       if (result.success && result.data) {
         setDetectedFeeds(result.data);
@@ -783,6 +784,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(`https://${domain}`)}`, {
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
       });
+      if (!res.ok) throw new Error(`Feed detection failed (${res.status})`);
       const result = await res.json();
       if (result.success && result.data?.sitemap_urls?.length > 0) {
         setIsDetectingFeeds(false);
