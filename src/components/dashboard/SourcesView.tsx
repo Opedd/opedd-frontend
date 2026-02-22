@@ -410,18 +410,24 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#E8F2FB]">
-                {/* Verify or Re-sync based on status */}
-                {isPending ? (
-                  <>
+              {/* Amber verification banner for pending sources */}
+              {isPending && (
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-amber-800">Action required — Verify ownership to activate licensing</p>
+                      <p className="text-[11px] text-amber-600 mt-0.5">Add your verification code to your site, then click verify.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2.5">
                     <Button
                       size="sm"
                       onClick={() => setVerifyModalSource({
                         ...source,
                         verification_token: tokenLookup[source.id] || source.verification_token || null,
                       })}
-                      className="h-8 text-xs gap-1.5 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white"
+                      className="h-8 text-xs gap-1.5 bg-amber-600 hover:bg-amber-700 text-white"
                     >
                       <ShieldCheck size={12} />
                       Verify Ownership
@@ -431,11 +437,19 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         ...source,
                         verification_token: tokenLookup[source.id] || source.verification_token || null,
                       })}
-                      className="text-xs text-[#4A26ED] hover:text-[#3B1ED1] font-medium underline underline-offset-2"
+                      className="text-xs text-amber-700 hover:text-amber-800 font-medium underline underline-offset-2"
                     >
                       View Code
                     </button>
-                  </>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#E8F2FB]">
+                {/* Verify or Re-sync based on status */}
+                {isPending ? (
+                  <span className="text-[11px] text-amber-600 font-medium">⚠ Pending verification</span>
                 ) : (
                   <>
                     <TooltipProvider>

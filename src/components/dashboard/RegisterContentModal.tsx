@@ -558,7 +558,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
     try {
       // Look up publisher record for this user (required to write to licenses table)
-      const { data: publisher } = await supabase
+      const { data: publisher } = await (supabase as any)
         .from("publishers")
         .select("id")
         .eq("user_id", user.id)
@@ -569,7 +569,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       }
 
       // Write to licenses table (same as imported articles — shows in dashboard + content library)
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("licenses")
         .insert({
           publisher_id: publisher.id,
