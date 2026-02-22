@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   Upload,
   File,
+  FileUp,
   Globe,
   Image as ImageIcon,
   Copy,
@@ -2352,7 +2353,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   if (view === "choice") {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-slate-50 border-none text-[#040042] sm:max-w-2xl rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <DialogContent hideCloseButton className="bg-slate-50 border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
           {/* Header */}
           <div className="bg-[#040042] px-6 py-5">
             <div className="flex items-center justify-between">
@@ -2370,13 +2371,55 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </div>
           </div>
 
-          {/* Cards */}
-          <div className="p-6">
-            <OnboardingCards
-              onSyncClick={() => setView("publication")}
-              onRegisterClick={() => setView("single")}
-              onEnterpriseClick={() => setView("enterprise")}
-            />
+          {/* Stacked Cards */}
+          <div className="p-5 space-y-3">
+            <button
+              onClick={() => setView("publication")}
+              className="group w-full relative bg-white border border-[#E8F2FB] rounded-xl p-4 text-left hover:border-[#4A26ED]/40 hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center shrink-0 group-hover:from-[#4A26ED] group-hover:to-[#7C3AED] transition-all">
+                  <Link2 size={20} className="text-[#4A26ED] group-hover:text-white transition-colors" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[#040042] font-semibold text-sm">Sync Newsletter / Site</h3>
+                  <p className="text-[#040042]/60 text-xs mt-0.5">Automatically import and protect every new post via RSS or URL.</p>
+                </div>
+                <ArrowRight size={16} className="text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              </div>
+            </button>
+
+            <button
+              onClick={() => setView("single")}
+              className="group w-full relative bg-white border border-[#E8F2FB] rounded-xl p-4 text-left hover:border-teal-400 hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center shrink-0 group-hover:from-teal-500 group-hover:to-emerald-500 transition-all">
+                  <FileUp size={20} className="text-teal-600 group-hover:text-white transition-colors" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[#040042] font-semibold text-sm">Register Single Work</h3>
+                  <p className="text-[#040042]/60 text-xs mt-0.5">Protect a one-off article, op-ed, or research paper.</p>
+                </div>
+                <ArrowRight size={16} className="text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              </div>
+            </button>
+
+            <button
+              onClick={() => setView("enterprise")}
+              className="group w-full relative bg-white border border-[#E8F2FB] rounded-xl p-4 text-left hover:border-[#D1009A]/40 hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-[#D1009A]/10 to-[#FF4DA6]/10 flex items-center justify-center shrink-0 group-hover:from-[#D1009A] group-hover:to-[#FF4DA6] transition-all">
+                  <Globe size={20} className="text-[#D1009A] group-hover:text-white transition-colors" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[#040042] font-semibold text-sm">Bulk / Enterprise</h3>
+                  <p className="text-[#040042]/60 text-xs mt-0.5">Add multiple feeds, sitemaps, and tag them by vertical.</p>
+                </div>
+                <ArrowRight size={16} className="text-[#D1009A] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              </div>
+            </button>
           </div>
         </DialogContent>
       </Dialog>
