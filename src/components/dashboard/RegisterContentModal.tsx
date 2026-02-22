@@ -1689,6 +1689,203 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     );
   }
 
+  // ENTERPRISE (Media Organisation) VIEW
+  if (view === "enterprise") {
+    const handleEnterpriseSubmit = async () => {
+      if (!enterpriseOrgName.trim()) {
+        toast({ title: "Organisation name required", variant: "destructive" });
+        return;
+      }
+      const validFeeds = enterpriseFeeds.filter((f) => f.url.trim());
+      if (validFeeds.length === 0) {
+        toast({ title: "At least one feed URL is required", variant: "destructive" });
+        return;
+      }
+      if (!user) return;
+      setIsConnecting(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token;
+        if (!accessToken) throw new Error("Not authenticated");
+
+        for (const feed of validFeeds) {
+          const feedName = feed.tag ? `${enterpriseOrgName} — ${feed.tag}` : enterpriseOrgName;
+          await supabase.from("rss_sources").insert({
+            user_id: user.id,
+            name: feedName,
+            feed_url: feed.url.trim(),
+            platform: "other" as const,
+            sync_status: "active",
+            last_synced_at: new Date().toISOString(),
+            registration_path: "newsletter_feed",
+          });
+          await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: EXT_ANON_KEY,
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ sourceUrl: feed.url.trim() }),
+          });
+        }
+        setIsConnecting(false);
+        setView("syncing");
+        onSuccess?.();
+      } catch (error: any) {
+        setIsConnecting(false);
+        toast({
+          title: "Registration Failed",
+          description: error?.message || "Could not register sources. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent hideCloseButton className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          {/* Dark navy header */}
+          <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <img src={opeddLogo} alt="Opedd" className="h-8" />
+                <div className="h-6 w-px bg-white/20" />
+                <div>
+                  <h1 className="text-white font-bold text-lg leading-tight">Register Media Organisation</h1>
+                  <p className="text-white/60 text-sm">Sync multiple content sources</p>
+                </div>
+              </div>
+              <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                <X size={16} className="text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+            {/* Organisation Name */}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-[#040042]">Organisation Name</Label>
+              <Input
+                value={enterpriseOrgName}
+                onChange={(e) => setEnterpriseOrgName(e.target.value)}
+                placeholder="The Times"
+                className="!bg-white !text-[#040042] border-slate-200 h-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Pricing row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-[#040042]">Human License Price ($)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={enterpriseHumanPrice}
+                  onChange={(e) => setEnterpriseHumanPrice(e.target.value)}
+                  placeholder="4.99"
+                  className="!bg-white !text-[#040042] border-slate-200 h-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-[#040042]">AI License Price ($) <span className="text-slate-400 font-normal">optional</span></Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={enterpriseAiPrice}
+                  onChange={(e) => setEnterpriseAiPrice(e.target.value)}
+                  placeholder="—"
+                  className="!bg-white !text-[#040042] border-slate-200 h-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+
+            {/* Feed list */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-[#040042]">Content Feeds</Label>
+              {enterpriseFeeds.map((feed, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      value={feed.url}
+                      onChange={(e) => {
+                        const updated = [...enterpriseFeeds];
+                        updated[idx] = { ...updated[idx], url: e.target.value };
+                        setEnterpriseFeeds(updated);
+                      }}
+                      placeholder="https://yoursite.com/feed"
+                      className="!bg-white !text-[#040042] border-slate-200 h-10 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    />
+                    <Input
+                      value={feed.tag}
+                      onChange={(e) => {
+                        const updated = [...enterpriseFeeds];
+                        updated[idx] = { ...updated[idx], tag: e.target.value };
+                        setEnterpriseFeeds(updated);
+                      }}
+                      placeholder="Politics, Business…"
+                      className="!bg-white !text-[#040042] border-slate-200 h-9 text-sm focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
+                    />
+                  </div>
+                  {enterpriseFeeds.length > 1 && (
+                    <button
+                      onClick={() => setEnterpriseFeeds(enterpriseFeeds.filter((_, i) => i !== idx))}
+                      className="mt-2 w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors text-slate-400"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEnterpriseFeeds([...enterpriseFeeds, { url: "", tag: "" }])}
+                className="bg-white border-[#E5E7EB] text-[#374151] hover:bg-[#F9FAFB] rounded-lg h-9 px-3 text-sm font-medium"
+              >
+                <Plus size={14} className="mr-1.5" />
+                Add another feed
+              </Button>
+
+              <p className="text-xs text-slate-400">
+                Each feed URL should be an RSS/Atom feed. Add one per section or topic.
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] space-y-2">
+            <Button
+              onClick={handleEnterpriseSubmit}
+              disabled={isConnecting || !enterpriseOrgName.trim() || enterpriseFeeds.every((f) => !f.url.trim())}
+              className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold shadow-lg shadow-[#4A26ED]/25"
+            >
+              {isConnecting ? (
+                <><Loader2 size={18} className="mr-2 animate-spin" />Registering Sources…</>
+              ) : (
+                <><Shield size={18} className="mr-2" />Register All Sources</>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setView("publication")}
+              className="w-full h-9 text-sm text-slate-500 hover:text-[#040042]"
+            >
+              <ArrowLeft size={14} className="mr-1.5" />
+              Back
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // SUCCESS VIEW (for single work — only when view is explicitly "success")
   if (view !== "success") {
     // Unknown/unhandled view — redirect to publication platform picker
