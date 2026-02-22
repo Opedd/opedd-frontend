@@ -494,20 +494,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const accessToken = session?.access_token;
       if (!accessToken) throw new Error("Not authenticated");
 
-      // Start the syncing animation
-      setIsConnecting(false);
-      setView("syncing");
-
-      // Set local tracking state
-      setRegisteredAssetId(crypto.randomUUID());
-      const verificationTokenFromApi = token;
-      setVerificationToken(verificationTokenFromApi);
-      setVerificationCode(verificationTokenFromApi);
-
       // Step 2: Insert local rss_sources record so Sources tab shows the pipe
-      let localSourceId: string | null = null;
       try {
-        const { data: localSource, error: srcErr } = await supabase
+        await supabase
           .from("rss_sources")
           .insert({
             user_id: user.id,
@@ -517,37 +506,39 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             sync_status: "active",
             last_synced_at: new Date().toISOString(),
             registration_path: registrationPath,
-          })
-          .select("id")
-          .single();
-        if (srcErr) throw srcErr;
-        localSourceId = localSource.id;
-        console.log("[RegisterContentModal] Local rss_sources record created:", localSourceId);
+          });
       } catch (localErr) {
         console.warn("[RegisterContentModal] Failed to insert local source:", localErr);
       }
 
-      // Step 3: Trigger RSS sync to import articles via edge function
-      try {
-        await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: EXT_ANON_KEY,
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ sourceUrl: syncFeedUrl }),
-        });
-        console.log("[RegisterContentModal] RSS sync triggered for:", syncFeedUrl);
-      } catch (syncError) {
-        console.log("[RegisterContentModal] RSS sync failed:", syncError);
+      // Step 3: Trigger RSS sync BEFORE showing animation — surface real errors
+      const syncRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ sourceUrl: syncFeedUrl }),
+      });
+      if (!syncRes.ok) {
+        const errData = await syncRes.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || errData?.message || `Could not sync feed (${syncRes.status})`);
       }
 
-      // Refresh dashboard data
+      // Step 4: Sync succeeded — now show the animation
+      const verificationTokenFromApi = token;
+      setIsConnecting(false);
+      setView("syncing");
+      setRegisteredAssetId(crypto.randomUUID());
+      setVerificationToken(verificationTokenFromApi);
+      setVerificationCode(verificationTokenFromApi);
+
       onSuccess?.();
     } catch (error: any) {
       console.warn("[RegisterContentModal] Publication sync failed:", error?.message || error);
       setIsConnecting(false);
+      setView("publication"); // return user to the form, don't leave them on syncing screen
 
       const errorMsg = error?.message || "";
       const isPublisherNotFound = errorMsg.toLowerCase().includes("publisher not found");
@@ -572,10 +563,10 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       return;
     }
 
-    if (!user) {
+    if (!(parseFloat(pubHumanPrice) > 0)) {
       toast({
-        title: "Authentication Required",
-        description: "Please log in to register content",
+        title: "Price Required",
+        description: "Please set a human license price greater than $0",
         variant: "destructive",
       });
       return;
@@ -985,27 +976,24 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             console.warn("[RegisterContentModal] Failed to insert local enterprise source:", localErr);
           }
 
-          try {
-            await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                apikey: EXT_ANON_KEY,
-                Authorization: `Bearer ${accessToken}`,
-              },
-              body: JSON.stringify({ sourceUrl: feed.url }),
-            });
-          } catch {
-            // sync may not be immediately available
+          const syncRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: EXT_ANON_KEY,
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ sourceUrl: feed.url }),
+          });
+          if (!syncRes.ok) {
+            const errData = await syncRes.json().catch(() => ({}));
+            console.warn("[RegisterContentModal] Sync failed for", feed.url, errData);
           }
         }
 
         setIsConnecting(false);
         setView("syncing");
-
-        setTimeout(() => {
-          onSuccess?.();
-        }, 1500);
+        onSuccess?.();
 
         toast({
           title: "Sources Registered",
@@ -1014,6 +1002,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       } catch (error) {
         console.error("Enterprise registration error:", error);
         setIsConnecting(false);
+        setView("publication");
         toast({ title: "Registration Failed", description: "Could not register feeds.", variant: "destructive" });
       }
     };
