@@ -32,6 +32,27 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
 
+  const [publisherPlan, setPublisherPlan] = useState<string | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setPlanLoading(true);
+    getAccessToken().then(token => {
+      if (!token) { setPlanLoading(false); return; }
+      fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
+      })
+        .then(r => r.json())
+        .then(result => {
+          const pub = result.data?.publisher || result.data;
+          setPublisherPlan(pub?.plan || "free");
+        })
+        .catch(() => setPublisherPlan("free"))
+        .finally(() => setPlanLoading(false));
+    });
+  }, [open]);
+
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerName, setBuyerName] = useState("");
   const [buyerOrganization, setBuyerOrganization] = useState("");
@@ -171,7 +192,34 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
           </div>
         </DialogHeader>
 
-        {issuedKey ? (
+        {planLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 size={24} className="animate-spin text-[#4A26ED]" />
+          </div>
+        ) : publisherPlan === "free" ? (
+          /* Upgrade wall */
+          <div className="text-center py-6 space-y-4">
+            <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto">
+              <Archive size={28} className="text-amber-500" />
+            </div>
+            <div>
+              <p className="font-bold text-[#040042] text-lg">Pro Feature</p>
+              <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
+                Archive licenses are available on Pro and Enterprise plans. Upgrade to issue site-wide licenses covering all your content in a date range.
+              </p>
+            </div>
+            <a
+              href="/pricing"
+              className="block w-full py-2.5 rounded-lg text-sm font-semibold text-white text-center"
+              style={{ backgroundColor: "#4A26ED" }}
+            >
+              View Pricing Plans
+            </a>
+            <button onClick={handleClose} className="text-sm text-slate-400 hover:text-slate-600 w-full">
+              Maybe later
+            </button>
+          </div>
+        ) : issuedKey ? (
           /* Success state */
           <div className="space-y-5 py-2">
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 text-center">

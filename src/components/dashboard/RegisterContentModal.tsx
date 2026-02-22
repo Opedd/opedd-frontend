@@ -118,6 +118,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   // Publisher profile ID (for widget code)
   const [publisherProfileId, setPublisherProfileId] = useState<string | null>(null);
+  const [publisherPlan, setPublisherPlan] = useState<string>("free");
   
   // Check for active integrations (for empty state)
   const [hasActiveIntegrations, setHasActiveIntegrations] = useState(true);
@@ -163,6 +164,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         if (result.success && result.data) {
           const pub = result.data.publisher || result.data;
           setPublisherProfileId(pub.id);
+          if (pub.plan) setPublisherPlan(pub.plan);
         }
       } catch {
         // Non-critical — widget code will fall back to asset ID
@@ -385,6 +387,23 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   const runSync = async (syncFeedUrl: string, syncHumanPrice: string, syncAiPrice: string, registrationPath: string = "newsletter_feed") => {
     if (!user) return;
 
+    // Free plan: max 1 content source
+    if (publisherPlan === "free") {
+      const { count: otherSourceCount } = await supabase
+        .from("rss_sources")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .neq("feed_url", syncFeedUrl);
+      if ((otherSourceCount ?? 0) >= 1) {
+        toast({
+          title: "Source limit reached",
+          description: "Free plan allows 1 content source. Upgrade to Pro for up to 10 sources.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsConnecting(true);
 
     try {
@@ -498,10 +517,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
       const errorMsg = error?.message || "";
       const isPublisherNotFound = errorMsg.toLowerCase().includes("publisher not found");
+      const isPlanLimit = errorMsg.toLowerCase().includes("plan") && errorMsg.toLowerCase().includes("limit");
 
       toast({
-        title: isPublisherNotFound ? "Publisher Profile Missing" : "Sync Failed",
-        description: isPublisherNotFound
+        title: isPlanLimit ? "Article Limit Reached" : isPublisherNotFound ? "Publisher Profile Missing" : "Sync Failed",
+        description: isPlanLimit
+          ? errorMsg
+          : isPublisherNotFound
           ? "Your publisher profile hasn't been created on the licensing network yet. Please complete your profile in Settings first."
           : `Could not sync publication: ${errorMsg || "Unknown error. Please try again."}`,
         variant: "destructive",
