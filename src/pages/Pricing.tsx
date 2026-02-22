@@ -1,389 +1,151 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Check, Minus, ChevronDown, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+import { Check, Minus } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import opeddIcon from "@/assets/opedd-icon.svg";
 
-/* ────────────────────────── data ────────────────────────── */
-
-const plans = [
-  {
-    name: "Free",
-    monthly: 0,
-    annual: 0,
-    sub: "No credit card required",
-    fee: "12%",
-    feePill: "bg-amber-100 text-amber-700",
-    cta: "Get started free",
-    ctaClass:
-      "border border-[#040042] text-[#040042] hover:bg-[#040042]/5 bg-white",
-    cardClass: "bg-white border border-slate-200",
-    textClass: "text-[#040042]",
-    subTextClass: "text-slate-500",
-    checkClass: "text-[#4A26ED]",
-    dashClass: "text-slate-300",
-    popular: false,
-    features: [
-      { t: "Up to 100 articles", ok: true },
-      { t: "1 content source", ok: true },
-      { t: "Badge widget", ok: true },
-      { t: "License certificates", ok: true },
-      { t: "Community support", ok: true },
-      { t: "Analytics", ok: false },
-      { t: "API & Webhooks", ok: false },
-      { t: "Invoice PDFs", ok: false },
-      { t: "Archive licenses", ok: false },
-      { t: "AI defense policy", ok: false },
-    ],
-  },
-  {
-    name: "Pro",
-    monthly: 79,
-    annual: 65,
-    annualTotal: 780,
-    sub: "For serious publishers",
-    fee: "7%",
-    feePill: "bg-emerald-100 text-emerald-700",
-    cta: "Start Pro",
-    ctaClass: "bg-[#4A26ED] text-white hover:bg-[#3b1ec7]",
-    cardClass:
-      "bg-white border-2 border-[#4A26ED] shadow-lg shadow-[#4A26ED]/10 relative",
-    textClass: "text-[#040042]",
-    subTextClass: "text-slate-500",
-    checkClass: "text-[#4A26ED]",
-    dashClass: "text-slate-300",
-    popular: true,
-    features: [
-      { t: "Unlimited articles", ok: true },
-      { t: "10 content sources", ok: true },
-      { t: "All widget modes (card, badge, compact)", ok: true },
-      { t: "License certificates + Invoice PDFs", ok: true },
-      { t: "Analytics dashboard", ok: true },
-      { t: "API access (1,000 req/day)", ok: true },
-      { t: "Publisher webhooks", ok: true },
-      { t: "Archive licenses (10/month)", ok: true },
-      { t: "AI defense policy (ai.txt)", ok: true },
-      { t: "5 team seats", ok: true },
-      { t: "Priority email support", ok: true },
-    ],
-  },
-  {
-    name: "Enterprise",
-    monthly: 249,
-    annual: 199,
-    annualTotal: 2388,
-    sub: "For media organizations",
-    fee: "5%",
-    feePill: "bg-white/15 text-white/80",
-    cta: "Get started",
-    ctaClass: "bg-white text-[#040042] hover:bg-slate-100",
-    cardClass: "bg-[#040042] border border-white/10",
-    textClass: "text-white",
-    subTextClass: "text-white/60",
-    checkClass: "text-white",
-    dashClass: "text-white/20",
-    popular: false,
-    features: [
-      { t: "Everything in Pro", ok: true },
-      { t: "Unlimited sources", ok: true },
-      { t: "Unlimited archive licenses", ok: true },
-      { t: "Unlimited API access", ok: true },
-      { t: "On-chain blockchain proof (Base)", ok: true },
-      { t: "Custom widget branding", ok: true },
-      { t: "Unlimited team seats", ok: true },
-      { t: "Dedicated account manager", ok: true },
-      { t: "Slack support + 99.9% SLA", ok: true },
-    ],
-  },
-];
-
-const mathRows = [
-  {
-    sales: "$1,000",
-    free: "$120 fees",
-    pro: "$149 total",
-    proWin: false,
-    ent: "$299 total",
-    entWin: false,
-  },
-  {
-    sales: "$5,000",
-    free: "$600 fees",
-    pro: "$429 total",
-    proWin: true,
-    ent: "$499 total",
-    entWin: false,
-  },
-  {
-    sales: "$15,000",
-    free: "$1,800 fees",
-    pro: "$1,129 total",
-    proWin: true,
-    ent: "$999 total",
-    entWin: true,
-  },
-  {
-    sales: "$50,000",
-    free: "$6,000 fees",
-    pro: "$3,579 total",
-    proWin: true,
-    ent: "$2,749 total",
-    entWin: true,
-  },
-];
-
-type CompRow = { label: string; free: string; pro: string; ent: string };
-type CompGroup = { group: string; rows: CompRow[] };
-
-const comparison: CompGroup[] = [
-  {
-    group: "Content",
-    rows: [
-      { label: "Articles registered", free: "100", pro: "Unlimited", ent: "Unlimited" },
-      { label: "Content sources", free: "1", pro: "10", ent: "Unlimited" },
-    ],
-  },
-  {
-    group: "Widget",
-    rows: [
-      { label: "Badge mode", free: "✓", pro: "✓", ent: "✓" },
-      { label: "Card mode", free: "—", pro: "✓", ent: "✓" },
-      { label: "Compact mode", free: "—", pro: "✓", ent: "✓" },
-      { label: "Custom branding", free: "—", pro: "—", ent: "✓" },
-    ],
-  },
-  {
-    group: "Licensing",
-    rows: [
-      { label: "License certificates", free: "✓", pro: "✓", ent: "✓" },
-      { label: "Invoice PDFs", free: "—", pro: "✓", ent: "✓" },
-      { label: "Archive licenses", free: "—", pro: "10/mo", ent: "Unlimited" },
-      { label: "On-chain proof (Base blockchain)", free: "—", pro: "—", ent: "✓" },
-    ],
-  },
-  {
-    group: "Analytics & API",
-    rows: [
-      { label: "Analytics dashboard", free: "—", pro: "✓", ent: "✓" },
-      { label: "Webhooks", free: "—", pro: "✓", ent: "Unlimited" },
-      { label: "API access", free: "—", pro: "1K req/day", ent: "Unlimited" },
-    ],
-  },
-  {
-    group: "Protection",
-    rows: [
-      { label: "AI defense policy (ai.txt)", free: "—", pro: "✓", ent: "✓" },
-    ],
-  },
-  {
-    group: "Team",
-    rows: [{ label: "Team seats", free: "1", pro: "5", ent: "Unlimited" }],
-  },
-  {
-    group: "Support",
-    rows: [
-      { label: "Community docs", free: "✓", pro: "✓", ent: "✓" },
-      { label: "Priority email", free: "—", pro: "✓", ent: "✓" },
-      { label: "Dedicated account manager", free: "—", pro: "—", ent: "✓" },
-      { label: "Slack support", free: "—", pro: "—", ent: "✓" },
-      { label: "SLA", free: "—", pro: "—", ent: "99.9%" },
-    ],
-  },
-  {
-    group: "Platform fee",
-    rows: [{ label: "Per transaction", free: "12%", pro: "7%", ent: "5%" }],
-  },
-];
-
-const faqs = [
-  {
-    q: "Can I switch plans anytime?",
-    a: "Yes. Upgrades take effect immediately. Downgrades apply at the next billing cycle.",
-  },
-  {
-    q: "What is the platform fee?",
-    a: "Opedd takes a small percentage of each licensing transaction to operate the protocol. Your plan tier determines your rate (12%, 7%, or 5%). Stripe processing fees (~2.9% + $0.30) apply separately.",
-  },
-  {
-    q: 'What counts as an "article"?',
-    a: "Any piece of content registered in your library — articles, essays, reports, newsletters, or podcast transcripts.",
-  },
-  {
-    q: "What is an archive license?",
-    a: "A site-wide license covering all your content within a date range. Used for enterprise deals with AI companies or media groups (e.g., Bloomberg licensing your full 2024 archive).",
-  },
-  {
-    q: "What is on-chain proof?",
-    a: "Enterprise licenses are cryptographically recorded on the Base blockchain, giving buyers tamper-proof, permanent proof of their license — useful for legal and compliance teams.",
-  },
-  {
-    q: "Do I need a credit card for the free plan?",
-    a: "No. Sign up and start licensing immediately, no card required.",
-  },
-];
-
-/* ────────────────────────── helpers ────────────────────────── */
-
-function CellValue({ v, dark }: { v: string; dark?: boolean }) {
-  if (v === "✓")
-    return (
-      <Check
-        size={16}
-        className={dark ? "text-white mx-auto" : "text-[#4A26ED] mx-auto"}
-      />
-    );
-  if (v === "—")
-    return (
-      <Minus
-        size={16}
-        className={dark ? "text-white/20 mx-auto" : "text-slate-300 mx-auto"}
-      />
-    );
-  return (
-    <span className={dark ? "text-white/80 text-sm" : "text-slate-700 text-sm"}>
-      {v}
-    </span>
-  );
-}
-
-/* ────────────────────────── component ────────────────────────── */
+type Billing = "monthly" | "annually";
 
 export default function Pricing() {
-  const [annual, setAnnual] = useState(false);
+  const [billing, setBilling] = useState<Billing>("monthly");
   const { user } = useAuth();
+  const navigate = useNavigate();
   const ctaLink = user ? "/dashboard" : "/signup";
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
 
-      {/* ─── 1. Hero ─── */}
-      <section className="pt-32 pb-16 px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-3xl mx-auto"
-        >
-          <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#4A26ED] bg-[#4A26ED]/10 px-4 py-1.5 rounded-full mb-6">
-            Simple, transparent pricing
-          </span>
-          <h1 className="text-4xl md:text-5xl lg:text-[3.25rem] font-bold text-[#040042] leading-tight mb-4">
-            License your content.
-            <br className="hidden sm:block" /> Keep more of what you earn.
-          </h1>
-          <p className="text-lg text-slate-500 mb-10">
-            Start free. Upgrade when your earnings make it obvious.
-          </p>
+      {/* ── Section A — Hero ── */}
+      <section className="pt-[80px] pb-16 px-6 text-center">
+        <span className="inline-block text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6" style={{ color: "#4A26ED", backgroundColor: "#F0EBFF" }}>
+          Simple, transparent pricing
+        </span>
+        <h1 className="text-5xl font-bold mb-4" style={{ color: "#040042" }}>
+          License your content.
+          <br className="hidden sm:block" />
+          Keep more of what you earn.
+        </h1>
+        <p className="text-lg mb-10" style={{ color: "#6B7280" }}>
+          Start free. Upgrade when your earnings make it obvious.
+        </p>
 
-          {/* Toggle */}
-          <div className="inline-flex items-center gap-3 bg-slate-100 p-1 rounded-full">
-            <button
-              onClick={() => setAnnual(false)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
-                !annual ? "bg-white text-[#040042] shadow-sm" : "text-slate-500"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
-                annual ? "bg-white text-[#040042] shadow-sm" : "text-slate-500"
-              }`}
-            >
-              Annual
-            </button>
-            {annual && (
-              <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
-                Save ~18%
-              </span>
-            )}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ─── 2. Cards ─── */}
-      <section className="pb-24 px-6">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 items-start">
-          {plans.map((p, i) => (
-            <motion.div
-              key={p.name}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-              className={`rounded-2xl p-7 flex flex-col ${p.cardClass} ${
-                p.popular ? "md:-mt-4 md:pb-9" : ""
-              }`}
-            >
-              {p.popular && (
-                <span className="self-start text-[11px] font-bold uppercase tracking-wider text-white bg-[#4A26ED] px-3 py-1 rounded-full mb-4">
-                  Most Popular
-                </span>
-              )}
-              <h3 className={`text-lg font-bold ${p.textClass}`}>{p.name}</h3>
-              <div className="mt-3 mb-1 flex items-baseline gap-1">
-                <span className={`text-4xl font-bold ${p.textClass}`}>
-                  ${annual ? p.annual : p.monthly}
-                </span>
-                {p.monthly > 0 && (
-                  <span className={`text-sm ${p.subTextClass}`}>/ month</span>
-                )}
-              </div>
-              {annual && p.annualTotal ? (
-                <p className={`text-xs ${p.subTextClass} mb-1`}>
-                  Billed ${p.annualTotal.toLocaleString()}/year
-                </p>
-              ) : null}
-              <p className={`text-sm ${p.subTextClass} mb-5`}>{p.sub}</p>
-
-              <Link
-                to={ctaLink}
-                className={`w-full text-center py-2.5 rounded-lg text-sm font-semibold transition-colors ${p.ctaClass}`}
-              >
-                {p.cta}
-              </Link>
-
-              <span
-                className={`self-start text-[11px] font-semibold px-2.5 py-1 rounded-full mt-5 ${p.feePill}`}
-              >
-                {p.fee} platform fee
-              </span>
-
-              <ul className="mt-5 space-y-3 flex-1">
-                {p.features.map((f) => (
-                  <li key={f.t} className="flex items-start gap-2.5 text-sm">
-                    {f.ok ? (
-                      <Check size={16} className={`mt-0.5 flex-shrink-0 ${p.checkClass}`} />
-                    ) : (
-                      <Minus size={16} className={`mt-0.5 flex-shrink-0 ${p.dashClass}`} />
-                    )}
-                    <span className={f.ok ? p.textClass : p.dashClass}>
-                      {f.t}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
+        {/* Toggle */}
+        <div className="inline-flex items-center gap-3 bg-slate-100 p-1 rounded-full">
+          <button
+            onClick={() => setBilling("monthly")}
+            className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${billing === "monthly" ? "bg-white shadow-sm" : ""}`}
+            style={{ color: billing === "monthly" ? "#040042" : "#6B7280" }}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBilling("annually")}
+            className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${billing === "annually" ? "bg-white shadow-sm" : ""}`}
+            style={{ color: billing === "annually" ? "#040042" : "#6B7280" }}
+          >
+            Annually
+          </button>
+          {billing === "annually" && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
+              Save 18%
+            </span>
+          )}
         </div>
       </section>
 
-      {/* ─── 3. The Math ─── */}
-      <section className="bg-[#040042] py-20 px-6">
+      {/* ── Section B — Three Pricing Cards ── */}
+      <section className="pb-24 px-6">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 items-start">
+          {/* Card 1 — Free */}
+          <div className="rounded-2xl p-8 border flex flex-col" style={{ borderColor: "#E5E7EB" }}>
+            <h3 className="text-xl font-bold" style={{ color: "#040042" }}>Free</h3>
+            <div className="mt-3 mb-1 flex items-baseline gap-1">
+              <span className="text-4xl font-bold" style={{ color: "#040042" }}>$0</span>
+              <span className="text-sm" style={{ color: "#6B7280" }}>/ month</span>
+            </div>
+            <p className="text-sm mb-4" style={{ color: "#6B7280" }}>No credit card required</p>
+            <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full mb-5" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>
+              12% platform fee
+            </span>
+            <button
+              onClick={() => navigate(ctaLink)}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold border bg-white transition-colors hover:bg-slate-50 mb-6"
+              style={{ borderColor: "#040042", color: "#040042" }}
+            >
+              Get started free
+            </button>
+            <FeatureList features={freeFeatures} variant="light" />
+          </div>
+
+          {/* Card 2 — Pro */}
+          <div className="rounded-2xl p-8 relative flex flex-col md:-mt-4" style={{ border: "2px solid #4A26ED", boxShadow: "0 8px 30px rgba(74,38,237,0.15)" }}>
+            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full text-white whitespace-nowrap" style={{ backgroundColor: "#4A26ED" }}>
+              Most Popular
+            </span>
+            <h3 className="text-xl font-bold" style={{ color: "#040042" }}>Pro</h3>
+            <div className="mt-3 mb-1 flex items-baseline gap-1">
+              <span className="text-4xl font-bold" style={{ color: "#040042" }}>
+                ${billing === "monthly" ? "79" : "65"}
+              </span>
+              <span className="text-sm" style={{ color: "#6B7280" }}>/ month</span>
+            </div>
+            {billing === "annually" && (
+              <p className="text-xs mb-1" style={{ color: "#6B7280" }}>Billed $780/year</p>
+            )}
+            <p className="text-sm mb-4" style={{ color: "#6B7280" }}>For serious publishers</p>
+            <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full mb-5" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
+              7% platform fee
+            </span>
+            <button
+              onClick={() => navigate(ctaLink)}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6"
+              style={{ backgroundColor: "#4A26ED" }}
+            >
+              Start Pro
+            </button>
+            <FeatureList features={proFeatures} variant="light" />
+          </div>
+
+          {/* Card 3 — Enterprise */}
+          <div className="rounded-2xl p-8 flex flex-col" style={{ backgroundColor: "#040042" }}>
+            <h3 className="text-xl font-bold text-white">Enterprise</h3>
+            <div className="mt-3 mb-1 flex items-baseline gap-1">
+              <span className="text-4xl font-bold text-white">
+                ${billing === "monthly" ? "249" : "199"}
+              </span>
+              <span className="text-sm text-white/60">/ month</span>
+            </div>
+            {billing === "annually" && (
+              <p className="text-xs text-white/60 mb-1">Billed $2,388/year</p>
+            )}
+            <p className="text-sm text-white/60 mb-4">For media organizations</p>
+            <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full text-white mb-5" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
+              5% platform fee
+            </span>
+            <button
+              onClick={() => navigate(ctaLink)}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6"
+              style={{ backgroundColor: "white", color: "#040042" }}
+            >
+              Get started
+            </button>
+            <FeatureList features={enterpriseFeatures} variant="dark" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Section C — The Math ── */}
+      <section className="px-6 py-16" style={{ backgroundColor: "#040042" }}>
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            The upgrade pays for itself
-          </h2>
+          <h2 className="text-3xl font-bold text-white mb-3">The upgrade pays for itself</h2>
           <p className="text-white/60">
             Our platform fee drops with each tier. At scale, your savings dwarf the subscription cost.
           </p>
@@ -391,145 +153,167 @@ export default function Pricing() {
         <div className="max-w-4xl mx-auto overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-white/50 text-left">
-                <th className="pb-3 pr-4 font-medium">Monthly sales</th>
-                <th className="pb-3 px-4 font-medium">Free (12%)</th>
-                <th className="pb-3 px-4 font-medium">Pro ($79 + 7%)</th>
-                <th className="pb-3 pl-4 font-medium">Enterprise ($249 + 5%)</th>
+              <tr className="border-b text-left" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+                <th className="pb-3 pr-4 font-medium text-white/50">Monthly licensing revenue</th>
+                <th className="pb-3 px-4 font-medium text-white/50">Free (12% fee)</th>
+                <th className="pb-3 px-4 font-medium text-white/50">Pro ($79 + 7%)</th>
+                <th className="pb-3 pl-4 font-medium text-white/50">Enterprise ($249 + 5%)</th>
               </tr>
             </thead>
             <tbody>
               {mathRows.map((r) => (
-                <tr key={r.sales} className="border-b border-white/5">
+                <tr key={r.sales} className="border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                   <td className="py-3.5 pr-4 text-white font-medium">{r.sales}</td>
                   <td className="py-3.5 px-4 text-white/70">{r.free}</td>
                   <td className="py-3.5 px-4 text-white/70">
                     {r.pro}
-                    {r.proWin && (
-                      <Check size={14} className="inline ml-1.5 text-emerald-400" />
-                    )}
+                    {r.proWin && <Check size={14} className="inline ml-1.5 text-emerald-400" />}
                   </td>
                   <td className="py-3.5 pl-4 text-white/70">
                     {r.ent}
-                    {r.entWin && (
-                      <Check size={14} className="inline ml-1.5 text-emerald-400" />
-                    )}
+                    {r.entWin && <Check size={14} className="inline ml-1.5 text-emerald-400" />}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="text-white/30 text-xs mt-6">
-            * Stripe processing fees (approx. 2.9% + $0.30/transaction) apply separately.
+          <p className="text-white/40 text-xs mt-6">
+            * Stripe processing fees (~2.9% + $0.30/transaction) apply separately to all plans.
           </p>
         </div>
       </section>
 
-      {/* ─── 4. Feature Comparison ─── */}
+      {/* ── Section D — FAQ ── */}
       <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-[#040042] text-center mb-12">
-            Compare all features
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-white z-10">
-                <tr className="border-b-2 border-slate-200">
-                  <th className="text-left py-3 pr-4 font-semibold text-[#040042] w-[40%]">
-                    Feature
-                  </th>
-                  <th className="text-center py-3 px-4 font-semibold text-[#040042]">Free</th>
-                  <th className="text-center py-3 px-4 font-semibold text-[#4A26ED]">Pro</th>
-                  <th className="text-center py-3 pl-4 font-semibold text-[#040042]">
-                    Enterprise
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparison.map((g) => (
-                  <React.Fragment key={g.group}>
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="pt-6 pb-2 text-xs font-bold uppercase tracking-wider text-slate-400"
-                      >
-                        {g.group}
-                      </td>
-                    </tr>
-                    {g.rows.map((r) => (
-                      <tr key={r.label} className="border-b border-slate-100">
-                        <td className="py-3 pr-4 text-slate-700">{r.label}</td>
-                        <td className="py-3 px-4 text-center">
-                          <CellValue v={r.free} />
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <CellValue v={r.pro} />
-                        </td>
-                        <td className="py-3 pl-4 text-center">
-                          <CellValue v={r.ent} />
-                        </td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── 5. FAQ ─── */}
-      <section className="py-20 px-6 border-t border-slate-100">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-[#040042] text-center mb-12">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12" style={{ color: "#040042" }}>
             Frequently asked questions
           </h2>
-          <div className="grid md:grid-cols-2 gap-x-12 gap-y-2">
+          <Accordion type="single" collapsible className="space-y-2">
             {faqs.map((f, i) => (
-              <Accordion key={i} type="single" collapsible>
-                <AccordionItem value={`faq-${i}`} className="border-b border-slate-100">
-                  <AccordionTrigger className="text-left text-[#040042] font-medium text-sm hover:no-underline py-4">
-                    {f.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-slate-500 text-sm leading-relaxed">
-                    {f.a}
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              <AccordionItem key={i} value={`faq-${i}`} className="border-b border-slate-100">
+                <AccordionTrigger className="text-left font-medium text-sm hover:no-underline py-4" style={{ color: "#040042" }}>
+                  {f.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         </div>
       </section>
 
-      {/* ─── 6. Bottom CTA ─── */}
-      <section className="bg-[#F9FAFB] py-20 px-6 text-center">
-        <img src={opeddIcon} alt="" className="h-10 mx-auto mb-6" />
-        <h2 className="text-3xl font-bold text-[#040042] mb-3">
+      {/* ── Section E — Bottom CTA ── */}
+      <section className="py-20 px-6 text-center" style={{ backgroundColor: "#F9FAFB" }}>
+        <h2 className="text-3xl font-bold mb-3" style={{ color: "#040042" }}>
           Start licensing your content today
         </h2>
-        <p className="text-slate-500 mb-8">
+        <p className="mb-8" style={{ color: "#6B7280" }}>
           Join publishers already protecting their work with Opedd Protocol.
         </p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
-          <Link
-            to={ctaLink}
-            className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-[#040042] text-white hover:bg-[#0a006e] transition-colors"
+          <button
+            onClick={() => navigate(ctaLink)}
+            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: "#040042" }}
           >
             Get started free
-          </Link>
+          </button>
           <a
             href="#"
-            className="px-6 py-2.5 rounded-lg text-sm font-semibold border border-slate-300 text-[#040042] hover:bg-slate-50 transition-colors"
+            className="px-6 py-2.5 rounded-lg text-sm font-semibold border transition-colors hover:bg-slate-50"
+            style={{ borderColor: "#040042", color: "#040042" }}
           >
-            See the docs
+            View documentation
           </a>
         </div>
-        <p className="text-xs text-slate-400 mt-5">
+        <p className="text-xs mt-5" style={{ color: "#9CA3AF" }}>
           No credit card required · Cancel anytime · Setup in under 5 minutes
         </p>
       </section>
 
       <Footer />
     </div>
+  );
+}
+
+/* ── Data ── */
+
+type Feature = { t: string; ok: boolean };
+
+const freeFeatures: Feature[] = [
+  { t: "100 articles", ok: true },
+  { t: "1 content source", ok: true },
+  { t: "Badge widget", ok: true },
+  { t: "License certificates (PDF)", ok: true },
+  { t: "Community support", ok: true },
+  { t: "Analytics dashboard", ok: false },
+  { t: "API & webhooks", ok: false },
+  { t: "Invoice PDFs", ok: false },
+  { t: "Archive licenses", ok: false },
+  { t: "AI defense policy", ok: false },
+];
+
+const proFeatures: Feature[] = [
+  { t: "Unlimited articles", ok: true },
+  { t: "10 content sources", ok: true },
+  { t: "All widget modes (card, badge, compact)", ok: true },
+  { t: "License certificates + Invoice PDFs", ok: true },
+  { t: "Analytics dashboard", ok: true },
+  { t: "API access (1,000 req/day)", ok: true },
+  { t: "Publisher webhooks", ok: true },
+  { t: "Archive licenses (10/month)", ok: true },
+  { t: "AI defense policy (ai.txt)", ok: true },
+  { t: "5 team seats", ok: true },
+  { t: "Priority email support", ok: true },
+];
+
+const enterpriseFeatures: Feature[] = [
+  { t: "Everything in Pro", ok: true },
+  { t: "Unlimited sources", ok: true },
+  { t: "Unlimited archive licenses", ok: true },
+  { t: "Unlimited API access", ok: true },
+  { t: "On-chain blockchain proof (Base)", ok: true },
+  { t: "Custom widget branding", ok: true },
+  { t: "Unlimited team seats", ok: true },
+  { t: "Dedicated account manager + Slack", ok: true },
+  { t: "99.9% SLA", ok: true },
+];
+
+const mathRows = [
+  { sales: "$1,000", free: "$120 in fees", pro: "$149 total", proWin: false, ent: "$299 total", entWin: false },
+  { sales: "$5,000", free: "$600 in fees", pro: "$429 total", proWin: true, ent: "$499 total", entWin: false },
+  { sales: "$15,000", free: "$1,800 in fees", pro: "$1,129 total", proWin: true, ent: "$999 total", entWin: true },
+  { sales: "$50,000", free: "$6,000 in fees", pro: "$3,579 total", proWin: true, ent: "$2,749 total", entWin: true },
+];
+
+const faqs = [
+  { q: "Can I switch plans anytime?", a: "Yes. Upgrades apply immediately. Downgrades apply at the next billing cycle." },
+  { q: "What is the platform fee?", a: "Opedd takes a small percentage of each licensing transaction. Your plan determines your rate: 12% (Free), 7% (Pro), or 5% (Enterprise). Stripe processing fees (~2.9% + $0.30) apply separately." },
+  { q: 'What counts as an "article"?', a: "Any piece of content registered in your library — articles, essays, newsletters, reports, or podcast transcripts." },
+  { q: "What is an archive license?", a: "A site-wide license covering all your content within a date range. Used for enterprise deals (e.g., an AI company licensing your full 2024 archive)." },
+  { q: "What is on-chain proof?", a: "Enterprise licenses are recorded on the Base blockchain, giving buyers tamper-proof permanent proof of purchase — useful for legal and compliance teams." },
+  { q: "Do I need a credit card for the free plan?", a: "No. Sign up and start licensing immediately, no card required." },
+];
+
+/* ── Feature List Component ── */
+
+function FeatureList({ features, variant }: { features: Feature[]; variant: "light" | "dark" }) {
+  return (
+    <ul className="space-y-3 flex-1">
+      {features.map((f) => (
+        <li key={f.t} className="flex items-start gap-2.5 text-sm">
+          {f.ok ? (
+            <Check size={16} className={`mt-0.5 flex-shrink-0 ${variant === "dark" ? "text-white" : "text-emerald-500"}`} />
+          ) : (
+            <Minus size={16} className={`mt-0.5 flex-shrink-0 ${variant === "dark" ? "text-white/20" : "text-slate-300"}`} />
+          )}
+          <span className={f.ok ? (variant === "dark" ? "text-white" : "text-slate-700") : (variant === "dark" ? "text-white/30" : "text-slate-400")}>
+            {f.t}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
