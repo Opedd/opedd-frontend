@@ -14,12 +14,10 @@ import {
   X,
   Copy,
   Check,
-  ChevronRight,
   Loader2,
   CheckCircle,
   AlertTriangle,
   RefreshCw,
-  ArrowLeft,
 } from "lucide-react";
 
 interface VerifyOwnershipModalProps {
@@ -31,12 +29,11 @@ interface VerifyOwnershipModalProps {
     platform: string | null;
     verification_token?: string | null;
   } | null;
-  /** When true, only show Steps 1-2 with a "Verify Later" option (post-registration) */
   registrationMode?: boolean;
   onVerified?: () => void;
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2;
 type VerifyResult = "idle" | "loading" | "success" | "failed";
 
 const getPlatformInstructions = (platform: string | null): string => {
@@ -69,7 +66,6 @@ export function VerifyOwnershipModal({
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [verifyResult, setVerifyResult] = useState<VerifyResult>("idle");
 
-  // Reset state when modal opens
   React.useEffect(() => {
     if (open && source) {
       setStep(1);
@@ -82,6 +78,8 @@ export function VerifyOwnershipModal({
   if (!source) return null;
 
   const displayToken = token || source.verification_token || "—";
+  const platformLower = (source.platform || "").toLowerCase();
+  const showMetaOption = platformLower !== "substack" && platformLower !== "beehiiv";
 
   const handleCopy = async (text: string) => {
     try {
@@ -132,7 +130,6 @@ export function VerifyOwnershipModal({
         onVerified?.();
       } else {
         setVerifyResult("failed");
-        // Show the specific failure reason from the backend
         if (result.data?.message) {
           toast({ title: "Not Verified", description: result.data.message, variant: "destructive" });
         }
@@ -148,7 +145,7 @@ export function VerifyOwnershipModal({
 
   const stepIndicator = (
     <div className="flex items-center gap-2 justify-center mb-4">
-      {[1, 2, 3].filter(s => registrationMode ? s <= 2 : true).map((s) => (
+      {[1, 2].map((s) => (
         <div key={s} className="flex items-center gap-2">
           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
             s === step
@@ -159,7 +156,7 @@ export function VerifyOwnershipModal({
           }`}>
             {s < step ? <Check size={14} /> : s}
           </div>
-          {s < (registrationMode ? 2 : 3) && (
+          {s < 2 && (
             <div className={`w-8 h-0.5 rounded ${s < step ? "bg-emerald-500" : "bg-slate-200"}`} />
           )}
         </div>
@@ -167,18 +164,17 @@ export function VerifyOwnershipModal({
     </div>
   );
 
-  // STEP 1 — Copy your verification code
   const renderStep1 = () => (
     <div className="space-y-5">
       {stepIndicator}
       <div className="text-center">
-        <h3 className="text-base font-bold text-[#040042]">Copy your verification code</h3>
+        <h3 className="text-base font-bold text-[#040042]">Verify your publication</h3>
         <p className="text-sm text-slate-500 mt-1">
-          You'll need to add this code to your publication so we can confirm ownership.
+          Add this code to your publication so we can confirm ownership.
         </p>
       </div>
 
-      {/* Token display — institutional style */}
+      {/* Token display */}
       <div className="bg-[#040042] rounded-xl p-5 border border-slate-700">
         <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2 font-medium">Verification Code</p>
         <div className="flex items-center justify-between gap-3">
@@ -203,27 +199,18 @@ export function VerifyOwnershipModal({
         {isRegenerating ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
         Regenerate Code
       </button>
-    </div>
-  );
 
-  // STEP 2 — Add it to your publication
-  const renderStep2 = () => (
-    <div className="space-y-5">
-      {stepIndicator}
-      <div className="text-center">
-        <h3 className="text-base font-bold text-[#040042]">Add it to your publication</h3>
-        <p className="text-sm text-slate-500 mt-1">
-          Follow these steps for <strong>{source.platform ? source.platform.charAt(0).toUpperCase() + source.platform.slice(1) : "your platform"}</strong>:
-        </p>
-      </div>
+      {/* Divider */}
+      <div className="border-t border-slate-200" />
 
+      {/* Platform instructions */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
         <p className="text-sm text-[#040042] leading-relaxed">
           {getPlatformInstructions(source.platform)}
         </p>
       </div>
 
-      {/* Show both options */}
+      {/* Options */}
       <div className="space-y-3">
         <div className="rounded-xl border border-slate-200 overflow-hidden">
           <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
@@ -240,26 +227,27 @@ export function VerifyOwnershipModal({
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
-          <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
-            <Badge variant="outline" className="text-[10px] px-2 py-0 bg-teal-50 text-teal-700 border-teal-200 font-semibold">Option B</Badge>
-            <span className="text-xs font-semibold text-[#040042]">Hidden — Meta Tag</span>
-          </div>
-          <div className="p-3">
-            <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
-              <code className="text-xs text-emerald-400 font-mono truncate">{`<meta name="opedd-verification" content="${displayToken}" />`}</code>
-              <button onClick={() => handleCopy(`<meta name="opedd-verification" content="${displayToken}" />`)} className="text-white/60 hover:text-white flex-shrink-0">
-                {copied ? <Check size={12} /> : <Copy size={12} />}
-              </button>
+        {showMetaOption && (
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+              <Badge variant="outline" className="text-[10px] px-2 py-0 bg-teal-50 text-teal-700 border-teal-200 font-semibold">Option B</Badge>
+              <span className="text-xs font-semibold text-[#040042]">Hidden — Meta Tag</span>
+            </div>
+            <div className="p-3">
+              <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                <code className="text-xs text-emerald-400 font-mono truncate">{`<meta name="opedd-verification" content="${displayToken}" />`}</code>
+                <button onClick={() => handleCopy(`<meta name="opedd-verification" content="${displayToken}" />`)} className="text-white/60 hover:text-white flex-shrink-0">
+                  {copied ? <Check size={12} /> : <Copy size={12} />}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 
-  // STEP 3 — Verifying
-  const renderStep3 = () => (
+  const renderStep2 = () => (
     <div className="space-y-5">
       {stepIndicator}
       <div className="text-center space-y-4 py-4">
@@ -330,7 +318,6 @@ export function VerifyOwnershipModal({
         <div className="flex-1 overflow-y-auto p-6">
           {step === 1 && renderStep1()}
           {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
         </div>
 
         {/* Footer */}
@@ -343,45 +330,15 @@ export function VerifyOwnershipModal({
                 </Button>
               )}
               <Button
-                onClick={() => setStep(2)}
+                onClick={() => { setStep(2); handleVerify(); }}
                 className={`${registrationMode ? 'flex-1' : 'w-full'} h-11 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold`}
               >
-                Next
-                <ChevronRight size={16} className="ml-1.5" />
+                I've Added It
               </Button>
             </>
           )}
 
-          {step === 2 && (
-            <>
-              <Button variant="outline" onClick={() => setStep(1)} className="h-11 px-4">
-                <ArrowLeft size={14} className="mr-1.5" />
-                Back
-              </Button>
-              {registrationMode ? (
-                <>
-                  <Button variant="outline" onClick={handleClose} className="flex-1 h-11">
-                    Verify Later
-                  </Button>
-                  <Button
-                    onClick={() => { setStep(3); handleVerify(); }}
-                    className="flex-1 h-11 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
-                  >
-                    I've Added It
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => { setStep(3); handleVerify(); }}
-                  className="flex-1 h-11 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white font-semibold"
-                >
-                  I've Added It
-                </Button>
-              )}
-            </>
-          )}
-
-          {step === 3 && verifyResult === "success" && (
+          {step === 2 && verifyResult === "success" && (
             <Button
               onClick={handleClose}
               className="w-full h-11 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold"
@@ -390,7 +347,7 @@ export function VerifyOwnershipModal({
             </Button>
           )}
 
-          {step === 3 && verifyResult === "failed" && (
+          {step === 2 && verifyResult === "failed" && (
             <>
               <Button variant="outline" onClick={handleClose} className="flex-1 h-11">
                 Close
@@ -405,7 +362,7 @@ export function VerifyOwnershipModal({
             </>
           )}
 
-          {step === 3 && verifyResult === "loading" && (
+          {step === 2 && verifyResult === "loading" && (
             <Button disabled className="w-full h-11 bg-slate-200 text-slate-500">
               <Loader2 size={16} className="animate-spin mr-2" />
               Verifying…
