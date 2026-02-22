@@ -160,12 +160,7 @@ export default function Onboarding() {
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/10">
         <img src={opeddLogo} alt="Opedd" className="h-8" />
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="text-white/40 hover:text-white/70 text-sm transition-colors"
-        >
-          Skip setup →
-        </button>
+        <div>{/* spacer */}</div>
       </div>
 
       {/* Progress */}
@@ -235,6 +230,12 @@ export default function Onboarding() {
                   <><Rss size={16} className="mr-2" />Detect Content Feeds</>
                 )}
               </Button>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="text-slate-400 hover:text-slate-500 text-xs transition-colors mt-2 self-center"
+              >
+                I'll do this later
+              </button>
             </div>
           )}
 
@@ -420,6 +421,12 @@ export default function Onboarding() {
                   <><ArrowRight size={16} className="mr-2" />Continue</>
                 )}
               </Button>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="text-slate-400 hover:text-slate-500 text-xs transition-colors mt-2 self-center"
+              >
+                I'll do this later
+              </button>
             </div>
           )}
 

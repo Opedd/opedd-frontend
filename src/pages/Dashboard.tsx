@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
@@ -12,6 +13,7 @@ import { DbAsset } from "@/types/asset";
 export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { licenses } = useAuthenticatedApi();
   const [totalAssets, setTotalAssets] = useState(0);
   const [protectedCount, setProtectedCount] = useState(0);
@@ -80,6 +82,21 @@ export default function Dashboard() {
             <p className="text-2xl font-bold text-white mt-1">${totalRevenue.toFixed(2)}</p>
           </div>
         </div>
+
+        {/* Getting Started Banner */}
+        {totalAssets === 0 && !isLoading && (
+          <div className="bg-[#4A26ED]/[0.08] border border-[#4A26ED]/20 rounded-xl p-4 flex items-center gap-4 flex-wrap">
+            <Sparkles size={20} className="text-[#4A26ED] flex-shrink-0" />
+            <span className="text-sm font-bold text-[#040042]">Get started in 3 steps</span>
+            <div className="flex items-center gap-1.5 text-sm flex-wrap">
+              <button onClick={openRegisterModal} className="text-[#4A26ED] font-medium hover:underline">1. Register content</button>
+              <span className="text-slate-300">·</span>
+              <span className="text-slate-400">2. Verify ownership</span>
+              <span className="text-slate-300">·</span>
+              <button onClick={() => navigate("/connectors")} className="text-[#4A26ED] font-medium hover:underline">3. Embed widget</button>
+            </div>
+          </div>
+        )}
 
         {/* Sources Section */}
         <div>
