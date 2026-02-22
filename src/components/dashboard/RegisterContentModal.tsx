@@ -578,7 +578,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       }
 
       // Write to licenses table (same as imported articles — shows in dashboard + content library)
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("licenses")
         .insert({
           publisher_id: publisherId,
