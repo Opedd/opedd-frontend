@@ -43,6 +43,7 @@ import { useNavigate } from "react-router-dom";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
 import { PlatformSetupInstructions } from "@/components/dashboard/PlatformSetupInstructions";
+import { OnboardingCards } from "@/components/dashboard/OnboardingCards";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 // Platform logos — local SVG assets bundled by Vite (transparent, no CDN dependency)
@@ -2341,6 +2342,41 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               <ArrowLeft size={14} className="mr-1.5" />
               Back
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // CHOICE VIEW — pick registration path
+  if (view === "choice") {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent hideCloseButton className="bg-slate-50 border-none text-[#040042] sm:max-w-2xl rounded-2xl p-0 overflow-hidden shadow-2xl">
+          {/* Header */}
+          <div className="bg-[#040042] px-6 py-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <img src={opeddLogo} alt="Opedd" className="h-8" />
+                <div className="h-6 w-px bg-white/20" />
+                <div>
+                  <h1 className="text-white font-bold text-lg leading-tight">Register Content</h1>
+                  <p className="text-[#A78BFA] text-sm">Choose how you want to protect your work</p>
+                </div>
+              </div>
+              <button onClick={handleClose} className="text-white/60 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Cards */}
+          <div className="p-6">
+            <OnboardingCards
+              onSyncClick={() => setView("publication")}
+              onRegisterClick={() => setView("single")}
+              onEnterpriseClick={() => setView("enterprise")}
+            />
           </div>
         </DialogContent>
       </Dialog>
