@@ -168,7 +168,14 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   const handleDelete = async (source: Source) => {
     try {
-      // 1. Find the matching content_sources record by feed_url to cascade-delete articles
+      // Get the publisher for this user (needed for hostname-based delete)
+      const { data: publisher } = await (supabase as any)
+        .from("publishers")
+        .select("id")
+        .eq("user_id", user!.id)
+        .single();
+
+      // 1. RSS path: find content_sources by feed_url → delete articles by source_id
       const { data: contentSource } = await (supabase as any)
         .from("content_sources")
         .select("id")
@@ -177,20 +184,28 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         .maybeSingle();
 
       if (contentSource?.id) {
-        // 2. Delete all licensed articles imported from this source
-        await (supabase as any)
-          .from("licenses")
-          .delete()
-          .eq("source_id", contentSource.id);
-
-        // 3. Delete the content_sources record
-        await (supabase as any)
-          .from("content_sources")
-          .delete()
-          .eq("id", contentSource.id);
+        await (supabase as any).from("licenses").delete().eq("source_id", contentSource.id);
+        await (supabase as any).from("content_sources").delete().eq("id", contentSource.id);
       }
 
-      // 4. Delete the rss_sources record
+      // 2. Sitemap path: delete articles by publisher + hostname match
+      // import-sitemap doesn't create content_sources or set source_id,
+      // so we must match by source_url hostname (covers Ghost, WordPress, Other, media orgs)
+      if (publisher?.id) {
+        try {
+          const feedUrl = source.feed_url.startsWith("http") ? source.feed_url : `https://${source.feed_url}`;
+          const hostname = new URL(feedUrl).hostname;
+          if (hostname) {
+            await (supabase as any)
+              .from("licenses")
+              .delete()
+              .eq("publisher_id", publisher.id)
+              .ilike("source_url", `%${hostname}%`);
+          }
+        } catch {}
+      }
+
+      // 3. Delete the rss_sources record
       await supabase
         .from("rss_sources")
         .delete()
