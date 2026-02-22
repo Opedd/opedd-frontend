@@ -178,7 +178,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
       if (contentSource?.id) {
         // 2. Delete all licensed articles imported from this source
-        await supabase
+        await (supabase as any)
           .from("licenses")
           .delete()
           .eq("source_id", contentSource.id);
