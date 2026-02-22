@@ -3,7 +3,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { Plus } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { OnboardingCards } from "@/components/dashboard/OnboardingCards";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { useToast } from "@/hooks/use-toast";
@@ -65,15 +64,6 @@ export default function Dashboard() {
             Register Content
           </button>
         </div>
-
-        {/* Onboarding Cards — show when no assets */}
-        {!isLoading && totalAssets === 0 && (
-          <OnboardingCards
-            onSyncClick={() => { setModalKey(k => k + 1); setModalInitialView("publication"); setIsAddModalOpen(true); }}
-            onRegisterClick={() => { setModalKey(k => k + 1); setModalInitialView("single"); setIsAddModalOpen(true); }}
-            onEnterpriseClick={() => { setModalKey(k => k + 1); setModalInitialView("enterprise"); setIsAddModalOpen(true); }}
-          />
-        )}
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
