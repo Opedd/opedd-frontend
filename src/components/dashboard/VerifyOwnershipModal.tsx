@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import {
   Shield,
   X,
@@ -111,14 +112,31 @@ export function VerifyOwnershipModal({
   const handleVerify = async () => {
     setVerifyResult("loading");
     try {
-      await contentSources.verify(source.id);
-      setVerifyResult("success");
-      // Update local rss_sources record
-      await supabase
-        .from("rss_sources")
-        .update({ sync_status: "active" })
-        .eq("id", source.id);
-      onVerified?.();
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) throw new Error("Not authenticated");
+
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/verify-source`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ source_id: source.id }),
+      });
+      const result = await res.json();
+
+      if (result.success && result.data?.verified) {
+        setVerifyResult("success");
+        onVerified?.();
+      } else {
+        setVerifyResult("failed");
+        // Show the specific failure reason from the backend
+        if (result.data?.message) {
+          toast({ title: "Not Verified", description: result.data.message, variant: "destructive" });
+        }
+      }
     } catch {
       setVerifyResult("failed");
     }

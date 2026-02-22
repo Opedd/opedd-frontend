@@ -495,6 +495,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       if (!accessToken) throw new Error("Not authenticated");
 
       // Step 2: Insert local rss_sources record so Sources tab shows the pipe
+      // Include verification_token so "Verify Ownership" works from Sources tab
       try {
         await supabase
           .from("rss_sources")
@@ -506,6 +507,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             sync_status: "active",
             last_synced_at: new Date().toISOString(),
             registration_path: registrationPath,
+            verification_token: token,
           });
       } catch (localErr) {
         console.warn("[RegisterContentModal] Failed to insert local source:", localErr);

@@ -168,6 +168,29 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   const handleDelete = async (source: Source) => {
     try {
+      // 1. Find the matching content_sources record by feed_url to cascade-delete articles
+      const { data: contentSource } = await (supabase as any)
+        .from("content_sources")
+        .select("id")
+        .eq("url", source.feed_url)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+
+      if (contentSource?.id) {
+        // 2. Delete all licensed articles imported from this source
+        await supabase
+          .from("licenses")
+          .delete()
+          .eq("source_id", contentSource.id);
+
+        // 3. Delete the content_sources record
+        await (supabase as any)
+          .from("content_sources")
+          .delete()
+          .eq("id", contentSource.id);
+      }
+
+      // 4. Delete the rss_sources record
       await supabase
         .from("rss_sources")
         .delete()
@@ -177,7 +200,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       setSources(prev => prev.filter(s => s.id !== source.id));
       toast({
         title: "Source Removed",
-        description: `${source.name} has been disconnected.`,
+        description: `${source.name} and its articles have been removed.`,
       });
     } catch (err) {
       console.error("Delete error:", err);
