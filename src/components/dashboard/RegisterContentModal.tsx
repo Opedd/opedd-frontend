@@ -1872,8 +1872,18 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         const accessToken = session?.access_token;
         if (!accessToken) throw new Error("Not authenticated");
 
-        // Step 1: Bulk import via sitemap
-        const importRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+        // Step 1: Create rss_sources record with verification token immediately
+        // so the source appears in the dashboard before import finishes
+        await insertSourceWithToken({
+          feedUrl: sitemapUrl,
+          platform: "other",
+          pubName: enterpriseOrgName.trim(),
+          registrationPath: "bulk_enterprise",
+        });
+
+        // Step 2: Fire import in background — don't await
+        // import-sitemap will check if source is already verified and activate accordingly
+        fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1881,34 +1891,20 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({ sitemap_url: sitemapUrl }),
-        });
-        const importData = await importRes.json().catch(() => ({}));
-        const insertedCount: number = importData?.data?.new_articles_inserted ?? importData?.new_articles_inserted ?? 0;
-
-        // Step 2: Create rss_sources record with verification token
-        const { token, sourceId } = await insertSourceWithToken({
-          feedUrl: sitemapUrl,
-          platform: "other",
-          pubName: enterpriseOrgName.trim(),
-          registrationPath: "bulk_enterprise",
-        });
+        }).catch(() => {}); // fire-and-forget, errors logged server-side
 
         setIsConnecting(false);
-        // Step 3: Show inline verification (reuses publication verification screen)
-        setVerificationState({
-          token,
-          platform: "other",
-          sourceId,
-          sourceName: enterpriseOrgName.trim(),
-          count: insertedCount,
-        });
-        setView("publication");
         onSuccess?.();
+        handleClose();
+        toast({
+          title: "Import started",
+          description: "Your article archive is being imported. Go to your dashboard and click \"Verify Ownership\" on the source when you're ready.",
+        });
       } catch (error: any) {
         setIsConnecting(false);
         toast({
           title: "Registration Failed",
-          description: error?.message || "Could not import content. Please try again.",
+          description: error?.message || "Could not start import. Please try again.",
           variant: "destructive",
         });
       }
