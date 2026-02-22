@@ -557,22 +557,31 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setIsSubmitting(true);
 
     try {
-      // Look up publisher record for this user (required to write to licenses table)
-      const { data: publisher } = await supabase
+      // Look up publisher record for this user — auto-create a minimal one if it doesn't exist yet
+      let publisherId: string;
+      const { data: existingPublisher } = await supabase
         .from("publishers")
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!publisher?.id) {
-        throw new Error("Publisher profile not found. Please complete your publisher setup first.");
+      if (existingPublisher?.id) {
+        publisherId = existingPublisher.id;
+      } else {
+        const { data: newPublisher, error: pubError } = await supabase
+          .from("publishers")
+          .insert({ user_id: user.id, name: user.email?.split("@")[0] || "My Publications" })
+          .select("id")
+          .single();
+        if (pubError || !newPublisher?.id) throw new Error("Could not create publisher profile. Please try again.");
+        publisherId = newPublisher.id;
       }
 
       // Write to licenses table (same as imported articles — shows in dashboard + content library)
       const { data, error } = await supabase
         .from("licenses")
         .insert({
-          publisher_id: publisher.id,
+          publisher_id: publisherId,
           title: title,
           source_url: articleUrl || null,
           human_price: parseFloat(humanPrice) || 4.99,
