@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { useNavigate } from "react-router-dom";
 import {
   Shield,
   X,
@@ -18,6 +19,7 @@ import {
   CheckCircle,
   AlertTriangle,
   RefreshCw,
+  Code,
 } from "lucide-react";
 
 interface VerifyOwnershipModalProps {
@@ -59,6 +61,7 @@ export function VerifyOwnershipModal({
   onVerified,
 }: VerifyOwnershipModalProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { contentSources, api } = useAuthenticatedApi();
   const [step, setStep] = useState<Step>(1);
   const [token, setToken] = useState<string | null>(null);
@@ -271,6 +274,10 @@ export function VerifyOwnershipModal({
               <p className="text-sm text-slate-500 mt-1">
                 Your source <strong>{source.name}</strong> is now fully verified and licensing is active.
               </p>
+              <div className="mt-4 rounded-lg bg-[#4A26ED]/5 border border-[#4A26ED]/15 px-4 py-3 text-left">
+                <p className="text-xs font-semibold text-[#4A26ED] uppercase tracking-wide mb-1">Next step</p>
+                <p className="text-sm text-slate-600">Embed the Opedd widget on your articles so buyers can license your content directly.</p>
+              </div>
             </div>
           </>
         )}
@@ -339,12 +346,22 @@ export function VerifyOwnershipModal({
           )}
 
           {step === 2 && verifyResult === "success" && (
-            <Button
-              onClick={handleClose}
-              className="w-full h-11 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold"
-            >
-              Done
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="flex-1 h-11"
+              >
+                Done
+              </Button>
+              <Button
+                onClick={() => { handleClose(); navigate("/connectors"); }}
+                className="flex-1 h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold gap-2"
+              >
+                <Code size={15} />
+                Embed Widget
+              </Button>
+            </>
           )}
 
           {step === 2 && verifyResult === "failed" && (
