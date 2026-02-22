@@ -47,7 +47,7 @@ export default function Dashboard() {
 
   const openRegisterModal = () => {
     setModalKey(k => k + 1);
-    setModalInitialView("publication");
+    setModalInitialView("choice");
     setIsAddModalOpen(true);
   };
 
