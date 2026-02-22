@@ -526,13 +526,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         throw new Error(errData?.error?.message || errData?.message || `Could not sync feed (${syncRes.status})`);
       }
 
-      // Step 4: Sync succeeded — now show the animation
-      const verificationTokenFromApi = token;
+      // Step 4: Sync succeeded — show the success screen (same pattern as sitemap import)
+      const syncData = await syncRes.json().catch(() => ({}));
+      const importedCount = syncData.data?.items_imported ?? syncData.data?.items_found ?? 0;
       setIsConnecting(false);
-      setView("syncing");
-      setRegisteredAssetId(crypto.randomUUID());
-      setVerificationToken(verificationTokenFromApi);
-      setVerificationCode(verificationTokenFromApi);
+      setSitemapImportResult({ count: importedCount });
+      // Stay in "publication" view — sitemapImportResult block renders the success screen
 
       onSuccess?.();
     } catch (error: any) {

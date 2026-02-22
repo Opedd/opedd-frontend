@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single" | "enterprise">("choice");
   const [modalKey, setModalKey] = useState(0);
+  const [sourcesKey, setSourcesKey] = useState(0);
 
   const fetchMetrics = useCallback(async () => {
     if (!user) return;
@@ -93,7 +94,7 @@ export default function Dashboard() {
         {/* Sources Section */}
         <div>
           <h2 className="text-lg font-semibold text-[#040042] mb-4">Sources</h2>
-          <SourcesView onAddSource={openRegisterModal} />
+          <SourcesView key={sourcesKey} onAddSource={openRegisterModal} />
         </div>
       </div>
 
@@ -101,7 +102,7 @@ export default function Dashboard() {
       <RegisterContentModal
         key={modalKey}
         open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
+        onOpenChange={(open) => { setIsAddModalOpen(open); if (!open) setSourcesKey(k => k + 1); }}
         initialView={modalInitialView}
         onSuccess={() => {
           fetchMetrics();
