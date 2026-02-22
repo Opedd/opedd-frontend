@@ -555,7 +555,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     try {
       // Look up publisher record for this user — auto-create a minimal one if it doesn't exist yet
       let publisherId: string;
-      const { data: existingPublisher } = await supabase
+      const { data: existingPublisher } = await (supabase as any)
         .from("publishers")
         .select("id")
         .eq("user_id", user.id)
@@ -564,7 +564,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       if (existingPublisher?.id) {
         publisherId = existingPublisher.id;
       } else {
-        const { data: newPublisher, error: pubError } = await supabase
+        const { data: newPublisher, error: pubError } = await (supabase as any)
           .from("publishers")
           .insert({ user_id: user.id, name: user.email?.split("@")[0] || "My Publications" })
           .select("id")
