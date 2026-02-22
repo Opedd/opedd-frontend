@@ -205,32 +205,34 @@ export default function Pricing() {
       </section>
 
       {/* ── Section E — Bottom CTA ── */}
-      <section className="py-20 px-6 text-center" style={{ backgroundColor: "#F9FAFB" }}>
-        <h2 className="text-3xl font-bold mb-3" style={{ color: "#040042" }}>
-          Start licensing your content today
-        </h2>
-        <p className="mb-8" style={{ color: "#6B7280" }}>
-          Join publishers already protecting their work with Opedd Protocol.
-        </p>
-        <div className="flex items-center justify-center gap-3 flex-wrap">
-          <button
-            onClick={() => navigate(ctaLink)}
-            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90"
-            style={{ backgroundColor: "#040042" }}
-          >
-            Get started free
-          </button>
-          <a
-            href="#"
-            className="px-6 py-2.5 rounded-lg text-sm font-semibold border transition-colors hover:bg-slate-50"
-            style={{ borderColor: "#040042", color: "#040042" }}
-          >
-            View documentation
-          </a>
+      <section className="py-20 px-6" style={{ backgroundColor: "#F9FAFB" }}>
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: "#040042" }}>
+            Start licensing your content today
+          </h2>
+          <p className="text-base mb-10 leading-relaxed" style={{ color: "#6B7280" }}>
+            Join publishers already protecting their work with Opedd Protocol.
+          </p>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <button
+              onClick={() => navigate(ctaLink)}
+              className="px-8 py-3 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 hover:shadow-lg"
+              style={{ backgroundColor: "#4A26ED" }}
+            >
+              Get started free
+            </button>
+            <a
+              href="#"
+              className="px-8 py-3 rounded-lg text-sm font-semibold border-2 transition-all hover:bg-slate-50"
+              style={{ borderColor: "#E5E7EB", color: "#374151" }}
+            >
+              View documentation
+            </a>
+          </div>
+          <p className="text-xs mt-8 tracking-wide" style={{ color: "#9CA3AF" }}>
+            No credit card required · Cancel anytime · Setup in under 5 minutes
+          </p>
         </div>
-        <p className="text-xs mt-5" style={{ color: "#9CA3AF" }}>
-          No credit card required · Cancel anytime · Setup in under 5 minutes
-        </p>
       </section>
 
       <Footer />
