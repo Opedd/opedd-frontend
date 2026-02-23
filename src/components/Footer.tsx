@@ -38,7 +38,7 @@ const socialLinks = [
 
 const Footer = () => {
   return (
-    <footer className="py-16 lg:py-24 border-t border-soft-white/10 relative">
+    <footer className="py-16 lg:py-24 border-t border-soft-white/10 relative bg-[#040042]">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
