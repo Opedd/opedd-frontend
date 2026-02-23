@@ -108,6 +108,7 @@ export default function Settings() {
 
   // Developer state
   const [publisherIdCopied, setPublisherIdCopied] = useState(false);
+  const [publisherIdRevealed, setPublisherIdRevealed] = useState(false);
   
   // API Key state
   const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
@@ -772,8 +773,13 @@ export default function Settings() {
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
-                            <code className="text-sm text-emerald-600 font-mono truncate block">{publisherId}</code>
+                            <code className="text-sm text-[#040042] font-mono truncate block">
+                              {publisherIdRevealed ? publisherId : publisherId.slice(0, 8) + "•".repeat(20)}
+                            </code>
                           </div>
+                          <Button size="sm" variant="outline" onClick={() => setPublisherIdRevealed(!publisherIdRevealed)} className="h-11 px-3 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg transition-all">
+                            {publisherIdRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </Button>
                           <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0 transition-all">
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
