@@ -122,7 +122,8 @@ export default function Settings() {
   const [excludedPatterns, setExcludedPatterns] = useState<string[]>([]);
   const [newPattern, setNewPattern] = useState("");
   const [categoryRules, setCategoryRules] = useState<Array<{ category: string; human: string; ai: string }>>([]);
-  const [newCategory, setNewCategory] = useState("");
+  const [isFetchingCategories, setIsFetchingCategories] = useState(false);
+  const [categoriesFetched, setCategoriesFetched] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
 
   // Team state
@@ -294,6 +295,44 @@ export default function Settings() {
       fetchTeam();
     }
   }, [activeTab, teamLoaded, isLoadingTeam, fetchTeam]);
+
+  // Fetch distinct categories from licenses when Content tab is opened
+  useEffect(() => {
+    if (activeTab !== "content" || categoriesFetched || !profile?.id) return;
+    const fetchCategories = async () => {
+      setIsFetchingCategories(true);
+      try {
+        const headers = await apiHeaders();
+        const res = await fetch(
+          `${EXT_SUPABASE_URL}/rest/v1/licenses?select=category&publisher_id=eq.${profile.id}&category=not.is.null`,
+          { headers }
+        );
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const unique = [...new Set(data.map((r: any) => r.category).filter(Boolean))] as string[];
+          // Merge with existing pricing_rules — keep saved prices, add new categories with defaults
+          setCategoryRules(prev => {
+            const existingMap = new Map(prev.map(r => [r.category.toLowerCase(), r]));
+            return unique.map(cat => {
+              const key = cat.toLowerCase();
+              if (existingMap.has(key)) return existingMap.get(key)!;
+              return {
+                category: cat,
+                human: profile.default_human_price != null ? String(profile.default_human_price) : "5.00",
+                ai: profile.default_ai_price != null ? String(profile.default_ai_price) : "10.00",
+              };
+            });
+          });
+        }
+      } catch (err) {
+        console.warn("[Settings] Failed to fetch categories:", err);
+      } finally {
+        setIsFetchingCategories(false);
+        setCategoriesFetched(true);
+      }
+    };
+    fetchCategories();
+  }, [activeTab, categoriesFetched, profile?.id, apiHeaders]);
 
   if (!user) return null;
 
@@ -813,77 +852,49 @@ export default function Settings() {
                           <h3 className="text-base font-semibold text-[#040042]">Category Pricing</h3>
                           <p className="text-sm text-[#6B7280] mt-0.5">Override default prices for specific content categories. Articles without a category use your default prices.</p>
                         </div>
-                        <div className="space-y-2">
-                          {categoryRules.length === 0 && (
-                            <p className="text-sm text-slate-400 italic">No category overrides set. Articles use your default prices.</p>
-                          )}
-                          {categoryRules.map((rule, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                              <span className="text-sm font-medium text-[#040042] flex-1 capitalize">{rule.category}</span>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs text-slate-400">Human</span>
-                                <div className="relative w-20">
-                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
-                                  <input
-                                    type="number" min="0" step="1"
-                                    value={rule.human}
-                                    onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, human: e.target.value } : r))}
-                                    className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
-                                  />
+                        {isFetchingCategories ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 className="animate-spin text-[#4A26ED]" size={20} />
+                          </div>
+                        ) : categoryRules.length === 0 ? (
+                          <div className="text-center py-8">
+                            <DollarSign size={40} className="mx-auto mb-3 text-[#D1D5DB]" />
+                            <p className="text-sm font-semibold text-[#111] mb-1">No categories yet</p>
+                            <p className="text-sm text-[#6B7280] max-w-xs mx-auto">Your article categories will appear here automatically after your first content sync.</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {categoryRules.map((rule, i) => (
+                              <div key={rule.category} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span className="text-sm font-medium text-[#040042] flex-1 capitalize">{rule.category}</span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-slate-400">Human</span>
+                                  <div className="relative w-20">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                    <input
+                                      type="number" min="0" step="1"
+                                      value={rule.human}
+                                      onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, human: e.target.value } : r))}
+                                      className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-slate-400">AI</span>
+                                  <div className="relative w-20">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                    <input
+                                      type="number" min="0" step="1"
+                                      value={rule.ai}
+                                      onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, ai: e.target.value } : r))}
+                                      className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs text-slate-400">AI</span>
-                                <div className="relative w-20">
-                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
-                                  <input
-                                    type="number" min="0" step="1"
-                                    value={rule.ai}
-                                    onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, ai: e.target.value } : r))}
-                                    className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
-                                  />
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => setCategoryRules(prev => prev.filter((_, j) => j !== i))}
-                                className="text-slate-400 hover:text-red-500 transition-colors ml-1"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Category name (e.g. politics)"
-                            value={newCategory}
-                            onChange={e => setNewCategory(e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === "Enter" && newCategory.trim()) {
-                                const cat = newCategory.trim().toLowerCase();
-                                if (!categoryRules.find(r => r.category === cat)) {
-                                  setCategoryRules(prev => [...prev, { category: cat, human: "", ai: "" }]);
-                                }
-                                setNewCategory("");
-                              }
-                            }}
-                            className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm text-[#040042] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const cat = newCategory.trim().toLowerCase();
-                              if (cat && !categoryRules.find(r => r.category === cat)) {
-                                setCategoryRules(prev => [...prev, { category: cat, human: "", ai: "" }]);
-                              }
-                              setNewCategory("");
-                            }}
-                          >
-                            Add
-                          </Button>
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* URL Exclusion Rules */}
