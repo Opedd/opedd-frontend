@@ -6,7 +6,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +34,13 @@ interface VerifyOwnershipModalProps {
   onVerified?: () => void;
 }
 
+const generateVerificationCode = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return `OPEDD-${code}`;
+};
+
 type Step = 1 | 2;
 type VerifyResult = "idle" | "loading" | "success" | "failed";
 
@@ -62,7 +68,6 @@ export function VerifyOwnershipModal({
 }: VerifyOwnershipModalProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { contentSources, api } = useAuthenticatedApi();
   const [step, setStep] = useState<Step>(1);
   const [token, setToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -97,11 +102,13 @@ export function VerifyOwnershipModal({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      const result = await api.post<{ verification_token: string }>(
-        `/content-sources/${source.id}/regenerate-token`,
-        {}
-      );
-      setToken(result.verification_token);
+      const newToken = generateVerificationCode();
+      const { error } = await supabase
+        .from("rss_sources")
+        .update({ verification_token: newToken, verification_status: "pending" })
+        .eq("id", source.id);
+      if (error) throw error;
+      setToken(newToken);
       toast({ title: "Token Regenerated", description: "A new verification code has been generated." });
     } catch (err: any) {
       toast({ title: "Regeneration Failed", description: err?.message || "Could not regenerate token.", variant: "destructive" });

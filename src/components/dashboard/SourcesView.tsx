@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import {
   Rss,
@@ -69,7 +69,6 @@ interface SourcesViewProps {
 export function SourcesView({ onAddSource }: SourcesViewProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { contentSources } = useAuthenticatedApi();
   const [sources, setSources] = useState<Source[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -106,7 +105,22 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     const previousCount = source.article_count || 0;
     setSyncingId(source.id);
     try {
-      await contentSources.sync(source.id);
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) throw new Error("Not authenticated");
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ sourceUrl: source.feed_url }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error?.message || `Sync failed (${res.status})`);
+      }
       toast({
         title: "Syncing…",
         description: `Fetching new articles from ${source.name}`,
