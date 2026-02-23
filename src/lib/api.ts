@@ -21,14 +21,12 @@ async function safeParseJson(response: Response): Promise<unknown> {
   const text = await response.text();
   
   if (!text || !text.trim()) {
-    console.warn('[API] Empty response received from:', response.url);
     return { success: true, data: [] };
   }
-  
+
   try {
     return JSON.parse(text);
-  } catch (error) {
-    console.warn('[API] Failed to parse JSON response:', text.substring(0, 200));
+  } catch {
     throw new Error('Invalid JSON response from server');
   }
 }
@@ -51,18 +49,13 @@ export async function apiFetch<T>(
     headers['Authorization'] = 'Bearer ' + accessToken;
   }
   
-  console.log('[API] Fetching: ' + path);
-  
   const response = await fetch(url, {
     ...options,
     headers,
   });
-  
-  console.log('[API] Response status:', response.status);
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.warn(`[API] ${response.status} for ${path}:`, errorText);
     const parsed = (() => { try { return JSON.parse(errorText); } catch { return null; } })();
     const msg = parsed?.error?.message || response.statusText;
     throw new Error(msg);
@@ -93,14 +86,10 @@ export async function edgeFetch<T>(
     headers['Authorization'] = 'Bearer ' + accessToken;
   }
 
-  console.log('[API] Edge fetch:', url);
-
   const response = await fetch(url, {
     ...options,
     headers,
   });
-
-  console.log('[API] Edge response status:', response.status);
 
   const data = await safeParseJson(response) as { success?: boolean; data?: T; error?: { message: string } };
 
@@ -127,14 +116,10 @@ export async function edgeFetchPaginated<T>(
     headers['Authorization'] = 'Bearer ' + accessToken;
   }
 
-  console.log('[API] Edge fetch (paginated):', url);
-
   const response = await fetch(url, {
     ...options,
     headers,
   });
-
-  console.log('[API] Edge response status:', response.status);
 
   const result = await safeParseJson(response) as { success?: boolean; data?: unknown; total?: number; page?: number; limit?: number; protectedCount?: number; error?: { message: string } };
 

@@ -5,10 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
-
-const EXT_SUPABASE_URL = "https://djdzcciayennqchjgybx.supabase.co";
-const EXT_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZHpjY2lheWVubnFjaGpneWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MTEyODIsImV4cCI6MjA4NDQ4NzI4Mn0.yy8AU2uOMMjqyGsjWLNlzsUp93Z9UQ7N-PRe90qDG3E";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 interface BlockchainProof {
   registered: boolean;
