@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { TransactionReceiptDrawer } from "@/components/dashboard/TransactionReceiptDrawer";
-import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
+
 import { Sparkline } from "@/components/dashboard/Sparkline";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +24,7 @@ import {
   HelpCircle,
   Filter,
   Eye,
-  Archive
+  Archive,
 } from "lucide-react";
 import {
   Tooltip,
@@ -102,7 +102,7 @@ export default function Ledger() {
   const { toast } = useToast();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -357,14 +357,6 @@ export default function Ledger() {
             
             <div className="flex items-center gap-3">
               <Button
-                onClick={() => setArchiveModalOpen(true)}
-                variant="outline"
-                className="border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/5 font-medium px-4 py-2 rounded-lg"
-              >
-                <Archive size={16} className="mr-2" />
-                Issue Archive License
-              </Button>
-              <Button
                 onClick={handleExportCSV}
                 disabled={isExporting || transactions.length === 0}
                 className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-medium px-4 py-2 rounded-lg"
@@ -525,12 +517,6 @@ export default function Ledger() {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         transaction={selectedTransaction}
-      />
-      {/* Issue Archive License Modal */}
-      <IssueArchiveLicenseModal
-        open={archiveModalOpen}
-        onOpenChange={setArchiveModalOpen}
-        onSuccess={fetchTransactions}
       />
     </DashboardLayout>
   );

@@ -4,12 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useDebounce } from "@/hooks/useDebounce";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Search, Filter, ChevronDown, Rss, CheckSquare, ChevronLeft, ChevronRight, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Search, Filter, ChevronDown, Rss, CheckSquare, ChevronLeft, ChevronRight, Loader2, CheckCircle2, XCircle, Handshake } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { AssetGrid } from "@/components/dashboard/AssetGrid";
 import { AssetDetailDrawer } from "@/components/dashboard/AssetDetailDrawer";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { FloatingPriceBar } from "@/components/dashboard/FloatingPriceBar";
+import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { BulkPricingModal } from "@/components/dashboard/BulkPricingModal";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -51,6 +52,7 @@ export default function Content() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
 
   // (Sitemap import state removed — now handled inside RegisterContentModal)
 
@@ -249,6 +251,14 @@ export default function Content() {
             <span className="text-sm text-[#040042]/50">{totalAssets} asset{totalAssets !== 1 ? 's' : ''}</span>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsArchiveModalOpen(true)}
+              className="h-9 px-4 rounded-lg font-medium text-sm border-[#E5E7EB] text-[#374151] hover:bg-[#F9FAFB] gap-2"
+            >
+              <Handshake size={16} />
+              Issue Enterprise Deal
+            </Button>
             <button
               onClick={openRegisterModal}
               className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white h-9 px-4 rounded-lg font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
@@ -413,6 +423,15 @@ export default function Content() {
           setSelectedAsset(asset);
           setSelectedIds(new Set([asset.id]));
           setIsPricingModalOpen(true);
+        }}
+      />
+
+      {/* Issue Enterprise Deal Modal */}
+      <IssueArchiveLicenseModal
+        open={isArchiveModalOpen}
+        onOpenChange={setIsArchiveModalOpen}
+        onSuccess={() => {
+          fetchAssets();
         }}
       />
     </DashboardLayout>
