@@ -51,9 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           })
             .then((res) => res.json())
             .then((result) => {
-              if (result.success && result.data?.joined) {
-                console.log("[AuthContext] Auto-accepted team invite for", result.data.publisher_name);
-              }
+              // invite auto-accepted, no action needed
             })
             .catch((err) => {
               console.warn("[AuthContext] Failed to auto-accept invite:", err);

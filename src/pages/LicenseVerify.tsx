@@ -16,8 +16,8 @@ interface BlockchainProof {
 
 interface LicenseData {
   license_key: string;
-  status: "completed" | "refunded";
-  license_type: "human" | "ai";
+  status: "completed" | "refunded" | "expired";
+  license_type: "human" | "ai" | "archive";
   license_type_label: string;
   intended_use: string | null;
   intended_use_label: string | null;
@@ -36,6 +36,9 @@ interface LicenseData {
   amount: number;
   currency: string;
   issued_at: string;
+  valid_from?: string | null;
+  valid_until?: string | null;
+  is_expired?: boolean;
   machine_readable?: object;
   blockchain_proof?: BlockchainProof | null;
 }
@@ -50,6 +53,10 @@ export default function LicenseVerify() {
   const [lookupKey, setLookupKey] = useState(key || "");
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookLoading, setWebhookLoading] = useState(false);
+  const [webhookSecret, setWebhookSecret] = useState<string | null>(null);
+  const [copiedSecret, setCopiedSecret] = useState(false);
 
   useEffect(() => {
     if (!key) { setLoading(false); return; }
@@ -88,6 +95,25 @@ export default function LicenseVerify() {
     navigator.clipboard.writeText(JSON.stringify(data.machine_readable, null, 2));
     setCopiedJson(true);
     setTimeout(() => setCopiedJson(false), 2000);
+  };
+
+  const handleRegisterWebhook = async () => {
+    if (!data || !webhookUrl.trim()) return;
+    setWebhookLoading(true);
+    try {
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/register-buyer-webhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
+        body: JSON.stringify({ license_key: data.license_key, webhook_url: webhookUrl.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error || "Registration failed");
+      setWebhookSecret(result.data.webhook_secret);
+    } catch (err: any) {
+      alert(err?.message || "Could not register webhook. Check the URL and try again.");
+    } finally {
+      setWebhookLoading(false);
+    }
   };
 
   const handleLookup = () => {
@@ -346,6 +372,38 @@ export default function LicenseVerify() {
               <pre className="text-xs text-white/60 font-mono overflow-x-auto leading-relaxed bg-black/20 rounded-lg p-4">
                 {JSON.stringify(data.machine_readable, null, 2)}
               </pre>
+            </div>
+          )}
+
+          {/* Buyer Webhook Registration (archive licenses only) */}
+          {data.license_type === "archive" && data.status === "completed" && (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-5 space-y-3">
+              <p className="text-xs text-white/40 uppercase tracking-wider font-medium">New Article Notifications</p>
+              <p className="text-sm text-white/60">Register a webhook to receive a POST request whenever a new article is added to your archive coverage.</p>
+              {webhookSecret ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-emerald-400 font-medium">Webhook registered. Save this secret — it won't be shown again.</p>
+                  <div className="flex items-center gap-2 bg-black/30 rounded-lg p-3">
+                    <code className="text-xs text-emerald-400 font-mono flex-1 truncate">{webhookSecret}</code>
+                    <button onClick={() => { navigator.clipboard.writeText(webhookSecret); setCopiedSecret(true); setTimeout(() => setCopiedSecret(false), 2000); }} className="text-white/40 hover:text-white shrink-0">
+                      {copiedSecret ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    placeholder="https://your-server.com/webhook"
+                    className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30"
+                  />
+                  <Button onClick={handleRegisterWebhook} disabled={webhookLoading || !webhookUrl.trim()} className="bg-white/10 hover:bg-white/20 text-white border-none shrink-0">
+                    {webhookLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Register"}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
