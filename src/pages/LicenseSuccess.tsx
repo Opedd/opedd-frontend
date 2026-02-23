@@ -222,6 +222,15 @@ export default function LicenseSuccess() {
                 <Download size={14} />
                 Download Certificate (PDF)
               </a>
+              <a
+                href={`${EXT_SUPABASE_URL}/functions/v1/invoice?key=${encodeURIComponent(data.license_key)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline"
+              >
+                <Download size={14} />
+                Download Invoice (PDF)
+              </a>
             </>
           )}
           <Link to="/" className="inline-block text-sm text-white/40 hover:text-white/60 transition-colors mt-2">

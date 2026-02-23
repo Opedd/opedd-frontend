@@ -56,6 +56,7 @@ export default function Connectors() {
   const [webhookSecretCopied, setWebhookSecretCopied] = useState(false);
   const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
   const [isLoadingDeliveries, setIsLoadingDeliveries] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
   const [showDeliveries, setShowDeliveries] = useState(false);
   const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
   const [publisherId, setPublisherId] = useState<string | null>(null);
@@ -213,6 +214,24 @@ export default function Connectors() {
                         <p className="text-xs text-slate-500 font-mono mt-1 truncate max-w-md">{webhookStatus.url || "—"}</p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={async () => {
+                          setIsSendingTest(true);
+                          try {
+                            const result = await postAction("test_webhook");
+                            if (result.success) {
+                              toast({ title: "Test event delivered successfully", description: "Your endpoint returned a 2xx response." });
+                            } else {
+                              toast({ title: "Delivery failed", description: "Check your endpoint returns 2xx", variant: "destructive" });
+                            }
+                          } catch {
+                            toast({ title: "Delivery failed", description: "Check your endpoint returns 2xx", variant: "destructive" });
+                          } finally {
+                            setIsSendingTest(false);
+                          }
+                        }} disabled={isSendingTest} className="h-8 text-xs gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+                          {isSendingTest ? <Loader2 size={12} className="animate-spin" /> : <Webhook size={12} />}
+                          Send Test Event
+                        </Button>
                         <Button variant="outline" size="sm" onClick={handleViewDeliveries} disabled={isLoadingDeliveries} className="h-8 text-xs gap-1.5 border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/5">
                           {isLoadingDeliveries ? <Loader2 size={12} className="animate-spin" /> : <Eye size={12} />}
                           View Deliveries
