@@ -473,7 +473,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               platform: platformType,
               sync_status: "active",
               last_synced_at: new Date().toISOString(),
-              registration_path: registrationPath,
               verification_token: token,
             })
             .select("id")
@@ -726,7 +725,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           platform: params.platform,
           sync_status: "active",
           last_synced_at: new Date().toISOString(),
-          registration_path: params.registrationPath,
           verification_token: tok,
         })
         .select("id")
