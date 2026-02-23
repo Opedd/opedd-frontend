@@ -2060,19 +2060,15 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   if (view === "choice") {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent hideCloseButton className="bg-slate-50 border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <DialogContent hideCloseButton className="bg-white border-slate-200 text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
           {/* Header */}
-          <div className="bg-[#040042] px-6 py-5">
+          <div className="bg-white border-b border-slate-100 px-6 py-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <img src={opeddLogo} alt="Opedd" className="h-8" />
-                <div className="h-6 w-px bg-white/20" />
-                <div>
-                  <h1 className="text-white font-bold text-lg leading-tight">Register Content</h1>
-                  <p className="text-[#A78BFA] text-sm">Choose how you want to protect your work</p>
-                </div>
+              <div>
+                <h1 className="text-[#040042] font-bold text-lg leading-tight">Register Content</h1>
+                <p className="text-slate-500 text-sm">Choose how you want to protect your work</p>
               </div>
-              <button onClick={handleClose} className="text-white/60 hover:text-white transition-colors">
+              <button onClick={handleClose} className="text-slate-400 hover:text-[#040042] transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -2142,35 +2138,30 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent hideCloseButton className="bg-slate-50 border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent hideCloseButton className="bg-white border-slate-200 text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="bg-[#040042] px-6 py-5">
+        <div className="bg-white border-b border-slate-100 px-6 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={opeddLogo} alt="Opedd" className="h-8" />
-              <div className="h-6 w-px bg-white/20" />
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <CheckCircle size={18} className="text-emerald-600" />
+              </div>
               <div>
-                <h1 className="text-white font-bold text-lg leading-tight">Registration Complete</h1>
-                <p className="text-emerald-400 text-sm">Your content is now protected</p>
+                <h1 className="text-[#040042] font-bold text-lg leading-tight">Registration Complete</h1>
+                <p className="text-slate-500 text-sm">Your content is now protected</p>
               </div>
             </div>
             <button
               onClick={handleClose}
-              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="text-slate-400 hover:text-[#040042] transition-colors"
             >
-              <X size={16} className="text-white" />
+              <X size={20} />
             </button>
           </div>
         </div>
 
         {/* Success Content */}
         <div className="p-6">
-          <div className="flex justify-center mb-5">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckCircle size={32} className="text-emerald-600" />
-            </div>
-          </div>
-
           {/* Distribution Tabs */}
           <Tabs defaultValue="widget" className="w-full">
             <TabsList className="w-full bg-slate-100 p-1 rounded-xl h-11">
