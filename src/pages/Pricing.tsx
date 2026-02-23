@@ -80,7 +80,7 @@ export default function Pricing() {
               className="w-full py-2.5 rounded-lg text-sm font-semibold border bg-white transition-colors hover:bg-slate-50 mb-6"
               style={{ borderColor: "#040042", color: "#040042" }}
             >
-              Get started free
+              Get Started Free
             </button>
             <FeatureList features={freeFeatures} variant="light" />
           </div>
@@ -104,13 +104,13 @@ export default function Pricing() {
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full mb-5" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
               7% platform fee
             </span>
-            <button
-              onClick={() => navigate(ctaLink)}
-              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6"
+            <a
+              href="mailto:support@opedd.com?subject=Upgrade%20to%20Pro&body=Hi%2C%20I'd%20like%20to%20upgrade%20my%20Opedd%20account%20to%20Pro."
+              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6 block text-center"
               style={{ backgroundColor: "#4A26ED" }}
             >
-              Start Pro
-            </button>
+              Upgrade to Pro
+            </a>
             <FeatureList features={proFeatures} variant="light" />
           </div>
 
@@ -130,13 +130,13 @@ export default function Pricing() {
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full text-white mb-5" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
               5% platform fee
             </span>
-            <button
-              onClick={() => navigate(ctaLink)}
-              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6"
+            <a
+              href="mailto:support@opedd.com?subject=Enterprise%20Plan&body=Hi%2C%20I'm%20interested%20in%20the%20Enterprise%20plan%20for%20my%20organization."
+              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 block text-center"
               style={{ backgroundColor: "white", color: "#040042" }}
             >
-              Get started
-            </button>
+              Contact Sales
+            </a>
             <FeatureList features={enterpriseFeatures} variant="dark" />
           </div>
         </div>
