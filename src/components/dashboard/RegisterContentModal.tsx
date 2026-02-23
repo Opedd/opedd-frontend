@@ -517,7 +517,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
       const errorMsg = error?.message || "";
       const isPublisherNotFound = errorMsg.toLowerCase().includes("publisher not found");
-      const isPlanLimit = errorMsg.toLowerCase().includes("plan") && errorMsg.toLowerCase().includes("limit");
+      const isPlanLimit = errorMsg.toLowerCase().includes("plan") && (errorMsg.toLowerCase().includes("limit") || errorMsg.toLowerCase().includes("source"));
 
       toast({
         title: isPlanLimit ? "Article Limit Reached" : isPublisherNotFound ? "Publisher Profile Missing" : "Sync Failed",
