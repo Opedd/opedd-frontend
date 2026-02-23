@@ -528,14 +528,14 @@ export default function Settings() {
                               : "100 articles · 1 source · 12% platform fee · Community support"}
                           </p>
                           {(!profile.plan || profile.plan === "free") && (
-                            <Link to="/pricing" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
+                            <a href="mailto:support@opedd.com?subject=Upgrade%20to%20Pro" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
                               Upgrade to Pro →
-                            </Link>
+                            </a>
                           )}
                           {profile.plan === "pro" && (
-                            <Link to="/pricing" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
+                            <a href="mailto:support@opedd.com?subject=Upgrade%20to%20Enterprise" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
                               Upgrade to Enterprise →
-                            </Link>
+                            </a>
                           )}
                           {profile.plan === "enterprise" && (
                             <button disabled className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold border border-[#E5E7EB] text-[#6B7280] cursor-not-allowed opacity-60">
