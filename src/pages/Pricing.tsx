@@ -232,6 +232,10 @@ export default function Pricing() {
           <p className="text-xs mt-8 tracking-wide" style={{ color: "#9CA3AF" }}>
             No credit card required · Cancel anytime · Setup in under 5 minutes
           </p>
+          <p className="text-sm mt-6" style={{ color: "#6B7280" }}>
+            Questions about enterprise pricing? Contact us at{" "}
+            <a href="mailto:support@opedd.com" className="text-[#4A26ED] hover:underline font-medium">support@opedd.com</a>
+          </p>
         </div>
       </section>
 

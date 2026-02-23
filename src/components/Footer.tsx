@@ -118,9 +118,11 @@ const Footer = () => {
           <p className="text-sm text-alice-gray">
             © 2026 Opedd.io. All rights reserved.
           </p>
-          <p className="text-sm text-alice-gray">
-            Built with ❤️ for content creators worldwide.
-          </p>
+          <div className="flex items-center gap-4 text-sm text-alice-gray">
+            <a href="/privacy" className="hover:text-accent transition-colors">Privacy</a>
+            <a href="/terms" className="hover:text-accent transition-colors">Terms</a>
+            <a href="mailto:support@opedd.com" className="hover:text-accent transition-colors">Support</a>
+          </div>
         </motion.div>
       </div>
     </footer>
