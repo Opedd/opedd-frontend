@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { Plus, Sparkles } from "lucide-react";
 import { PageLoader } from "@/components/ui/PageLoader";
+import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
@@ -99,6 +100,9 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* Import Progress Banner */}
+        <ImportProgressBanner onComplete={fetchMetrics} />
 
         {/* Sources Section */}
         <div>

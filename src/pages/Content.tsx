@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useDebounce } from "@/hooks/useDebounce";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Search, Filter, ChevronDown, Rss, CheckSquare, ChevronLeft, ChevronRight, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Search, Filter, ChevronDown, Rss, CheckSquare, ChevronLeft, ChevronRight, Loader2, CheckCircle2, XCircle, Handshake } from "lucide-react";
+import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { AssetGrid } from "@/components/dashboard/AssetGrid";
 import { AssetDetailDrawer } from "@/components/dashboard/AssetDetailDrawer";
@@ -182,23 +183,7 @@ export default function Content() {
       <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
 
         {/* Import Progress Banner */}
-        {activeImport && activeImport.status === "processing" && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <Loader2 size={16} className="text-blue-500 animate-spin flex-shrink-0" />
-            <p className="text-sm text-blue-700 font-medium flex-1">Importing articles from sitemap...</p>
-          </div>
-        )}
-        {activeImport && activeImport.status === "done" && activeImport.inserted_count > 0 && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
-            <p className="text-sm text-emerald-700 font-medium flex-1">
-              {activeImport.inserted_count.toLocaleString()} articles imported from sitemap
-            </p>
-            <button onClick={() => setActiveImport(null)} className="text-emerald-500 hover:text-emerald-700">
-              <XCircle size={14} />
-            </button>
-          </div>
-        )}
+        <ImportProgressBanner onComplete={fetchAssets} />
 
         {/* Article Usage Bar (Free plan only) */}
         {publisherPlan === "free" && (

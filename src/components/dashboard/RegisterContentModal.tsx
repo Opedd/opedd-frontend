@@ -655,7 +655,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setSitemapImportResult(null);
   };
 
-  // Import sitemap helper — returns count on success, -1 on error
+  // Import sitemap helper — fires import and returns immediately (queued)
   const importSitemap = async (sitemapUrl: string): Promise<number> => {
     setIsSitemapImporting(true);
     try {
@@ -671,6 +671,13 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || "Import failed");
+      // Close modal immediately and show toast — import runs in background
+      handleClose();
+      toast({
+        title: "Import started",
+        description: "We'll email you when it's done",
+      });
+      onSuccess?.();
       return result.data?.new_articles_inserted || 0;
     } catch (err) {
       toast({
