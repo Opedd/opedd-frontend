@@ -326,15 +326,66 @@ export default function Connectors() {
 
           {/* AI Policy Tab */}
           <TabsContent value="ai-policy" className="mt-6">
-            <div className="bg-white rounded-xl border border-[#E8F2FB] p-8 shadow-sm text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center mx-auto mb-4">
-                <Shield size={24} className="text-[#4A26ED]" />
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
+                    <Shield size={20} className="text-[#4A26ED]" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-[#040042] text-lg">AI Crawler Defense Policy</h2>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Automatically blocks 16 AI crawlers (GPTBot, Google-Extended, CCBot, etc.) from indexing your content without a license.
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-medium text-slate-500 mb-2">robots.txt snippet</p>
+                  <div className="bg-slate-900 rounded-lg p-4 overflow-x-auto">
+                    <pre className="text-sm font-mono text-green-400 whitespace-pre leading-relaxed">{`User-agent: GPTBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /`}</pre>
+                  </div>
+                </div>
+
+                {publisherId && (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs font-medium text-slate-500 mb-2">Your AI Policy URL</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
+                          <code className="text-xs text-[#040042] font-mono truncate block">
+                            {`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}`}
+                          </code>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}`);
+                              toast({ title: "Copied", description: "robots.txt URL copied to clipboard." });
+                            } catch { toast({ title: "Copy Failed", variant: "destructive" }); }
+                          }}
+                          className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0"
+                        >
+                          <Copy size={14} className="mr-2" />Copy robots.txt URL
+                        </Button>
+                      </div>
+                    </div>
+                    <a
+                      href={`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4A26ED] hover:underline"
+                    >
+                      View AI Policy →
+                    </a>
+                  </div>
+                )}
+
+                <p className="text-xs text-slate-400">
+                  Add this URL to your site's robots.txt or use the Opedd WordPress plugin to apply it automatically.
+                </p>
               </div>
-              <h2 className="font-bold text-[#040042] text-lg mb-2">AI Defense Policy</h2>
-              <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">
-                Configure how AI crawlers and training models interact with your content. Coming soon.
-              </p>
-              <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500 border-slate-200">Coming Soon</Badge>
             </div>
           </TabsContent>
         </Tabs>
