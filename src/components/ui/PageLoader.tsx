@@ -1,4 +1,4 @@
-import opeddLogo from "@/assets/opedd-logo.png";
+import opeddIcon from "@/assets/opedd-icon.svg";
 
 export function PageLoader({ showText = false }: { showText?: boolean }) {
   return (
@@ -10,7 +10,7 @@ export function PageLoader({ showText = false }: { showText?: boolean }) {
             <circle cx="40" cy="40" r="36" fill="none" stroke="#4A26ED" strokeWidth="4" strokeLinecap="round" strokeDasharray="56 170" strokeDashoffset="0" />
           </svg>
           <img
-            src={opeddLogo}
+            src={opeddIcon}
             alt="Opedd"
             className="absolute inset-0 w-10 h-10 m-auto object-contain"
           />
