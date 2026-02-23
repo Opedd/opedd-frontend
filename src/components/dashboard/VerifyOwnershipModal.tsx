@@ -105,7 +105,7 @@ export function VerifyOwnershipModal({
       const newToken = generateVerificationCode();
       const { error } = await supabase
         .from("rss_sources")
-        .update({ sync_status: "pending" } as any)
+        .update({ sync_status: "pending", verification_token: newToken, verification_status: "pending" } as any)
         .eq("id", source.id);
       if (error) throw error;
       setToken(newToken);
