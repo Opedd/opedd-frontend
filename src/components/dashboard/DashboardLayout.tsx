@@ -41,6 +41,13 @@ import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
+type PlanType = "free" | "pro" | "enterprise";
+const planBadgeStyles: Record<PlanType, { bg: string; text: string; label: string }> = {
+  free: { bg: "bg-[#FEF3C7]", text: "text-[#92400E]", label: "Free" },
+  pro: { bg: "bg-[#EDE9FE]", text: "text-[#5B21B6]", label: "Pro" },
+  enterprise: { bg: "bg-[#E0E7FF]", text: "text-[#3730A3]", label: "Enterprise" },
+};
+
 const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Content", path: "/content", icon: FileText },
@@ -83,6 +90,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
   const [unreadCount, setUnreadCount] = useState(0);
   const [bellOpen, setBellOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [publisherPlan, setPublisherPlan] = useState<PlanType | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -101,7 +109,27 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
     }
   }, [getAccessToken]);
 
+  const fetchPlan = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const plan = (result.data.publisher || result.data)?.plan;
+        if (plan && (plan === "free" || plan === "pro" || plan === "enterprise")) {
+          setPublisherPlan(plan);
+        }
+      }
+    } catch (err) {
+      console.warn("[DashboardLayout] Plan fetch failed:", err);
+    }
+  }, [getAccessToken]);
+
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+  useEffect(() => { fetchPlan(); }, [fetchPlan]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -226,7 +254,14 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
                 <span className="text-xs font-bold text-white">{getInitial()}</span>
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-[13px] font-medium text-white truncate">{displayName}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[13px] font-medium text-white truncate">{displayName}</p>
+                  {publisherPlan && (
+                    <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide", planBadgeStyles[publisherPlan].bg, planBadgeStyles[publisherPlan].text)}>
+                      {planBadgeStyles[publisherPlan].label}
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-white/40 truncate">{user?.email}</p>
               </div>
               <ChevronDown size={14} className="text-white/30 flex-shrink-0" />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -25,7 +26,7 @@ import { mapDbAssetToUiAsset, DbAsset } from "@/types/asset";
 type StatusFilter = "all" | "protected" | "syncing" | "pending" | "failed";
 
 export default function Content() {
-  const { user } = useAuth();
+  const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
   const { licenses } = useAuthenticatedApi();
   const PAGE_SIZE = 30;
@@ -54,6 +55,27 @@ export default function Content() {
   // (Sitemap import state removed — now handled inside RegisterContentModal)
 
   const [activeImport, setActiveImport] = useState<{ status: string; inserted_count: number; total_urls: number } | null>(null);
+  const [publisherPlan, setPublisherPlan] = useState<string | null>(null);
+  const [articleCount, setArticleCount] = useState(0);
+
+  const fetchPublisherPlan = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const pub = result.data.publisher || result.data;
+        const stats = result.data.stats || {};
+        setPublisherPlan(pub.plan || "free");
+        setArticleCount(stats.article_count ?? pub.article_count ?? 0);
+      }
+    } catch (err) {
+      console.warn("[Content] Plan fetch failed:", err);
+    }
+  }, [getAccessToken]);
 
   const fetchActiveImport = useCallback(async () => {
     if (!user) return;
@@ -139,6 +161,7 @@ export default function Content() {
   useEffect(() => { fetchAssets(); }, [fetchAssets]);
   useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter, sourceFilter]);
   useEffect(() => { fetchActiveImport(); }, [fetchActiveImport]);
+  useEffect(() => { fetchPublisherPlan(); }, [fetchPublisherPlan]);
 
   if (!user) return null;
 
@@ -177,7 +200,29 @@ export default function Content() {
           </div>
         )}
 
-
+        {/* Article Usage Bar (Free plan only) */}
+        {publisherPlan === "free" && (
+          <div className="rounded-xl border border-slate-100 bg-white px-4 py-3 flex items-center gap-4 mb-4">
+            <div className="flex-1 min-w-0">
+              <div className={`h-1.5 rounded-full bg-[#E5E7EB] overflow-hidden`}>
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    articleCount >= 100 ? "bg-[#EF4444]" : articleCount >= 80 ? "bg-[#F59E0B]" : "bg-[#4A26ED]"
+                  }`}
+                  style={{ width: `${Math.min(100, (articleCount / 100) * 100)}%` }}
+                />
+              </div>
+            </div>
+            <span className={`text-xs whitespace-nowrap ${
+              articleCount >= 100 ? "text-red-600" : articleCount >= 80 ? "text-amber-600" : "text-slate-500"
+            }`}>
+              {articleCount} / 100 articles used
+            </span>
+            <Link to="/pricing" className="text-xs font-medium text-[#4A26ED] hover:underline whitespace-nowrap">
+              Upgrade for unlimited →
+            </Link>
+          </div>
+        )}
 
         {/* Top bar: Select + Register */}
         <div className="flex items-center justify-between">

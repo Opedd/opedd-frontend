@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -65,6 +66,7 @@ interface PublisherProfile {
   description: string | null;
   logo_url: string | null;
   article_count: number;
+  plan?: string;
   transaction_count: number;
   stripe_account_id: string | null;
   stripe_onboarding_complete: boolean;
@@ -462,6 +464,44 @@ export default function Settings() {
                               <p className="text-xs text-[#6B7280]">Transactions</p>
                             </div>
                           </div>
+                        </div>
+                      )}
+
+                      {/* Your Plan Card */}
+                      {profile && (
+                        <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                          <h2 className="font-bold text-[#040042] mb-4">Your Plan</h2>
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${
+                              profile.plan === "enterprise" ? "bg-[#E0E7FF] text-[#3730A3]" :
+                              profile.plan === "pro" ? "bg-[#EDE9FE] text-[#5B21B6]" :
+                              "bg-[#FEF3C7] text-[#92400E]"
+                            }`}>
+                              {profile.plan === "enterprise" ? "Enterprise" : profile.plan === "pro" ? "Pro" : "Free"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-[#6B7280] mb-4">
+                            {profile.plan === "enterprise"
+                              ? "Unlimited everything · 5% platform fee · Dedicated support + SLA"
+                              : profile.plan === "pro"
+                              ? "Unlimited articles · 10 sources · 7% platform fee · Priority support"
+                              : "100 articles · 1 source · 12% platform fee · Community support"}
+                          </p>
+                          {(!profile.plan || profile.plan === "free") && (
+                            <Link to="/pricing" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
+                              Upgrade to Pro →
+                            </Link>
+                          )}
+                          {profile.plan === "pro" && (
+                            <Link to="/pricing" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
+                              Upgrade to Enterprise →
+                            </Link>
+                          )}
+                          {profile.plan === "enterprise" && (
+                            <button disabled className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold border border-[#E5E7EB] text-[#6B7280] cursor-not-allowed opacity-60">
+                              Manage Plan
+                            </button>
+                          )}
                         </div>
                       )}
 
