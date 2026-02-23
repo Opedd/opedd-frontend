@@ -79,10 +79,6 @@ const NotFound = () => {
                 <Search size={14} />
                 Verify License
               </Link>
-              <Link to="/registry" className="flex items-center gap-2 text-[#040042]/70 hover:text-[#4A26ED] p-2 rounded-lg hover:bg-[#F2F9FF] transition-colors">
-                <Search size={14} />
-                Registry
-              </Link>
               <Link to="/signup" className="flex items-center gap-2 text-[#040042]/70 hover:text-[#4A26ED] p-2 rounded-lg hover:bg-[#F2F9FF] transition-colors">
                 <Home size={14} />
                 Sign Up

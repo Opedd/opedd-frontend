@@ -22,7 +22,6 @@ import NotFound from "./pages/NotFound";
 import LicensePublicCheckout from "./pages/LicensePublicCheckout";
 import LicenseByUrl from "./pages/LicenseByUrl";
 import LicenseVerify from "./pages/LicenseVerify";
-import Registry from "./pages/Registry";
 import WidgetPreview from "./pages/WidgetPreview";
 import AcceptInvite from "./pages/AcceptInvite";
 import Onboarding from "./pages/Onboarding";
@@ -60,7 +59,6 @@ const App = () => (
               <Route path="/l" element={<LicenseByUrl />} />
               <Route path="/verify" element={<LicenseVerify />} />
               <Route path="/verify/:key" element={<LicenseVerify />} />
-              <Route path="/registry" element={<Registry />} />
               <Route path="/widget-preview" element={<WidgetPreview />} />
               <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
               <Route path="/invite/:token" element={<AcceptInvite />} />
