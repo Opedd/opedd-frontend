@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { decodeText } from "@/lib/utils";
+import { PageLoader } from "@/components/ui/PageLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -330,14 +331,8 @@ export default function Ledger() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <DashboardLayout title="Transactions">
-        <div className="flex-1 flex items-center justify-center py-20">
-          <Loader2 size={40} className="animate-spin text-[#4A26ED]" />
-        </div>
-      </DashboardLayout>
-    );
+  if (isLoading && transactions.length === 0) {
+    return <PageLoader />;
   }
 
   return (

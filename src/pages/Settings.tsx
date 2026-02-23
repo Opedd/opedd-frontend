@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { PageLoader } from "@/components/ui/PageLoader";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -457,9 +458,7 @@ export default function Settings() {
     <DashboardLayout title="Settings">
         <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
           {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="animate-spin text-[#4A26ED]" size={32} />
-            </div>
+            <PageLoader />
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               {/* Global tab style — #4A26ED underline */}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { Plus, Sparkles } from "lucide-react";
+import { PageLoader } from "@/components/ui/PageLoader";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
@@ -46,6 +47,7 @@ export default function Dashboard() {
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
 
   if (!user) return null;
+  if (isLoading && totalAssets === 0) return <PageLoader />;
 
   const openRegisterModal = () => {
     setModalKey(k => k + 1);
