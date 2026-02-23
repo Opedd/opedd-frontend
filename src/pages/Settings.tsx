@@ -767,30 +767,32 @@ export default function Settings() {
                             <FileText size={16} className="text-[#4A26ED]" />
                           </div>
                           <div>
-                            <h2 className="font-bold text-[#040042]">Publisher ID</h2>
-                            <p className="text-slate-500 text-xs">Use this ID in the Widget script</p>
+                            <div className="flex items-center gap-2">
+                              <h2 className="font-bold text-[#040042]">Publisher ID</h2>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide bg-green-100 text-green-700">Public</span>
+                            </div>
+                            <p className="text-slate-500 text-xs">Public identifier — safe to include in HTML and third-party integrations</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
-                            <code className="text-sm text-[#040042] font-mono truncate block">
-                              {publisherIdRevealed ? publisherId : publisherId.slice(0, 8) + "•".repeat(20)}
-                            </code>
+                            <code className="text-sm text-[#040042] font-mono truncate block">{publisherId}</code>
                           </div>
-                          <Button size="sm" variant="outline" onClick={() => setPublisherIdRevealed(!publisherIdRevealed)} className="h-11 px-3 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg transition-all">
-                            {publisherIdRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </Button>
                           <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0 transition-all">
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>
+                        <p className="text-xs text-slate-400 mt-3">Use this in your widget embed snippet, WordPress plugin, and AI defense policy URL</p>
                       </div>
 
                       {/* API Key */}
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
                         <div className="mb-6">
-                          <h2 className="font-bold text-[#040042]">API Key</h2>
-                          <p className="text-[#6B7280] text-xs mt-0.5">For programmatic access to your Opedd account</p>
+                          <div className="flex items-center gap-2">
+                            <h2 className="font-bold text-[#040042]">API Key</h2>
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide bg-red-100 text-red-700">Secret</span>
+                          </div>
+                          <p className="text-[#6B7280] text-xs mt-0.5">Secret key — treat like a password. Never expose in frontend code or HTML</p>
                         </div>
 
                         <div className="space-y-4">
@@ -812,7 +814,7 @@ export default function Settings() {
                               <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                                 <p className="text-xs text-slate-500">
                                   <Shield size={12} className="inline mr-1 text-amber-500" />
-                                  Keep this key secret. Regenerating will invalidate the current key.
+                                  Keep this key secret. Only use it in server-side code. Regenerating will invalidate the current key.
                                 </p>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
