@@ -225,6 +225,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     sourceId: string;
     sourceName: string;
     count: number;
+    updatedCount: number;
   } | null>(null);
   const [inlineVerifyResult, setInlineVerifyResult] = useState<"idle" | "loading" | "success" | "failed">("idle");
   const [copiedInlineCode, setCopiedInlineCode] = useState<"none" | "visible" | "meta">("none");
@@ -501,6 +502,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       // Step 4: Sync succeeded — show inline verification step
       const syncData = await syncRes.json().catch(() => ({}));
       const importedCount = syncData.data?.items_imported ?? syncData.data?.items_found ?? 0;
+      const updatedCount = syncData.data?.items_updated ?? 0;
       setIsConnecting(false);
       setVerificationState({
         token,
@@ -508,6 +510,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         sourceId: rssSourceId,
         sourceName: pubName,
         count: importedCount,
+        updatedCount,
       });
       onSuccess?.();
     } catch (error: any) {
@@ -789,7 +792,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
     const count = await importSitemap(sitemapUrl);
     if (count >= 0) {
-      setVerificationState({ token, platform: "ghost", sourceId, sourceName: pubName, count });
+      setVerificationState({ token, platform: "ghost", sourceId, sourceName: pubName, count, updatedCount: 0 });
       onSuccess?.();
     }
   };
@@ -828,7 +831,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         });
         const count = await importSitemap(sitemapUrl);
         if (count >= 0) {
-          setVerificationState({ token: verifyToken, platform: "wordpress", sourceId, sourceName: pubName, count });
+          setVerificationState({ token: verifyToken, platform: "wordpress", sourceId, sourceName: pubName, count, updatedCount: 0 });
           onSuccess?.();
         }
       } else {
@@ -864,7 +867,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       });
       const count = await importSitemap(selectedFeedUrl);
       if (count >= 0) {
-        setVerificationState({ token, platform: "other", sourceId, sourceName: pubName, count });
+        setVerificationState({ token, platform: "other", sourceId, sourceName: pubName, count, updatedCount: 0 });
         onSuccess?.();
       }
     } else {
@@ -977,7 +980,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               {vCount > 0 && (
                 <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3">
                   <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
-                  <p className="text-sm text-emerald-800 font-medium">{vCount} articles imported — verify to activate licensing</p>
+                  <p className="text-sm text-emerald-800 font-medium">
+                    ✓ {vCount} new articles imported · {verificationState?.updatedCount ?? 0} already existed
+                  </p>
                 </div>
               )}
 
