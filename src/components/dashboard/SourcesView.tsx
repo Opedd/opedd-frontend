@@ -13,7 +13,7 @@ import {
   Globe,
   ShieldCheck,
   DollarSign,
-  AlertTriangle,
+  AlertTriangle, // kept for potential future use
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -304,7 +304,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       </div>
 
       {/* Source Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {sources.map((source) => {
           // Detect platform logo (small badge indicator)
           const platformKey = (source.platform || "").toLowerCase();
@@ -354,10 +354,10 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         Verified
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="text-[10px] px-2 py-0 bg-amber-50 text-amber-700 border-amber-200 gap-1 flex-shrink-0">
-                        <Clock size={8} />
-                        Pending
-                      </Badge>
+                     <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/5 text-[#4A26ED] border-[#4A26ED]/20 gap-1 flex-shrink-0">
+                         <Clock size={8} />
+                         Pending
+                       </Badge>
                     )}
                   </div>
                   <p className="text-xs text-[#040042]/50 truncate">{source.feed_url}</p>
@@ -415,14 +415,14 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 </div>
               )}
 
-              {/* Amber verification banner for pending sources */}
+              {/* Verification banner for pending sources */}
               {isPending && (
-                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <div className="mt-3 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-lg p-3">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                    <ShieldCheck size={14} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-amber-800">Action required — Verify ownership to activate licensing</p>
-                      <p className="text-[11px] text-amber-600 mt-0.5">Add your verification code to your site, then click verify.</p>
+                      <p className="text-xs font-medium text-[#040042]">Verify ownership to activate licensing</p>
+                      <p className="text-[11px] text-[#040042]/50 mt-0.5">Add the verification code to your site, then click verify.</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-2.5">
@@ -432,7 +432,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         ...source,
                         verification_token: tokenLookup[source.id] || source.verification_token || null,
                       })}
-                      className="h-8 text-xs gap-1.5 bg-amber-600 hover:bg-amber-700 text-white"
+                      className="h-7 text-xs gap-1.5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg"
                     >
                       <ShieldCheck size={12} />
                       Verify Ownership
@@ -442,7 +442,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         ...source,
                         verification_token: tokenLookup[source.id] || source.verification_token || null,
                       })}
-                      className="text-xs text-amber-700 hover:text-amber-800 font-medium underline underline-offset-2"
+                      className="text-xs text-[#4A26ED] hover:text-[#3B1ED1] font-medium underline underline-offset-2"
                     >
                       View Code
                     </button>
@@ -454,7 +454,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
               <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#E8F2FB]">
                 {/* Verify or Re-sync based on status */}
                 {isPending ? (
-                  <span className="text-[11px] text-amber-600 font-medium">⚠ Pending verification</span>
+                  <span className="text-[11px] text-[#4A26ED] font-medium">Pending verification</span>
                 ) : (
                   <>
                     <TooltipProvider>
