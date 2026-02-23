@@ -52,6 +52,7 @@ interface Source {
   last_synced_at: string | null;
   created_at: string | null;
   verification_token?: string | null;
+  registration_path?: string;
 }
 
 const platformLogos: Record<string, string> = {
@@ -318,7 +319,10 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             return null;
           })();
           const isVerified = source.sync_status === "active";
-          const isPending = !isVerified;
+          const isNewsletterFeed = !source.registration_path || source.registration_path === "newsletter_feed";
+          const isImportSource = source.registration_path === "bulk_enterprise" || source.registration_path === "single_work";
+          const isImporting = isImportSource && (source.sync_status === "syncing" || source.sync_status === "pending");
+          const isPending = !isVerified && !isImporting;
           const isSyncing = syncingId === source.id;
 
           return (
@@ -352,6 +356,11 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       <Badge variant="outline" className="text-[10px] px-2 py-0 bg-emerald-50 text-emerald-700 border-emerald-200 gap-1 flex-shrink-0">
                         <ShieldCheck size={8} />
                         Verified
+                      </Badge>
+                    ) : isImporting ? (
+                      <Badge variant="outline" className="text-[10px] px-2 py-0 bg-blue-50 text-blue-600 border-blue-200 gap-1 flex-shrink-0">
+                        <Loader2 size={8} className="animate-spin" />
+                        Importing
                       </Badge>
                     ) : (
                      <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/5 text-[#4A26ED] border-[#4A26ED]/20 gap-1 flex-shrink-0">
@@ -415,8 +424,21 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 </div>
               )}
 
-              {/* Verification banner for pending sources */}
-              {isPending && (
+              {/* Import in progress banner for sitemap/enterprise sources */}
+              {isImporting && (
+                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+                  <Loader2 size={14} className="text-blue-500 mt-0.5 flex-shrink-0 animate-spin" />
+                  <div className="text-xs text-blue-700">
+                    <p className="font-medium">Import in progress</p>
+                    <p className="mt-0.5 text-blue-600">
+                      We're importing your content. Articles will appear automatically once processing is complete.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Verification banner for pending newsletter/RSS sources only */}
+              {isPending && isNewsletterFeed && (
                 <div className="mt-3 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-lg p-3">
                   <div className="flex items-start gap-2">
                     <ShieldCheck size={14} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
@@ -453,8 +475,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
               {/* Actions */}
               <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#E8F2FB]">
                 {/* Verify or Re-sync based on status */}
-                {isPending ? (
+                {isImporting ? (
+                  <span className="text-[11px] text-blue-500 font-medium">Import in progress…</span>
+                ) : isPending && isNewsletterFeed ? (
                   <span className="text-[11px] text-[#4A26ED] font-medium">Pending verification</span>
+                ) : isPending ? (
+                  <span className="text-[11px] text-[#040042]/40 font-medium">Processing</span>
                 ) : (
                   <>
                     <TooltipProvider>
