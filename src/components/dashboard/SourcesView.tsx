@@ -241,25 +241,16 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     }
   };
 
-  // Fetch verification tokens from API
-  const fetchTokens = async () => {
-    try {
-      const apiSources = await contentSources.list<Array<{ id: string; verification_token?: string }>>();
-      if (Array.isArray(apiSources)) {
-        const lookup: Record<string, string> = {};
-        apiSources.forEach((s) => {
-          if (s.verification_token) lookup[s.id] = s.verification_token;
-        });
-        setTokenLookup(lookup);
-      }
-    } catch {
-      // Token fetch is best-effort
-    }
-  };
-
+  // Fetch verification tokens from sources already loaded
   useEffect(() => {
-    if (user) fetchTokens();
-  }, [user]);
+    if (sources.length > 0) {
+      const lookup: Record<string, string> = {};
+      sources.forEach((s) => {
+        if (s.verification_token) lookup[s.id] = s.verification_token;
+      });
+      setTokenLookup(lookup);
+    }
+  }, [sources]);
 
   if (isLoading) {
     return (
