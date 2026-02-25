@@ -8,9 +8,11 @@ import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
+import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -25,6 +27,24 @@ export default function Dashboard() {
   const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single" | "enterprise">("choice");
   const [modalKey, setModalKey] = useState(0);
   const [sourcesKey, setSourcesKey] = useState(0);
+
+  // Check if user has any active publications (for setup flow vs dashboard)
+  const [hasActivePublication, setHasActivePublication] = useState<boolean | null>(null);
+  const [setupDismissed, setSetupDismissed] = useState(false);
+
+  const checkPublications = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, count } = await supabase
+        .from("rss_sources")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("sync_status", "active");
+      setHasActivePublication((count ?? 0) > 0);
+    } catch {
+      setHasActivePublication(false);
+    }
+  }, [user]);
 
   const fetchMetrics = useCallback(async () => {
     if (!user) return;
@@ -45,10 +65,29 @@ export default function Dashboard() {
     }
   }, [user, licenses]);
 
+  useEffect(() => { checkPublications(); }, [checkPublications]);
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
 
   if (!user) return null;
-  if (isLoading && totalAssets === 0) return <PageLoader />;
+  if (hasActivePublication === null || (isLoading && totalAssets === 0)) return <PageLoader />;
+
+  // Show setup flow if no active publications and not dismissed
+  const showSetupFlow = !hasActivePublication && !setupDismissed;
+
+  if (showSetupFlow) {
+    return (
+      <DashboardLayout title="Dashboard">
+        <PublicationSetupFlow
+          onComplete={() => {
+            setSetupDismissed(true);
+            setHasActivePublication(true);
+            fetchMetrics();
+            setSourcesKey(k => k + 1);
+          }}
+        />
+      </DashboardLayout>
+    );
+  }
 
   const openRegisterModal = () => {
     setModalKey(k => k + 1);
@@ -59,17 +98,6 @@ export default function Dashboard() {
   return (
     <DashboardLayout title="Dashboard">
       <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
-        {/* Action Button */}
-        <div className="flex items-center justify-end">
-          <button
-            onClick={openRegisterModal}
-            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white h-9 px-4 rounded-lg font-medium text-sm flex items-center gap-2 transition-all active:scale-[0.98]"
-          >
-            <Plus size={16} />
-            Register Content
-          </button>
-        </div>
-
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
@@ -86,21 +114,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Getting Started Banner */}
-        {totalAssets === 0 && !isLoading && (
-          <div className="bg-[#4A26ED]/[0.08] border border-[#4A26ED]/20 rounded-xl p-4 flex items-center gap-4 flex-wrap">
-            <Sparkles size={20} className="text-[#4A26ED] flex-shrink-0" />
-            <span className="text-sm font-bold text-[#040042]">Get started in 3 steps</span>
-            <div className="flex items-center gap-1.5 text-sm flex-wrap">
-              <button onClick={openRegisterModal} className="text-[#4A26ED] font-medium hover:underline">1. Register content</button>
-              <span className="text-slate-300">·</span>
-              <span className="text-slate-400">2. Verify ownership</span>
-              <span className="text-slate-300">·</span>
-              <button onClick={() => navigate("/connectors")} className="text-[#4A26ED] font-medium hover:underline">3. Embed widget</button>
-            </div>
-          </div>
-        )}
-
         {/* Import Progress Banner */}
         <ImportProgressBanner onComplete={fetchMetrics} />
 
@@ -111,7 +124,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Register Content Modal */}
+      {/* Register Content Modal (for adding additional publications) */}
       <RegisterContentModal
         key={modalKey}
         open={isAddModalOpen}
