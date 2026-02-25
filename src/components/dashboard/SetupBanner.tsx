@@ -30,9 +30,13 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
   const steps = [
     { label: "Publication", done: true },
     { label: "Verified", done: true },
-    { label: "Pricing", done: pricingDone },
+    { label: "Rates", done: pricingDone },
     { label: "Widget", done: widgetDone },
   ];
+
+  const subtitle = !pricingDone
+    ? "Widget is live in request mode — add rates to enable instant checkout"
+    : "Complete your setup to go fully live";
 
   return (
     <div className="bg-[#040042] rounded-2xl px-6 py-4 relative">
@@ -45,12 +49,11 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
       </button>
 
       {/* Title */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-1">
         <Zap size={16} className="text-[#A78BFA] flex-shrink-0" />
-        <span className="text-white font-semibold text-sm">Verified and live</span>
-        <span className="text-white/50 text-sm">·</span>
-        <span className="text-white/60 text-sm">Complete your setup to go fully live</span>
+        <span className="text-white font-semibold text-sm">Your publication is verified and live</span>
       </div>
+      <p className="text-white/50 text-sm mb-3 ml-[28px]">{subtitle}</p>
 
       {/* Step pills + actions */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -75,7 +78,7 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
             onClick={onSetPricing}
             className="border border-white/20 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors font-medium"
           >
-            Set pricing
+            Set your rates
           </button>
         )}
         {!widgetDone && (

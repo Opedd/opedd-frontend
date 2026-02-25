@@ -105,7 +105,8 @@ export default function Settings() {
   const [bio, setBio] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [defaultHumanPrice, setDefaultHumanPrice] = useState("5.00");
-  const [defaultAiPrice, setDefaultAiPrice] = useState("10.00");
+  const [defaultSyndicationPrice, setDefaultSyndicationPrice] = useState("500.00");
+  const [defaultAiPrice, setDefaultAiPrice] = useState("");
 
   // Developer state
   const [publisherIdCopied, setPublisherIdCopied] = useState(false);
@@ -167,8 +168,9 @@ export default function Settings() {
         setPublisherName(d.name || "");
         setBio(d.description || "");
         setWebsiteUrl(d.website_url || "");
-        setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "5.00");
-        setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "10.00");
+        setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "25.00");
+        setDefaultSyndicationPrice((d as any).default_syndication_price != null ? String((d as any).default_syndication_price) : "500.00");
+        setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "");
         setLogoPreview(d.logo_url || null);
         setExcludedPatterns(d.excluded_url_patterns || []);
         // Load category pricing rules
@@ -348,7 +350,8 @@ export default function Settings() {
         body: JSON.stringify({
           name: publisherName,
           default_human_price: parseFloat(defaultHumanPrice) || 0,
-          default_ai_price: parseFloat(defaultAiPrice) || 0,
+          default_syndication_price: parseFloat(defaultSyndicationPrice) || 0,
+          default_ai_price: defaultAiPrice ? parseFloat(defaultAiPrice) : null,
           website_url: websiteUrl,
           description: bio,
         }),
@@ -466,6 +469,7 @@ export default function Settings() {
                 <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
                   {[
                     { value: "profile", label: "Profile" },
+                    { value: "monetisation", label: "Monetisation" },
                     { value: "content", label: "Content" },
                     { value: "api-keys", label: "API Keys" },
                     { value: "team", label: "Team" },
@@ -597,37 +601,112 @@ export default function Settings() {
                         </div>
                       </div>
 
-                      {/* Pricing Defaults Card */}
-                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                        <div className="mb-6">
-                          <h2 className="font-bold text-[#040042]">Pricing Defaults</h2>
-                          <p className="text-[#6B7280] text-xs mt-0.5">Standard prices applied to newly synced articles</p>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-[#040042] font-bold text-sm">Default Human License Price</Label>
-                            <p className="text-xs text-slate-500">Applied to new articles from synced sources.</p>
-                            <div className="relative">
-                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40 font-semibold text-sm">$</span>
-                              <Input type="number" min="0" step="0.01" value={defaultHumanPrice} onChange={(e) => setDefaultHumanPrice(e.target.value)} className="bg-slate-50 border-slate-200 h-12 rounded-lg pl-8 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[#040042] font-bold text-sm">Default AI Training License Price</Label>
-                            <p className="text-xs text-slate-500">Fee for AI companies ingesting your content.</p>
-                            <div className="relative">
-                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#040042]/40 font-semibold text-sm">$</span>
-                              <Input type="number" min="0" step="0.01" value={defaultAiPrice} onChange={(e) => setDefaultAiPrice(e.target.value)} className="bg-slate-50 border-slate-200 h-12 rounded-lg pl-8 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-3">These prices will be applied automatically when new articles are synced from your connected sources.</p>
-                      </div>
-
                       {/* Save Button */}
                       <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
+                    </motion.div>
+                  )}
+                </TabsContent>
+
+                {/* TAB: Monetisation */}
+                <TabsContent value="monetisation" className="mt-6" forceMount={activeTab === "monetisation" ? true : undefined}>
+                  {activeTab === "monetisation" && (
+                    <motion.div key="monetisation" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {/* Info note */}
+                      <div className="bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-xl px-4 py-3">
+                        <p className="text-sm text-[#040042]/70">
+                          These are your publication defaults. You can override pricing on individual articles from the Content page.
+                        </p>
+                      </div>
+
+                      {/* Default Rates Card */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-5">
+                        <h2 className="font-bold text-[#040042]">Default rates</h2>
+
+                        {/* Permission rate */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-baseline justify-between">
+                            <Label className="text-[#040042] font-bold text-sm">Permission rate</Label>
+                            <span className="text-xs text-slate-400">per article</span>
+                          </div>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                            <Input type="number" min="0" step="0.01" value={defaultHumanPrice} onChange={(e) => setDefaultHumanPrice(e.target.value)} className="bg-white border-slate-200 h-11 rounded-xl pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                          </div>
+                          <p className="text-xs text-slate-500 italic">For students, bloggers, and small reuse. Typical range: $10 – $50</p>
+                        </div>
+
+                        <div className="border-t border-slate-100" />
+
+                        {/* Syndication rate */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-baseline justify-between">
+                            <Label className="text-[#040042] font-bold text-sm">Syndication rate</Label>
+                            <span className="text-xs text-slate-400">starting from, per article</span>
+                          </div>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                            <Input type="number" min="0" step="0.01" value={defaultSyndicationPrice} onChange={(e) => setDefaultSyndicationPrice(e.target.value)} className="bg-white border-slate-200 h-11 rounded-xl pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                          </div>
+                          <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
+                        </div>
+
+                        <div className="border-t border-slate-100" />
+
+                        {/* AI training rate */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-baseline justify-between">
+                            <Label className="text-[#040042] font-bold text-sm">AI training rate</Label>
+                            <span className="text-xs text-slate-400">per article (optional)</span>
+                          </div>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                            <Input type="number" min="0" step="0.01" value={defaultAiPrice} onChange={(e) => setDefaultAiPrice(e.target.value)} placeholder="0.00" className="bg-white border-slate-200 h-11 rounded-xl pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                          </div>
+                          <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
+                        </div>
+
+                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
+                          {isSaving ? "Saving..." : "Save rates"}
+                        </Button>
+                      </div>
+
+                      {/* Widget Preview */}
+                      <div className="border-t border-slate-100 pt-6">
+                        <h3 className="text-sm font-semibold text-[#040042] mb-3">Widget preview</h3>
+                        <div className="flex gap-3 flex-wrap">
+                          {defaultHumanPrice && parseFloat(defaultHumanPrice) > 0 ? (
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
+                              <p className="text-sm font-semibold text-[#040042]">Permission <span className="text-[#4A26ED]">${defaultHumanPrice}</span></p>
+                              <p className="text-xs text-slate-500 mt-0.5">Instant license</p>
+                            </div>
+                          ) : (
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
+                              <p className="text-sm font-medium text-slate-500">Request permission →</p>
+                            </div>
+                          )}
+                          {defaultSyndicationPrice && parseFloat(defaultSyndicationPrice) > 0 ? (
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
+                              <p className="text-sm font-semibold text-[#040042]">Syndication <span className="text-[#4A26ED]">${defaultSyndicationPrice}+</span></p>
+                              <p className="text-xs text-slate-500 mt-0.5">Full rights</p>
+                            </div>
+                          ) : (
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
+                              <p className="text-sm font-medium text-slate-500">Request syndication →</p>
+                            </div>
+                          )}
+                          {defaultAiPrice && parseFloat(defaultAiPrice) > 0 && (
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
+                              <p className="text-sm font-semibold text-[#040042]">AI Training <span className="text-[#4A26ED]">${defaultAiPrice}</span></p>
+                              <p className="text-xs text-slate-500 mt-0.5">Dataset license</p>
+                            </div>
+                          )}
+                        </div>
+                        {(!defaultHumanPrice || parseFloat(defaultHumanPrice) === 0) && (!defaultSyndicationPrice || parseFloat(defaultSyndicationPrice) === 0) && (
+                          <p className="text-xs text-slate-400 mt-2 italic">If rates are blank, widget shows "Request pricing →"</p>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </TabsContent>
