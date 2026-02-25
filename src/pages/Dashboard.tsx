@@ -1,18 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
-import { RegisterContentModal } from "@/components/dashboard/RegisterContentModal";
 import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
+import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -23,19 +30,23 @@ export default function Dashboard() {
   const [protectedCount, setProtectedCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [modalInitialView, setModalInitialView] = useState<"choice" | "publication" | "single" | "enterprise">("choice");
-  const [modalKey, setModalKey] = useState(0);
   const [sourcesKey, setSourcesKey] = useState(0);
 
-  // Check if user has any active publications (for setup flow vs dashboard)
+  // Setup flow state
   const [hasActivePublication, setHasActivePublication] = useState<boolean | null>(null);
   const [setupDismissed, setSetupDismissed] = useState(false);
+  const [addPubDrawerOpen, setAddPubDrawerOpen] = useState(false);
+
+  // Track incomplete setup steps for banner
+  const [setupCompletion, setSetupCompletion] = useState<{ pricingDone: boolean; widgetDone: boolean }>({
+    pricingDone: true,
+    widgetDone: true,
+  });
 
   const checkPublications = useCallback(async () => {
     if (!user) return;
     try {
-      const { data, count } = await supabase
+      const { count } = await supabase
         .from("rss_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
@@ -71,16 +82,21 @@ export default function Dashboard() {
   if (!user) return null;
   if (hasActivePublication === null || (isLoading && totalAssets === 0)) return <PageLoader />;
 
-  // Show setup flow if no active publications and not dismissed
   const showSetupFlow = !hasActivePublication && !setupDismissed;
 
   if (showSetupFlow) {
     return (
       <DashboardLayout title="Dashboard">
         <PublicationSetupFlow
-          onComplete={() => {
+          onComplete={(completionState) => {
             setSetupDismissed(true);
             setHasActivePublication(true);
+            if (completionState) {
+              setSetupCompletion({
+                pricingDone: completionState.pricingDone,
+                widgetDone: completionState.widgetDone,
+              });
+            }
             fetchMetrics();
             setSourcesKey(k => k + 1);
           }}
@@ -89,15 +105,34 @@ export default function Dashboard() {
     );
   }
 
-  const openRegisterModal = () => {
-    setModalKey(k => k + 1);
-    setModalInitialView("choice");
-    setIsAddModalOpen(true);
-  };
+  const showBanner = !setupCompletion.pricingDone || !setupCompletion.widgetDone;
 
   return (
-    <DashboardLayout title="Dashboard">
+    <DashboardLayout
+      title="Dashboard"
+      headerActions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setAddPubDrawerOpen(true)}
+          className="h-9 px-4 rounded-lg border-slate-200 text-[#040042] text-sm font-medium"
+        >
+          <Plus size={15} className="mr-1.5 flex-shrink-0" />
+          Add publication
+        </Button>
+      }
+    >
       <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
+        {/* Fix 3: Incomplete setup banner */}
+        {showBanner && (
+          <SetupBanner
+            pricingDone={setupCompletion.pricingDone}
+            widgetDone={setupCompletion.widgetDone}
+            onSetPricing={() => setAddPubDrawerOpen(true)}
+            onEmbedWidget={() => navigate("/connectors")}
+          />
+        )}
+
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
@@ -120,24 +155,30 @@ export default function Dashboard() {
         {/* Sources Section */}
         <div>
           <h2 className="text-lg font-semibold text-[#040042] mb-4">Sources</h2>
-          <SourcesView key={sourcesKey} onAddSource={openRegisterModal} />
+          <SourcesView key={sourcesKey} onAddSource={() => setAddPubDrawerOpen(true)} />
         </div>
       </div>
 
-      {/* Register Content Modal (for adding additional publications) */}
-      <RegisterContentModal
-        key={modalKey}
-        open={isAddModalOpen}
-        onOpenChange={(open) => { setIsAddModalOpen(open); if (!open) setSourcesKey(k => k + 1); }}
-        initialView={modalInitialView}
-        onSuccess={() => {
-          fetchMetrics();
-          toast({
-            title: "Content Protected",
-            description: "Your content has been registered and synced to your library",
-          });
-        }}
-      />
+      {/* Fix 5: Add Publication Drawer */}
+      <Sheet open={addPubDrawerOpen} onOpenChange={setAddPubDrawerOpen}>
+        <SheetContent side="right" className="sm:max-w-xl w-full p-0 overflow-y-auto">
+          <div className="bg-[#040042] px-6 py-5">
+            <SheetTitle className="text-white text-lg font-bold">Add publication</SheetTitle>
+          </div>
+          <PublicationSetupFlow
+            onComplete={() => {
+              setAddPubDrawerOpen(false);
+              setHasActivePublication(true);
+              fetchMetrics();
+              setSourcesKey(k => k + 1);
+              toast({
+                title: "Publication added",
+                description: "Your new publication has been set up successfully",
+              });
+            }}
+          />
+        </SheetContent>
+      </Sheet>
     </DashboardLayout>
   );
 }
