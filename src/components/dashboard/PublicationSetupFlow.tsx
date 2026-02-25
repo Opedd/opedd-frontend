@@ -69,7 +69,8 @@ interface StepData {
   articleCount: number;
   sourceId: string;
   verificationToken: string;
-  humanPrice: string;
+  permissionPrice: string;
+  syndicationPrice: string;
   aiPrice: string;
   widgetCopied: boolean;
   widgetSkipped: boolean;
@@ -107,8 +108,9 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     articleCount: 0,
     sourceId: "",
     verificationToken: generateVerificationCode(),
-    humanPrice: "4.99",
-    aiPrice: "49.99",
+    permissionPrice: "25.00",
+    syndicationPrice: "500.00",
+    aiPrice: "",
     widgetCopied: false,
     widgetSkipped: false,
     pricingSkipped: false,
@@ -326,8 +328,8 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     }
   };
 
-  // ─── Step 3: Save Pricing ───
-  const handleSavePricing = async () => {
+  // ─── Step 3: Save Rates ───
+  const handleSaveRates = async () => {
     if (!data.sourceId) return;
     setIsSavingPricing(true);
     try {
@@ -341,15 +343,17 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
         },
         body: JSON.stringify({
           sourceId: data.sourceId,
-          humanPrice: parseFloat(data.humanPrice) || 4.99,
-          aiPrice: parseFloat(data.aiPrice) || 49.99,
+          humanPrice: parseFloat(data.permissionPrice) || 0,
+          syndicationPrice: parseFloat(data.syndicationPrice) || 0,
+          aiPrice: data.aiPrice ? parseFloat(data.aiPrice) : null,
           licensingEnabled: true,
         }),
       });
       markStepDone(3);
-      toast({ title: "Pricing saved", description: `$${data.humanPrice} human · $${data.aiPrice} AI` });
+      const aiLabel = data.aiPrice ? `$${data.aiPrice}` : "disabled";
+      toast({ title: "Rates saved", description: `Permission $${data.permissionPrice} · Syndication from $${data.syndicationPrice} · AI ${aiLabel}` });
     } catch {
-      toast({ title: "Failed to save pricing", variant: "destructive" });
+      toast({ title: "Failed to save rates", variant: "destructive" });
     } finally {
       setIsSavingPricing(false);
     }
@@ -430,7 +434,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-white">You're live on Opedd</h2>
             <p className="text-sm text-[#A78BFA] mt-0.5">
-              {data.pubUrl} · Verified · {data.articleCount} articles{!data.pricingSkipped && ` · $${data.humanPrice}`}
+              {data.pubUrl} · Verified · {data.articleCount} articles{!data.pricingSkipped && ` · Permission $${data.permissionPrice}`}
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -780,70 +784,103 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           )}
         </StepCard>
 
-        {/* Step 3: Set Your Pricing */}
+        {/* Step 3: Set Your Rates */}
         <StepCard
           step={3}
-          title="Set your pricing"
+          title="Set your rates"
           state={stepState[3]}
           doneSummary={
             stepState[3] === "skipped" || data.pricingSkipped
               ? "Not set yet"
-              : `Pricing set · $${data.humanPrice} human · $${data.aiPrice} AI`
+              : `Rates set · Permission $${data.permissionPrice} · Syndication from $${data.syndicationPrice} · AI ${data.aiPrice ? `$${data.aiPrice}` : "disabled"}`
           }
           doneSummaryAmber={stepState[3] === "skipped" || data.pricingSkipped}
           StepCircle={StepCircle}
           onClick={() => handleStepClick(3)}
         >
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-[#040042] block mb-1.5">Human license price</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={data.humanPrice}
-                    onChange={e => setData(d => ({ ...d, humanPrice: e.target.value }))}
-                    className="pl-7"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">per use</span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1">Charged per article, per buyer</p>
+          <div className="space-y-1">
+            <p className="text-sm text-slate-600 mb-4">
+              These become your defaults across all articles. You can override per-article later.
+            </p>
+
+            {/* Permission rate */}
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <label className="text-sm font-semibold text-[#040042]">Permission rate</label>
+                <span className="text-xs text-slate-400">per article</span>
               </div>
-              <div>
-                <label className="text-sm font-medium text-[#040042] block mb-1.5">AI license price</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={data.aiPrice}
-                    onChange={e => setData(d => ({ ...d, aiPrice: e.target.value }))}
-                    className="pl-7"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">per use</span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1">Typically 10–50× the human rate for AI training use</p>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                <Input
+                  type="number" step="0.01" min="0"
+                  value={data.permissionPrice}
+                  onChange={e => setData(d => ({ ...d, permissionPrice: e.target.value }))}
+                  className="pl-7 h-11 rounded-xl border-slate-200"
+                />
               </div>
+              <p className="text-xs text-slate-500 italic">For students, bloggers, and small reuse. Typical range: $10 – $50</p>
             </div>
-            <button
-              onClick={handleSavePricing}
-              disabled={isSavingPricing}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-            >
-              {isSavingPricing ? (
-                <Loader2 size={16} className="animate-spin flex-shrink-0" />
-              ) : (
-                <span>Save pricing</span>
-              )}
-            </button>
-            <button
-              onClick={handleSkipPricing}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              Skip for now →
-            </button>
+
+            <div className="border-t border-slate-100 my-4" />
+
+            {/* Syndication rate */}
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <label className="text-sm font-semibold text-[#040042]">Syndication rate</label>
+                <span className="text-xs text-slate-400">starting from, per article</span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                <Input
+                  type="number" step="0.01" min="0"
+                  value={data.syndicationPrice}
+                  onChange={e => setData(d => ({ ...d, syndicationPrice: e.target.value }))}
+                  className="pl-7 h-11 rounded-xl border-slate-200"
+                />
+              </div>
+              <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
+            </div>
+
+            <div className="border-t border-slate-100 my-4" />
+
+            {/* AI training rate */}
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <label className="text-sm font-semibold text-[#040042]">AI training rate</label>
+                <span className="text-xs text-slate-400">per article (optional)</span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                <Input
+                  type="number" step="0.01" min="0"
+                  value={data.aiPrice}
+                  onChange={e => setData(d => ({ ...d, aiPrice: e.target.value }))}
+                  placeholder="0.00"
+                  className="pl-7 h-11 rounded-xl border-slate-200"
+                />
+              </div>
+              <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
+            </div>
+
+            <div className="pt-4 space-y-2">
+              <button
+                onClick={handleSaveRates}
+                disabled={isSavingPricing}
+                className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
+              >
+                {isSavingPricing ? (
+                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                ) : (
+                  <span>Save rates</span>
+                )}
+              </button>
+              <button
+                onClick={handleSkipPricing}
+                className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors text-center"
+              >
+                Skip for now →
+              </button>
+            </div>
           </div>
         </StepCard>
 

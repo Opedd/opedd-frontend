@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
-import { Shield, Clock, Loader2, FileText, Eye, AlertTriangle, Archive, DollarSign, Copy, Check } from "lucide-react";
+import { Shield, Clock, Loader2, FileText, Eye, AlertTriangle, Archive, DollarSign, Copy, Check, MoreHorizontal, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { decodeText } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Asset, AssetStatus } from "@/types/asset";
 
 import substackLogo from "@/assets/platforms/substack.svg";
@@ -86,6 +93,70 @@ function hasLivePrice(asset: Asset): boolean {
     (asset.metadata && ((asset.metadata as any).human_price > 0 || (asset.metadata as any).ai_price > 0));
   // Check if licensing_enabled via status being protected/verified
   return (asset.status === "protected" || asset.status === "verified") && !!hasPrice;
+}
+
+// Per-article pricing popover
+function ArticlePricingPopover({ assetId, children }: { assetId: string; children: React.ReactNode }) {
+  const { toast } = useToast();
+  const [permission, setPermission] = useState("25.00");
+  const [syndication, setSyndication] = useState("500.00");
+  const [ai, setAi] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const resetDefaults = () => {
+    setPermission("25.00");
+    setSyndication("500.00");
+    setAi("");
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverContent className="w-72 p-4 space-y-3" align="end" onClick={e => e.stopPropagation()}>
+        <h4 className="text-sm font-semibold text-[#040042]">Edit pricing</h4>
+        <div className="space-y-2">
+          <div>
+            <label className="text-xs font-medium text-[#040042]">Permission</label>
+            <div className="relative mt-1">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+              <Input type="number" step="0.01" min="0" value={permission} onChange={e => setPermission(e.target.value)} className="h-8 pl-6 text-xs rounded-lg border-slate-200" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-[#040042]">Syndication</label>
+            <div className="relative mt-1">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+              <Input type="number" step="0.01" min="0" value={syndication} onChange={e => setSyndication(e.target.value)} className="h-8 pl-6 text-xs rounded-lg border-slate-200" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-[#040042]">AI training <span className="text-slate-400 font-normal">(optional)</span></label>
+            <div className="relative mt-1">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+              <Input type="number" step="0.01" min="0" value={ai} onChange={e => setAi(e.target.value)} placeholder="0.00" className="h-8 pl-6 text-xs rounded-lg border-slate-200" />
+            </div>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          className="w-full h-8 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-xs rounded-lg"
+          onClick={() => {
+            toast({ title: "Pricing saved", description: "Article pricing updated." });
+            setOpen(false);
+          }}
+        >
+          Save for this article
+        </Button>
+        <button
+          onClick={resetDefaults}
+          className="w-full text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 justify-center transition-colors"
+        >
+          <RotateCcw size={10} className="flex-shrink-0" />
+          Reset to defaults
+        </button>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function AssetGrid({ 
@@ -258,6 +329,17 @@ export function AssetGrid({
                       <Eye size={12} />
                       View
                     </span>
+                  )}
+                  {!selectionMode && (
+                    <ArticlePricingPopover assetId={asset.id}>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[#040042]/30 hover:text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-all"
+                        title="Edit pricing"
+                      >
+                        <MoreHorizontal size={14} />
+                      </button>
+                    </ArticlePricingPopover>
                   )}
                 </div>
               </div>
