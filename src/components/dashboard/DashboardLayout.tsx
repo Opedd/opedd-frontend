@@ -81,9 +81,10 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
+  headerActions?: React.ReactNode;
 }
 
-export function DashboardLayout({ children, title, subtitle }: DashboardLayoutProps) {
+export function DashboardLayout({ children, title, subtitle, headerActions }: DashboardLayoutProps) {
   const { user, logout, getAccessToken } = useAuth();
   const location = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -346,8 +347,9 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
             )}
           </div>
 
-          {/* Right side — notification bell only */}
-          <div className="flex items-center gap-1">
+          {/* Right side — actions + notification bell */}
+          <div className="flex items-center gap-2">
+            {headerActions}
             <Popover open={bellOpen} onOpenChange={setBellOpen}>
               <PopoverTrigger asChild>
                 <button className="relative p-2 rounded-md hover:bg-[#F5F5F5] transition-colors">

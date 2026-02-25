@@ -11,6 +11,7 @@ import {
   ArrowRight,
   ExternalLink,
   Sparkles,
+  Download,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,7 +41,26 @@ const PLATFORMS: PlatformOption[] = [
   { key: "custom", name: "Custom / Enterprise", descriptor: "Media company", logo: null, placeholder: "theinformation.com" },
 ];
 
-type StepState = "locked" | "active" | "verifying" | "done";
+const IMPORT_INFO: Record<Platform, { text: string; hasChoice?: boolean }> = {
+  substack: {
+    text: "Substack publishes a public RSS feed. We'll sync your articles automatically — no extra setup needed. Your archive updates daily.",
+  },
+  beehiiv: {
+    text: "We'll connect via the Beehiiv API (you'll provide your API key in the next step). This gives us access to your full archive with complete article text.",
+  },
+  ghost: {
+    text: "We'll connect via the Ghost Content API (you'll provide your API key in the next step). Full archive, complete article text, tags, and authors.",
+  },
+  wordpress: {
+    text: "We'll import via the WordPress REST API using an Application Password (you'll set this up in the next step). Full archive with complete text.",
+  },
+  custom: {
+    text: "",
+    hasChoice: true,
+  },
+};
+
+type StepState = "locked" | "active" | "verifying" | "done" | "skipped";
 
 interface StepData {
   platform: Platform | null;
@@ -53,7 +73,10 @@ interface StepData {
   aiPrice: string;
   widgetCopied: boolean;
   widgetSkipped: boolean;
+  pricingSkipped: boolean;
   publisherId: string;
+  customImportMethod: "sitemap" | "api_push";
+  customSitemapUrl: string;
 }
 
 const generateVerificationCode = () => {
@@ -64,7 +87,7 @@ const generateVerificationCode = () => {
 };
 
 interface PublicationSetupFlowProps {
-  onComplete: () => void;
+  onComplete: (completionState?: { pricingDone: boolean; widgetDone: boolean }) => void;
 }
 
 export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) {
@@ -88,7 +111,10 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     aiPrice: "49.99",
     widgetCopied: false,
     widgetSkipped: false,
+    pricingSkipped: false,
     publisherId: "",
+    customImportMethod: "sitemap",
+    customSitemapUrl: "",
   });
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -119,14 +145,15 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     setCompletedSteps(prev => new Set([...prev, step]));
     setStepState(prev => ({ ...prev, [step]: "done" }));
     const next = step + 1;
-    if (next <= 4) {
+    if (next <= 4 && stepState[next] === "locked") {
       setCurrentStep(next);
       setStepState(prev => ({ ...prev, [next]: "active" }));
     }
   };
 
   const completedCount = completedSteps.size;
-  const isAllDone = completedSteps.has(1) && completedSteps.has(2) && completedSteps.has(3);
+  const requiredDone = completedSteps.has(1) && completedSteps.has(2);
+  const isAllDone = requiredDone && completedSteps.has(3) && completedSteps.has(4);
 
   const handleCopy = async (text: string, key: string) => {
     try {
@@ -134,6 +161,16 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
       setCopied(key);
       setTimeout(() => setCopied(null), 2000);
     } catch {}
+  };
+
+  const handleStepClick = (step: number) => {
+    const state = stepState[step];
+    if (state === "locked") return;
+    // Allow re-opening done/skipped steps
+    if (state === "done" || state === "skipped") {
+      setStepState(prev => ({ ...prev, [step]: "active" }));
+      setCurrentStep(step);
+    }
   };
 
   // ─── Step 1: Connect Publication ───
@@ -150,7 +187,6 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
 
       const verifyToken = generateVerificationCode();
 
-      // Determine feed/sitemap URL based on platform
       let feedUrl = `https://${domain}`;
       let registrationPath = "newsletter_feed";
 
@@ -168,7 +204,6 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
         registrationPath = "bulk_enterprise";
       }
 
-      // Insert rss_sources record
       const { data: existing } = await supabase
         .from("rss_sources")
         .select("id")
@@ -201,10 +236,8 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
         sourceId = inserted?.id || "";
       }
 
-      // Trigger sync/import
       let articleCount = 0;
       if (data.platform === "substack" || data.platform === "beehiiv") {
-        // RSS sync
         const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
           method: "POST",
           headers: {
@@ -219,9 +252,8 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           articleCount = syncData.data?.items_imported ?? syncData.data?.items_found ?? 0;
         }
       } else {
-        // Sitemap import (background)
         const sitemapUrl = data.platform === "custom"
-          ? `https://${domain}/sitemap.xml`
+          ? (data.customSitemapUrl.trim() || `https://${domain}/sitemap.xml`)
           : feedUrl;
         const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
           method: "POST",
@@ -238,7 +270,6 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
         }
       }
 
-      // Update source record
       await supabase.from("rss_sources").update({
         sync_status: "active",
         article_count: articleCount,
@@ -324,6 +355,16 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     }
   };
 
+  const handleSkipPricing = () => {
+    setData(d => ({ ...d, pricingSkipped: true }));
+    setCompletedSteps(prev => new Set([...prev, 3]));
+    setStepState(prev => ({ ...prev, 3: "skipped" }));
+    if (stepState[4] === "locked") {
+      setCurrentStep(4);
+      setStepState(prev => ({ ...prev, 4: "active" }));
+    }
+  };
+
   // ─── Step 4: Widget ───
   const widgetCode = data.publisherId
     ? `<script src="${EXT_SUPABASE_URL}/functions/v1/widget"\n  data-publisher-id="${data.publisherId}"\n  async></script>`
@@ -332,7 +373,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
   const handleSkipWidget = () => {
     setData(d => ({ ...d, widgetSkipped: true }));
     setCompletedSteps(prev => new Set([...prev, 4]));
-    setStepState(prev => ({ ...prev, 4: "done" }));
+    setStepState(prev => ({ ...prev, 4: "skipped" }));
   };
 
   const handleWidgetDone = () => {
@@ -346,6 +387,13 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
       return (
         <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
           <Check size={16} strokeWidth={2.5} />
+        </div>
+      );
+    }
+    if (state === "skipped") {
+      return (
+        <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+          <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
         </div>
       );
     }
@@ -374,7 +422,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
   return (
     <div className="p-8 max-w-3xl w-full mx-auto space-y-6">
       {/* Header Card */}
-      {isAllDone ? (
+      {requiredDone && (completedSteps.has(3) || data.pricingSkipped) && (completedSteps.has(4) || data.widgetSkipped) ? (
         <div className="bg-[#040042] rounded-2xl p-6 flex items-center gap-4 flex-wrap">
           <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
             <Check size={20} className="text-white" />
@@ -382,18 +430,19 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-white">You're live on Opedd</h2>
             <p className="text-sm text-[#A78BFA] mt-0.5">
-              {data.pubUrl} · Verified · {data.articleCount} articles · ${data.humanPrice}
+              {data.pubUrl} · Verified · {data.articleCount} articles{!data.pricingSkipped && ` · $${data.humanPrice}`}
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <button
-              onClick={onComplete}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm"
+              onClick={() => onComplete({
+                pricingDone: stepState[3] === "done",
+                widgetDone: stepState[4] === "done",
+              })}
+              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
             >
-              Go to dashboard
-            </button>
-            <button className="text-[#A78BFA] hover:text-white text-sm font-medium transition-colors">
-              Add another publication
+              <span>Go to dashboard</span>
+              <ArrowRight size={16} className="flex-shrink-0" />
             </button>
           </div>
         </div>
@@ -427,6 +476,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
               : ""
           }
           StepCircle={StepCircle}
+          onClick={() => handleStepClick(1)}
         >
           {/* Platform picker */}
           {!data.platform ? (
@@ -463,29 +513,105 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                 <label className="text-sm font-medium text-[#040042] block mb-1.5">
                   {data.platform === "custom" ? "Domain" : "Publication URL"}
                 </label>
-                <div className="flex gap-2">
-                  <Input
-                    value={data.pubUrl}
-                    onChange={e => setData(d => ({ ...d, pubUrl: e.target.value }))}
-                    placeholder={PLATFORMS.find(p => p.key === data.platform)?.placeholder}
-                    className="flex-1"
-                  />
-                  <button
-                    onClick={handleConnectPublication}
-                    disabled={isConnecting || !data.pubUrl.trim()}
-                    className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
-                  >
-                    {isConnecting ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <>
-                        Connect publication
-                        <ArrowRight size={14} />
-                      </>
-                    )}
-                  </button>
-                </div>
+                <Input
+                  value={data.pubUrl}
+                  onChange={e => setData(d => ({ ...d, pubUrl: e.target.value }))}
+                  placeholder={PLATFORMS.find(p => p.key === data.platform)?.placeholder}
+                />
               </div>
+
+              {/* Fix 4: Import method info */}
+              {data.pubUrl.trim() && data.platform && (
+                data.platform === "custom" ? (
+                  /* Custom: show import method choice */
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                    <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5">
+                      📥 How would you like to import your content?
+                    </p>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => setData(d => ({ ...d, customImportMethod: "sitemap" }))}
+                        className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
+                          data.customImportMethod === "sitemap"
+                            ? "border-[#4A26ED] bg-[#4A26ED]/5"
+                            : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                            data.customImportMethod === "sitemap" ? "border-[#4A26ED]" : "border-slate-300"
+                          }`}>
+                            {data.customImportMethod === "sitemap" && (
+                              <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
+                            )}
+                          </div>
+                          <span className="text-sm font-medium text-[#040042]">Sitemap import</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 ml-6">
+                          We crawl your sitemap.xml and import all articles
+                        </p>
+                        {data.customImportMethod === "sitemap" && (
+                          <div className="mt-2 ml-6">
+                            <Input
+                              value={data.customSitemapUrl}
+                              onChange={e => setData(d => ({ ...d, customSitemapUrl: e.target.value }))}
+                              placeholder={`https://${data.pubUrl.trim().replace(/^https?:\/\//, "")}/sitemap.xml`}
+                              className="text-sm"
+                            />
+                          </div>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setData(d => ({ ...d, customImportMethod: "api_push" }))}
+                        className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
+                          data.customImportMethod === "api_push"
+                            ? "border-[#4A26ED] bg-[#4A26ED]/5"
+                            : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                            data.customImportMethod === "api_push" ? "border-[#4A26ED]" : "border-slate-300"
+                          }`}>
+                            {data.customImportMethod === "api_push" && (
+                              <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
+                            )}
+                          </div>
+                          <span className="text-sm font-medium text-[#040042]">API push <span className="text-xs text-slate-400 font-normal">(enterprise)</span></span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 ml-6">
+                          Your team pushes content to our API on publish. We'll provide credentials after setup.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Non-custom platforms: informational card */
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                    <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                      📥 How we import your content
+                    </p>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {IMPORT_INFO[data.platform].text}
+                    </p>
+                  </div>
+                )
+              )}
+
+              <button
+                onClick={handleConnectPublication}
+                disabled={isConnecting || !data.pubUrl.trim()}
+                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
+              >
+                {isConnecting ? (
+                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                ) : (
+                  <>
+                    <span>Connect publication</span>
+                    <ArrowRight size={16} className="flex-shrink-0" />
+                  </>
+                )}
+              </button>
             </div>
           )}
         </StepCard>
@@ -497,6 +623,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           state={stepState[2]}
           doneSummary={`Ownership verified · ${data.pubUrl}`}
           StepCircle={StepCircle}
+          onClick={() => handleStepClick(2)}
         >
           {data.platform === "substack" || data.platform === "beehiiv" ? (
             <div className="space-y-4">
@@ -507,7 +634,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                 </code>
                 <button
                   onClick={() => handleCopy(`opedd-verification: ${data.verificationToken}`, "verify-code")}
-                  className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
+                  className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors flex-shrink-0"
                 >
                   {copied === "verify-code" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
                 </button>
@@ -520,13 +647,17 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
               <button
                 onClick={handleVerify}
                 disabled={isVerifying}
-                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
+                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
               >
-                {isVerifying ? <Loader2 size={16} className="animate-spin" /> : "Verify ownership"}
+                {isVerifying ? (
+                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                ) : (
+                  <span>Verify ownership</span>
+                )}
               </button>
               {stepState[2] === "verifying" && (
                 <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
-                  <Loader2 size={12} className="animate-spin" /> Checking…
+                  <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking…
                 </p>
               )}
             </div>
@@ -542,9 +673,16 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                 <button
                   onClick={handleVerify}
                   disabled={isVerifying}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
+                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
                 >
-                  {isVerifying ? <Loader2 size={14} className="animate-spin" /> : <>Verify <ArrowRight size={14} /></>}
+                  {isVerifying ? (
+                    <Loader2 size={14} className="animate-spin flex-shrink-0" />
+                  ) : (
+                    <>
+                      <span>Verify</span>
+                      <ArrowRight size={14} className="flex-shrink-0" />
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -562,9 +700,16 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                   <button
                     onClick={handleVerify}
                     disabled={isVerifying}
-                    className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
+                    className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
                   >
-                    {isVerifying ? <Loader2 size={14} className="animate-spin" /> : <>Verify <ArrowRight size={14} /></>}
+                    {isVerifying ? (
+                      <Loader2 size={14} className="animate-spin flex-shrink-0" />
+                    ) : (
+                      <>
+                        <span>Verify</span>
+                        <ArrowRight size={14} className="flex-shrink-0" />
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -593,7 +738,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                           _opedd.{data.pubUrl || "yourdomain.com"}
                           <button
                             onClick={() => handleCopy(`_opedd.${data.pubUrl || "yourdomain.com"}`, "dns-host")}
-                            className="text-slate-400 hover:text-[#4A26ED]"
+                            className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
                           >
                             {copied === "dns-host" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                           </button>
@@ -604,7 +749,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                           opedd-site-verify={data.verificationToken}
                           <button
                             onClick={() => handleCopy(`opedd-site-verify=${data.verificationToken}`, "dns-value")}
-                            className="text-slate-400 hover:text-[#4A26ED]"
+                            className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
                           >
                             {copied === "dns-value" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                           </button>
@@ -618,13 +763,17 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
               <button
                 onClick={handleVerify}
                 disabled={isVerifying}
-                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
+                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
               >
-                {isVerifying ? <Loader2 size={16} className="animate-spin" /> : "I've added the record — Verify now"}
+                {isVerifying ? (
+                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                ) : (
+                  <span>I've added the record — Verify now</span>
+                )}
               </button>
               {stepState[2] === "verifying" && (
                 <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
-                  <Loader2 size={12} className="animate-spin" /> Checking DNS…
+                  <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking DNS…
                 </p>
               )}
             </div>
@@ -636,8 +785,14 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           step={3}
           title="Set your pricing"
           state={stepState[3]}
-          doneSummary={`Pricing set · $${data.humanPrice} human · $${data.aiPrice} AI`}
+          doneSummary={
+            stepState[3] === "skipped" || data.pricingSkipped
+              ? "Not set yet"
+              : `Pricing set · $${data.humanPrice} human · $${data.aiPrice} AI`
+          }
+          doneSummaryAmber={stepState[3] === "skipped" || data.pricingSkipped}
           StepCircle={StepCircle}
+          onClick={() => handleStepClick(3)}
         >
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -675,9 +830,19 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
             <button
               onClick={handleSavePricing}
               disabled={isSavingPricing}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-50"
+              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
             >
-              {isSavingPricing ? <Loader2 size={16} className="animate-spin" /> : "Save pricing"}
+              {isSavingPricing ? (
+                <Loader2 size={16} className="animate-spin flex-shrink-0" />
+              ) : (
+                <span>Save pricing</span>
+              )}
+            </button>
+            <button
+              onClick={handleSkipPricing}
+              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              Skip for now →
             </button>
           </div>
         </StepCard>
@@ -689,11 +854,12 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           state={stepState[4]}
           doneSummary={
             data.widgetSkipped
-              ? "Widget · not yet embedded"
+              ? "Not yet embedded"
               : "Widget active"
           }
           doneSummaryAmber={data.widgetSkipped}
           StepCircle={StepCircle}
+          onClick={() => handleStepClick(4)}
         >
           <Tabs defaultValue="script" className="w-full">
             <TabsList className="mb-4 bg-slate-100">
@@ -713,10 +879,10 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                     handleCopy(widgetCode, "widget");
                     handleWidgetDone();
                   }}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2"
+                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
                 >
-                  {copied === "widget" ? <Check size={16} /> : <Copy size={16} />}
-                  Copy snippet
+                  {copied === "widget" ? <Check size={16} className="flex-shrink-0" /> : <Copy size={16} className="flex-shrink-0" />}
+                  <span>Copy snippet</span>
                 </button>
                 <p className="text-xs text-slate-400">
                   The widget auto-detects each article and shows the license button to visitors. Works on paywalled articles.
@@ -726,9 +892,9 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
             <TabsContent value="wordpress">
               <div className="space-y-4">
                 <p className="text-sm text-slate-600">Download and install the Opedd WordPress plugin</p>
-                <button className="border border-slate-200 text-[#040042] h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors">
-                  <ExternalLink size={16} />
-                  Download WordPress Plugin
+                <button className="border border-slate-200 text-[#040042] h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center hover:bg-slate-50 transition-colors">
+                  <Download size={16} className="flex-shrink-0" />
+                  <span>Download WordPress Plugin</span>
                 </button>
                 <div className="text-xs text-slate-500 space-y-1">
                   <p>1. Download the .zip file</p>
@@ -742,7 +908,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
             onClick={handleSkipWidget}
             className="mt-4 text-sm text-slate-400 hover:text-slate-600 transition-colors"
           >
-            Skip for now
+            Skip for now →
           </button>
         </StepCard>
       </div>
@@ -759,36 +925,50 @@ interface StepCardProps {
   doneSummaryAmber?: boolean;
   children: React.ReactNode;
   StepCircle: React.FC<{ step: number; state: StepState }>;
+  onClick?: () => void;
 }
 
-function StepCard({ step, title, state, doneSummary, doneSummaryAmber, children, StepCircle }: StepCardProps) {
+function StepCard({ step, title, state, doneSummary, doneSummaryAmber, children, StepCircle, onClick }: StepCardProps) {
   const isExpanded = state === "active" || state === "verifying";
   const isDone = state === "done";
+  const isSkipped = state === "skipped";
   const isLocked = state === "locked";
+  const isClickable = isDone || isSkipped;
 
   return (
     <div
       className={`
-        rounded-2xl border shadow-sm transition-all
-        ${isExpanded ? "border-[#4A26ED]/30 bg-[#4A26ED]/[0.02]" : "border-slate-200 bg-white"}
-        ${isLocked ? "opacity-60" : ""}
+        rounded-2xl border overflow-hidden transition-all
+        ${isExpanded ? "border-[#4A26ED]/25 shadow-sm shadow-[#4A26ED]/10" : ""}
+        ${isDone ? "border-emerald-200/50 bg-white" : ""}
+        ${isSkipped ? "border-amber-200/50 bg-white" : ""}
+        ${isLocked ? "border-slate-200 bg-white opacity-60 pointer-events-none" : ""}
+        ${!isExpanded && !isDone && !isSkipped && !isLocked ? "border-slate-200 bg-white" : ""}
       `}
     >
-      <div className="flex items-center gap-4 p-5">
+      <div
+        className={`flex items-center gap-4 px-6 py-4 bg-white ${isClickable ? "cursor-pointer hover:bg-slate-50 transition-colors" : ""}`}
+        onClick={isClickable ? onClick : undefined}
+      >
         <StepCircle step={step} state={state} />
         <div className="flex-1 min-w-0">
           <h3 className={`text-sm font-semibold ${isLocked ? "text-slate-400" : "text-[#040042]"}`}>
             {title}
           </h3>
           {isDone && doneSummary && (
-            <p className={`text-xs mt-0.5 ${doneSummaryAmber ? "text-amber-500" : "text-slate-500"}`}>
+            <p className="text-xs mt-0.5 text-slate-500">
               ✓ {doneSummary}
+            </p>
+          )}
+          {isSkipped && doneSummary && (
+            <p className="text-xs mt-0.5 text-amber-500">
+              {doneSummary}
             </p>
           )}
         </div>
       </div>
       {isExpanded && (
-        <div className="px-5 pb-5 pl-[4.25rem]">
+        <div className="px-6 pb-6 pl-[4.25rem]">
           {children}
         </div>
       )}
