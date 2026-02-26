@@ -110,17 +110,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout
       title="Dashboard"
-      headerActions={
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setAddPubDrawerOpen(true)}
-          className="h-9 px-4 rounded-lg border-slate-200 text-[#040042] text-sm font-medium"
-        >
-          <Plus size={15} className="mr-1.5 flex-shrink-0" />
-          Add publication
-        </Button>
-      }
+      headerActions={<></>}
     >
       <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
         {/* Fix 3: Incomplete setup banner */}
@@ -154,16 +144,26 @@ export default function Dashboard() {
 
         {/* Sources Section */}
         <div>
-          <h2 className="text-lg font-semibold text-[#040042] mb-4">Sources</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[#040042]">Sources</h2>
+            <Button
+              size="sm"
+              onClick={() => setAddPubDrawerOpen(true)}
+              className="h-9 px-4 rounded-lg bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white text-sm font-semibold"
+            >
+              <Plus size={15} className="mr-1.5 flex-shrink-0" />
+              Register content
+            </Button>
+          </div>
           <SourcesView key={sourcesKey} onAddSource={() => setAddPubDrawerOpen(true)} />
         </div>
       </div>
 
       {/* Fix 5: Add Publication Drawer */}
       <Sheet open={addPubDrawerOpen} onOpenChange={setAddPubDrawerOpen}>
-        <SheetContent side="right" className="sm:max-w-xl w-full p-0 overflow-y-auto">
+        <SheetContent side="right" className="sm:max-w-xl w-full p-0 overflow-y-auto bg-white">
           <div className="bg-[#040042] px-6 py-5">
-            <SheetTitle className="text-white text-lg font-bold">Add publication</SheetTitle>
+            <SheetTitle className="text-white text-lg font-bold">Register content</SheetTitle>
           </div>
           <PublicationSetupFlow
             onComplete={() => {
@@ -172,8 +172,8 @@ export default function Dashboard() {
               fetchMetrics();
               setSourcesKey(k => k + 1);
               toast({
-                title: "Publication added",
-                description: "Your new publication has been set up successfully",
+                title: "Content registered",
+                description: "Your new content has been set up successfully",
               });
             }}
           />

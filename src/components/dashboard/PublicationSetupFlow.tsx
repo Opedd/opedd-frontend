@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Sparkles,
   Download,
+  FileText,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,13 +24,14 @@ import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 
-type Platform = "substack" | "beehiiv" | "ghost" | "wordpress" | "custom";
+type Platform = "substack" | "beehiiv" | "ghost" | "wordpress" | "custom" | "single_work";
 
 interface PlatformOption {
   key: Platform;
   name: string;
   descriptor: string;
   logo: string | null;
+  icon?: React.ElementType;
   placeholder: string;
 }
 
@@ -38,10 +40,11 @@ const PLATFORMS: PlatformOption[] = [
   { key: "beehiiv", name: "Beehiiv", descriptor: "Newsletter", logo: beehiivLogo, placeholder: "yourname.beehiiv.com" },
   { key: "ghost", name: "Ghost", descriptor: "Blog / CMS", logo: ghostLogo, placeholder: "yourblog.ghost.io" },
   { key: "wordpress", name: "WordPress", descriptor: "Blog / CMS", logo: wordpressLogo, placeholder: "yourblog.com" },
-  { key: "custom", name: "Custom / Enterprise", descriptor: "Media company", logo: null, placeholder: "theinformation.com" },
+  { key: "custom", name: "Custom domain", descriptor: "Media / Enterprise", logo: null, placeholder: "theinformation.com" },
+  { key: "single_work", name: "Single work", descriptor: "One article or piece", logo: null, icon: FileText, placeholder: "" },
 ];
 
-const IMPORT_INFO: Record<Platform, { text: string; hasChoice?: boolean }> = {
+const IMPORT_INFO: Record<string, { text: string; hasChoice?: boolean }> = {
   substack: {
     text: "Substack publishes a public RSS feed. We'll sync your articles automatically — no extra setup needed. Your archive updates daily.",
   },
@@ -78,6 +81,11 @@ interface StepData {
   publisherId: string;
   customImportMethod: "sitemap" | "api_push";
   customSitemapUrl: string;
+  // Single work fields
+  singleWorkTitle: string;
+  singleWorkUrl: string;
+  singleWorkDone: boolean;
+  singleWorkLicenseLink: string;
 }
 
 const generateVerificationCode = () => {
@@ -117,11 +125,16 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     publisherId: "",
     customImportMethod: "sitemap",
     customSitemapUrl: "",
+    singleWorkTitle: "",
+    singleWorkUrl: "",
+    singleWorkDone: false,
+    singleWorkLicenseLink: "",
   });
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSavingPricing, setIsSavingPricing] = useState(false);
+  const [isRegisteringSingle, setIsRegisteringSingle] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   // Fetch publisher ID on mount
@@ -168,10 +181,46 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
   const handleStepClick = (step: number) => {
     const state = stepState[step];
     if (state === "locked") return;
-    // Allow re-opening done/skipped steps
     if (state === "done" || state === "skipped") {
       setStepState(prev => ({ ...prev, [step]: "active" }));
       setCurrentStep(step);
+    }
+  };
+
+  // ─── Single Work Registration ───
+  const handleRegisterSingleWork = async () => {
+    if (!data.singleWorkTitle.trim() || !user) return;
+    setIsRegisteringSingle(true);
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+
+      // Create as an asset directly
+      const { data: inserted, error } = await supabase
+        .from("assets")
+        .insert({
+          user_id: user.id,
+          title: data.singleWorkTitle.trim(),
+          source_url: data.singleWorkUrl.trim() || null,
+          license_type: "single",
+          licensing_enabled: true,
+        })
+        .select("id")
+        .single();
+
+      if (error) throw error;
+
+      const licenseLink = `${window.location.origin}/license/${inserted?.id || ""}`;
+      setData(d => ({
+        ...d,
+        singleWorkDone: true,
+        singleWorkLicenseLink: licenseLink,
+      }));
+      toast({ title: "Content registered", description: "Your license link is ready" });
+    } catch (err: any) {
+      toast({ title: "Registration failed", description: err?.message || "Please try again", variant: "destructive" });
+    } finally {
+      setIsRegisteringSingle(false);
     }
   };
 
@@ -422,11 +471,27 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     );
   };
 
+  // Check if single work mode
+  const isSingleWork = data.platform === "single_work";
+
   // ─── Render ───
   return (
     <div className="p-8 max-w-3xl w-full mx-auto space-y-6">
       {/* Header Card */}
-      {requiredDone && (completedSteps.has(3) || data.pricingSkipped) && (completedSteps.has(4) || data.widgetSkipped) ? (
+      {isSingleWork ? (
+        // Single work mode: simplified header
+        <div className="bg-[#040042] rounded-2xl p-6 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+            <FileText size={20} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-white">Register content</h2>
+            <p className="text-sm text-[#A78BFA] mt-0.5">
+              {data.singleWorkDone ? "Your license link is ready" : "Register a single piece of content"}
+            </p>
+          </div>
+        </div>
+      ) : requiredDone && (completedSteps.has(3) || data.pricingSkipped) && (completedSteps.has(4) || data.widgetSkipped) ? (
         <div className="bg-[#040042] rounded-2xl p-6 flex items-center gap-4 flex-wrap">
           <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
             <Check size={20} className="text-white" />
@@ -467,240 +532,300 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
         </div>
       )}
 
-      {/* Steps */}
-      <div className="space-y-3">
-        {/* Step 1: Your Publication */}
-        <StepCard
-          step={1}
-          title="Your publication"
-          state={stepState[1]}
-          doneSummary={
-            data.platform
-              ? `${PLATFORMS.find(p => p.key === data.platform)?.name} · ${data.pubUrl} · ${data.articleCount} articles imported`
-              : ""
-          }
-          StepCircle={StepCircle}
-          onClick={() => handleStepClick(1)}
-        >
-          {/* Platform picker */}
-          {!data.platform ? (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {PLATFORMS.map(p => (
-                <button
-                  key={p.key}
-                  onClick={() => setData(d => ({ ...d, platform: p.key }))}
-                  className="border border-slate-200 rounded-xl p-4 hover:border-[#4A26ED] hover:bg-[#4A26ED]/5 transition-all text-center group"
-                >
-                  <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-slate-50 flex items-center justify-center">
-                    {p.logo ? (
-                      <img src={p.logo} alt={p.name} className="w-6 h-6 object-contain" />
-                    ) : (
-                      <Globe size={20} className="text-slate-400" />
-                    )}
-                  </div>
-                  <p className="text-sm font-semibold text-[#040042]">{p.name}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{p.descriptor}</p>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-1">
-                <button
-                  onClick={() => setData(d => ({ ...d, platform: null, pubUrl: "" }))}
-                  className="text-xs text-[#4A26ED] hover:underline"
-                >
-                  ← Change platform
-                </button>
-              </div>
+      {/* Single Work Flow */}
+      {isSingleWork ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+          {!data.singleWorkDone ? (
+            <>
               <div>
-                <label className="text-sm font-medium text-[#040042] block mb-1.5">
-                  {data.platform === "custom" ? "Domain" : "Publication URL"}
-                </label>
-                <Input
-                  value={data.pubUrl}
-                  onChange={e => setData(d => ({ ...d, pubUrl: e.target.value }))}
-                  placeholder={PLATFORMS.find(p => p.key === data.platform)?.placeholder}
-                />
+                <h3 className="text-base font-semibold text-[#040042]">Register a single piece of content</h3>
               </div>
 
-              {/* Fix 4: Import method info */}
-              {data.pubUrl.trim() && data.platform && (
-                data.platform === "custom" ? (
-                  /* Custom: show import method choice */
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-                    <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5">
-                      📥 How would you like to import your content?
-                    </p>
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => setData(d => ({ ...d, customImportMethod: "sitemap" }))}
-                        className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
-                          data.customImportMethod === "sitemap"
-                            ? "border-[#4A26ED] bg-[#4A26ED]/5"
-                            : "border-slate-200 hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            data.customImportMethod === "sitemap" ? "border-[#4A26ED]" : "border-slate-300"
-                          }`}>
-                            {data.customImportMethod === "sitemap" && (
-                              <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
-                            )}
-                          </div>
-                          <span className="text-sm font-medium text-[#040042]">Sitemap import</span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1 ml-6">
-                          We crawl your sitemap.xml and import all articles
-                        </p>
-                        {data.customImportMethod === "sitemap" && (
-                          <div className="mt-2 ml-6">
-                            <Input
-                              value={data.customSitemapUrl}
-                              onChange={e => setData(d => ({ ...d, customSitemapUrl: e.target.value }))}
-                              placeholder={`https://${data.pubUrl.trim().replace(/^https?:\/\//, "")}/sitemap.xml`}
-                              className="text-sm"
-                            />
-                          </div>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => setData(d => ({ ...d, customImportMethod: "api_push" }))}
-                        className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
-                          data.customImportMethod === "api_push"
-                            ? "border-[#4A26ED] bg-[#4A26ED]/5"
-                            : "border-slate-200 hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            data.customImportMethod === "api_push" ? "border-[#4A26ED]" : "border-slate-300"
-                          }`}>
-                            {data.customImportMethod === "api_push" && (
-                              <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
-                            )}
-                          </div>
-                          <span className="text-sm font-medium text-[#040042]">API push <span className="text-xs text-slate-400 font-normal">(enterprise)</span></span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1 ml-6">
-                          Your team pushes content to our API on publish. We'll provide credentials after setup.
-                        </p>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  /* Non-custom platforms: informational card */
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                    <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                      📥 How we import your content
-                    </p>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {IMPORT_INFO[data.platform].text}
-                    </p>
-                  </div>
-                )
-              )}
-
-              <button
-                onClick={handleConnectPublication}
-                disabled={isConnecting || !data.pubUrl.trim()}
-                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-              >
-                {isConnecting ? (
-                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                ) : (
-                  <>
-                    <span>Connect publication</span>
-                    <ArrowRight size={16} className="flex-shrink-0" />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </StepCard>
-
-        {/* Step 2: Verify Ownership */}
-        <StepCard
-          step={2}
-          title="Verify ownership"
-          state={stepState[2]}
-          doneSummary={`Ownership verified · ${data.pubUrl}`}
-          StepCircle={StepCircle}
-          onClick={() => handleStepClick(2)}
-        >
-          {data.platform === "substack" || data.platform === "beehiiv" ? (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-600">Add this to your publication description</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-mono text-[#040042]">
-                  opedd-verification: {data.verificationToken}
-                </code>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-[#040042] block mb-1.5">Title *</label>
+                  <Input
+                    value={data.singleWorkTitle}
+                    onChange={e => setData(d => ({ ...d, singleWorkTitle: e.target.value }))}
+                    placeholder="Your article title"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#040042] block mb-1.5">URL (optional)</label>
+                  <Input
+                    value={data.singleWorkUrl}
+                    onChange={e => setData(d => ({ ...d, singleWorkUrl: e.target.value }))}
+                    placeholder="https://yourdomain.com/your-article"
+                  />
+                </div>
                 <button
-                  onClick={() => handleCopy(`opedd-verification: ${data.verificationToken}`, "verify-code")}
-                  className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors flex-shrink-0"
+                  onClick={handleRegisterSingleWork}
+                  disabled={isRegisteringSingle || !data.singleWorkTitle.trim()}
+                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
                 >
-                  {copied === "verify-code" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
-                </button>
-              </div>
-              <div className="text-xs text-slate-500 space-y-1">
-                <p>Go to <strong>Settings → Publication details → Description</strong></p>
-                <p>Paste the code, save. Then click Verify below.</p>
-                <p className="text-slate-400">You can remove it after verification is complete.</p>
-              </div>
-              <button
-                onClick={handleVerify}
-                disabled={isVerifying}
-                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-              >
-                {isVerifying ? (
-                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                ) : (
-                  <span>Verify ownership</span>
-                )}
-              </button>
-              {stepState[2] === "verifying" && (
-                <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
-                  <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking…
-                </p>
-              )}
-            </div>
-          ) : data.platform === "ghost" ? (
-            <div className="space-y-4">
-              <p className="text-sm font-medium text-[#040042]">Connect via Ghost Content API</p>
-              <div className="text-xs text-slate-500 space-y-1">
-                <p>In Ghost Admin → <strong>Settings → Integrations</strong></p>
-                <p>→ Add custom integration → copy the Content API Key</p>
-              </div>
-              <div className="flex gap-2">
-                <Input placeholder="Content API Key" className="flex-1" />
-                <button
-                  onClick={handleVerify}
-                  disabled={isVerifying}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-                >
-                  {isVerifying ? (
-                    <Loader2 size={14} className="animate-spin flex-shrink-0" />
+                  {isRegisteringSingle ? (
+                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
                   ) : (
                     <>
-                      <span>Verify</span>
-                      <ArrowRight size={14} className="flex-shrink-0" />
+                      <span>Register and get license link</span>
+                      <ArrowRight size={16} className="flex-shrink-0" />
                     </>
                   )}
                 </button>
               </div>
-            </div>
-          ) : data.platform === "wordpress" ? (
+
+              <button
+                onClick={() => setData(d => ({ ...d, platform: null }))}
+                className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                ← Back to options
+              </button>
+            </>
+          ) : (
             <div className="space-y-4">
-              <p className="text-sm font-medium text-[#040042]">Connect via Application Password</p>
-              <div className="text-xs text-slate-500 space-y-1">
-                <p>In WP Admin → <strong>Users → Profile → Application Passwords</strong></p>
-                <p>→ Add New → copy the generated password</p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
+                  <Check size={16} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#040042]">Content registered</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">{data.singleWorkTitle}</p>
+                </div>
               </div>
-              <div className="space-y-3">
-                <Input placeholder="Username" />
+
+              <div>
+                <label className="text-xs font-medium text-slate-500 block mb-1.5">License link</label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-mono text-[#040042] truncate">
+                    {data.singleWorkLicenseLink}
+                  </code>
+                  <button
+                    onClick={() => handleCopy(data.singleWorkLicenseLink, "single-link")}
+                    className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors flex-shrink-0"
+                  >
+                    {copied === "single-link" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => onComplete({ pricingDone: true, widgetDone: true })}
+                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
+              >
+                <span>Go to dashboard</span>
+                <ArrowRight size={16} className="flex-shrink-0" />
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Multi-step publication flow */
+        <div className="space-y-3">
+          {/* Step 1: Your Publication */}
+          <StepCard
+            step={1}
+            title="Your publication"
+            state={stepState[1]}
+            doneSummary={
+              data.platform
+                ? `${PLATFORMS.find(p => p.key === data.platform)?.name} · ${data.pubUrl} · ${data.articleCount} articles imported`
+                : ""
+            }
+            StepCircle={StepCircle}
+            onClick={() => handleStepClick(1)}
+          >
+            {/* Platform picker */}
+            {!data.platform ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {PLATFORMS.map(p => (
+                  <button
+                    key={p.key}
+                    onClick={() => setData(d => ({ ...d, platform: p.key }))}
+                    className="bg-white border border-slate-200 rounded-xl p-4 hover:border-[#4A26ED]/40 hover:shadow-sm transition-all text-center cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center">
+                      {p.logo ? (
+                        <img src={p.logo} alt={p.name} className="w-10 h-10 object-contain" />
+                      ) : p.icon ? (
+                        <p.icon size={28} className="text-[#4A26ED]" />
+                      ) : (
+                        <Globe size={28} className="text-slate-400" />
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-[#040042]">{p.name}</p>
+                    <p className="text-xs text-slate-400">{p.descriptor}</p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <button
+                    onClick={() => setData(d => ({ ...d, platform: null, pubUrl: "" }))}
+                    className="text-xs text-[#4A26ED] hover:underline"
+                  >
+                    ← Change platform
+                  </button>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#040042] block mb-1.5">
+                    {data.platform === "custom" ? "Domain" : "Publication URL"}
+                  </label>
+                  <Input
+                    value={data.pubUrl}
+                    onChange={e => setData(d => ({ ...d, pubUrl: e.target.value }))}
+                    placeholder={PLATFORMS.find(p => p.key === data.platform)?.placeholder}
+                  />
+                </div>
+
+                {/* Import method info */}
+                {data.pubUrl.trim() && data.platform && IMPORT_INFO[data.platform] && (
+                  data.platform === "custom" ? (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5">
+                        📥 How would you like to import your content?
+                      </p>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setData(d => ({ ...d, customImportMethod: "sitemap" }))}
+                          className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
+                            data.customImportMethod === "sitemap"
+                              ? "border-[#4A26ED] bg-[#4A26ED]/5"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                              data.customImportMethod === "sitemap" ? "border-[#4A26ED]" : "border-slate-300"
+                            }`}>
+                              {data.customImportMethod === "sitemap" && (
+                                <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
+                              )}
+                            </div>
+                            <span className="text-sm font-medium text-[#040042]">Sitemap import</span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 ml-6">
+                            We crawl your sitemap.xml and import all articles
+                          </p>
+                          {data.customImportMethod === "sitemap" && (
+                            <div className="mt-2 ml-6">
+                              <Input
+                                value={data.customSitemapUrl}
+                                onChange={e => setData(d => ({ ...d, customSitemapUrl: e.target.value }))}
+                                placeholder={`https://${data.pubUrl.trim().replace(/^https?:\/\//, "")}/sitemap.xml`}
+                                className="text-sm"
+                              />
+                            </div>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => setData(d => ({ ...d, customImportMethod: "api_push" }))}
+                          className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
+                            data.customImportMethod === "api_push"
+                              ? "border-[#4A26ED] bg-[#4A26ED]/5"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                              data.customImportMethod === "api_push" ? "border-[#4A26ED]" : "border-slate-300"
+                            }`}>
+                              {data.customImportMethod === "api_push" && (
+                                <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
+                              )}
+                            </div>
+                            <span className="text-sm font-medium text-[#040042]">API push <span className="text-xs text-slate-400 font-normal">(enterprise)</span></span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 ml-6">
+                            Your team pushes content to our API on publish. We'll provide credentials after setup.
+                          </p>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                        📥 How we import your content
+                      </p>
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        {IMPORT_INFO[data.platform]?.text}
+                      </p>
+                    </div>
+                  )
+                )}
+
+                <button
+                  onClick={handleConnectPublication}
+                  disabled={isConnecting || !data.pubUrl.trim()}
+                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
+                >
+                  {isConnecting ? (
+                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                  ) : (
+                    <>
+                      <span>Connect publication</span>
+                      <ArrowRight size={16} className="flex-shrink-0" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </StepCard>
+
+          {/* Step 2: Verify Ownership */}
+          <StepCard
+            step={2}
+            title="Verify ownership"
+            state={stepState[2]}
+            doneSummary={`Ownership verified · ${data.pubUrl}`}
+            StepCircle={StepCircle}
+            onClick={() => handleStepClick(2)}
+          >
+            {data.platform === "substack" || data.platform === "beehiiv" ? (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-600">Add this to your publication description</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-mono text-[#040042]">
+                    opedd-verification: {data.verificationToken}
+                  </code>
+                  <button
+                    onClick={() => handleCopy(`opedd-verification: ${data.verificationToken}`, "verify-code")}
+                    className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors flex-shrink-0"
+                  >
+                    {copied === "verify-code" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
+                  </button>
+                </div>
+                <div className="text-xs text-slate-500 space-y-1">
+                  <p>Go to <strong>Settings → Publication details → Description</strong></p>
+                  <p>Paste the code, save. Then click Verify below.</p>
+                  <p className="text-slate-400">You can remove it after verification is complete.</p>
+                </div>
+                <button
+                  onClick={handleVerify}
+                  disabled={isVerifying}
+                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
+                >
+                  {isVerifying ? (
+                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                  ) : (
+                    <span>Verify ownership</span>
+                  )}
+                </button>
+                {stepState[2] === "verifying" && (
+                  <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
+                    <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking…
+                  </p>
+                )}
+              </div>
+            ) : data.platform === "ghost" ? (
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-[#040042]">Connect via Ghost Content API</p>
+                <div className="text-xs text-slate-500 space-y-1">
+                  <p>In Ghost Admin → <strong>Settings → Integrations</strong></p>
+                  <p>→ Add custom integration → copy the Content API Key</p>
+                </div>
                 <div className="flex gap-2">
-                  <Input placeholder="App Password" className="flex-1" />
+                  <Input placeholder="Content API Key" className="flex-1" />
                   <button
                     onClick={handleVerify}
                     disabled={isVerifying}
@@ -717,238 +842,266 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                   </button>
                 </div>
               </div>
-            </div>
-          ) : (
-            /* Custom / Enterprise — DNS TXT */
-            <div className="space-y-4">
-              <p className="text-sm font-medium text-[#040042]">Add a DNS TXT record to verify domain ownership</p>
-              <p className="text-xs text-slate-500">
-                Add the following record via your DNS provider (Cloudflare, Route 53, GoDaddy, Namecheap, etc.)
-              </p>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left px-4 py-2 font-medium text-slate-500">Type</th>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500">Host</th>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500">Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="px-4 py-3 font-mono text-[#040042]">TXT</td>
-                      <td className="px-4 py-3 font-mono text-[#040042]">
-                        <span className="flex items-center gap-1.5">
-                          _opedd.{data.pubUrl || "yourdomain.com"}
-                          <button
-                            onClick={() => handleCopy(`_opedd.${data.pubUrl || "yourdomain.com"}`, "dns-host")}
-                            className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
-                          >
-                            {copied === "dns-host" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                          </button>
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-[#040042]">
-                        <span className="flex items-center gap-1.5">
-                          opedd-site-verify={data.verificationToken}
-                          <button
-                            onClick={() => handleCopy(`opedd-site-verify=${data.verificationToken}`, "dns-value")}
-                            className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
-                          >
-                            {copied === "dns-value" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                          </button>
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <p className="text-xs text-slate-400">DNS changes typically take 5–15 minutes to propagate.</p>
-              <button
-                onClick={handleVerify}
-                disabled={isVerifying}
-                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-              >
-                {isVerifying ? (
-                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                ) : (
-                  <span>I've added the record — Verify now</span>
-                )}
-              </button>
-              {stepState[2] === "verifying" && (
-                <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
-                  <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking DNS…
-                </p>
-              )}
-            </div>
-          )}
-        </StepCard>
-
-        {/* Step 3: Set Your Rates */}
-        <StepCard
-          step={3}
-          title="Set your rates"
-          state={stepState[3]}
-          doneSummary={
-            stepState[3] === "skipped" || data.pricingSkipped
-              ? "Not set yet"
-              : `Rates set · Permission $${data.permissionPrice} · Syndication from $${data.syndicationPrice} · AI ${data.aiPrice ? `$${data.aiPrice}` : "disabled"}`
-          }
-          doneSummaryAmber={stepState[3] === "skipped" || data.pricingSkipped}
-          StepCircle={StepCircle}
-          onClick={() => handleStepClick(3)}
-        >
-          <div className="space-y-1">
-            <p className="text-sm text-slate-600 mb-4">
-              These become your defaults across all articles. You can override per-article later.
-            </p>
-
-            {/* Permission rate */}
-            <div className="space-y-1.5">
-              <div className="flex items-baseline justify-between">
-                <label className="text-sm font-semibold text-[#040042]">Permission rate</label>
-                <span className="text-xs text-slate-400">per article</span>
-              </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                <Input
-                  type="number" step="0.01" min="0"
-                  value={data.permissionPrice}
-                  onChange={e => setData(d => ({ ...d, permissionPrice: e.target.value }))}
-                  className="pl-7 h-11 rounded-xl border-slate-200"
-                />
-              </div>
-              <p className="text-xs text-slate-500 italic">For students, bloggers, and small reuse. Typical range: $10 – $50</p>
-            </div>
-
-            <div className="border-t border-slate-100 my-4" />
-
-            {/* Syndication rate */}
-            <div className="space-y-1.5">
-              <div className="flex items-baseline justify-between">
-                <label className="text-sm font-semibold text-[#040042]">Syndication rate</label>
-                <span className="text-xs text-slate-400">starting from, per article</span>
-              </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                <Input
-                  type="number" step="0.01" min="0"
-                  value={data.syndicationPrice}
-                  onChange={e => setData(d => ({ ...d, syndicationPrice: e.target.value }))}
-                  className="pl-7 h-11 rounded-xl border-slate-200"
-                />
-              </div>
-              <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
-            </div>
-
-            <div className="border-t border-slate-100 my-4" />
-
-            {/* AI training rate */}
-            <div className="space-y-1.5">
-              <div className="flex items-baseline justify-between">
-                <label className="text-sm font-semibold text-[#040042]">AI training rate</label>
-                <span className="text-xs text-slate-400">per article (optional)</span>
-              </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                <Input
-                  type="number" step="0.01" min="0"
-                  value={data.aiPrice}
-                  onChange={e => setData(d => ({ ...d, aiPrice: e.target.value }))}
-                  placeholder="0.00"
-                  className="pl-7 h-11 rounded-xl border-slate-200"
-                />
-              </div>
-              <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
-            </div>
-
-            <div className="pt-4 space-y-2">
-              <button
-                onClick={handleSaveRates}
-                disabled={isSavingPricing}
-                className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-              >
-                {isSavingPricing ? (
-                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                ) : (
-                  <span>Save rates</span>
-                )}
-              </button>
-              <button
-                onClick={handleSkipPricing}
-                className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors text-center"
-              >
-                Skip for now →
-              </button>
-            </div>
-          </div>
-        </StepCard>
-
-        {/* Step 4: Embed the Widget */}
-        <StepCard
-          step={4}
-          title="Embed the widget"
-          state={stepState[4]}
-          doneSummary={
-            data.widgetSkipped
-              ? "Not yet embedded"
-              : "Widget active"
-          }
-          doneSummaryAmber={data.widgetSkipped}
-          StepCircle={StepCircle}
-          onClick={() => handleStepClick(4)}
-        >
-          <Tabs defaultValue="script" className="w-full">
-            <TabsList className="mb-4 bg-slate-100">
-              <TabsTrigger value="script" className="text-xs">Script tag</TabsTrigger>
-              <TabsTrigger value="wordpress" className="text-xs">WordPress plugin</TabsTrigger>
-            </TabsList>
-            <TabsContent value="script">
+            ) : data.platform === "wordpress" ? (
               <div className="space-y-4">
-                <p className="text-sm text-slate-600">
-                  Paste this into your site's <code className="bg-slate-100 px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> or article template
-                </p>
-                <div className="bg-slate-900 rounded-xl p-4 relative">
-                  <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">{widgetCode}</pre>
-                </div>
-                <button
-                  onClick={() => {
-                    handleCopy(widgetCode, "widget");
-                    handleWidgetDone();
-                  }}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
-                >
-                  {copied === "widget" ? <Check size={16} className="flex-shrink-0" /> : <Copy size={16} className="flex-shrink-0" />}
-                  <span>Copy snippet</span>
-                </button>
-                <p className="text-xs text-slate-400">
-                  The widget auto-detects each article and shows the license button to visitors. Works on paywalled articles.
-                </p>
-              </div>
-            </TabsContent>
-            <TabsContent value="wordpress">
-              <div className="space-y-4">
-                <p className="text-sm text-slate-600">Download and install the Opedd WordPress plugin</p>
-                <button className="border border-slate-200 text-[#040042] h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center hover:bg-slate-50 transition-colors">
-                  <Download size={16} className="flex-shrink-0" />
-                  <span>Download WordPress Plugin</span>
-                </button>
+                <p className="text-sm font-medium text-[#040042]">Connect via Application Password</p>
                 <div className="text-xs text-slate-500 space-y-1">
-                  <p>1. Download the .zip file</p>
-                  <p>2. In WP Admin → Plugins → Add New → Upload Plugin</p>
-                  <p>3. Activate and enter your publisher ID in the settings</p>
+                  <p>In WP Admin → <strong>Users → Profile → Application Passwords</strong></p>
+                  <p>→ Add New → copy the generated password</p>
+                </div>
+                <div className="space-y-3">
+                  <Input placeholder="Username" />
+                  <div className="flex gap-2">
+                    <Input placeholder="App Password" className="flex-1" />
+                    <button
+                      onClick={handleVerify}
+                      disabled={isVerifying}
+                      className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
+                    >
+                      {isVerifying ? (
+                        <Loader2 size={14} className="animate-spin flex-shrink-0" />
+                      ) : (
+                        <>
+                          <span>Verify</span>
+                          <ArrowRight size={14} className="flex-shrink-0" />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
-          <button
-            onClick={handleSkipWidget}
-            className="mt-4 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            ) : (
+              /* Custom / Enterprise — DNS TXT */
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-[#040042]">Add a DNS TXT record to verify domain ownership</p>
+                <p className="text-xs text-slate-500">
+                  Add the following record via your DNS provider (Cloudflare, Route 53, GoDaddy, Namecheap, etc.)
+                </p>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="text-left px-4 py-2 font-medium text-slate-500">Type</th>
+                        <th className="text-left px-4 py-2 font-medium text-slate-500">Host</th>
+                        <th className="text-left px-4 py-2 font-medium text-slate-500">Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="px-4 py-3 font-mono text-[#040042]">TXT</td>
+                        <td className="px-4 py-3 font-mono text-[#040042]">
+                          <span className="flex items-center gap-1.5">
+                            _opedd.{data.pubUrl || "yourdomain.com"}
+                            <button
+                              onClick={() => handleCopy(`_opedd.${data.pubUrl || "yourdomain.com"}`, "dns-host")}
+                              className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
+                            >
+                              {copied === "dns-host" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                            </button>
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[#040042]">
+                          <span className="flex items-center gap-1.5">
+                            opedd-site-verify={data.verificationToken}
+                            <button
+                              onClick={() => handleCopy(`opedd-site-verify=${data.verificationToken}`, "dns-value")}
+                              className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
+                            >
+                              {copied === "dns-value" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                            </button>
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-slate-400">DNS changes typically take 5–15 minutes to propagate.</p>
+                <button
+                  onClick={handleVerify}
+                  disabled={isVerifying}
+                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
+                >
+                  {isVerifying ? (
+                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                  ) : (
+                    <span>I've added the record — Verify now</span>
+                  )}
+                </button>
+                {stepState[2] === "verifying" && (
+                  <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
+                    <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking DNS…
+                  </p>
+                )}
+              </div>
+            )}
+          </StepCard>
+
+          {/* Step 3: Set Your Rates */}
+          <StepCard
+            step={3}
+            title="Set your rates"
+            state={stepState[3]}
+            doneSummary={
+              stepState[3] === "skipped" || data.pricingSkipped
+                ? "Not set yet"
+                : `Rates set · Permission $${data.permissionPrice} · Syndication from $${data.syndicationPrice} · AI ${data.aiPrice ? `$${data.aiPrice}` : "disabled"}`
+            }
+            doneSummaryAmber={stepState[3] === "skipped" || data.pricingSkipped}
+            StepCircle={StepCircle}
+            onClick={() => handleStepClick(3)}
           >
-            Skip for now →
-          </button>
-        </StepCard>
-      </div>
+            <div className="space-y-1">
+              <p className="text-sm text-slate-600 mb-4">
+                These become your defaults across all articles. You can override per-article later.
+              </p>
+
+              {/* Permission rate */}
+              <div className="space-y-1.5">
+                <div className="flex items-baseline justify-between">
+                  <label className="text-sm font-semibold text-[#040042]">Permission rate</label>
+                  <span className="text-xs text-slate-400">per article</span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={data.permissionPrice}
+                    onChange={e => setData(d => ({ ...d, permissionPrice: e.target.value }))}
+                    className="pl-7 h-11 rounded-xl border-slate-200"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 italic">For students, bloggers, and small reuse. Typical range: $10 – $50</p>
+              </div>
+
+              <div className="border-t border-slate-100 my-4" />
+
+              {/* Syndication rate */}
+              <div className="space-y-1.5">
+                <div className="flex items-baseline justify-between">
+                  <label className="text-sm font-semibold text-[#040042]">Syndication rate</label>
+                  <span className="text-xs text-slate-400">starting from, per article</span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={data.syndicationPrice}
+                    onChange={e => setData(d => ({ ...d, syndicationPrice: e.target.value }))}
+                    className="pl-7 h-11 rounded-xl border-slate-200"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
+              </div>
+
+              <div className="border-t border-slate-100 my-4" />
+
+              {/* AI training rate */}
+              <div className="space-y-1.5">
+                <div className="flex items-baseline justify-between">
+                  <label className="text-sm font-semibold text-[#040042]">AI training rate</label>
+                  <span className="text-xs text-slate-400">per article (optional)</span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={data.aiPrice}
+                    onChange={e => setData(d => ({ ...d, aiPrice: e.target.value }))}
+                    placeholder="0.00"
+                    className="pl-7 h-11 rounded-xl border-slate-200"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
+              </div>
+
+              <div className="pt-4 space-y-2">
+                <button
+                  onClick={handleSaveRates}
+                  disabled={isSavingPricing}
+                  className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
+                >
+                  {isSavingPricing ? (
+                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                  ) : (
+                    <span>Save rates</span>
+                  )}
+                </button>
+                <button
+                  onClick={handleSkipPricing}
+                  className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors text-center"
+                >
+                  Skip for now →
+                </button>
+              </div>
+            </div>
+          </StepCard>
+
+          {/* Step 4: Embed the Widget */}
+          <StepCard
+            step={4}
+            title="Embed the widget"
+            state={stepState[4]}
+            doneSummary={
+              data.widgetSkipped
+                ? "Not yet embedded"
+                : "Widget active"
+            }
+            doneSummaryAmber={data.widgetSkipped}
+            StepCircle={StepCircle}
+            onClick={() => handleStepClick(4)}
+          >
+            <Tabs defaultValue="script" className="w-full">
+              <TabsList className="mb-4 bg-slate-100">
+                <TabsTrigger value="script" className="text-xs">Script tag</TabsTrigger>
+                <TabsTrigger value="wordpress" className="text-xs">WordPress plugin</TabsTrigger>
+              </TabsList>
+              <TabsContent value="script">
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600">
+                    Paste this into your site's <code className="bg-slate-100 px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> or article template
+                  </p>
+                  <div className="bg-slate-900 rounded-xl p-4 relative">
+                    <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">{widgetCode}</pre>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleCopy(widgetCode, "widget");
+                      handleWidgetDone();
+                    }}
+                    className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
+                  >
+                    {copied === "widget" ? <Check size={16} className="flex-shrink-0" /> : <Copy size={16} className="flex-shrink-0" />}
+                    <span>Copy snippet</span>
+                  </button>
+                  <p className="text-xs text-slate-400">
+                    The widget auto-detects each article and shows the license button to visitors. Works on paywalled articles.
+                  </p>
+                </div>
+              </TabsContent>
+              <TabsContent value="wordpress">
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600">Download and install the Opedd WordPress plugin</p>
+                  <button className="border border-slate-200 text-[#040042] h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center hover:bg-slate-50 transition-colors">
+                    <Download size={16} className="flex-shrink-0" />
+                    <span>Download WordPress Plugin</span>
+                  </button>
+                  <div className="text-xs text-slate-500 space-y-1">
+                    <p>1. Download the .zip file</p>
+                    <p>2. In WP Admin → Plugins → Add New → Upload Plugin</p>
+                    <p>3. Activate and enter your publisher ID in the settings</p>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+            <button
+              onClick={handleSkipWidget}
+              className="mt-4 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              Skip for now →
+            </button>
+          </StepCard>
+        </div>
+      )}
     </div>
   );
 }
@@ -976,7 +1129,7 @@ function StepCard({ step, title, state, doneSummary, doneSummaryAmber, children,
     <div
       className={`
         rounded-2xl border overflow-hidden transition-all
-        ${isExpanded ? "border-[#4A26ED]/25 shadow-sm shadow-[#4A26ED]/10" : ""}
+        ${isExpanded ? "border-[#4A26ED]/25 shadow-sm shadow-[#4A26ED]/10 bg-white" : ""}
         ${isDone ? "border-emerald-200/50 bg-white" : ""}
         ${isSkipped ? "border-amber-200/50 bg-white" : ""}
         ${isLocked ? "border-slate-200 bg-white opacity-60 pointer-events-none" : ""}
