@@ -315,6 +315,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             if (url.includes("substack.com")) return substackLogo;
             if (url.includes("ghost.io") || url.includes(".ghost.")) return ghostLogo;
             if (url.includes("beehiiv.com")) return beehiivLogo;
+            if (url.includes("wordpress.com") || url.includes("wp.com")) return wordpressLogo;
             if (url.includes("medium.com")) return mediumLogo;
             return null;
           })();
@@ -331,21 +332,15 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
               className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md transition-all"
             >
               <div className="flex items-start gap-4">
-                {/* Publication logo (from settings) with platform badge overlay */}
+                {/* Source logo: show platform logo based on URL detection */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden">
-                    {publisherLogoUrl ? (
-                      <img src={publisherLogoUrl} alt={source.name} className="w-full h-full object-cover" />
+                  <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
+                    {platformLogo ? (
+                      <img src={platformLogo} alt={platformKey || "platform"} className="w-10 h-10 object-contain" />
                     ) : (
                       <Globe size={20} className="text-slate-400" />
                     )}
                   </div>
-                  {/* Small platform badge */}
-                  {platformLogo && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-slate-200 flex items-center justify-center p-0.5">
-                      <img src={platformLogo} alt={platformKey} className="w-full h-full object-contain" />
-                    </div>
-                  )}
                 </div>
 
                 {/* Info */}
