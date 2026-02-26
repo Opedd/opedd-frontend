@@ -36,8 +36,8 @@ interface VerifyOwnershipModalProps {
 
 const generateVerificationCode = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  const bytes = crypto.getRandomValues(new Uint8Array(4));
+  const code = Array.from(bytes).map(b => chars[b % chars.length]).join("");
   return `OPEDD-${code}`;
 };
 
