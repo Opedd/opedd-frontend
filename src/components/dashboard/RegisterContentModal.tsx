@@ -88,10 +88,8 @@ const detectPlatform = (url: string): { name: string; logo: string; supportsWidg
 // Generate verification code/token
 const generateVerificationCode = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
+  const bytes = crypto.getRandomValues(new Uint8Array(4));
+  const code = Array.from(bytes).map(b => chars[b % chars.length]).join("");
   return `OPEDD-${code}`;
 };
 
@@ -458,7 +456,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           // Update existing source with new token
           await supabase.from("rss_sources").update({
             verification_token: token,
-            sync_status: "active",
+            sync_status: "pending",
             last_synced_at: new Date().toISOString(),
             verification_status: "pending",
           }).eq("id", existingSource.id);
@@ -471,7 +469,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               name: pubName,
               feed_url: syncFeedUrl,
               platform: platformType,
-              sync_status: "active",
+              sync_status: "pending",
               last_synced_at: new Date().toISOString(),
               verification_token: token,
             })

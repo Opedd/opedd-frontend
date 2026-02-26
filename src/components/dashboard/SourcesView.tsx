@@ -127,49 +127,47 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         description: `Fetching new articles from ${source.name}`,
       });
 
-      let attempts = 0;
-      const poll = async () => {
-        attempts++;
-        const { data } = await supabase
-          .from("rss_sources")
-          .select("article_count, last_synced_at, sync_status")
-          .eq("id", source.id)
-          .maybeSingle();
+      // Subscribe to realtime updates for this source
+      const channel = supabase
+        .channel(`source-sync-${source.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'rss_sources',
+            filter: `id=eq.${source.id}`,
+          },
+          (payload: any) => {
+            const updated = payload.new;
+            setSources(prev => prev.map(s =>
+              s.id === source.id
+                ? { ...s, article_count: updated.article_count, last_synced_at: updated.last_synced_at, sync_status: updated.sync_status }
+                : s
+            ));
 
-        if (data) {
-          const newCount = data.article_count || 0;
-          const added = newCount - previousCount;
+            const newCount = updated.article_count || 0;
+            const added = newCount - previousCount;
 
-          setSources(prev => prev.map(s =>
-            s.id === source.id
-              ? { ...s, article_count: newCount, last_synced_at: data.last_synced_at, sync_status: data.sync_status }
-              : s
-          ));
-
-          if (added > 0 || data.sync_status === "active" || attempts >= 5) {
-            setSyncingId(null);
-            toast({
-              title: "Sync Complete",
-              description: added > 0
-                ? `${added} new article${added !== 1 ? "s" : ""} added to your Library.`
-                : "No new articles found — your Library is up to date.",
-            });
-            return;
+            if (updated.sync_status !== 'syncing') {
+              supabase.removeChannel(channel);
+              setSyncingId(null);
+              toast({
+                title: "Sync Complete",
+                description: added > 0
+                  ? `${added} new article${added !== 1 ? "s" : ""} added to your Library.`
+                  : "No new articles found — your Library is up to date.",
+              });
+            }
           }
-        }
+        )
+        .subscribe();
 
-        if (attempts < 5) {
-          setTimeout(poll, 2000);
-        } else {
-          setSyncingId(null);
-          toast({
-            title: "Sync Complete",
-            description: "Sync finished. Check your Library for updates.",
-          });
-        }
-      };
-
-      setTimeout(poll, 2000);
+      // Timeout safety net — unsubscribe after 30 seconds if no update received
+      setTimeout(() => {
+        supabase.removeChannel(channel);
+        setSyncingId(null);
+      }, 30000);
     } catch (err) {
       console.error("Resync error:", err);
       setSyncingId(null);
@@ -183,14 +181,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   const handleDelete = async (source: Source) => {
     try {
-      // Get the publisher for this user (needed for hostname-based delete)
-      const { data: publisher } = await (supabase as any)
-        .from("publishers")
-        .select("id")
-        .eq("user_id", user!.id)
-        .single();
-
-      // 1. RSS path: find content_sources by feed_url → delete articles by source_id
+      // Find content_source by feed_url + user
       const { data: contentSource } = await (supabase as any)
         .from("content_sources")
         .select("id")
@@ -199,28 +190,13 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         .maybeSingle();
 
       if (contentSource?.id) {
+        // Delete articles linked to this source
         await (supabase as any).from("licenses").delete().eq("source_id", contentSource.id);
+        // Delete the content source
         await (supabase as any).from("content_sources").delete().eq("id", contentSource.id);
       }
 
-      // 2. Sitemap path: delete articles by publisher + hostname match
-      // import-sitemap doesn't create content_sources or set source_id,
-      // so we must match by source_url hostname (covers Ghost, WordPress, Other, media orgs)
-      if (publisher?.id) {
-        try {
-          const feedUrl = source.feed_url.startsWith("http") ? source.feed_url : `https://${source.feed_url}`;
-          const hostname = new URL(feedUrl).hostname;
-          if (hostname) {
-            await (supabase as any)
-              .from("licenses")
-              .delete()
-              .eq("publisher_id", publisher.id)
-              .ilike("source_url", `%${hostname}%`);
-          }
-        } catch {}
-      }
-
-      // 3. Delete the rss_sources record
+      // Always delete the rss_sources record
       await supabase
         .from("rss_sources")
         .delete()
