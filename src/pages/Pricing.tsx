@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { EXT_SUPABASE_URL } from "@/lib/constants";
 import { Check, Minus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -15,9 +16,40 @@ type Billing = "monthly" | "annually";
 
 export default function Pricing() {
   const [billing, setBilling] = useState<Billing>("monthly");
-  const { user } = useAuth();
+  const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const ctaLink = user ? "/dashboard" : "/signup";
+  const [upgrading, setUpgrading] = useState(false);
+
+  const handleUpgrade = async (plan: "pro" | "enterprise") => {
+    if (!user) {
+      navigate("/signup");
+      return;
+    }
+    setUpgrading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: "create_subscription", plan }),
+      });
+      const data = await res.json();
+      const checkoutUrl = data?.data?.checkout_url;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        alert("Could not start checkout. Please try again.");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setUpgrading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -104,13 +136,14 @@ export default function Pricing() {
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full mb-5" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
               7% platform fee
             </span>
-            <a
-              href="mailto:support@opedd.com?subject=Upgrade%20to%20Pro&body=Hi%2C%20I'd%20like%20to%20upgrade%20my%20Opedd%20account%20to%20Pro."
-              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6 block text-center"
+            <button
+              onClick={() => handleUpgrade("pro")}
+              disabled={upgrading}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6 disabled:opacity-50"
               style={{ backgroundColor: "#4A26ED" }}
             >
-              Upgrade to Pro
-            </a>
+              {upgrading ? "Loading..." : "Upgrade to Pro"}
+            </button>
             <FeatureList features={proFeatures} variant="light" />
           </div>
 
@@ -130,13 +163,14 @@ export default function Pricing() {
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full text-white mb-5" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
               5% platform fee
             </span>
-            <a
-              href="mailto:support@opedd.com?subject=Enterprise%20Plan&body=Hi%2C%20I'm%20interested%20in%20the%20Enterprise%20plan%20for%20my%20organization."
-              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 block text-center"
+            <button
+              onClick={() => handleUpgrade("enterprise")}
+              disabled={upgrading}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 disabled:opacity-50"
               style={{ backgroundColor: "white", color: "#040042" }}
             >
-              Contact Sales
-            </a>
+              {upgrading ? "Loading..." : "Contact Sales"}
+            </button>
             <FeatureList features={enterpriseFeatures} variant="dark" />
           </div>
         </div>

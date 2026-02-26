@@ -22,6 +22,7 @@ const Header = () => {
     { label: "How it Works", href: "#how-it-works" },
     { label: "Why Opedd", href: "#why-opedd" },
     { label: "Pricing", href: "/pricing", isRoute: true },
+    { label: "My Licenses", href: "/my-licenses", isRoute: true },
   ];
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {

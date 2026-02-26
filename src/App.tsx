@@ -30,6 +30,7 @@ import Privacy from "./pages/Privacy";
 import Pricing from "./pages/Pricing";
 import AuthCallback from "./pages/AuthCallback";
 import Licenses from "./pages/Licenses";
+import MyLicenses from "./pages/MyLicenses";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/licenses" element={<Licenses />} />
+              <Route path="/my-licenses" element={<MyLicenses />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
