@@ -12,7 +12,15 @@ import {
   Eye,
   AlertTriangle,
   Shield,
+  RefreshCw,
+  Info,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -41,7 +49,11 @@ interface WebhookDelivery {
   status: "success" | "failed";
   status_code: number;
   timestamp: string;
+  attempts?: number;
+  max_attempts?: number;
 }
+
+const [retryingDeliveryId, setRetryingDeliveryId] = React.useState<string | null>(null);
 
 export default function Connectors() {
   const { user, getAccessToken } = useAuth();
@@ -60,6 +72,7 @@ export default function Connectors() {
   const [showDeliveries, setShowDeliveries] = useState(false);
   const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
   const [publisherId, setPublisherId] = useState<string | null>(null);
+  const [retryingDeliveryId, setRetryingDeliveryId] = useState<string | null>(null);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -274,16 +287,44 @@ export default function Connectors() {
                           <div className="text-center py-8 text-sm text-slate-400">No deliveries yet</div>
                         ) : (
                           <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                            <div className="grid grid-cols-[1fr_80px_60px_140px_60px] gap-2 px-4 py-2 text-[10px] uppercase tracking-wide text-slate-400 font-medium border-b border-slate-100">
+                              <span>Event</span>
+                              <span>Status</span>
+                              <span>Attempts</span>
+                              <span>Last attempt</span>
+                              <span></span>
+                            </div>
                             {webhookDeliveries.map((d, i) => (
-                              <div key={d.id || i} className="flex items-center justify-between px-4 py-2.5 text-xs">
-                                <div className="flex items-center gap-3">
-                                  <code className="text-[#040042] font-mono">{d.event_type}</code>
-                                  <Badge variant="outline" className={`text-[10px] ${d.status === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
-                                    {d.status === "success" ? "Success" : "Failed"}
-                                  </Badge>
-                                  <span className="text-slate-400">{d.status_code}</span>
-                                </div>
+                              <div key={d.id || i} className="grid grid-cols-[1fr_80px_60px_140px_60px] gap-2 items-center px-4 py-2.5 text-xs">
+                                <code className="text-[#040042] font-mono truncate">{d.event_type}</code>
+                                <Badge variant="outline" className={`text-[10px] w-fit ${d.status === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+                                  {d.status === "success" ? "Success" : "Failed"}
+                                </Badge>
+                                <span className="text-slate-500">{d.attempts ?? "—"}/{d.max_attempts ?? 3}</span>
                                 <span className="text-slate-400">{new Date(d.timestamp).toLocaleString()}</span>
+                                <div>
+                                  {d.status === "failed" && (
+                                    <button
+                                      disabled={retryingDeliveryId === d.id}
+                                      onClick={async () => {
+                                        setRetryingDeliveryId(d.id);
+                                        try {
+                                          await postAction("retry_webhook_delivery", { delivery_id: d.id });
+                                          toast({ title: "Retry queued", description: "The delivery will be retried shortly." });
+                                          handleViewDeliveries();
+                                        } catch {
+                                          toast({ title: "Retry failed", variant: "destructive" });
+                                        } finally {
+                                          setRetryingDeliveryId(null);
+                                        }
+                                      }}
+                                      className="text-[#4A26ED] hover:text-[#3B1ED1] font-medium flex items-center gap-1"
+                                    >
+                                      {retryingDeliveryId === d.id ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
+                                      Retry
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -316,7 +357,19 @@ export default function Connectors() {
                       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
                         <div className="flex items-start gap-2">
                           <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                          <p className="text-xs text-amber-800 font-medium">Save this secret — it won't be shown again</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs text-amber-800 font-medium">Save this secret — it won't be shown again</p>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info size={12} className="text-amber-600 cursor-help flex-shrink-0" />
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                  This secret signs all webhook payloads. Rotate it here if compromised.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-white border border-amber-200 rounded-lg px-3 py-2 overflow-hidden">

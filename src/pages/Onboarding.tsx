@@ -20,10 +20,11 @@ import {
   AlertCircle,
   Copy,
   Check,
+  Shield,
 } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
-type Step = "domain" | "feeds" | "prices" | "embed";
+type Step = "domain" | "feeds" | "verify" | "prices" | "embed";
 
 interface FeedInfo {
   base_url: string;
@@ -50,7 +51,9 @@ export default function Onboarding() {
   const [isSettingPrices, setIsSettingPrices] = useState(false);
   const [importResult, setImportResult] = useState<{ inserted: number } | null>(null);
   const [copiedSnippet, setCopiedSnippet] = useState(false);
-
+  const [verificationToken] = useState(() => `opedd-verify-${Math.random().toString(36).slice(2, 10)}`);
+  const [copiedTxt, setCopiedTxt] = useState(false);
+  const [dnsCheckStatus, setDnsCheckStatus] = useState<"idle" | "checking" | "pending" | "verified">("idle");
   const embedSnippet = `<script src="${EXT_SUPABASE_URL}/functions/v1/widget" data-publisher-id="YOUR_PUBLISHER_ID"><\/script>`;
 
   const detectFeeds = async () => {
@@ -100,7 +103,12 @@ export default function Onboarding() {
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || "Import failed");
       setImportResult({ inserted: result.data.new_articles_inserted });
-      setStep("prices");
+      // If using sitemap (custom domain), offer verification; otherwise skip to prices
+      if (selectedSitemap && !selectedSitemap.includes("substack") && !selectedSitemap.includes("beehiiv")) {
+        setStep("verify");
+      } else {
+        setStep("prices");
+      }
     } catch (err) {
       toast({
         title: "Import failed",
@@ -151,8 +159,8 @@ export default function Onboarding() {
     setTimeout(() => setCopiedSnippet(false), 2000);
   };
 
-  const steps: Step[] = ["domain", "feeds", "prices", "embed"];
-  const stepLabels = ["Your site", "Content", "Pricing", "Embed"];
+  const steps: Step[] = ["domain", "feeds", "verify", "prices", "embed"];
+  const stepLabels = ["Your site", "Content", "Verify", "Pricing", "Embed"];
   const stepIndex = steps.indexOf(step);
 
   return (
@@ -341,6 +349,83 @@ export default function Onboarding() {
                     Skip for now<ArrowRight size={16} />
                   </Button>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Step: Verify Domain */}
+          {step === "verify" && (
+            <div className="space-y-6">
+              <div>
+                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
+                  <Shield size={24} className="text-emerald-600" />
+                </div>
+                <h1 className="text-2xl font-bold text-[#040042]">Verify domain ownership</h1>
+                <p className="text-slate-500 mt-1">
+                  Add a DNS TXT record to prove you own this domain. Verification unlocks trust badges on your widget.
+                </p>
+                <p className="text-xs text-slate-400 mt-2 italic">Optional but recommended</p>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">TXT Record to add</p>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-slate-400">Host / Name</p>
+                      <code className="text-sm font-mono text-[#040042]">_opedd-verify.{domain || "yourdomain.com"}</code>
+                    </div>
+                  </div>
+                  <div className="border-t border-slate-200 pt-2">
+                    <p className="text-xs text-slate-400">Value</p>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm font-mono text-[#040042] flex-1 truncate">{verificationToken}</code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(verificationToken);
+                          setCopiedTxt(true);
+                          setTimeout(() => setCopiedTxt(false), 2000);
+                        }}
+                        className="flex items-center gap-1 text-xs font-medium text-[#4A26ED] hover:text-[#3B1ED1]"
+                      >
+                        {copiedTxt ? <><Check size={12} />Copied</> : <><Copy size={12} />Copy</>}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => {
+                  setDnsCheckStatus("checking");
+                  // Placeholder — will call verify-license endpoint when backend is ready
+                  setTimeout(() => setDnsCheckStatus("pending"), 2000);
+                }}
+                disabled={dnsCheckStatus === "checking"}
+                variant="outline"
+                className="w-full h-11 border-slate-200"
+              >
+                {dnsCheckStatus === "checking" ? (
+                  <><Loader2 size={16} className="mr-2 animate-spin" />Checking DNS...</>
+                ) : dnsCheckStatus === "pending" ? (
+                  <><AlertCircle size={16} className="mr-2 text-amber-500" />Pending — DNS may take up to 48h to propagate</>
+                ) : dnsCheckStatus === "verified" ? (
+                  <><CheckCircle2 size={16} className="mr-2 text-emerald-500" />Domain Verified!</>
+                ) : (
+                  <><Shield size={16} className="mr-2" />Check DNS</>
+                )}
+              </Button>
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep("feeds")} className="gap-2">
+                  <ArrowLeft size={16} />Back
+                </Button>
+                <Button
+                  onClick={() => setStep("prices")}
+                  className="flex-1 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white gap-2"
+                >
+                  {dnsCheckStatus === "verified" ? "Continue" : "Skip for now"}<ArrowRight size={16} />
+                </Button>
               </div>
             </div>
           )}
