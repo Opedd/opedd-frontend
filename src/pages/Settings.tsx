@@ -27,8 +27,19 @@ import {
   Trash2,
   Send,
   Clock,
-  XCircle
+  XCircle,
+  CheckCircle,
+  X,
+  Info,
+  MessageSquare,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -128,6 +139,11 @@ export default function Settings() {
   const [isFetchingCategories, setIsFetchingCategories] = useState(false);
   const [categoriesFetched, setCategoriesFetched] = useState(false);
   const [isSavingContent, setIsSavingContent] = useState(false);
+
+  // Save feedback banners
+  const [saveBanner, setSaveBanner] = useState<"success" | "error" | null>(null);
+  const [apiKeyWarning, setApiKeyWarning] = useState(false);
+  const [contactForPricing, setContactForPricing] = useState(false);
 
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
@@ -359,12 +375,13 @@ export default function Settings() {
       const result = await res.json();
       if (result.success) {
         if (result.data) setProfile(result.data);
-        toast({ title: "Settings Saved", description: "Your preferences have been updated" });
+        setSaveBanner("success");
+        setTimeout(() => setSaveBanner(null), 3000);
       } else {
         throw new Error(result.error?.message || "Save failed");
       }
     } catch (err: unknown) {
-      toast({ title: "Save Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+      setSaveBanner("error");
     } finally {
       setIsSaving(false);
     }
@@ -446,6 +463,7 @@ export default function Settings() {
       if (result.success && result.data?.api_key) {
         setProfile(prev => prev ? { ...prev, api_key: result.data.api_key } : prev);
         setApiKeyRevealed(true);
+        setApiKeyWarning(true);
         toast({ title: "API Key Generated", description: "Your new key is shown below. Update your integrations." });
       } else {
         throw new Error(result.error?.message || "Failed to generate key");
@@ -460,6 +478,30 @@ export default function Settings() {
   return (
     <DashboardLayout title="Settings">
         <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
+          {/* Save feedback banners */}
+          <AnimatePresence>
+            {saveBanner === "success" && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-[#f0fdf4] px-4 py-3"
+              >
+                <CheckCircle size={16} className="text-[#166534] flex-shrink-0" />
+                <span className="text-sm font-medium text-[#166534]">Settings saved</span>
+              </motion.div>
+            )}
+            {saveBanner === "error" && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3"
+              >
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-[#DC2626] flex-shrink-0" />
+                  <span className="text-sm font-medium text-[#DC2626]">Failed to save. Try again.</span>
+                </div>
+                <button onClick={() => setSaveBanner(null)} className="text-red-400 hover:text-red-600"><X size={14} /></button>
+              </motion.div>
+            )}
+          </AnimatePresence>
           {isLoading ? (
             <PageLoader />
           ) : (
@@ -598,6 +640,24 @@ export default function Settings() {
                             <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself and your work..." className="bg-slate-50 border-slate-200 rounded-lg min-h-[100px] resize-none focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                             <p className="text-xs text-slate-400">Displayed on your public licensing page</p>
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Contact for Pricing Section */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="flex items-center gap-3 mb-1">
+                          <MessageSquare size={18} className="text-[#4A26ED]" />
+                          <h2 className="font-bold text-[#040042]">Contact for Pricing</h2>
+                        </div>
+                        <p className="text-xs text-[#6B7280] mb-4 ml-[30px]">
+                          When enabled, high-value articles can show "Request License" instead of a checkout button.
+                        </p>
+                        <div className="flex items-center justify-between ml-[30px]">
+                          <div>
+                            <p className="text-sm font-medium text-[#111827]">Allow buyers to request a quote</p>
+                            <p className="text-xs text-[#6B7280] mt-0.5">Instead of purchasing directly</p>
+                          </div>
+                          <Switch checked={contactForPricing} onCheckedChange={setContactForPricing} />
                         </div>
                       </div>
 
@@ -889,6 +949,14 @@ export default function Settings() {
                                   {apiKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
                                 </Button>
                               </div>
+                              {apiKeyWarning && (
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+                                  <AlertTriangle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                                  <p className="text-xs text-amber-800 font-medium">
+                                    Your old API key is now invalid. Update any integrations before leaving this page.
+                                  </p>
+                                </div>
+                              )}
                               <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                                 <p className="text-xs text-slate-500">
                                   <Shield size={12} className="inline mr-1 text-amber-500" />
@@ -935,7 +1003,19 @@ export default function Settings() {
                       {/* Category Pricing */}
                       <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-5">
                         <div>
-                          <h3 className="text-base font-semibold text-[#040042]">Category Pricing</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-semibold text-[#040042]">Category Pricing</h3>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info size={14} className="text-[#6B7280] cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-[220px] text-xs">
+                                  Category prices override your global defaults for articles in that category.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                           <p className="text-sm text-[#6B7280] mt-0.5">Override default prices for specific content categories. Articles without a category use your default prices.</p>
                         </div>
                         {isFetchingCategories ? (
