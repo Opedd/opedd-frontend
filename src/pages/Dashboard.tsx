@@ -161,9 +161,10 @@ export default function Dashboard() {
 
       {/* Fix 5: Add Publication Drawer */}
       <Sheet open={addPubDrawerOpen} onOpenChange={setAddPubDrawerOpen}>
-        <SheetContent side="right" className="sm:max-w-xl w-full p-0 overflow-y-auto bg-white">
-          <div className="bg-[#040042] px-6 py-5">
-            <SheetTitle className="text-white text-lg font-bold">Register content</SheetTitle>
+        <SheetContent side="right" className="sm:max-w-[480px] w-full p-0 overflow-y-auto bg-white">
+          <div className="px-6 py-5 border-b border-[#E5E7EB]">
+            <SheetTitle className="text-[#111827] text-lg font-bold">Register your content</SheetTitle>
+            <p className="text-sm text-[#6B7280] mt-0.5">Choose the type of content you want to protect and license.</p>
           </div>
           <PublicationSetupFlow
             onComplete={() => {

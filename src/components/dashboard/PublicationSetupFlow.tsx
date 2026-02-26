@@ -13,6 +13,10 @@ import {
   Sparkles,
   Download,
   FileText,
+  Mail,
+  Layers,
+  ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -136,6 +140,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
   const [isSavingPricing, setIsSavingPricing] = useState(false);
   const [isRegisteringSingle, setIsRegisteringSingle] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [selectionTier, setSelectionTier] = useState<"root" | "newsletter" | "media">("root");
 
   // Fetch publisher ID on mount
   useEffect(() => {
@@ -575,7 +580,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
               </div>
 
               <button
-                onClick={() => setData(d => ({ ...d, platform: null }))}
+                onClick={() => { setData(d => ({ ...d, platform: null })); setSelectionTier("root"); }}
                 className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
               >
                 ← Back to options
@@ -636,32 +641,143 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
           >
             {/* Platform picker */}
             {!data.platform ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {PLATFORMS.map(p => (
-                  <button
-                    key={p.key}
-                    onClick={() => setData(d => ({ ...d, platform: p.key }))}
-                    className="bg-white border border-slate-200 rounded-xl p-4 hover:border-[#4A26ED]/40 hover:shadow-sm transition-all text-center cursor-pointer flex flex-col items-center gap-2"
-                  >
-                    <div className="w-10 h-10 flex items-center justify-center">
-                      {p.logo ? (
-                        <img src={p.logo} alt={p.name} className="w-10 h-10 object-contain" />
-                      ) : p.icon ? (
-                        <p.icon size={28} className="text-[#4A26ED]" />
-                      ) : (
-                        <Globe size={28} className="text-slate-400" />
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold text-[#040042]">{p.name}</p>
-                    <p className="text-xs text-slate-400">{p.descriptor}</p>
-                  </button>
-                ))}
+              <div className="space-y-3">
+                {selectionTier === "root" ? (
+                  <>
+                    {/* Tier 1: Content type selection */}
+                    <button
+                      onClick={() => setSelectionTier("newsletter")}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
+                        <Mail size={20} className="text-[#4A26ED]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-semibold text-[#111827]">Newsletter or Single Feed</p>
+                        <p className="text-sm text-[#6B7280] mt-0.5">Substack, Beehiiv, or any RSS-based publication</p>
+                      </div>
+                      <ChevronRight size={18} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+
+                    <button
+                      onClick={() => setSelectionTier("media")}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
+                        <Layers size={20} className="text-[#4A26ED]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-semibold text-[#111827]">Media or Bulk Archive</p>
+                        <p className="text-sm text-[#6B7280] mt-0.5">Ghost, WordPress, or any custom domain with a full archive</p>
+                      </div>
+                      <ChevronRight size={18} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+
+                    <button
+                      onClick={() => setData(d => ({ ...d, platform: "single_work" }))}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
+                        <FileText size={20} className="text-[#4A26ED]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-semibold text-[#111827]">Single Article or Essay</p>
+                        <p className="text-sm text-[#6B7280] mt-0.5">One specific piece of content — URL and title</p>
+                      </div>
+                      <ChevronRight size={18} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+                  </>
+                ) : selectionTier === "newsletter" ? (
+                  <>
+                    {/* Tier 2: Newsletter platforms */}
+                    <button
+                      onClick={() => setSelectionTier("root")}
+                      className="text-sm text-[#4A26ED] hover:underline flex items-center gap-1 mb-1"
+                    >
+                      <ArrowLeft size={14} /> Back
+                    </button>
+                    <p className="text-sm font-medium text-[#111827] mb-2">Which platform?</p>
+
+                    <button
+                      onClick={() => setData(d => ({ ...d, platform: "substack" }))}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <img src={substackLogo} alt="Substack" className="w-8 h-8 object-contain flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#111827]">Substack</p>
+                        <p className="text-xs text-[#6B7280] mt-0.5">Add your Substack RSS feed URL</p>
+                      </div>
+                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+
+                    <button
+                      onClick={() => setData(d => ({ ...d, platform: "beehiiv" }))}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <img src={beehiivLogo} alt="Beehiiv" className="w-8 h-8 object-contain flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#111827]">Beehiiv</p>
+                        <p className="text-xs text-[#6B7280] mt-0.5">Connect your Beehiiv publication</p>
+                      </div>
+                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Tier 2: Media / Bulk platforms */}
+                    <button
+                      onClick={() => setSelectionTier("root")}
+                      className="text-sm text-[#4A26ED] hover:underline flex items-center gap-1 mb-1"
+                    >
+                      <ArrowLeft size={14} /> Back
+                    </button>
+                    <p className="text-sm font-medium text-[#111827] mb-2">Which platform?</p>
+
+                    <button
+                      onClick={() => setData(d => ({ ...d, platform: "ghost" }))}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <img src={ghostLogo} alt="Ghost" className="w-8 h-8 object-contain flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#111827]">Ghost</p>
+                        <p className="text-xs text-[#6B7280] mt-0.5">Connect via Content API key</p>
+                      </div>
+                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+
+                    <button
+                      onClick={() => setData(d => ({ ...d, platform: "wordpress" }))}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <img src={wordpressLogo} alt="WordPress" className="w-8 h-8 object-contain flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#111827]">WordPress</p>
+                        <p className="text-xs text-[#6B7280] mt-0.5">Connect via Application Password</p>
+                      </div>
+                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+
+                    <button
+                      onClick={() => setData(d => ({ ...d, platform: "custom" }))}
+                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
+                    >
+                      <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                        <Globe size={22} className="text-[#6B7280]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#111827]">Custom domain / Sitemap</p>
+                        <p className="text-xs text-[#6B7280] mt-0.5">Any CMS — enter your sitemap URL</p>
+                      </div>
+                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-1">
                   <button
-                    onClick={() => setData(d => ({ ...d, platform: null, pubUrl: "" }))}
+                    onClick={() => { setData(d => ({ ...d, platform: null, pubUrl: "" })); setSelectionTier("root"); }}
                     className="text-xs text-[#4A26ED] hover:underline"
                   >
                     ← Change platform
