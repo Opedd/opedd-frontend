@@ -53,7 +53,7 @@ interface WebhookDelivery {
   max_attempts?: number;
 }
 
-const [retryingDeliveryId, setRetryingDeliveryId] = React.useState<string | null>(null);
+
 
 export default function Connectors() {
   const { user, getAccessToken } = useAuth();
