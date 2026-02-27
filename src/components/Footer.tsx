@@ -116,7 +116,7 @@ const Footer = () => {
           className="mt-12 pt-8 border-t border-soft-white/10 flex flex-col md:flex-row items-center justify-between gap-4"
         >
           <p className="text-sm text-alice-gray">
-            © 2026 Opedd.io. All rights reserved.
+            © 2026 Opedd. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-sm text-alice-gray">
             <a href="/terms" className="hover:text-accent transition-colors">Terms of Service</a>

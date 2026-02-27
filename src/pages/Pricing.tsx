@@ -108,7 +108,7 @@ export default function Pricing() {
               12% platform fee
             </span>
             <button
-              onClick={() => navigate(ctaLink)}
+              onClick={() => navigate("/signup")}
               className="w-full py-2.5 rounded-lg text-sm font-semibold border bg-white transition-colors hover:bg-slate-50 mb-6"
               style={{ borderColor: "#040042", color: "#040042" }}
             >
@@ -137,12 +137,11 @@ export default function Pricing() {
               7% platform fee
             </span>
             <button
-              onClick={() => handleUpgrade("pro")}
-              disabled={upgrading}
-              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6 disabled:opacity-50"
+              onClick={() => navigate("/signup")}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6"
               style={{ backgroundColor: "#4A26ED" }}
             >
-              {upgrading ? "Loading..." : "Upgrade to Pro"}
+              Upgrade to Pro
             </button>
             <FeatureList features={proFeatures} variant="light" />
           </div>
@@ -163,14 +162,13 @@ export default function Pricing() {
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full text-white mb-5" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
               5% platform fee
             </span>
-            <button
-              onClick={() => handleUpgrade("enterprise")}
-              disabled={upgrading}
-              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 disabled:opacity-50"
+            <a
+              href="mailto:hello@opedd.com"
+              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 block text-center"
               style={{ backgroundColor: "white", color: "#040042" }}
             >
-              {upgrading ? "Loading..." : "Contact Sales"}
-            </button>
+              Contact Sales
+            </a>
             <FeatureList features={enterpriseFeatures} variant="dark" />
           </div>
         </div>
@@ -247,21 +245,14 @@ export default function Pricing() {
           <p className="text-base mb-10 leading-relaxed" style={{ color: "#6B7280" }}>
             Join publishers already protecting their work with Opedd Protocol.
           </p>
-          <div className="flex items-center justify-center gap-4 flex-wrap">
+          <div className="flex items-center justify-center">
             <button
-              onClick={() => navigate(ctaLink)}
+              onClick={() => navigate("/signup")}
               className="px-8 py-3 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 hover:shadow-lg"
               style={{ backgroundColor: "#4A26ED" }}
             >
               Get started free
             </button>
-            <a
-              href="#"
-              className="px-8 py-3 rounded-lg text-sm font-semibold border-2 transition-all hover:bg-slate-50"
-              style={{ borderColor: "#E5E7EB", color: "#374151" }}
-            >
-              View documentation
-            </a>
           </div>
           <p className="text-xs mt-8 tracking-wide" style={{ color: "#9CA3AF" }}>
             No credit card required · Cancel anytime · Setup in under 5 minutes

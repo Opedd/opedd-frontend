@@ -92,9 +92,9 @@ const WhyOpeddSection = () => {
           className="mt-16 grid grid-cols-3 gap-8 max-w-3xl mx-auto"
         >
           {[
+            { value: "90%", label: "You keep" },
             { value: "10x", label: "Faster licensing" },
             { value: "$0", label: "Upfront costs" },
-            { value: "100%", label: "Revenue share" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-soft-white mb-2">

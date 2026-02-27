@@ -40,7 +40,7 @@ const FeatureGrid = () => {
             Built for Publishers & Institutions
           </h2>
           <p className="text-lg text-alice-gray mt-4 max-w-2xl mx-auto">
-            Enterprise-grade licensing infrastructure for the knowledge economy.
+            From independent newsletters to media organisations. Opedd is the payment and licensing infrastructure that sits between your content and everyone who wants to use it.
           </p>
         </motion.div>
 

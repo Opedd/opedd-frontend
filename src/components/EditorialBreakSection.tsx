@@ -20,8 +20,7 @@ const EditorialBreakSection = () => {
             Your Content, Machine-Readable
           </h2>
           <p className="text-lg text-navy-deep/70 mt-4 max-w-2xl mx-auto">
-            Transform your archive into a licensing-ready catalog. Every article becomes 
-            a trackable, licensable asset with automated ownership tracking.
+            Connect your content. Set your prices. Licensing happens automatically — for human republication, AI training, and AI inference.
           </p>
         </motion.div>
 

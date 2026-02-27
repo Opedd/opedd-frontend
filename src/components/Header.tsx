@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom"; // Added this
+import { Link } from "react-router-dom";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const Header = () => {
@@ -26,7 +26,7 @@ const Header = () => {
   ];
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith("/")) return; // Let Link handle routes
+    if (href.startsWith("/")) return;
     e.preventDefault();
     const targetId = href.replace("#", "");
     const element = document.getElementById(targetId);
@@ -87,13 +87,11 @@ const Header = () => {
                 Login
               </Button>
             </Link>
-            <Button 
-              variant="oxford" 
-              size="sm"
-              onClick={(e) => handleSmoothScroll(e as unknown as React.MouseEvent<HTMLAnchorElement>, "#waitlist-form")}
-            >
-              Join Waitlist
-            </Button>
+            <Link to="/signup">
+              <Button variant="oxford" size="sm">
+                Get Started Free
+              </Button>
+            </Link>
           </div>
 
           <button className="md:hidden text-soft-white p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -136,14 +134,11 @@ const Header = () => {
                     Login
                   </Button>
                 </Link>
-                <Button 
-                  variant="oxford" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={(e) => handleSmoothScroll(e as unknown as React.MouseEvent<HTMLAnchorElement>, "#waitlist-form")}
-                >
-                  Join Waitlist
-                </Button>
+                <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="oxford" size="sm" className="w-full">
+                    Get Started Free
+                  </Button>
+                </Link>
               </div>
             </nav>
           </motion.div>
