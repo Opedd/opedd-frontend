@@ -27,9 +27,7 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6 text-soft-white"
           >
-            The Licensing Layer for
-            <br />
-            Content in the Age of AI
+            Make your content sovereign.
           </motion.h1>
 
           {/* Subheadline */}
@@ -39,8 +37,7 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg md:text-xl text-alice-gray max-w-3xl mx-auto mb-10 leading-relaxed"
           >
-            Publishers set prices. Buyers get instant, verifiable license keys. Every transaction 
-            recorded on-chain. No middlemen, no chasing invoices.
+            The licensing infrastructure for the AI age. Set your prices, issue verifiable license keys, get paid automatically.
           </motion.p>
 
           {/* Two CTA Buttons */}
