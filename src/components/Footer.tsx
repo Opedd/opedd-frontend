@@ -119,8 +119,10 @@ const Footer = () => {
             © 2026 Opedd.io. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-sm text-alice-gray">
-            <a href="/privacy" className="hover:text-accent transition-colors">Privacy</a>
-            <a href="/terms" className="hover:text-accent transition-colors">Terms</a>
+            <a href="/terms" className="hover:text-accent transition-colors">Terms of Service</a>
+            <span className="text-alice-gray/40">·</span>
+            <a href="/privacy" className="hover:text-accent transition-colors">Privacy Policy</a>
+            <span className="text-alice-gray/40">·</span>
             <a href="mailto:support@opedd.com" className="hover:text-accent transition-colors">Support</a>
           </div>
         </motion.div>

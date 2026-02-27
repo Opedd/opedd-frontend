@@ -22,64 +22,66 @@ export default function Terms() {
 
           <div className="prose prose-slate max-w-none space-y-6 text-[#040042]/80 leading-relaxed">
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">1. Acceptance of Terms</h2>
-              <p>By accessing or using the Opedd platform ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the Service.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">1. Agreement</h2>
+              <p>By accessing or using Opedd ("Service", "we", "us"), you agree to these Terms. If you do not agree, do not use the Service. These Terms are governed by the laws of England and Wales.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">2. Description of Service</h2>
-              <p>Opedd is a content licensing protocol and infrastructure that enables publishers to monetize their intellectual property through human reuse and AI training licenses. The platform provides tools for license issuance, verification, and payment processing.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">2. What Opedd Does</h2>
+              <p>Opedd is a content licensing protocol. It enables publishers to offer licenses for their content and buyers to purchase those licenses. Opedd facilitates transactions but is not a party to the license agreement between publisher and buyer.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">3. Publisher Accounts</h2>
-              <p>To use the Service as a publisher, you must create an account. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must provide accurate and complete information when creating your account.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">3. Publisher Obligations</h2>
+              <p>By listing content on Opedd, you confirm that you own or have the right to license that content. You are solely responsible for ensuring your content does not infringe third-party rights. Opedd reserves the right to remove content at its discretion.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">4. Content Ownership</h2>
-              <p>You retain all ownership rights to your content. By using the Service, you grant Opedd a limited license to display metadata about your content (titles, URLs, descriptions) for the purpose of facilitating licensing transactions. Opedd does not claim ownership of any content registered on the platform.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">4. Buyer Obligations</h2>
+              <p>A purchased license grants you the specific rights described at the time of purchase (human republication, AI training, or AI inference). You may not use licensed content beyond the scope of your license type. License keys are non-transferable unless explicitly permitted.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">5. Licensing Transactions</h2>
-              <p>Opedd facilitates licensing transactions between publishers and licensees. Publishers set their own pricing. Each license is identified by a unique license key and may be verified through the Opedd Protocol Proof Layer. Opedd charges a platform fee on paid transactions processed through the platform.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">5. Payments</h2>
+              <p>All payments are processed by Stripe. By purchasing a license, you authorise the stated charge to your payment method. License purchases are final. Refunds are only issued where required by applicable law or at our sole discretion.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">6. Payments</h2>
-              <p>Payment processing is handled by Stripe. By using payment features, you also agree to Stripe's terms of service. Opedd retains a platform fee (currently 10%) on transactions processed through Stripe Connect. Payouts to publishers are managed through Stripe Connect Express accounts.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">6. Accounts</h2>
+              <p>You are responsible for maintaining the security of your account credentials. You must not share your account or API keys. We reserve the right to suspend accounts that violate these Terms.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">7. API Usage</h2>
-              <p>Access to the Opedd Programmatic API is subject to rate limits and fair use policies. API keys are confidential and must not be shared. Abuse of the API, including exceeding rate limits or attempting to circumvent security measures, may result in suspension of access.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">7. On-Chain Data</h2>
+              <p>License registrations may be recorded on a public blockchain (Base). Once recorded, this data cannot be deleted. By purchasing a license, you acknowledge that the license key, content identifier, and license type will be permanently public on-chain.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">8. Prohibited Conduct</h2>
-              <p>You agree not to: (a) use the Service for any unlawful purpose; (b) register content you do not have rights to license; (c) attempt to circumvent security measures or rate limits; (d) interfere with the operation of the Service; (e) impersonate another person or entity.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">8. Intellectual Property</h2>
+              <p>Opedd's platform, branding, and technology are owned by Opedd. Content listed by publishers remains the property of those publishers. Nothing in these Terms transfers ownership of any content or technology.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">9. Limitation of Liability</h2>
-              <p>The Service is provided "as is" without warranties of any kind. Opedd shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability shall not exceed the fees paid by you in the twelve months preceding the claim.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">9. Disclaimer</h2>
+              <p>The Service is provided "as is" without warranties of any kind. We do not guarantee uninterrupted availability. We are not liable for any indirect, incidental, or consequential damages arising from your use of the Service.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">10. Termination</h2>
-              <p>Either party may terminate this agreement at any time. Upon termination, your right to use the Service ceases. Existing license transactions and their associated license keys remain valid after termination.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">10. Limitation of Liability</h2>
+              <p>To the maximum extent permitted by law, Opedd's total liability to you for any claim arising from these Terms or your use of the Service shall not exceed the amount you paid to Opedd in the 12 months preceding the claim.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">11. Changes to Terms</h2>
-              <p>We may update these terms from time to time. We will notify registered users of material changes via email. Continued use of the Service after changes constitutes acceptance of the new terms.</p>
+              <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">11. Changes</h2>
+              <p>We may update these Terms at any time. Continued use of the Service after changes constitutes acceptance of the updated Terms. We will notify registered users of material changes by email.</p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">12. Contact</h2>
-              <p>For questions about these Terms of Service, please contact us at <a href="mailto:legal@opedd.com" className="text-[#4A26ED] hover:underline">legal@opedd.com</a>.</p>
+              <p>Questions about these Terms: <a href="mailto:hello@opedd.com" className="text-indigo-600 hover:underline">hello@opedd.com</a></p>
             </section>
+
+            <p className="mt-8">See also: <Link to="/privacy" className="text-indigo-600 hover:underline">Privacy Policy</Link></p>
           </div>
         </div>
       </main>
