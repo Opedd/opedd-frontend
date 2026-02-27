@@ -27,7 +27,7 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6 text-soft-white"
           >
-            Make your content sovereign.
+            Make Your Content Sovereign.
           </motion.h1>
 
           {/* Subheadline */}
