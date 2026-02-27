@@ -17,132 +17,62 @@ import {
   Layers,
   ChevronRight,
   ArrowLeft,
+  Rss,
+  Code2,
+  CheckCircle2,
+  AlertCircle,
+  Terminal,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import opeddIcon from "@/assets/opedd-icon.svg";
 
-// Platform logos
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 
-type Platform = "substack" | "beehiiv" | "ghost" | "wordpress" | "custom" | "single_work";
+// ─── Types ───
 
-interface PlatformOption {
-  key: Platform;
-  name: string;
-  descriptor: string;
-  logo: string | null;
-  icon?: React.ElementType;
-  placeholder: string;
+interface DetectFeedsResult {
+  platform: "substack" | "ghost" | "wordpress" | "beehiiv" | "unknown";
+  has_rss: boolean;
+  has_sitemap: boolean;
+  rss_urls: string[];
+  sitemap_urls: string[];
+  estimated_article_count: number;
 }
 
-const PLATFORMS: PlatformOption[] = [
-  { key: "substack", name: "Substack", descriptor: "Newsletter", logo: substackLogo, placeholder: "yourname.substack.com" },
-  { key: "beehiiv", name: "Beehiiv", descriptor: "Newsletter", logo: beehiivLogo, placeholder: "yourname.beehiiv.com" },
-  { key: "ghost", name: "Ghost", descriptor: "Blog / CMS", logo: ghostLogo, placeholder: "yourblog.ghost.io" },
-  { key: "wordpress", name: "WordPress", descriptor: "Blog / CMS", logo: wordpressLogo, placeholder: "yourblog.com" },
-  { key: "custom", name: "Custom domain", descriptor: "Media / Enterprise", logo: null, placeholder: "theinformation.com" },
-  { key: "single_work", name: "Single work", descriptor: "One article or piece", logo: null, icon: FileText, placeholder: "" },
-];
-
-const IMPORT_INFO: Record<string, { text: string; hasChoice?: boolean }> = {
-  substack: {
-    text: "Substack publishes a public RSS feed. We'll sync your articles automatically — no extra setup needed. Your archive updates daily.",
-  },
-  beehiiv: {
-    text: "We'll connect via the Beehiiv API (you'll provide your API key in the next step). This gives us access to your full archive with complete article text.",
-  },
-  ghost: {
-    text: "We'll connect via the Ghost Content API (you'll provide your API key in the next step). Full archive, complete article text, tags, and authors.",
-  },
-  wordpress: {
-    text: "We'll import via the WordPress REST API using an Application Password (you'll set this up in the next step). Full archive with complete text.",
-  },
-  custom: {
-    text: "",
-    hasChoice: true,
-  },
-};
-
-type StepState = "locked" | "active" | "verifying" | "done" | "skipped";
-
-interface StepData {
-  platform: Platform | null;
-  pubUrl: string;
-  pubName: string;
-  articleCount: number;
-  sourceId: string;
-  verificationToken: string;
-  permissionPrice: string;
-  syndicationPrice: string;
-  aiPrice: string;
-  widgetCopied: boolean;
-  widgetSkipped: boolean;
-  pricingSkipped: boolean;
-  publisherId: string;
-  customImportMethod: "sitemap" | "api_push";
-  customSitemapUrl: string;
-  // Single work fields
-  singleWorkTitle: string;
-  singleWorkUrl: string;
-  singleWorkDone: boolean;
-  singleWorkLicenseLink: string;
-}
-
-const generateVerificationCode = () => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-  return `OPEDD-${code}`;
-};
+type FlowStep = "url_input" | "detection_result" | "post_import" | "api_path";
 
 interface PublicationSetupFlowProps {
   onComplete: (completionState?: { pricingDone: boolean; widgetDone: boolean }) => void;
 }
 
+const PLATFORM_META: Record<string, { label: string; logo: string | null; color: string }> = {
+  substack: { label: "Substack", logo: substackLogo, color: "bg-orange-100 text-orange-700 border-orange-200" },
+  beehiiv: { label: "Beehiiv", logo: beehiivLogo, color: "bg-orange-100 text-orange-700 border-orange-200" },
+  ghost: { label: "Ghost", logo: ghostLogo, color: "bg-slate-100 text-slate-700 border-slate-200" },
+  wordpress: { label: "WordPress", logo: wordpressLogo, color: "bg-blue-100 text-blue-700 border-blue-200" },
+};
+
 export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) {
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
 
-  const [currentStep, setCurrentStep] = useState(1);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [stepState, setStepState] = useState<Record<number, StepState>>({
-    1: "active", 2: "locked", 3: "locked", 4: "locked",
-  });
-
-  const [data, setData] = useState<StepData>({
-    platform: null,
-    pubUrl: "",
-    pubName: "",
-    articleCount: 0,
-    sourceId: "",
-    verificationToken: generateVerificationCode(),
-    permissionPrice: "25.00",
-    syndicationPrice: "500.00",
-    aiPrice: "",
-    widgetCopied: false,
-    widgetSkipped: false,
-    pricingSkipped: false,
-    publisherId: "",
-    customImportMethod: "sitemap",
-    customSitemapUrl: "",
-    singleWorkTitle: "",
-    singleWorkUrl: "",
-    singleWorkDone: false,
-    singleWorkLicenseLink: "",
-  });
-
+  const [step, setStep] = useState<FlowStep>("url_input");
+  const [url, setUrl] = useState("");
+  const [isDetecting, setIsDetecting] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isSavingPricing, setIsSavingPricing] = useState(false);
-  const [isRegisteringSingle, setIsRegisteringSingle] = useState(false);
+  const [detection, setDetection] = useState<DetectFeedsResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [selectionTier, setSelectionTier] = useState<"root" | "newsletter" | "media">("root");
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [publisherId, setPublisherId] = useState("");
 
-  // Fetch publisher ID on mount
+  // Manual fallback URL for Case C
+  const [manualFeedUrl, setManualFeedUrl] = useState("");
+
+  // Fetch publisher profile (API key + ID)
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -155,25 +85,12 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
         const result = await res.json();
         if (result.success && result.data) {
           const pub = result.data.publisher || result.data;
-          if (pub.id) setData(d => ({ ...d, publisherId: pub.id }));
+          if (pub.api_key) setApiKey(pub.api_key);
+          if (pub.id) setPublisherId(pub.id);
         }
       } catch {}
     })();
   }, [user, getAccessToken]);
-
-  const markStepDone = (step: number) => {
-    setCompletedSteps(prev => new Set([...prev, step]));
-    setStepState(prev => ({ ...prev, [step]: "done" }));
-    const next = step + 1;
-    if (next <= 4 && stepState[next] === "locked") {
-      setCurrentStep(next);
-      setStepState(prev => ({ ...prev, [next]: "active" }));
-    }
-  };
-
-  const completedCount = completedSteps.size;
-  const requiredDone = completedSteps.has(1) && completedSteps.has(2);
-  const isAllDone = requiredDone && completedSteps.has(3) && completedSteps.has(4);
 
   const handleCopy = async (text: string, key: string) => {
     try {
@@ -183,83 +100,77 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     } catch {}
   };
 
-  const handleStepClick = (step: number) => {
-    const state = stepState[step];
-    if (state === "locked") return;
-    if (state === "done" || state === "skipped") {
-      setStepState(prev => ({ ...prev, [step]: "active" }));
-      setCurrentStep(step);
+  // ─── Step 1: Detect feeds ───
+  const handleDetect = async () => {
+    if (!url.trim()) return;
+    setIsDetecting(true);
+    try {
+      const domain = url.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+      const res = await fetch(
+        `${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain)}`,
+        { headers: { apikey: EXT_ANON_KEY } }
+      );
+      const result = await res.json();
+      if (result.success && result.data) {
+        setDetection(result.data);
+        setStep("detection_result");
+      } else {
+        // Treat as "nothing found"
+        setDetection({
+          platform: "unknown",
+          has_rss: false,
+          has_sitemap: false,
+          rss_urls: [],
+          sitemap_urls: [],
+          estimated_article_count: 0,
+        });
+        setStep("detection_result");
+      }
+    } catch {
+      setDetection({
+        platform: "unknown",
+        has_rss: false,
+        has_sitemap: false,
+        rss_urls: [],
+        sitemap_urls: [],
+        estimated_article_count: 0,
+      });
+      setStep("detection_result");
+    } finally {
+      setIsDetecting(false);
     }
   };
 
-  // ─── Single Work Registration ───
-  const handleRegisterSingleWork = async () => {
-    if (!data.singleWorkTitle.trim() || !user) return;
-    setIsRegisteringSingle(true);
+  // Determine which case we're in
+  const getCase = (): "rss" | "sitemap" | "nothing" => {
+    if (!detection) return "nothing";
+    const { platform, has_rss, has_sitemap } = detection;
+    // Case A: Substack/Beehiiv, or unknown with RSS only
+    if (platform === "substack" || platform === "beehiiv") return "rss";
+    if (platform === "unknown" && has_rss && !has_sitemap) return "rss";
+    // Case B: Ghost/WordPress (has sitemap)
+    if ((platform === "ghost" || platform === "wordpress") && has_sitemap) return "sitemap";
+    if (has_sitemap) return "sitemap";
+    if (has_rss) return "rss";
+    return "nothing";
+  };
+
+  // ─── Connect RSS ───
+  const handleConnectRss = async () => {
+    if (!detection || !user) return;
+    const feedUrl = detection.rss_urls[0];
+    if (!feedUrl) return;
+    setIsConnecting(true);
     try {
       const token = await getAccessToken();
       if (!token) throw new Error("Not authenticated");
 
-      // Create as an asset directly
-      const { data: inserted, error } = await supabase
-        .from("assets")
-        .insert({
-          user_id: user.id,
-          title: data.singleWorkTitle.trim(),
-          source_url: data.singleWorkUrl.trim() || null,
-          license_type: "single",
-          licensing_enabled: true,
-        })
-        .select("id")
-        .single();
-
-      if (error) throw error;
-
-      const licenseLink = `${window.location.origin}/license/${inserted?.id || ""}`;
-      setData(d => ({
-        ...d,
-        singleWorkDone: true,
-        singleWorkLicenseLink: licenseLink,
-      }));
-      toast({ title: "Content registered", description: "Your license link is ready" });
-    } catch (err: any) {
-      toast({ title: "Registration failed", description: err?.message || "Please try again", variant: "destructive" });
-    } finally {
-      setIsRegisteringSingle(false);
-    }
-  };
-
-  // ─── Step 1: Connect Publication ───
-  const handleConnectPublication = async () => {
-    if (!data.platform || !data.pubUrl.trim() || !user) return;
-    setIsConnecting(true);
-
-    try {
-      const domain = data.pubUrl.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+      const domain = url.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
       const rawName = domain.split(".")[0];
       const pubName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-      const token = await getAccessToken();
-      if (!token) throw new Error("Not authenticated");
+      const platform = detection.platform === "unknown" ? "other" : detection.platform;
 
-      const verifyToken = generateVerificationCode();
-
-      let feedUrl = `https://${domain}`;
-      let registrationPath = "newsletter_feed";
-
-      if (data.platform === "substack" || data.platform === "beehiiv") {
-        feedUrl = `https://${domain}/feed`;
-        registrationPath = "newsletter_feed";
-      } else if (data.platform === "ghost") {
-        feedUrl = `https://${domain}/sitemap.xml`;
-        registrationPath = "sitemap_import";
-      } else if (data.platform === "wordpress") {
-        feedUrl = `https://${domain}/sitemap.xml`;
-        registrationPath = "sitemap_import";
-      } else {
-        feedUrl = `https://${domain}`;
-        registrationPath = "bulk_enterprise";
-      }
-
+      // Upsert rss_source
       const { data: existing } = await supabase
         .from("rss_sources")
         .select("id")
@@ -270,9 +181,8 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
       let sourceId = "";
       if (existing?.id) {
         await supabase.from("rss_sources").update({
-          verification_token: verifyToken,
           sync_status: "syncing",
-          registration_path: registrationPath,
+          registration_path: "newsletter_feed",
         }).eq("id", existing.id);
         sourceId = existing.id;
       } else {
@@ -282,48 +192,30 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
             user_id: user.id,
             name: pubName,
             feed_url: feedUrl,
-            platform: data.platform === "custom" ? "other" : data.platform,
+            platform,
             sync_status: "syncing",
-            registration_path: registrationPath,
-            verification_token: verifyToken,
+            registration_path: "newsletter_feed",
+            sync_method: "rss",
           })
           .select("id")
           .single();
         sourceId = inserted?.id || "";
       }
 
+      // Trigger sync
+      const syncRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ sourceUrl: feedUrl }),
+      });
       let articleCount = 0;
-      if (data.platform === "substack" || data.platform === "beehiiv") {
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: EXT_ANON_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ sourceUrl: feedUrl }),
-        });
-        if (res.ok) {
-          const syncData = await res.json().catch(() => ({}));
-          articleCount = syncData.data?.items_imported ?? syncData.data?.items_found ?? 0;
-        }
-      } else {
-        const sitemapUrl = data.platform === "custom"
-          ? (data.customSitemapUrl.trim() || `https://${domain}/sitemap.xml`)
-          : feedUrl;
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: EXT_ANON_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ sitemap_url: sitemapUrl }),
-        });
-        if (res.ok) {
-          const result = await res.json().catch(() => ({}));
-          articleCount = result.data?.new_articles_inserted || 0;
-        }
+      if (syncRes.ok) {
+        const syncData = await syncRes.json().catch(() => ({}));
+        articleCount = syncData.data?.items_imported ?? syncData.data?.items_found ?? 0;
       }
 
       await supabase.from("rss_sources").update({
@@ -332,16 +224,8 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
         last_synced_at: new Date().toISOString(),
       }).eq("id", sourceId);
 
-      setData(d => ({
-        ...d,
-        pubName,
-        articleCount,
-        sourceId,
-        verificationToken: verifyToken,
-      }));
-
-      markStepDone(1);
-      toast({ title: "Publication connected", description: `${articleCount} articles imported from ${pubName}` });
+      toast({ title: "RSS feed connected", description: `${articleCount} articles synced from ${pubName}` });
+      setStep("post_import");
     } catch (err: any) {
       toast({ title: "Connection failed", description: err?.message || "Please try again", variant: "destructive" });
     } finally {
@@ -349,933 +233,549 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     }
   };
 
-  // ─── Step 2: Verify Ownership ───
-  const handleVerify = async () => {
-    if (!data.sourceId) return;
-    setIsVerifying(true);
-    setStepState(prev => ({ ...prev, 2: "verifying" }));
-
+  // ─── Import sitemap ───
+  const handleImportSitemap = async () => {
+    if (!detection || !user) return;
+    const sitemapUrl = detection.sitemap_urls[0];
+    if (!sitemapUrl) return;
+    setIsConnecting(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/verify-source`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ source_id: data.sourceId }),
-      });
-      const result = await res.json();
-      if (result.success || result.data?.verified) {
-        markStepDone(2);
-        toast({ title: "Ownership verified", description: `${data.pubName} is now verified` });
+      if (!token) throw new Error("Not authenticated");
+
+      const domain = url.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+      const rawName = domain.split(".")[0];
+      const pubName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+      const platform = detection.platform === "unknown" ? "other" : detection.platform;
+
+      // Upsert rss_source
+      const { data: existing } = await supabase
+        .from("rss_sources")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("feed_url", sitemapUrl)
+        .maybeSingle();
+
+      let sourceId = "";
+      if (existing?.id) {
+        await supabase.from("rss_sources").update({
+          sync_status: "syncing",
+          registration_path: "sitemap_import",
+        }).eq("id", existing.id);
+        sourceId = existing.id;
       } else {
-        setStepState(prev => ({ ...prev, 2: "active" }));
-        toast({ title: "Verification failed", description: result.error?.message || "Code not found. Please check and try again.", variant: "destructive" });
+        const { data: inserted } = await supabase
+          .from("rss_sources")
+          .insert({
+            user_id: user.id,
+            name: pubName,
+            feed_url: sitemapUrl,
+            platform,
+            sync_status: "syncing",
+            registration_path: "sitemap_import",
+            sync_method: "sitemap",
+          })
+          .select("id")
+          .single();
+        sourceId = inserted?.id || "";
       }
-    } catch {
-      setStepState(prev => ({ ...prev, 2: "active" }));
-      toast({ title: "Verification failed", description: "Please try again", variant: "destructive" });
-    } finally {
-      setIsVerifying(false);
-    }
-  };
 
-  // ─── Step 3: Save Rates ───
-  const handleSaveRates = async () => {
-    if (!data.sourceId) return;
-    setIsSavingPricing(true);
-    try {
-      const token = await getAccessToken();
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/update-license-prices`, {
+      // Trigger import
+      const importRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          sourceId: data.sourceId,
-          humanPrice: parseFloat(data.permissionPrice) || 0,
-          syndicationPrice: parseFloat(data.syndicationPrice) || 0,
-          aiPrice: data.aiPrice ? parseFloat(data.aiPrice) : null,
-          licensingEnabled: true,
-        }),
+        body: JSON.stringify({ sitemap_url: sitemapUrl }),
       });
-      markStepDone(3);
-      const aiLabel = data.aiPrice ? `$${data.aiPrice}` : "disabled";
-      toast({ title: "Rates saved", description: `Permission $${data.permissionPrice} · Syndication from $${data.syndicationPrice} · AI ${aiLabel}` });
-    } catch {
-      toast({ title: "Failed to save rates", variant: "destructive" });
+
+      if (importRes.ok) {
+        const importData = await importRes.json().catch(() => ({}));
+        const queued = importData.data?.article_urls_queued || detection.estimated_article_count || 0;
+        await supabase.from("rss_sources").update({
+          sync_status: "active",
+          article_count: queued,
+          last_synced_at: new Date().toISOString(),
+        }).eq("id", sourceId);
+        toast({ title: "Import started", description: `${queued} articles queued for import` });
+      }
+
+      setStep("post_import");
+    } catch (err: any) {
+      toast({ title: "Import failed", description: err?.message || "Please try again", variant: "destructive" });
     } finally {
-      setIsSavingPricing(false);
+      setIsConnecting(false);
     }
   };
 
-  const handleSkipPricing = () => {
-    setData(d => ({ ...d, pricingSkipped: true }));
-    setCompletedSteps(prev => new Set([...prev, 3]));
-    setStepState(prev => ({ ...prev, 3: "skipped" }));
-    if (stepState[4] === "locked") {
-      setCurrentStep(4);
-      setStepState(prev => ({ ...prev, 4: "active" }));
+  // ─── Manual connect (Case C) ───
+  const handleManualConnect = async () => {
+    if (!manualFeedUrl.trim() || !user) return;
+    setIsConnecting(true);
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+
+      const feedUrl = manualFeedUrl.trim();
+      const isSitemap = feedUrl.includes("sitemap");
+      const domain = url.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+      const rawName = domain.split(".")[0];
+      const pubName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+
+      const { data: inserted } = await supabase
+        .from("rss_sources")
+        .insert({
+          user_id: user.id,
+          name: pubName,
+          feed_url: feedUrl,
+          platform: "other",
+          sync_status: "syncing",
+          registration_path: isSitemap ? "sitemap_import" : "newsletter_feed",
+          sync_method: isSitemap ? "sitemap" : "rss",
+        })
+        .select("id")
+        .single();
+
+      const sourceId = inserted?.id || "";
+
+      if (isSitemap) {
+        await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ sitemap_url: feedUrl }),
+        });
+      } else {
+        await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ sourceUrl: feedUrl }),
+        });
+      }
+
+      await supabase.from("rss_sources").update({
+        sync_status: "active",
+        last_synced_at: new Date().toISOString(),
+      }).eq("id", sourceId);
+
+      // Fake detection for post-import step
+      setDetection({
+        platform: "unknown",
+        has_rss: !isSitemap,
+        has_sitemap: isSitemap,
+        rss_urls: isSitemap ? [] : [feedUrl],
+        sitemap_urls: isSitemap ? [feedUrl] : [],
+        estimated_article_count: 0,
+      });
+
+      toast({ title: "Content connected", description: "Processing your content" });
+      setStep("post_import");
+    } catch (err: any) {
+      toast({ title: "Connection failed", description: err?.message || "Please try again", variant: "destructive" });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
-  // ─── Step 4: Widget ───
-  const widgetCode = data.publisherId
-    ? `<script src="${EXT_SUPABASE_URL}/functions/v1/widget"\n  data-publisher-id="${data.publisherId}"\n  async></script>`
-    : `<script src="${EXT_SUPABASE_URL}/functions/v1/widget"\n  data-publisher="pub_XXXXXX"\n  async></script>`;
-
-  const handleSkipWidget = () => {
-    setData(d => ({ ...d, widgetSkipped: true }));
-    setCompletedSteps(prev => new Set([...prev, 4]));
-    setStepState(prev => ({ ...prev, 4: "skipped" }));
-  };
-
-  const handleWidgetDone = () => {
-    setData(d => ({ ...d, widgetCopied: true }));
-    markStepDone(4);
-  };
-
-  // ─── Step Indicator ───
-  const StepCircle = ({ step, state }: { step: number; state: StepState }) => {
-    if (state === "done") {
-      return (
-        <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
-          <Check size={16} strokeWidth={2.5} />
-        </div>
-      );
-    }
-    if (state === "skipped") {
-      return (
-        <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
-          <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-        </div>
-      );
-    }
-    if (state === "verifying") {
-      return (
-        <div className="w-8 h-8 rounded-full bg-[#4A26ED]/20 flex items-center justify-center flex-shrink-0">
-          <Loader2 size={16} className="text-[#4A26ED] animate-spin" />
-        </div>
-      );
-    }
-    if (state === "active") {
-      return (
-        <div className="w-8 h-8 rounded-full bg-[#4A26ED] text-white flex items-center justify-center flex-shrink-0 text-sm font-semibold">
-          {step}
-        </div>
-      );
-    }
-    return (
-      <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center flex-shrink-0 text-sm font-medium">
-        {step}
-      </div>
-    );
-  };
-
-  // Check if single work mode
-  const isSingleWork = data.platform === "single_work";
+  const webhookUrl = `${EXT_SUPABASE_URL}/functions/v1/api`;
+  const detectedCase = getCase();
+  const isRssFlow = detectedCase === "rss" || (detection?.platform === "substack") || (detection?.platform === "beehiiv");
 
   // ─── Render ───
   return (
-    <div className="p-8 max-w-3xl w-full mx-auto space-y-6">
-      {/* Header Card */}
-      {isSingleWork ? (
-        // Single work mode: simplified header
-        <div className="bg-[#040042] rounded-2xl p-6 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-            <FileText size={20} className="text-white" />
+    <div className="p-6 max-w-xl w-full mx-auto space-y-5">
+      {/* ════════ Step 1: URL Input ════════ */}
+      {step === "url_input" && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+          <div>
+            <h3 className="text-lg font-bold text-[#040042]">Add your content</h3>
+            <p className="text-sm text-slate-500 mt-1">Enter your website or newsletter URL</p>
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-white">Register content</h2>
-            <p className="text-sm text-[#A78BFA] mt-0.5">
-              {data.singleWorkDone ? "Your license link is ready" : "Register a single piece of content"}
-            </p>
-          </div>
-        </div>
-      ) : requiredDone && (completedSteps.has(3) || data.pricingSkipped) && (completedSteps.has(4) || data.widgetSkipped) ? (
-        <div className="bg-[#040042] rounded-2xl p-6 flex items-center gap-4 flex-wrap">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
-            <Check size={20} className="text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-white">You're live on Opedd</h2>
-            <p className="text-sm text-[#A78BFA] mt-0.5">
-              {data.pubUrl} · Verified · {data.articleCount} articles{!data.pricingSkipped && ` · Permission $${data.permissionPrice}`}
-            </p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
+
+          <div className="space-y-3">
+            <Input
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              placeholder="https://yoursite.com"
+              className="h-12 text-base"
+              onKeyDown={e => e.key === "Enter" && handleDetect()}
+            />
+
             <button
-              onClick={() => onComplete({
-                pricingDone: stepState[3] === "done",
-                widgetDone: stepState[4] === "done",
-              })}
-              className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
+              onClick={handleDetect}
+              disabled={isDetecting || !url.trim()}
+              className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
             >
-              <span>Go to dashboard</span>
-              <ArrowRight size={16} className="flex-shrink-0" />
+              {isDetecting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                  <span>Scanning your site…</span>
+                </>
+              ) : (
+                <>
+                  <span>Detect my content</span>
+                  <ArrowRight size={16} className="flex-shrink-0" />
+                </>
+              )}
             </button>
           </div>
-        </div>
-      ) : (
-        <div className="bg-[#040042] rounded-2xl p-6 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-            <img src={opeddIcon} alt="" className="w-6 h-6" />
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-xs text-slate-400 font-medium">or</span>
+            <div className="flex-1 h-px bg-slate-200" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-white">Set up your publication</h2>
-            <p className="text-sm text-[#A78BFA] mt-0.5">
-              Complete each step to activate licensing on your content
-            </p>
-          </div>
-          <div className="text-sm text-white/60 font-medium flex-shrink-0">
-            Step {currentStep} of 4
-          </div>
+
+          <button
+            onClick={() => setStep("api_path")}
+            className="text-sm text-[#4A26ED] hover:underline font-medium flex items-center gap-1.5"
+          >
+            <Terminal size={14} className="flex-shrink-0" />
+            Use API instead
+          </button>
         </div>
       )}
 
-      {/* Single Work Flow */}
-      {isSingleWork ? (
+      {/* ════════ Step 2: Detection Result ════════ */}
+      {step === "detection_result" && detection && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
-          {!data.singleWorkDone ? (
+          {/* Case A: RSS (Substack/Beehiiv/unknown with RSS) */}
+          {detectedCase === "rss" && (
             <>
-              <div>
-                <h3 className="text-base font-semibold text-[#040042]">Register a single piece of content</h3>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-[#040042] block mb-1.5">Title *</label>
-                  <Input
-                    value={data.singleWorkTitle}
-                    onChange={e => setData(d => ({ ...d, singleWorkTitle: e.target.value }))}
-                    placeholder="Your article title"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#040042] block mb-1.5">URL (optional)</label>
-                  <Input
-                    value={data.singleWorkUrl}
-                    onChange={e => setData(d => ({ ...d, singleWorkUrl: e.target.value }))}
-                    placeholder="https://yourdomain.com/your-article"
-                  />
-                </div>
-                <button
-                  onClick={handleRegisterSingleWork}
-                  disabled={isRegisteringSingle || !data.singleWorkTitle.trim()}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-                >
-                  {isRegisteringSingle ? (
-                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                  ) : (
-                    <>
-                      <span>Register and get license link</span>
-                      <ArrowRight size={16} className="flex-shrink-0" />
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <button
-                onClick={() => { setData(d => ({ ...d, platform: null })); setSelectionTier("root"); }}
-                className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                ← Back to options
-              </button>
-            </>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
-                  <Check size={16} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-[#040042]">Content registered</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">{data.singleWorkTitle}</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-500 block mb-1.5">License link</label>
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-mono text-[#040042] truncate">
-                    {data.singleWorkLicenseLink}
-                  </code>
-                  <button
-                    onClick={() => handleCopy(data.singleWorkLicenseLink, "single-link")}
-                    className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors flex-shrink-0"
-                  >
-                    {copied === "single-link" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
-                  </button>
+                  <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
+                  <h3 className="text-lg font-bold text-[#040042]">
+                    {detection.platform !== "unknown"
+                      ? `${PLATFORM_META[detection.platform]?.label || detection.platform} detected`
+                      : "RSS feed found"}
+                  </h3>
                 </div>
+                {detection.platform !== "unknown" && PLATFORM_META[detection.platform] && (
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${PLATFORM_META[detection.platform].color}`}>
+                    {PLATFORM_META[detection.platform].logo && (
+                      <img src={PLATFORM_META[detection.platform].logo!} alt="" className="w-3.5 h-3.5" />
+                    )}
+                    {PLATFORM_META[detection.platform].label}
+                  </span>
+                )}
+              </div>
+
+              <p className="text-sm text-slate-600 leading-relaxed">
+                We found your RSS feed. We'll sync your newsletter automatically — new posts appear in Opedd within the hour.
+              </p>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 flex items-center gap-2">
+                <Rss size={14} className="text-slate-400 flex-shrink-0" />
+                <code className="text-sm text-[#040042] font-mono truncate">{detection.rss_urls[0]}</code>
               </div>
 
               <button
-                onClick={() => onComplete({ pricingDone: true, widgetDone: true })}
-                className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
+                onClick={handleConnectRss}
+                disabled={isConnecting}
+                className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
               >
-                <span>Go to dashboard</span>
-                <ArrowRight size={16} className="flex-shrink-0" />
-              </button>
-            </div>
-          )}
-        </div>
-      ) : (
-        /* Multi-step publication flow */
-        <div className="space-y-3">
-          {/* Step 1: Your Publication */}
-          <StepCard
-            step={1}
-            title="Your publication"
-            state={stepState[1]}
-            doneSummary={
-              data.platform
-                ? `${PLATFORMS.find(p => p.key === data.platform)?.name} · ${data.pubUrl} · ${data.articleCount} articles imported`
-                : ""
-            }
-            StepCircle={StepCircle}
-            onClick={() => handleStepClick(1)}
-          >
-            {/* Platform picker */}
-            {!data.platform ? (
-              <div className="space-y-3">
-                {selectionTier === "root" ? (
-                  <>
-                    {/* Tier 1: Content type selection */}
-                    <button
-                      onClick={() => setSelectionTier("newsletter")}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
-                        <Mail size={20} className="text-[#4A26ED]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-base font-semibold text-[#111827]">Newsletter or Single Feed</p>
-                        <p className="text-sm text-[#6B7280] mt-0.5">Substack, Beehiiv, or any RSS-based publication</p>
-                      </div>
-                      <ChevronRight size={18} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
-
-                    <button
-                      onClick={() => setSelectionTier("media")}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
-                        <Layers size={20} className="text-[#4A26ED]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-base font-semibold text-[#111827]">Media or Bulk Archive</p>
-                        <p className="text-sm text-[#6B7280] mt-0.5">Ghost, WordPress, or any custom domain with a full archive</p>
-                      </div>
-                      <ChevronRight size={18} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
-
-                    <button
-                      onClick={() => setData(d => ({ ...d, platform: "single_work" }))}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
-                        <FileText size={20} className="text-[#4A26ED]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-base font-semibold text-[#111827]">Single Article or Essay</p>
-                        <p className="text-sm text-[#6B7280] mt-0.5">One specific piece of content — URL and title</p>
-                      </div>
-                      <ChevronRight size={18} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
-                  </>
-                ) : selectionTier === "newsletter" ? (
-                  <>
-                    {/* Tier 2: Newsletter platforms */}
-                    <button
-                      onClick={() => setSelectionTier("root")}
-                      className="text-sm text-[#4A26ED] hover:underline flex items-center gap-1 mb-1"
-                    >
-                      <ArrowLeft size={14} /> Back
-                    </button>
-                    <p className="text-sm font-medium text-[#111827] mb-2">Which platform?</p>
-
-                    <button
-                      onClick={() => setData(d => ({ ...d, platform: "substack" }))}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <img src={substackLogo} alt="Substack" className="w-8 h-8 object-contain flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#111827]">Substack</p>
-                        <p className="text-xs text-[#6B7280] mt-0.5">Add your Substack RSS feed URL</p>
-                      </div>
-                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
-
-                    <button
-                      onClick={() => setData(d => ({ ...d, platform: "beehiiv" }))}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <img src={beehiivLogo} alt="Beehiiv" className="w-8 h-8 object-contain flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#111827]">Beehiiv</p>
-                        <p className="text-xs text-[#6B7280] mt-0.5">Connect your Beehiiv publication</p>
-                      </div>
-                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
-                  </>
+                {isConnecting ? (
+                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
                 ) : (
                   <>
-                    {/* Tier 2: Media / Bulk platforms */}
-                    <button
-                      onClick={() => setSelectionTier("root")}
-                      className="text-sm text-[#4A26ED] hover:underline flex items-center gap-1 mb-1"
-                    >
-                      <ArrowLeft size={14} /> Back
-                    </button>
-                    <p className="text-sm font-medium text-[#111827] mb-2">Which platform?</p>
-
-                    <button
-                      onClick={() => setData(d => ({ ...d, platform: "ghost" }))}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <img src={ghostLogo} alt="Ghost" className="w-8 h-8 object-contain flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#111827]">Ghost</p>
-                        <p className="text-xs text-[#6B7280] mt-0.5">Connect via Content API key</p>
-                      </div>
-                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
-
-                    <button
-                      onClick={() => setData(d => ({ ...d, platform: "wordpress" }))}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <img src={wordpressLogo} alt="WordPress" className="w-8 h-8 object-contain flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#111827]">WordPress</p>
-                        <p className="text-xs text-[#6B7280] mt-0.5">Connect via Application Password</p>
-                      </div>
-                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
-
-                    <button
-                      onClick={() => setData(d => ({ ...d, platform: "custom" }))}
-                      className="w-full flex items-center gap-4 bg-white border border-[#E5E7EB] rounded-lg p-4 hover:border-[#C4B5FD] hover:shadow-sm transition-all cursor-pointer text-left group"
-                    >
-                      <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                        <Globe size={22} className="text-[#6B7280]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#111827]">Custom domain / Sitemap</p>
-                        <p className="text-xs text-[#6B7280] mt-0.5">Any CMS — enter your sitemap URL</p>
-                      </div>
-                      <ChevronRight size={16} className="text-[#6B7280] group-hover:text-[#4A26ED] transition-colors flex-shrink-0" />
-                    </button>
+                    <span>Connect RSS feed</span>
+                    <ArrowRight size={16} className="flex-shrink-0" />
                   </>
                 )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <button
-                    onClick={() => { setData(d => ({ ...d, platform: null, pubUrl: "" })); setSelectionTier("root"); }}
-                    className="text-xs text-[#4A26ED] hover:underline"
-                  >
-                    ← Change platform
-                  </button>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#040042] block mb-1.5">
-                    {data.platform === "custom" ? "Domain" : "Publication URL"}
-                  </label>
-                  <Input
-                    value={data.pubUrl}
-                    onChange={e => setData(d => ({ ...d, pubUrl: e.target.value }))}
-                    placeholder={PLATFORMS.find(p => p.key === data.platform)?.placeholder}
-                  />
-                </div>
+              </button>
+            </>
+          )}
 
-                {/* Import method info */}
-                {data.pubUrl.trim() && data.platform && IMPORT_INFO[data.platform] && (
-                  data.platform === "custom" ? (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5">
-                        📥 How would you like to import your content?
-                      </p>
-                      <div className="space-y-2">
-                        <button
-                          onClick={() => setData(d => ({ ...d, customImportMethod: "sitemap" }))}
-                          className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
-                            data.customImportMethod === "sitemap"
-                              ? "border-[#4A26ED] bg-[#4A26ED]/5"
-                              : "border-slate-200 hover:border-slate-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                              data.customImportMethod === "sitemap" ? "border-[#4A26ED]" : "border-slate-300"
-                            }`}>
-                              {data.customImportMethod === "sitemap" && (
-                                <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
-                              )}
-                            </div>
-                            <span className="text-sm font-medium text-[#040042]">Sitemap import</span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1 ml-6">
-                            We crawl your sitemap.xml and import all articles
-                          </p>
-                          {data.customImportMethod === "sitemap" && (
-                            <div className="mt-2 ml-6">
-                              <Input
-                                value={data.customSitemapUrl}
-                                onChange={e => setData(d => ({ ...d, customSitemapUrl: e.target.value }))}
-                                placeholder={`https://${data.pubUrl.trim().replace(/^https?:\/\//, "")}/sitemap.xml`}
-                                className="text-sm"
-                              />
-                            </div>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setData(d => ({ ...d, customImportMethod: "api_push" }))}
-                          className={`w-full text-left border-2 rounded-xl p-3 transition-all ${
-                            data.customImportMethod === "api_push"
-                              ? "border-[#4A26ED] bg-[#4A26ED]/5"
-                              : "border-slate-200 hover:border-slate-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                              data.customImportMethod === "api_push" ? "border-[#4A26ED]" : "border-slate-300"
-                            }`}>
-                              {data.customImportMethod === "api_push" && (
-                                <div className="w-2 h-2 rounded-full bg-[#4A26ED]" />
-                              )}
-                            </div>
-                            <span className="text-sm font-medium text-[#040042]">API push <span className="text-xs text-slate-400 font-normal">(enterprise)</span></span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1 ml-6">
-                            Your team pushes content to our API on publish. We'll provide credentials after setup.
-                          </p>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                        📥 How we import your content
-                      </p>
-                      <p className="text-sm text-slate-600 leading-relaxed">
-                        {IMPORT_INFO[data.platform]?.text}
-                      </p>
-                    </div>
-                  )
-                )}
-
-                <button
-                  onClick={handleConnectPublication}
-                  disabled={isConnecting || !data.pubUrl.trim()}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-                >
-                  {isConnecting ? (
-                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                  ) : (
-                    <>
-                      <span>Connect publication</span>
-                      <ArrowRight size={16} className="flex-shrink-0" />
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-          </StepCard>
-
-          {/* Step 2: Verify Ownership */}
-          <StepCard
-            step={2}
-            title="Verify ownership"
-            state={stepState[2]}
-            doneSummary={`Ownership verified · ${data.pubUrl}`}
-            StepCircle={StepCircle}
-            onClick={() => handleStepClick(2)}
-          >
-            {data.platform === "substack" || data.platform === "beehiiv" ? (
-              <div className="space-y-4">
-                <p className="text-sm text-slate-600">Add this to your publication description</p>
+          {/* Case B: Sitemap (Ghost/WordPress) */}
+          {detectedCase === "sitemap" && (
+            <>
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-mono text-[#040042]">
-                    opedd-verification: {data.verificationToken}
-                  </code>
-                  <button
-                    onClick={() => handleCopy(`opedd-verification: ${data.verificationToken}`, "verify-code")}
-                    className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors flex-shrink-0"
-                  >
-                    {copied === "verify-code" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
-                  </button>
+                  <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
+                  <h3 className="text-lg font-bold text-[#040042]">
+                    {detection.platform !== "unknown"
+                      ? `${PLATFORM_META[detection.platform]?.label || detection.platform} detected`
+                      : "Sitemap found"}
+                  </h3>
                 </div>
-                <div className="text-xs text-slate-500 space-y-1">
-                  <p>Go to <strong>Settings → Publication details → Description</strong></p>
-                  <p>Paste the code, save. Then click Verify below.</p>
-                  <p className="text-slate-400">You can remove it after verification is complete.</p>
-                </div>
-                <button
-                  onClick={handleVerify}
-                  disabled={isVerifying}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-                >
-                  {isVerifying ? (
-                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                  ) : (
-                    <span>Verify ownership</span>
-                  )}
-                </button>
-                {stepState[2] === "verifying" && (
-                  <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
-                    <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking…
-                  </p>
+                {detection.platform !== "unknown" && PLATFORM_META[detection.platform] && (
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${PLATFORM_META[detection.platform].color}`}>
+                    {PLATFORM_META[detection.platform].logo && (
+                      <img src={PLATFORM_META[detection.platform].logo!} alt="" className="w-3.5 h-3.5" />
+                    )}
+                    {PLATFORM_META[detection.platform].label}
+                  </span>
                 )}
               </div>
-            ) : data.platform === "ghost" ? (
-              <div className="space-y-4">
-                <p className="text-sm font-medium text-[#040042]">Connect via Ghost Content API</p>
-                <div className="text-xs text-slate-500 space-y-1">
-                  <p>In Ghost Admin → <strong>Settings → Integrations</strong></p>
-                  <p>→ Add custom integration → copy the Content API Key</p>
-                </div>
+
+              <p className="text-sm text-slate-600 leading-relaxed">
+                We found {detection.estimated_article_count > 0 ? (
+                  <><strong>{detection.estimated_article_count.toLocaleString()}</strong> articles</>
+                ) : (
+                  "articles"
+                )} in your sitemap. We'll import your full archive now, then show you how to sync new posts.
+              </p>
+
+              <button
+                onClick={handleImportSitemap}
+                disabled={isConnecting}
+                className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
+              >
+                {isConnecting ? (
+                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                ) : (
+                  <>
+                    <span>
+                      Import {detection.estimated_article_count > 0 ? `${detection.estimated_article_count.toLocaleString()} articles` : "articles"}
+                    </span>
+                    <ArrowRight size={16} className="flex-shrink-0" />
+                  </>
+                )}
+              </button>
+            </>
+          )}
+
+          {/* Case C: Nothing found */}
+          {detectedCase === "nothing" && (
+            <>
+              <div className="flex items-center gap-2">
+                <AlertCircle size={20} className="text-amber-500 flex-shrink-0" />
+                <h3 className="text-lg font-bold text-[#040042]">We couldn't auto-detect your content</h3>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-sm text-slate-600">Paste your RSS feed or sitemap URL:</p>
                 <div className="flex gap-2">
-                  <Input placeholder="Content API Key" className="flex-1" />
+                  <Input
+                    value={manualFeedUrl}
+                    onChange={e => setManualFeedUrl(e.target.value)}
+                    placeholder="https://yoursite.com/feed"
+                    className="flex-1"
+                  />
                   <button
-                    onClick={handleVerify}
-                    disabled={isVerifying}
+                    onClick={handleManualConnect}
+                    disabled={isConnecting || !manualFeedUrl.trim()}
                     className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
                   >
-                    {isVerifying ? (
+                    {isConnecting ? (
                       <Loader2 size={14} className="animate-spin flex-shrink-0" />
                     ) : (
-                      <>
-                        <span>Verify</span>
-                        <ArrowRight size={14} className="flex-shrink-0" />
-                      </>
+                      <span>Connect</span>
                     )}
                   </button>
                 </div>
               </div>
-            ) : data.platform === "wordpress" ? (
-              <div className="space-y-4">
-                <p className="text-sm font-medium text-[#040042]">Connect via Application Password</p>
-                <div className="text-xs text-slate-500 space-y-1">
-                  <p>In WP Admin → <strong>Users → Profile → Application Passwords</strong></p>
-                  <p>→ Add New → copy the generated password</p>
-                </div>
-                <div className="space-y-3">
-                  <Input placeholder="Username" />
-                  <div className="flex gap-2">
-                    <Input placeholder="App Password" className="flex-1" />
-                    <button
-                      onClick={handleVerify}
-                      disabled={isVerifying}
-                      className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-10 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-                    >
-                      {isVerifying ? (
-                        <Loader2 size={14} className="animate-spin flex-shrink-0" />
-                      ) : (
-                        <>
-                          <span>Verify</span>
-                          <ArrowRight size={14} className="flex-shrink-0" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Custom / Enterprise — DNS TXT */
-              <div className="space-y-4">
-                <p className="text-sm font-medium text-[#040042]">Add a DNS TXT record to verify domain ownership</p>
-                <p className="text-xs text-slate-500">
-                  Add the following record via your DNS provider (Cloudflare, Route 53, GoDaddy, Namecheap, etc.)
-                </p>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200">
-                        <th className="text-left px-4 py-2 font-medium text-slate-500">Type</th>
-                        <th className="text-left px-4 py-2 font-medium text-slate-500">Host</th>
-                        <th className="text-left px-4 py-2 font-medium text-slate-500">Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="px-4 py-3 font-mono text-[#040042]">TXT</td>
-                        <td className="px-4 py-3 font-mono text-[#040042]">
-                          <span className="flex items-center gap-1.5">
-                            _opedd.{data.pubUrl || "yourdomain.com"}
-                            <button
-                              onClick={() => handleCopy(`_opedd.${data.pubUrl || "yourdomain.com"}`, "dns-host")}
-                              className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
-                            >
-                              {copied === "dns-host" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                            </button>
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 font-mono text-[#040042]">
-                          <span className="flex items-center gap-1.5">
-                            opedd-site-verify={data.verificationToken}
-                            <button
-                              onClick={() => handleCopy(`opedd-site-verify=${data.verificationToken}`, "dns-value")}
-                              className="text-slate-400 hover:text-[#4A26ED] flex-shrink-0"
-                            >
-                              {copied === "dns-value" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                            </button>
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p className="text-xs text-slate-400">DNS changes typically take 5–15 minutes to propagate.</p>
-                <button
-                  onClick={handleVerify}
-                  disabled={isVerifying}
-                  className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-                >
-                  {isVerifying ? (
-                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                  ) : (
-                    <span>I've added the record — Verify now</span>
-                  )}
-                </button>
-                {stepState[2] === "verifying" && (
-                  <p className="text-xs text-[#4A26ED] flex items-center gap-1.5">
-                    <Loader2 size={12} className="animate-spin flex-shrink-0" /> Checking DNS…
-                  </p>
-                )}
-              </div>
-            )}
-          </StepCard>
 
-          {/* Step 3: Set Your Rates */}
-          <StepCard
-            step={3}
-            title="Set your rates"
-            state={stepState[3]}
-            doneSummary={
-              stepState[3] === "skipped" || data.pricingSkipped
-                ? "Not set yet"
-                : `Rates set · Permission $${data.permissionPrice} · Syndication from $${data.syndicationPrice} · AI ${data.aiPrice ? `$${data.aiPrice}` : "disabled"}`
-            }
-            doneSummaryAmber={stepState[3] === "skipped" || data.pricingSkipped}
-            StepCircle={StepCircle}
-            onClick={() => handleStepClick(3)}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-xs text-slate-400 font-medium">or</span>
+                <div className="flex-1 h-px bg-slate-200" />
+              </div>
+
+              <p className="text-sm text-slate-600">
+                Use our API to register content programmatically.{" "}
+                <button
+                  onClick={() => setStep("api_path")}
+                  className="text-[#4A26ED] hover:underline font-medium"
+                >
+                  View API docs
+                </button>
+              </p>
+            </>
+          )}
+
+          {/* Back link */}
+          <button
+            onClick={() => { setStep("url_input"); setDetection(null); }}
+            className="text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
           >
-            <div className="space-y-1">
-              <p className="text-sm text-slate-600 mb-4">
-                These become your defaults across all articles. You can override per-article later.
+            <ArrowLeft size={14} /> Try a different URL
+          </button>
+        </div>
+      )}
+
+      {/* ════════ Step 3: Post-import ════════ */}
+      {step === "post_import" && detection && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+          {isRssFlow ? (
+            /* RSS: You're all set */
+            <>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
+                <h3 className="text-lg font-bold text-[#040042]">You're all set</h3>
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Your RSS feed syncs automatically every hour. New posts appear in Opedd without any action needed.
+              </p>
+              <button
+                onClick={() => onComplete({ pricingDone: false, widgetDone: false })}
+                className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center transition-all hover:shadow-lg"
+              >
+                <span>Go to my content</span>
+                <ArrowRight size={16} className="flex-shrink-0" />
+              </button>
+            </>
+          ) : (
+            /* Sitemap: Sync new articles */
+            <>
+              <div>
+                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Step 2</p>
+                <h3 className="text-lg font-bold text-[#040042]">Sync new articles automatically</h3>
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Set up a publish webhook so new articles appear in Opedd the moment you publish.
               </p>
 
-              {/* Permission rate */}
-              <div className="space-y-1.5">
-                <div className="flex items-baseline justify-between">
-                  <label className="text-sm font-semibold text-[#040042]">Permission rate</label>
-                  <span className="text-xs text-slate-400">per article</span>
-                </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                  <Input
-                    type="number" step="0.01" min="0"
-                    value={data.permissionPrice}
-                    onChange={e => setData(d => ({ ...d, permissionPrice: e.target.value }))}
-                    className="pl-7 h-11 rounded-xl border-slate-200"
-                  />
-                </div>
-                <p className="text-xs text-slate-500 italic">For students, bloggers, and small reuse. Typical range: $10 – $50</p>
-              </div>
-
-              <div className="border-t border-slate-100 my-4" />
-
-              {/* Syndication rate */}
-              <div className="space-y-1.5">
-                <div className="flex items-baseline justify-between">
-                  <label className="text-sm font-semibold text-[#040042]">Syndication rate</label>
-                  <span className="text-xs text-slate-400">starting from, per article</span>
-                </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                  <Input
-                    type="number" step="0.01" min="0"
-                    value={data.syndicationPrice}
-                    onChange={e => setData(d => ({ ...d, syndicationPrice: e.target.value }))}
-                    className="pl-7 h-11 rounded-xl border-slate-200"
-                  />
-                </div>
-                <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
-              </div>
-
-              <div className="border-t border-slate-100 my-4" />
-
-              {/* AI training rate */}
-              <div className="space-y-1.5">
-                <div className="flex items-baseline justify-between">
-                  <label className="text-sm font-semibold text-[#040042]">AI training rate</label>
-                  <span className="text-xs text-slate-400">per article (optional)</span>
-                </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                  <Input
-                    type="number" step="0.01" min="0"
-                    value={data.aiPrice}
-                    onChange={e => setData(d => ({ ...d, aiPrice: e.target.value }))}
-                    placeholder="0.00"
-                    className="pl-7 h-11 rounded-xl border-slate-200"
-                  />
-                </div>
-                <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
-              </div>
-
-              <div className="pt-4 space-y-2">
-                <button
-                  onClick={handleSaveRates}
-                  disabled={isSavingPricing}
-                  className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50"
-                >
-                  {isSavingPricing ? (
-                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                  ) : (
-                    <span>Save rates</span>
+              {/* Ghost instructions */}
+              {(detection.platform === "ghost" || detection.platform === "unknown" || detection.platform === "wordpress") && (
+                <div className="space-y-4">
+                  {(detection.platform === "ghost" || detection.platform === "unknown") && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                      <p className="text-sm font-semibold text-[#040042]">Ghost</p>
+                      <div className="text-xs text-slate-500 space-y-1">
+                        <p>Settings → Integrations → Add webhook</p>
+                        <p>Event: <strong>Post published</strong></p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div>
+                          <label className="text-xs text-slate-400">URL:</label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <code className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-[#040042] truncate">
+                              {webhookUrl}
+                            </code>
+                            <button
+                              onClick={() => handleCopy(webhookUrl, "webhook-url-ghost")}
+                              className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-white transition-colors flex-shrink-0"
+                            >
+                              {copied === "webhook-url-ghost" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} className="text-slate-400" />}
+                            </button>
+                          </div>
+                        </div>
+                        {apiKey && (
+                          <div>
+                            <label className="text-xs text-slate-400">Header: X-API-Key</label>
+                            <div className="flex items-center gap-2 mt-1">
+                              <code className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-[#040042] truncate">
+                                {apiKey}
+                              </code>
+                              <button
+                                onClick={() => handleCopy(apiKey, "api-key-ghost")}
+                                className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-white transition-colors flex-shrink-0"
+                              >
+                                {copied === "api-key-ghost" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} className="text-slate-400" />}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
-                </button>
+
+                  {(detection.platform === "wordpress" || detection.platform === "unknown") && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                      <p className="text-sm font-semibold text-[#040042]">WordPress</p>
+                      <p className="text-xs text-slate-500">
+                        Use the WP Webhooks plugin with the same URL and API key above.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-[#040042] truncate">
+                          {webhookUrl}
+                        </code>
+                        <button
+                          onClick={() => handleCopy(webhookUrl, "webhook-url-wp")}
+                          className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-white transition-colors flex-shrink-0"
+                        >
+                          {copied === "webhook-url-wp" ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} className="text-slate-400" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                onClick={() => onComplete({ pricingDone: false, widgetDone: false })}
+                className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center transition-all hover:shadow-lg"
+              >
+                <span>Done — go to my content</span>
+                <ArrowRight size={16} className="flex-shrink-0" />
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ════════ Path 3: API ════════ */}
+      {step === "api_path" && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+          <div>
+            <h3 className="text-lg font-bold text-[#040042]">Register content via API</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              Use your API key to register articles directly from your CMS or publish hook.
+            </p>
+          </div>
+
+          {/* API Key */}
+          {apiKey && (
+            <div>
+              <label className="text-xs font-medium text-slate-500 block mb-1.5">Your API key</label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-mono text-[#040042] truncate">
+                  {apiKey}
+                </code>
                 <button
-                  onClick={handleSkipPricing}
-                  className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors text-center"
+                  onClick={() => handleCopy(apiKey, "api-key")}
+                  className="h-10 w-10 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors flex-shrink-0"
                 >
-                  Skip for now →
+                  {copied === "api-key" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
                 </button>
               </div>
             </div>
-          </StepCard>
+          )}
 
-          {/* Step 4: Embed the Widget */}
-          <StepCard
-            step={4}
-            title="Embed the widget"
-            state={stepState[4]}
-            doneSummary={
-              data.widgetSkipped
-                ? "Not yet embedded"
-                : "Widget active"
-            }
-            doneSummaryAmber={data.widgetSkipped}
-            StepCircle={StepCircle}
-            onClick={() => handleStepClick(4)}
+          {/* cURL example */}
+          <div>
+            <label className="text-xs font-medium text-slate-500 block mb-1.5">Register an article</label>
+            <div className="bg-[#1E1E2E] rounded-xl p-4 relative">
+              <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap leading-relaxed">{`curl -X POST \\
+  ${EXT_SUPABASE_URL}/functions/v1/api \\
+  -H "X-API-Key: ${apiKey || "op_xxxx"}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "action": "articles",
+    "title": "Your article title",
+    "source_url": "https://..."
+  }'`}</pre>
+              <button
+                onClick={() => handleCopy(`curl -X POST \\\n  ${EXT_SUPABASE_URL}/functions/v1/api \\\n  -H "X-API-Key: ${apiKey || "op_xxxx"}" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "action": "articles",\n    "title": "Your article title",\n    "source_url": "https://..."\n  }'`, "curl")}
+                className="absolute top-3 right-3 text-slate-500 hover:text-white transition-colors"
+              >
+                {copied === "curl" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Works with any CMS, automation tool, or publish webhook. Articles appear in Opedd instantly.
+          </p>
+
+          <button
+            onClick={() => onComplete({ pricingDone: false, widgetDone: false })}
+            className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center transition-all hover:shadow-lg"
           >
-            <Tabs defaultValue="script" className="w-full">
-              <TabsList className="mb-4 bg-slate-100">
-                <TabsTrigger value="script" className="text-xs">Script tag</TabsTrigger>
-                <TabsTrigger value="wordpress" className="text-xs">WordPress plugin</TabsTrigger>
-              </TabsList>
-              <TabsContent value="script">
-                <div className="space-y-4">
-                  <p className="text-sm text-slate-600">
-                    Paste this into your site's <code className="bg-slate-100 px-1 py-0.5 rounded text-xs">&lt;head&gt;</code> or article template
-                  </p>
-                  <div className="bg-slate-900 rounded-xl p-4 relative">
-                    <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">{widgetCode}</pre>
-                  </div>
-                  <button
-                    onClick={() => {
-                      handleCopy(widgetCode, "widget");
-                      handleWidgetDone();
-                    }}
-                    className="bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center"
-                  >
-                    {copied === "widget" ? <Check size={16} className="flex-shrink-0" /> : <Copy size={16} className="flex-shrink-0" />}
-                    <span>Copy snippet</span>
-                  </button>
-                  <p className="text-xs text-slate-400">
-                    The widget auto-detects each article and shows the license button to visitors. Works on paywalled articles.
-                  </p>
-                </div>
-              </TabsContent>
-              <TabsContent value="wordpress">
-                <div className="space-y-4">
-                  <p className="text-sm text-slate-600">Download and install the Opedd WordPress plugin</p>
-                  <button className="border border-slate-200 text-[#040042] h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center hover:bg-slate-50 transition-colors">
-                    <Download size={16} className="flex-shrink-0" />
-                    <span>Download WordPress Plugin</span>
-                  </button>
-                  <div className="text-xs text-slate-500 space-y-1">
-                    <p>1. Download the .zip file</p>
-                    <p>2. In WP Admin → Plugins → Add New → Upload Plugin</p>
-                    <p>3. Activate and enter your publisher ID in the settings</p>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-            <button
-              onClick={handleSkipWidget}
-              className="mt-4 text-sm text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              Skip for now →
-            </button>
-          </StepCard>
-        </div>
-      )}
-    </div>
-  );
-}
+            <span>Done — go to my content</span>
+            <ArrowRight size={16} className="flex-shrink-0" />
+          </button>
 
-// ─── Step Card Component ───
-interface StepCardProps {
-  step: number;
-  title: string;
-  state: StepState;
-  doneSummary: string;
-  doneSummaryAmber?: boolean;
-  children: React.ReactNode;
-  StepCircle: React.FC<{ step: number; state: StepState }>;
-  onClick?: () => void;
-}
-
-function StepCard({ step, title, state, doneSummary, doneSummaryAmber, children, StepCircle, onClick }: StepCardProps) {
-  const isExpanded = state === "active" || state === "verifying";
-  const isDone = state === "done";
-  const isSkipped = state === "skipped";
-  const isLocked = state === "locked";
-  const isClickable = isDone || isSkipped;
-
-  return (
-    <div
-      className={`
-        rounded-2xl border overflow-hidden transition-all
-        ${isExpanded ? "border-[#4A26ED]/25 shadow-sm shadow-[#4A26ED]/10 bg-white" : ""}
-        ${isDone ? "border-emerald-200/50 bg-white" : ""}
-        ${isSkipped ? "border-amber-200/50 bg-white" : ""}
-        ${isLocked ? "border-slate-200 bg-white opacity-60 pointer-events-none" : ""}
-        ${!isExpanded && !isDone && !isSkipped && !isLocked ? "border-slate-200 bg-white" : ""}
-      `}
-    >
-      <div
-        className={`flex items-center gap-4 px-6 py-4 bg-white ${isClickable ? "cursor-pointer hover:bg-slate-50 transition-colors" : ""}`}
-        onClick={isClickable ? onClick : undefined}
-      >
-        <StepCircle step={step} state={state} />
-        <div className="flex-1 min-w-0">
-          <h3 className={`text-sm font-semibold ${isLocked ? "text-slate-400" : "text-[#040042]"}`}>
-            {title}
-          </h3>
-          {isDone && doneSummary && (
-            <p className="text-xs mt-0.5 text-slate-500">
-              ✓ {doneSummary}
-            </p>
-          )}
-          {isSkipped && doneSummary && (
-            <p className="text-xs mt-0.5 text-amber-500">
-              {doneSummary}
-            </p>
-          )}
-        </div>
-      </div>
-      {isExpanded && (
-        <div className="px-6 pb-6 pl-[4.25rem]">
-          {children}
+          {/* Back link */}
+          <button
+            onClick={() => setStep("url_input")}
+            className="text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
+          >
+            <ArrowLeft size={14} /> Back to URL detection
+          </button>
         </div>
       )}
     </div>
