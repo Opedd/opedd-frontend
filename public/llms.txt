@@ -1,6 +1,6 @@
 # Opedd
 
-> The licensing protocol for content in the age of AI. Publishers set prices, buyers get cryptographically-signed license keys, every transaction is recorded on-chain.
+> The licensing protocol for content in the age of AI. Publishers set prices, buyers get cryptographically-signed license keys, every transaction recorded on-chain.
 
 Opedd is infrastructure for content licensing — not a marketplace. Think Stripe, but for licensing rights to articles, datasets, and archives. Publishers embed a widget or API; buyers (human or AI) pay and instantly receive a license key (format: OP-XXXX-XXXX) with on-chain proof on Base (Coinbase L2).
 
@@ -13,22 +13,15 @@ Opedd is infrastructure for content licensing — not a marketplace. Think Strip
 
 ## Who uses it
 
-- **Publishers**: news organizations, independent journalists, newsletters, data providers who want to monetize their content to AI companies and human licensees
-- **Buyers**: AI companies licensing training data, media organizations republishing content, enterprise research teams, AI agents purchasing licenses autonomously
+- Publishers: news organizations, independent journalists, newsletters, data providers
+- Buyers: AI companies licensing training data, media organizations, enterprise research teams, AI agents
 
 ## License types
 
-- `human` — republication and editorial rights
-- `ai` — AI training dataset rights
-- `ai_inference` — RAG and inference rights
-- `archive` — site license covering all content from a publisher within a date range
-
-## How to integrate
-
-- **Widget**: one script tag on any article page, auto-detects content
-- **API**: REST API with X-API-Key authentication for publishers
-- **MCP server**: `npx opedd-mcp` — lets AI assistants discover, purchase, and verify licenses mid-conversation without opening a browser
-- **Agentic purchase**: POST to /agent-purchase with a Stripe payment method ID, no redirect required
+- human: republication and editorial rights
+- ai: AI training dataset rights
+- ai_inference: RAG and inference rights
+- archive: site license covering all content from a publisher within a date range
 
 ## Key public endpoints
 
@@ -37,9 +30,12 @@ Opedd is infrastructure for content licensing — not a marketplace. Think Strip
 - GET /verify-license?key={key} — verify a license key (returns blockchain proof)
 - GET /registry — browse the public license registry
 
+## MCP server
+
+npx opedd-mcp — lets AI assistants discover, purchase, and verify licenses mid-conversation
+
 ## Links
 
-- [Website](https://opedd.com)
-- [MCP server](https://npmjs.com/package/opedd-mcp)
-- [Smart contracts on Base](https://github.com/Opedd/opedd-contracts)
-- [GitHub](https://github.com/Opedd)
+- Website: https://opedd.com
+- MCP server: https://npmjs.com/package/opedd-mcp
+- GitHub: https://github.com/Opedd
