@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet, TrendingUp, FileCheck, Sparkles, User, Shield,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
-  AlertTriangle, MessageSquare,
+  AlertTriangle, MessageSquare, Ban,
 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -23,6 +23,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Transaction {
   id: string;
@@ -79,6 +83,9 @@ export default function Ledger() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [revokeTarget, setRevokeTarget] = useState<Transaction | null>(null);
+  const [revokeReason, setRevokeReason] = useState("");
+  const [isRevoking, setIsRevoking] = useState(false);
 
   const fetchTransactions = useCallback(async () => {
     if (!user) return;
@@ -139,6 +146,29 @@ export default function Ledger() {
   if (!user) return null;
 
   const handleRowClick = (tx: Transaction) => { setSelectedTransaction(tx); setDrawerOpen(true); };
+
+  const handleRevoke = async () => {
+    if (!revokeTarget?.licenseKey) return;
+    setIsRevoking(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action: "revoke_license", license_key: revokeTarget.licenseKey, reason: revokeReason || undefined }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error?.message || "Failed to revoke");
+      setTransactions(prev => prev.map(tx => tx.id === revokeTarget.id ? { ...tx, status: "revoked" as const } : tx));
+      toast({ title: "License revoked", description: `License ${revokeTarget.licenseKey} has been revoked.` });
+    } catch (err: any) {
+      toast({ title: "Revoke failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsRevoking(false);
+      setRevokeTarget(null);
+      setRevokeReason("");
+    }
+  };
 
   const handleExportCSV = async () => {
     setIsExporting(true);
@@ -317,7 +347,20 @@ export default function Ledger() {
                               <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-[#6B7280]"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
                               <TableCell><span className="text-[#6B7280] text-sm">{tx.date}</span></TableCell>
                               <TableCell>{getStatusBadge(tx.status)}</TableCell>
-                              <TableCell><Eye size={14} className="text-[#9CA3AF] group-hover:text-[#4A26ED] transition-colors" /></TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  {tx.status === "settled" && tx.licenseKey && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
+                                      className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
+                                      title="Revoke license"
+                                    >
+                                      <Ban size={14} />
+                                    </button>
+                                  )}
+                                  <Eye size={14} className="text-[#9CA3AF] group-hover:text-[#4A26ED] transition-colors" />
+                                </div>
+                              </TableCell>
                             </motion.tr>
                           ))}
                         </AnimatePresence>
@@ -341,6 +384,39 @@ export default function Ledger() {
 
       <TransactionReceiptDrawer open={drawerOpen} onOpenChange={setDrawerOpen} transaction={selectedTransaction} />
       <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => { setShowArchiveModal(false); fetchTransactions(); }} />
+
+      {/* Revoke confirmation dialog */}
+      <Dialog open={!!revokeTarget} onOpenChange={(open) => { if (!open) { setRevokeTarget(null); setRevokeReason(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#111827]">
+              <AlertTriangle size={20} className="text-[#DC2626]" />
+              Revoke this license?
+            </DialogTitle>
+            <DialogDescription className="text-[#6B7280]">
+              This will permanently revoke license <code className="font-mono text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded">{revokeTarget?.licenseKey}</code>. The buyer will lose access rights. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <label className="text-sm font-medium text-[#374151] mb-1.5 block">Reason (optional)</label>
+            <Textarea
+              placeholder="e.g. Content removed, license dispute, buyer request..."
+              value={revokeReason}
+              onChange={(e) => setRevokeReason(e.target.value)}
+              className="resize-none"
+              rows={3}
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => { setRevokeTarget(null); setRevokeReason(""); }} disabled={isRevoking}>
+              Cancel
+            </Button>
+            <Button onClick={handleRevoke} disabled={isRevoking} className="bg-[#DC2626] hover:bg-red-700 text-white">
+              {isRevoking ? <><Loader2 size={16} className="mr-2 animate-spin" />Revoking...</> : "Yes, Revoke"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
