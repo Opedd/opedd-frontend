@@ -9,10 +9,12 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -22,7 +24,7 @@ import {
 } from "@/components/ui/sheet";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { licenses } = useAuthenticatedApi();
@@ -42,6 +44,27 @@ export default function Dashboard() {
     pricingDone: true,
     widgetDone: true,
   });
+
+  // Onboarding checklist data
+  const [onboarding, setOnboarding] = useState<{
+    completed: boolean; progress: number; total: number;
+    profile_complete: boolean; publication_verified: boolean;
+    content_imported: boolean; pricing_set: boolean; stripe_connected: boolean;
+  } | null>(null);
+
+  const fetchOnboarding = useCallback(async () => {
+    if (!user) return;
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      if (result.success && result.data?.onboarding) {
+        setOnboarding(result.data.onboarding);
+      }
+    } catch { /* silent */ }
+  }, [user, getAccessToken]);
 
   const checkPublications = useCallback(async () => {
     if (!user) return;
@@ -78,6 +101,7 @@ export default function Dashboard() {
 
   useEffect(() => { checkPublications(); }, [checkPublications]);
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
+  useEffect(() => { fetchOnboarding(); }, [fetchOnboarding]);
 
   if (!user) return null;
   if (hasActivePublication === null || (isLoading && totalAssets === 0)) return <PageLoader />;
@@ -121,6 +145,10 @@ export default function Dashboard() {
             onSetPricing={() => setAddPubDrawerOpen(true)}
             onEmbedWidget={() => navigate("/connectors")}
           />
+        )}
+        {/* Onboarding Checklist */}
+        {onboarding && !onboarding.completed && (
+          <OnboardingChecklist onboarding={onboarding} />
         )}
 
         {/* Compact Metrics */}
