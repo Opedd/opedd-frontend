@@ -12,6 +12,7 @@ interface CheckoutData {
   license_key?: string | null;
   article_title?: string;
   amount?: number;
+  processing_timeout?: boolean;
 }
 
 export default function LicenseSuccess() {
@@ -38,12 +39,12 @@ export default function LicenseSuccess() {
       const result = await res.json();
       if (result.success && result.data) {
         setData(result.data);
+        if (result.data.processing_timeout) {
+          setTimedOut(true);
+        }
         setLoading(false);
-        return result.data.status;
+        return result.data.processing_timeout ? "timeout" : result.data.status;
       }
-      setData({ status: "failed" });
-      setLoading(false);
-      return "failed";
     } catch {
       setData({ status: "failed" });
       setLoading(false);
@@ -71,8 +72,8 @@ export default function LicenseSuccess() {
             return;
           }
           const s = await fetchStatus();
-          if (s !== "pending" && intervalRef.current) {
-            clearInterval(intervalRef.current);
+          if ((s !== "pending" && s !== "timeout") || s === "timeout") {
+            if (intervalRef.current) clearInterval(intervalRef.current);
           }
         }, 2000);
       }
@@ -109,18 +110,26 @@ export default function LicenseSuccess() {
   }
 
   // — Timed out —
-  if (timedOut && data?.status === "pending") {
+  if (timedOut && (!data || data.status === "pending")) {
     return (
       <Shell>
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="max-w-md w-full text-center space-y-6">
           <div className="mx-auto w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-500/40 flex items-center justify-center">
             <Mail size={36} className="text-amber-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Taking longer than expected</h1>
+          <h1 className="text-2xl font-bold text-white">This is taking longer than expected</h1>
           <p className="text-white/50 text-sm leading-relaxed">
-            Payment is taking longer than expected. You'll receive an email with your license key shortly.
+            Your license key will arrive by email shortly. If you don't receive it within 10 minutes, use the{" "}
+            <Link to="/my-licenses" className="text-[#A78BFA] hover:underline font-medium">"Resend my licenses"</Link>{" "}
+            option below.
           </p>
-          <Link to="/" className="inline-block text-sm text-[#A78BFA] hover:underline">← Return to Opedd</Link>
+          <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline">
+            <Mail size={14} />
+            Resend my licenses
+          </Link>
+          <div>
+            <Link to="/" className="inline-block text-sm text-white/40 hover:text-white/60 transition-colors mt-2">← Return to Opedd</Link>
+          </div>
         </motion.div>
       </Shell>
     );
