@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet, TrendingUp, FileCheck, Sparkles, User, Shield,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
-  AlertTriangle, MessageSquare, Ban,
+  AlertTriangle, MessageSquare, Ban, ScrollText, Receipt,
 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -356,13 +356,35 @@ export default function Ledger() {
                               <TableCell>
                                 <div className="flex items-center gap-1">
                                   {tx.status === "settled" && tx.licenseKey && (
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
-                                      className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
-                                      title="Revoke license"
-                                    >
-                                      <Ban size={14} />
-                                    </button>
+                                    <>
+                                      <a
+                                        href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${tx.licenseKey}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
+                                        title="Download certificate"
+                                      >
+                                        <ScrollText size={14} />
+                                      </a>
+                                      <a
+                                        href={`${EXT_SUPABASE_URL}/functions/v1/invoice?key=${tx.licenseKey}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
+                                        title="Download invoice"
+                                      >
+                                        <Receipt size={14} />
+                                      </a>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
+                                        className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
+                                        title="Revoke license"
+                                      >
+                                        <Ban size={14} />
+                                      </button>
+                                    </>
                                   )}
                                   <Eye size={14} className="text-[#9CA3AF] group-hover:text-[#4A26ED] transition-colors" />
                                 </div>
