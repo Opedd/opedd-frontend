@@ -7,6 +7,7 @@ const footerLinks = {
     { label: "Features", href: "#products" },
     { label: "How it Works", href: "#how-it-works" },
     { label: "Pricing", href: "/pricing" },
+    { label: "For AI Agents", href: "/for-ai-agents" },
     { label: "API", href: "#" },
   ],
   Company: [
