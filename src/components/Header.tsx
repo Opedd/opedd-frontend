@@ -22,6 +22,7 @@ const Header = () => {
     { label: "How it Works", href: "#how-it-works" },
     { label: "Why Opedd", href: "#why-opedd" },
     { label: "Pricing", href: "/pricing", isRoute: true },
+    { label: "Docs", href: "https://docs.opedd.com", isExternal: true },
     { label: "My Licenses", href: "/my-licenses", isRoute: true },
   ];
 
@@ -60,7 +61,17 @@ const Header = () => {
 
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) =>
-              link.isRoute ? (
+              link.isExternal ? (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-alice-gray hover:text-oxford transition-colors duration-200 text-sm font-medium"
+                >
+                  {link.label}
+                </a>
+              ) : link.isRoute ? (
                 <Link
                   key={link.label}
                   to={link.href}
@@ -108,7 +119,18 @@ const Header = () => {
           >
             <nav className="flex flex-col gap-4 bg-navy-deep">
               {navLinks.map((link) =>
-                link.isRoute ? (
+                link.isExternal ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-alice-gray hover:text-oxford transition-colors py-2 text-sm font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                ) : link.isRoute ? (
                   <Link
                     key={link.label}
                     to={link.href}
