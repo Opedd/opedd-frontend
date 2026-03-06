@@ -280,9 +280,15 @@ export default function Ledger() {
               <TabsContent value="transactions">
                 {transactions.length === 0 ? (
                   <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
-                    <Wallet size={40} className="mx-auto text-[#D1D5DB] mb-4" />
+                    <FileCheck size={40} className="mx-auto text-[#D1D5DB] mb-4" />
                     <h3 className="text-base font-semibold text-[#111827] mb-1">No transactions yet</h3>
-                    <p className="text-sm text-[#6B7280] max-w-xs mx-auto">Transactions will appear here once you start receiving licensing revenue.</p>
+                    <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-5">Once buyers license your articles, all transactions will appear here with full details.</p>
+                    <Button
+                      onClick={() => navigate("/settings")}
+                      className="bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-medium px-5 py-2 rounded-lg"
+                    >
+                      Share your licensing page
+                    </Button>
                   </div>
                 ) : (
                   <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
