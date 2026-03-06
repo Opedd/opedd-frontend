@@ -389,10 +389,15 @@ export default function LicensePublicCheckout() {
             )}
           </div>
 
-          <p className="text-center text-xs text-[#040042]/25 mt-10">
-            Powered by{" "}
-            <span className="text-[#040042]/45 font-medium">Opedd Protocol</span>
-          </p>
+          <a
+            href="https://opedd.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 mt-10 text-xs text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+          >
+            Powered by
+            <img src={opeddLogo} alt="Opedd" className="h-3.5 opacity-40" />
+          </a>
         </div>
       </div>
     </div>
