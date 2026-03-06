@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet, TrendingUp, FileCheck, Sparkles, User, Shield,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
-  AlertTriangle, MessageSquare, Ban,
+  AlertTriangle, MessageSquare, Ban, ScrollText, Receipt,
 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
