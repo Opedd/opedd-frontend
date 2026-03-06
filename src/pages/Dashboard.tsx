@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   useEffect(() => { checkPublications(); }, [checkPublications]);
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
-  useEffect(() => { fetchOnboarding(); }, [fetchOnboarding]);
+  
 
   if (!user) return null;
   if (hasActivePublication === null || (isLoading && totalAssets === 0)) return <PageLoader />;
@@ -127,9 +127,7 @@ export default function Dashboard() {
           />
         )}
         {/* Onboarding Checklist */}
-        {onboarding && !onboarding.completed && (
-          <OnboardingChecklist onboarding={onboarding} />
-        )}
+        <OnboardingChecklist />
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
