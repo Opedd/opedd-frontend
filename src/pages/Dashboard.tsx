@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
