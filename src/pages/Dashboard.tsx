@@ -45,26 +45,6 @@ export default function Dashboard() {
     widgetDone: true,
   });
 
-  // Onboarding checklist data
-  const [onboarding, setOnboarding] = useState<{
-    completed: boolean; progress: number; total: number;
-    profile_complete: boolean; publication_verified: boolean;
-    content_imported: boolean; pricing_set: boolean; stripe_connected: boolean;
-  } | null>(null);
-
-  const fetchOnboarding = useCallback(async () => {
-    if (!user) return;
-    try {
-      const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
-        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-      });
-      const result = await res.json();
-      if (result.success && result.data?.onboarding) {
-        setOnboarding(result.data.onboarding);
-      }
-    } catch { /* silent */ }
-  }, [user, getAccessToken]);
 
   const checkPublications = useCallback(async () => {
     if (!user) return;
