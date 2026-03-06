@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle, BookOpen, ExternalLink } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { MobileSidebar } from "./MobileSidebar";
 
@@ -54,6 +54,16 @@ export function DashboardSidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-white/5 space-y-3">
+          <a
+            href="https://docs.opedd.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-white/50 hover:text-white/80 hover:bg-white/5 text-sm font-medium transition-colors"
+          >
+            <BookOpen size={18} strokeWidth={1.5} />
+            Documentation
+            <ExternalLink size={12} className="ml-auto opacity-50" />
+          </a>
           <NavLink
             to="/pricing"
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 text-xs font-medium transition-colors"
