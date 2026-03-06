@@ -99,7 +99,23 @@ export default function LicenseSuccess() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // — No session_id —
+  const handleResend = async () => {
+    if (!data?.buyer_email || resending) return;
+    setResending(true);
+    try {
+      await fetch(`${EXT_SUPABASE_URL}/functions/v1/resend-licenses`, {
+        method: "POST",
+        headers: { apikey: EXT_ANON_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.buyer_email }),
+      });
+      setResent(true);
+    } catch { /* silent */ }
+    finally { setResending(false); }
+  };
+
+  const licenseTypeLabel = data?.license_type === "ai" ? "AI Training License" : "Human Republication License";
+
+  
   if (!sessionId && !loading) {
     return (
       <Shell>
