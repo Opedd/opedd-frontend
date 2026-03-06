@@ -553,42 +553,111 @@ export default function Settings() {
                       )}
 
                       {/* Your Plan Card */}
-                      {profile && (
-                        <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                          <h2 className="font-bold text-[#040042] mb-4">Your Plan</h2>
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide ${
-                              profile.plan === "enterprise" ? "bg-[#E0E7FF] text-[#3730A3]" :
-                              profile.plan === "pro" ? "bg-[#EDE9FE] text-[#5B21B6]" :
-                              "bg-[#FEF3C7] text-[#92400E]"
-                            }`}>
-                              {profile.plan === "enterprise" ? "Enterprise" : profile.plan === "pro" ? "Pro" : "Free"}
-                            </span>
+                      {profile && (() => {
+                        const plan = profile.plan || "free";
+                        const badgeStyles = plan === "enterprise"
+                          ? "bg-[#E0E7FF] text-[#3730A3]"
+                          : plan === "pro"
+                          ? "bg-[#EDE9FE] text-[#5B21B6]"
+                          : "bg-[#F3F4F6] text-[#6B7280]";
+                        const badgeLabel = plan === "enterprise" ? "Enterprise" : plan === "pro" ? "Pro" : "Free";
+                        const limits = plan === "enterprise"
+                          ? { sources: "Unlimited", articles: "Unlimited", fee: "5%", support: "Dedicated support + SLA" }
+                          : plan === "pro"
+                          ? { sources: "10", articles: "Unlimited", fee: "7%", support: "Priority support" }
+                          : { sources: "1", articles: "100", fee: "12%", support: "Community support" };
+
+                        const handleUpgrade = async (targetPlan: string) => {
+                          try {
+                            const headers = await apiHeaders();
+                            const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                              method: "POST",
+                              headers,
+                              body: JSON.stringify({ action: "create_subscription", plan: targetPlan }),
+                            });
+                            const result = await res.json();
+                            if (result.success && result.data?.url) {
+                              window.location.href = result.data.url;
+                            } else {
+                              toast({ title: "Upgrade failed", description: result.error?.message || "Please try again", variant: "destructive" });
+                            }
+                          } catch {
+                            toast({ title: "Upgrade failed", description: "Something went wrong", variant: "destructive" });
+                          }
+                        };
+
+                        const handleManageBilling = async () => {
+                          try {
+                            const headers = await apiHeaders();
+                            const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                              method: "POST",
+                              headers,
+                              body: JSON.stringify({ action: "create_billing_portal" }),
+                            });
+                            const result = await res.json();
+                            if (result.success && result.data?.url) {
+                              window.open(result.data.url, "_blank");
+                            } else {
+                              toast({ title: "Could not open billing", description: result.error?.message || "Please try again", variant: "destructive" });
+                            }
+                          } catch {
+                            toast({ title: "Could not open billing", description: "Something went wrong", variant: "destructive" });
+                          }
+                        };
+
+                        return (
+                          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                            <div className="flex items-center gap-3 mb-4">
+                              <h2 className="font-bold text-[#040042]">Your Plan</h2>
+                              <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide ${badgeStyles}`}>
+                                {badgeLabel}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                              <div className="bg-[#F9FAFB] rounded-lg p-3">
+                                <p className="text-xs text-[#6B7280] mb-0.5">Content sources</p>
+                                <p className="text-sm font-bold text-[#111827]">{limits.sources}</p>
+                              </div>
+                              <div className="bg-[#F9FAFB] rounded-lg p-3">
+                                <p className="text-xs text-[#6B7280] mb-0.5">Articles</p>
+                                <p className="text-sm font-bold text-[#111827]">{limits.articles}</p>
+                              </div>
+                              <div className="bg-[#F9FAFB] rounded-lg p-3">
+                                <p className="text-xs text-[#6B7280] mb-0.5">Platform fee</p>
+                                <p className="text-sm font-bold text-[#111827]">{limits.fee}</p>
+                              </div>
+                              <div className="bg-[#F9FAFB] rounded-lg p-3">
+                                <p className="text-xs text-[#6B7280] mb-0.5">Support</p>
+                                <p className="text-sm font-bold text-[#111827] truncate">{limits.support}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              {plan === "free" && (
+                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
+                                  Upgrade to Pro →
+                                </Button>
+                              )}
+                              {plan === "pro" && (
+                                <>
+                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
+                                    Upgrade to Enterprise →
+                                  </Button>
+                                  <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
+                                    Manage billing
+                                  </Button>
+                                </>
+                              )}
+                              {plan === "enterprise" && (
+                                <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
+                                  Manage billing
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-sm text-[#6B7280] mb-4">
-                            {profile.plan === "enterprise"
-                              ? "Unlimited everything · 5% platform fee · Dedicated support + SLA"
-                              : profile.plan === "pro"
-                              ? "Unlimited articles · 10 sources · 7% platform fee · Priority support"
-                              : "100 articles · 1 source · 12% platform fee · Community support"}
-                          </p>
-                          {(!profile.plan || profile.plan === "free") && (
-                            <a href="mailto:support@opedd.com?subject=Upgrade%20to%20Pro" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
-                              Upgrade to Pro →
-                            </a>
-                          )}
-                          {profile.plan === "pro" && (
-                            <a href="mailto:support@opedd.com?subject=Upgrade%20to%20Enterprise" className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white transition-all">
-                              Upgrade to Enterprise →
-                            </a>
-                          )}
-                          {profile.plan === "enterprise" && (
-                            <button disabled className="inline-flex items-center h-9 px-4 rounded-lg text-sm font-semibold border border-[#E5E7EB] text-[#6B7280] cursor-not-allowed opacity-60">
-                              Manage Plan
-                            </button>
-                          )}
-                        </div>
-                      )}
+                        );
+                      })()}
 
                       {/* Publisher Profile Card */}
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
