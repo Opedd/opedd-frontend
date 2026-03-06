@@ -216,50 +216,92 @@ export default function LicenseSuccess() {
         {data?.license_key && (
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-4">
             <p className="text-xs text-white/40 uppercase tracking-wider">License Key</p>
-            <div className="flex items-center justify-center gap-3">
-              <code className="text-2xl md:text-3xl font-mono font-bold text-white tracking-[0.2em] leading-none">
+            <div className="flex items-center justify-center gap-3 bg-white/5 rounded-xl px-4 py-3">
+              <code className="text-lg md:text-xl font-mono font-bold text-white tracking-[0.15em] leading-none select-all">
                 {data.license_key}
               </code>
-              <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white">
+              <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white flex-shrink-0">
                 {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
               </button>
             </div>
-            {data.amount != null && data.amount > 0 && (
-              <p className="text-sm text-white/40">Amount paid: <span className="text-white/70 font-medium">${data.amount.toFixed(2)}</span></p>
-            )}
+
+            {/* License details */}
+            <div className="grid grid-cols-2 gap-3 text-left">
+              <div>
+                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">License type</p>
+                <p className="text-sm text-white/80 font-medium">{licenseTypeLabel}</p>
+              </div>
+              {data.amount != null && data.amount > 0 && (
+                <div>
+                  <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">Amount paid</p>
+                  <p className="text-sm text-white/80 font-medium">${data.amount.toFixed(2)}</p>
+                </div>
+              )}
+              {data.valid_from && (
+                <div>
+                  <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">Valid from</p>
+                  <p className="text-sm text-white/80 font-medium">{new Date(data.valid_from).toLocaleDateString()}</p>
+                </div>
+              )}
+              {data.valid_until && (
+                <div>
+                  <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">Valid until</p>
+                  <p className="text-sm text-white/80 font-medium">{new Date(data.valid_until).toLocaleDateString()}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Action links */}
+        {/* Action buttons */}
+        {data?.license_key && (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(data.license_key)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white/10 border border-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
+            >
+              <FileText size={15} />
+              Certificate
+            </a>
+            <a
+              href={`${EXT_SUPABASE_URL}/functions/v1/invoice?key=${encodeURIComponent(data.license_key)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white/10 border border-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
+            >
+              <Receipt size={15} />
+              Invoice
+            </a>
+          </div>
+        )}
+
+        {/* Secondary links */}
         <div className="flex flex-col items-center gap-3">
           {data?.license_key && (
-            <>
-              <Link
-                to={`/verify/${encodeURIComponent(data.license_key)}`}
-                className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline"
-              >
-                <Shield size={14} />
-                Verify this license
-              </Link>
-              <a
-                href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(data.license_key)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline"
-              >
-                <Download size={14} />
-                Download Certificate (PDF)
-              </a>
-              <a
-                href={`${EXT_SUPABASE_URL}/functions/v1/invoice?key=${encodeURIComponent(data.license_key)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline"
-              >
-                <Download size={14} />
-                Download Invoice (PDF)
-              </a>
-            </>
+            <Link
+              to={`/verify/${encodeURIComponent(data.license_key)}`}
+              className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline"
+            >
+              <Shield size={14} />
+              Verify this license
+            </Link>
+          )}
+          {data?.buyer_email && (
+            <button
+              onClick={handleResend}
+              disabled={resending || resent}
+              className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline disabled:opacity-50"
+            >
+              {resent ? (
+                <><Check size={14} /> License details sent to your email</>
+              ) : resending ? (
+                <><Loader2 size={14} className="animate-spin" /> Sending...</>
+              ) : (
+                <><Send size={14} /> Resend license to my email</>
+              )}
+            </button>
           )}
           <Link to="/" className="inline-block text-sm text-white/40 hover:text-white/60 transition-colors mt-2">
             ← Return to Opedd
