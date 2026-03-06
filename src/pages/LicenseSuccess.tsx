@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, Copy, Shield, ArrowLeft, Loader2, XCircle, Download, Mail } from "lucide-react";
+import { Check, Copy, Shield, ArrowLeft, Loader2, XCircle, Download, Mail, FileText, Receipt, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
@@ -12,6 +12,10 @@ interface CheckoutData {
   license_key?: string | null;
   article_title?: string;
   amount?: number;
+  license_type?: string;
+  buyer_email?: string;
+  valid_from?: string;
+  valid_until?: string;
   processing_timeout?: boolean;
 }
 
@@ -23,6 +27,8 @@ export default function LicenseSuccess() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startRef = useRef(Date.now());
 
