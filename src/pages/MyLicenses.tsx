@@ -24,10 +24,10 @@ export default function MyLicenses() {
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
-      if (data.success && (data.data?.sent || data.data?.count === 0)) {
+      if (data.success || (data.data?.sent || data.data?.count === 0)) {
         setSent(true);
       } else {
-        setError(data.error || "Something went wrong. Please try again.");
+        setError("Something went wrong. Please try again.");
       }
     } catch {
       setError("Network error. Please try again.");
@@ -47,10 +47,10 @@ export default function MyLicenses() {
               <Mail size={24} className="text-[#4A26ED]" />
             </div>
             <h1 className="text-3xl font-bold" style={{ color: "#040042" }}>
-              Your Licenses
+              Find your licenses
             </h1>
             <p className="text-sm mt-2" style={{ color: "#6B7280" }}>
-              Enter your email to receive a list of all your license keys.
+              Enter your email to receive your license keys by email.
             </p>
           </div>
 
@@ -61,7 +61,7 @@ export default function MyLicenses() {
                 Check your inbox
               </h2>
               <p className="text-sm mt-2" style={{ color: "#6B7280" }}>
-                We've sent all your license keys to <strong>{email}</strong>.
+                If we have licenses for <strong>{email}</strong>, we've sent them to your inbox.
               </p>
               <button
                 onClick={() => { setSent(false); setEmail(""); }}
@@ -95,7 +95,7 @@ export default function MyLicenses() {
                 className="w-full bg-[#4A26ED] hover:bg-[#3B1FD4] text-white"
               >
                 {loading ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
-                {loading ? "Sending..." : "Send My Licenses"}
+                {loading ? "Sending..." : "Send my licenses"}
               </Button>
               <p className="text-xs text-center" style={{ color: "#9CA3AF" }}>
                 We'll only send to addresses that have purchased licenses.
