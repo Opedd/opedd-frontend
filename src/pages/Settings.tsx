@@ -532,6 +532,42 @@ export default function Settings() {
                 <TabsContent value="profile" className="mt-6" forceMount={activeTab === "profile" ? true : undefined}>
                   {activeTab === "profile" && (
                     <motion.div key="profile" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {/* Stripe KYC Warning */}
+                      {profile?.stripe_onboarding_complete && profile?.stripe_connect && !profile.stripe_connect.payouts_enabled && (
+                        <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+                          <AlertTriangle size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-amber-900">
+                              Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments.
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-amber-400 text-amber-800 hover:bg-amber-100 flex-shrink-0"
+                            onClick={async () => {
+                              try {
+                                const headers = await apiHeaders();
+                                const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                                  method: "POST",
+                                  headers,
+                                  body: JSON.stringify({ action: "stripe_dashboard" }),
+                                });
+                                const result = await res.json();
+                                if (result.success && result.data?.url) {
+                                  window.open(result.data.url, "_blank");
+                                } else {
+                                  toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
+                                }
+                              } catch {
+                                toast({ title: "Error", description: "Something went wrong", variant: "destructive" });
+                              }
+                            }}
+                          >
+                            Complete verification
+                          </Button>
+                        </div>
+                      )}
                       {/* Stats Row */}
                       {profile && (
                         <div className="grid grid-cols-2 gap-4">
