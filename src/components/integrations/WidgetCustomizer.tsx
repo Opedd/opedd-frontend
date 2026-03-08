@@ -42,7 +42,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
     { value: "badge", label: "Badge", icon: <Tag size={14} /> },
   ];
 
-  const widgetCode = `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"
+  const widgetCode = `<script src="https://api.opedd.com/widget"
   data-publisher-id="${publisherId}"
   data-mode="${widgetMode}"
   data-color="${primaryColor}"
