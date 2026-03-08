@@ -122,11 +122,17 @@ export default function Login() {
         </button>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-6 text-center space-y-2">
         <p className="text-[#040042]/50 text-sm">
           Don't have an account?{" "}
           <Link to="/signup" className="text-[#4A26ED] font-medium hover:underline">
             Create Account
+          </Link>
+        </p>
+        <p className="text-[#040042]/40 text-xs">
+          Not a publisher?{" "}
+          <Link to="/my-licenses" className="text-[#4A26ED] hover:underline">
+            Find your licenses →
           </Link>
         </p>
       </div>
