@@ -40,7 +40,7 @@ const manifest = await fetch(
 
 // 2. Select an article and purchase a license
 const result = await fetch(
-  "https://djdzcciayennqchjgybx.supabase.co/functions/v1/agent-purchase",
+  "https://api.opedd.com/agent-purchase",
   {
     method: "POST",
     headers: {

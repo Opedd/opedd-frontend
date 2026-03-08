@@ -428,7 +428,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
             <span className="text-slate-400">{"<"}</span>
             <span className="text-[#7C3AED]">script</span>
             <span className="text-slate-500"> src=</span>
-            <span className="text-emerald-600">"https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget"</span>
+            <span className="text-emerald-600">"https://api.opedd.com/widget"</span>
             {"\n"}
             <span className="text-slate-500">  data-publisher-id=</span>
             <span className="text-emerald-600">"{publisherId}"</span>

@@ -365,7 +365,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 const p = (source.platform || "").toLowerCase();
                 const isWebhook = p === "ghost" || p === "beehiiv";
                 if (!isWebhook || !isVerified) return null;
-                const webhookUrl = `https://djdzcciayennqchjgybx.supabase.co/functions/v1/webhook-receiver?source_id=${source.id}`;
+                const webhookUrl = `https://api.opedd.com/webhook-receiver?source_id=${source.id}`;
                 return (
                   <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
                     <Rss size={14} className="text-emerald-600 mt-0.5 flex-shrink-0" />

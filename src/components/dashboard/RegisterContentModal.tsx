@@ -351,9 +351,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     ? `https://opedd.io/pay/${registeredAssetId}`
     : "";
   const widgetCode = publisherProfileId
-    ? `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget" data-publisher-id="${publisherProfileId}"></script>`
+    ? `<script src="https://api.opedd.com/widget" data-publisher-id="${publisherProfileId}"></script>`
     : registeredAssetId
-    ? `<script src="https://djdzcciayennqchjgybx.supabase.co/functions/v1/widget" data-asset-id="${registeredAssetId}"></script>`
+    ? `<script src="https://api.opedd.com/widget" data-asset-id="${registeredAssetId}"></script>`
     : "";
 
   const handleCopy = async (text: string, type: "widget" | "link" | "verification") => {
