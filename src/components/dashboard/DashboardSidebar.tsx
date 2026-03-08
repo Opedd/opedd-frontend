@@ -64,6 +64,13 @@ export function DashboardSidebar() {
             Documentation
             <ExternalLink size={12} className="ml-auto opacity-50" />
           </a>
+          <a
+            href="mailto:support@opedd.com"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-white/50 hover:text-white/80 hover:bg-white/5 text-sm font-medium transition-colors"
+          >
+            <Mail size={18} strokeWidth={1.5} />
+            Get help
+          </a>
           <NavLink
             to="/pricing"
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 text-xs font-medium transition-colors"

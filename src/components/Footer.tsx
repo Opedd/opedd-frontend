@@ -18,7 +18,7 @@ const footerLinks = {
   ],
   Resources: [
     { label: "Documentation", href: "https://docs.opedd.com" },
-    { label: "Help Center", href: "#" },
+    { label: "Get help", href: "mailto:support@opedd.com" },
     { label: "Community", href: "#" },
     { label: "Status", href: "#" },
   ],
