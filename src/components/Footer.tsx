@@ -26,6 +26,7 @@ const footerLinks = {
     { label: "Privacy", href: "https://legal.opedd.com/privacy", external: true },
     { label: "Terms", href: "https://legal.opedd.com/terms", external: true },
     { label: "Licenses", href: "/licenses" },
+    { label: "Find My Licenses", href: "/my-licenses" },
   ],
 };
 

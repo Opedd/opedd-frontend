@@ -303,6 +303,10 @@ export default function LicenseSuccess() {
               )}
             </button>
           )}
+          <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/60 transition-colors">
+            <Mail size={14} />
+            Lost your license? Resend by email
+          </Link>
           <Link to="/" className="inline-block text-sm text-white/40 hover:text-white/60 transition-colors mt-2">
             ← Return to Opedd
           </Link>
