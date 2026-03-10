@@ -511,15 +511,21 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
                 <div className="flex-1" />
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => { setDeleteConfirmSource(source); setDeleteConfirmInput(""); }}
-                  className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 gap-1.5"
-                >
-                  <Trash2 size={12} />
-                  Remove
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setDeleteConfirmSource(source); setDeleteConfirmInput(""); }}
+                        className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Remove source</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           );

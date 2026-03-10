@@ -420,7 +420,7 @@ export default function Content() {
 
       {/* Article Detail Drawer */}
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent side="right" className="sm:max-w-lg w-full p-0 flex flex-col bg-white">
+        <SheetContent side="right" className="sm:max-w-lg w-full p-0 flex flex-col bg-white [&>button.absolute]:hidden">
           {selectedAsset && (
             <>
               <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
