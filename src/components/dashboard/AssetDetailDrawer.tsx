@@ -447,7 +447,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
                     {savingPricing ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                     Save
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setEditingPricing(false)} className="h-8 text-xs gap-1">
+                  <Button variant="ghost" size="sm" onClick={handleCancelPricing} className="h-8 text-xs gap-1">
                     <X size={12} />
                     Cancel
                   </Button>
