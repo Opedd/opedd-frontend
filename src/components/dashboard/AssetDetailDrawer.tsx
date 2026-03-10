@@ -260,8 +260,15 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
   const [aiPrice, setAiPrice] = useState("");
   const [savingPricing, setSavingPricing] = useState(false);
   const [contentExpanded, setContentExpanded] = useState(false);
+  const [displayHumanPrice, setDisplayHumanPrice] = useState<number | null>(null);
+  const [displayAiPrice, setDisplayAiPrice] = useState<number | null>(null);
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setDisplayHumanPrice(asset?.human_price ?? null);
+    setDisplayAiPrice(asset?.ai_price ?? null);
+  }, [asset?.id]);
 
   if (!asset) return null;
 
@@ -298,7 +305,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     setSavingPricing(true);
     try {
       const token = await getAccessToken();
-      await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
+      const newHuman = humanPrice !== "" ? parseFloat(humanPrice) || 0 : undefined;
+      const newAi = aiPrice !== "" ? parseFloat(aiPrice) || 0 : undefined;
+      const res = await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -306,13 +315,12 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          updates: [{
-            article_id: asset.id,
-            human_price: humanPrice !== "" ? parseFloat(humanPrice) || 0 : undefined,
-            ai_price: aiPrice !== "" ? parseFloat(aiPrice) || 0 : undefined,
-          }],
+          updates: [{ article_id: asset.id, human_price: newHuman, ai_price: newAi }],
         }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (newHuman !== undefined) setDisplayHumanPrice(newHuman);
+      if (newAi !== undefined) setDisplayAiPrice(newAi);
       toast({ title: "Pricing Updated", description: `Prices saved for "${decodedTitle}".` });
       setEditingPricing(false);
     } catch (err) {
@@ -444,13 +452,13 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
                 <div>
                   <p className="text-[10px] text-[#040042]/40 uppercase mb-0.5">Human</p>
                   <p className="text-sm font-bold text-[#040042]">
-                    {asset.human_price != null && asset.human_price > 0 ? `$${asset.human_price.toFixed(2)}` : "—"}
+                    {displayHumanPrice != null && displayHumanPrice > 0 ? `$${displayHumanPrice.toFixed(2)}` : "—"}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-[#040042]/40 uppercase mb-0.5">AI Training</p>
                   <p className="text-sm font-bold text-[#040042]">
-                    {asset.ai_price != null && asset.ai_price > 0 ? `$${asset.ai_price.toFixed(2)}` : "—"}
+                    {displayAiPrice != null && displayAiPrice > 0 ? `$${displayAiPrice.toFixed(2)}` : "—"}
                   </p>
                 </div>
               </div>
