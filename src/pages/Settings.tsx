@@ -532,13 +532,17 @@ export default function Settings() {
                 <TabsContent value="profile" className="mt-6" forceMount={activeTab === "profile" ? true : undefined}>
                   {activeTab === "profile" && (
                     <motion.div key="profile" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-                      {/* Stripe KYC Warning */}
-                      {profile?.stripe_onboarding_complete && profile?.stripe_connect && !profile.stripe_connect.payouts_enabled && (
+                      {/* Stripe KYC Warning — show when publisher has started Stripe onboarding but hasn't completed KYC */}
+                      {profile?.stripe_account_id && (
+                        !profile.stripe_onboarding_complete || (profile.stripe_connect && !profile.stripe_connect.payouts_enabled)
+                      ) && (
                         <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
                           <AlertTriangle size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
                             <p className="text-sm font-medium text-amber-900">
-                              Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments.
+                              {!profile.stripe_onboarding_complete
+                                ? "Your Stripe payouts are not yet enabled. Complete your Stripe account setup to receive payments."
+                                : "Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments."}
                             </p>
                           </div>
                           <Button
@@ -556,6 +560,8 @@ export default function Settings() {
                                 const result = await res.json();
                                 if (result.success && result.data?.url) {
                                   window.open(result.data.url, "_blank");
+                                } else if (result.data?.onboarding_url) {
+                                  window.open(result.data.onboarding_url, "_blank");
                                 } else {
                                   toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
                                 }
@@ -564,7 +570,7 @@ export default function Settings() {
                               }
                             }}
                           >
-                            Complete verification
+                            {!profile.stripe_onboarding_complete ? "Complete setup" : "Complete verification"}
                           </Button>
                         </div>
                       )}
