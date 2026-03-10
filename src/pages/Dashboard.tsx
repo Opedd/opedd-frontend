@@ -10,6 +10,7 @@ import { SourcesView } from "@/components/dashboard/SourcesView";
 import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { ReferralStep } from "@/components/dashboard/ReferralStep";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
