@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send, ExternalLink } from "lucide-react";
+import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
