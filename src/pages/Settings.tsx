@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
 import {
   User,
   Globe,
@@ -324,7 +324,7 @@ export default function Settings() {
       try {
         const headers = await apiHeaders();
         const res = await fetch(
-          `${EXT_SUPABASE_URL}/rest/v1/licenses?select=category&publisher_id=eq.${profile.id}&category=not.is.null`,
+          `${EXT_SUPABASE_REST}/rest/v1/licenses?select=category&publisher_id=eq.${profile.id}&category=not.is.null`,
           { headers }
         );
         const data = await res.json();

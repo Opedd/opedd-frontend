@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
 
 interface AssetRow {
   id: string;
@@ -48,7 +48,7 @@ export default function LicensePublicCheckout() {
     if (!id) return;
     (async () => {
       try {
-        const url = `${EXT_SUPABASE_URL}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled&id=eq.${id}&limit=1`;
+        const url = `${EXT_SUPABASE_REST}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled&id=eq.${id}&limit=1`;
         const res = await fetch(url, {
           headers: { apikey: EXT_ANON_KEY, Accept: "application/json" },
         });
