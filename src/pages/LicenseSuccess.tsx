@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Check, Copy, Shield, ArrowLeft, Loader2, XCircle, Download, Mail, FileText, Receipt, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send, ExternalLink } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
@@ -17,6 +15,41 @@ interface CheckoutData {
   valid_from?: string;
   valid_until?: string;
   processing_timeout?: boolean;
+}
+
+function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 border-b border-white/5 pb-3 last:border-0 last:pb-0">
+      <span className="text-xs text-white/30 uppercase tracking-wider sm:w-36 shrink-0 pt-0.5">{label}</span>
+      <span className="text-sm text-white/80">{children}</span>
+    </div>
+  );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#040042] flex flex-col">
+      <div className="px-6 py-6 border-b border-white/5">
+        <Link to="/">
+          <img src={opeddLogo} alt="Opedd" className="h-7" />
+        </Link>
+      </div>
+      <div className="flex-1 flex items-center justify-center px-4 py-10 md:py-16">
+        {children}
+      </div>
+      <div className="text-center pb-6">
+        <div className="flex items-center justify-center gap-3">
+          <p className="text-xs text-white/20">
+            Powered by <span className="text-white/40 font-medium">Opedd Protocol</span>
+          </p>
+          <span className="text-white/10">·</span>
+          <a href="mailto:support@opedd.com" className="text-xs text-white/20 hover:text-white/40 transition-colors">
+            Help & Support
+          </a>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function LicenseSuccess() {
@@ -70,7 +103,6 @@ export default function LicenseSuccess() {
       const status = await fetchStatus();
       if (status === "pending") {
         intervalRef.current = setInterval(async () => {
-          // 60s timeout
           if (Date.now() - startRef.current > 60_000) {
             if (intervalRef.current) clearInterval(intervalRef.current);
             setTimedOut(true);
@@ -115,18 +147,18 @@ export default function LicenseSuccess() {
 
   const licenseTypeLabel = data?.license_type === "ai" ? "AI Training License" : "Human Republication License";
 
-  
+  // — No session —
   if (!sessionId && !loading) {
     return (
       <Shell>
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="max-w-md w-full text-center space-y-6">
-          <div className="mx-auto w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500/40 flex items-center justify-center">
-            <XCircle size={40} className="text-red-400" />
+        <div className="w-full max-w-md text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 px-4 py-1.5 text-sm font-medium mb-6">
+            <XCircle className="h-4 w-4" />
+            No Session Found
           </div>
-          <h1 className="text-2xl font-bold text-white">No checkout session found</h1>
-          <p className="text-white/50 text-sm">Please try purchasing again.</p>
-          <Link to="/" className="inline-block text-sm text-[#A78BFA] hover:underline">← Return to Opedd</Link>
-        </motion.div>
+          <p className="text-white/50 text-sm mb-6">No checkout session found. Please try purchasing again.</p>
+          <Link to="/" className="text-sm text-white/30 hover:text-white/50 transition-colors">← Return to Opedd</Link>
+        </div>
       </Shell>
     );
   }
@@ -135,24 +167,20 @@ export default function LicenseSuccess() {
   if (timedOut && (!data || data.status === "pending")) {
     return (
       <Shell>
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="max-w-md w-full text-center space-y-6">
-          <div className="mx-auto w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-500/40 flex items-center justify-center">
-            <Mail size={36} className="text-amber-400" />
+        <div className="w-full max-w-md text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 px-4 py-1.5 text-sm font-medium mb-6">
+            <Mail className="h-4 w-4" />
+            Processing
           </div>
-          <h1 className="text-2xl font-bold text-white">This is taking longer than expected</h1>
-          <p className="text-white/50 text-sm leading-relaxed">
-            Your license key will arrive by email shortly. If you don't receive it within 10 minutes, use the{" "}
-            <Link to="/my-licenses" className="text-[#A78BFA] hover:underline font-medium">"Resend my licenses"</Link>{" "}
-            option below.
+          <h1 className="text-2xl font-bold text-white mb-2">This is taking longer than expected</h1>
+          <p className="text-white/50 text-sm mb-6 max-w-sm mx-auto">
+            Your license key will arrive by email shortly. If you don't receive it within 10 minutes, use the resend option below.
           </p>
-          <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline">
-            <Mail size={14} />
+          <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/60 transition-colors">
+            <Mail className="h-3.5 w-3.5" />
             Resend my licenses
           </Link>
-          <div>
-            <Link to="/" className="inline-block text-sm text-white/40 hover:text-white/60 transition-colors mt-2">← Return to Opedd</Link>
-          </div>
-        </motion.div>
+        </div>
       </Shell>
     );
   }
@@ -161,9 +189,9 @@ export default function LicenseSuccess() {
   if (loading || data?.status === "pending") {
     return (
       <Shell>
-        <div className="text-center space-y-6">
-          <Loader2 className="h-10 w-10 animate-spin text-white/40 mx-auto" />
-          <p className="text-white/60 text-sm">Confirming your payment...</p>
+        <div className="text-center">
+          <Loader2 className="h-6 w-6 animate-spin text-white/40 mx-auto mb-4" />
+          <p className="text-white/50 text-sm">Confirming your payment...</p>
         </div>
       </Shell>
     );
@@ -173,14 +201,14 @@ export default function LicenseSuccess() {
   if (data?.status === "failed") {
     return (
       <Shell>
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="max-w-md w-full text-center space-y-6">
-          <div className="mx-auto w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500/40 flex items-center justify-center">
-            <XCircle size={40} className="text-red-400" />
+        <div className="w-full max-w-md text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 px-4 py-1.5 text-sm font-medium mb-6">
+            <XCircle className="h-4 w-4" />
+            Payment Failed
           </div>
-          <h1 className="text-2xl font-bold text-white">Payment was not completed</h1>
-          <p className="text-white/50 text-sm">Your payment could not be processed. Please try again or contact support.</p>
-          <Link to="/" className="inline-block text-sm text-[#A78BFA] hover:underline">← Return to Opedd</Link>
-        </motion.div>
+          <p className="text-white/50 text-sm mb-6">Your payment could not be processed. Please try again or contact support.</p>
+          <Link to="/" className="text-sm text-white/30 hover:text-white/50 transition-colors">← Return to Opedd</Link>
+        </div>
       </Shell>
     );
   }
@@ -188,162 +216,97 @@ export default function LicenseSuccess() {
   // — Completed —
   return (
     <Shell>
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="max-w-md w-full text-center space-y-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-          className="mx-auto w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center"
-        >
-          <Check size={40} className="text-emerald-400" />
-        </motion.div>
+      <div className="w-full max-w-[640px] space-y-6 animate-fade-in">
+        {/* Status Badge */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-4 py-1.5 text-sm font-medium">
+            <Check className="h-4 w-4" />
+            License Secured
+          </div>
+        </div>
 
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white">License Secured!</h1>
-          {data?.article_title && (
-            <p className="text-white/70 text-base font-medium" style={{ fontFamily: "'Newsreader', 'Georgia', serif" }}>
-              {data.article_title}
-            </p>
+        {/* License Key */}
+        <div className="text-center">
+          <p className="text-xs text-white/30 uppercase tracking-wider mb-2">License Key</p>
+          <div className="flex items-center justify-center gap-3">
+            <code className="text-2xl md:text-3xl font-mono font-bold text-white tracking-[0.2em] leading-none select-all">
+              {data?.license_key}
+            </code>
+            <button
+              onClick={handleCopy}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white"
+            >
+              {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Details Card */}
+        <Card className="border-white/10 bg-white/5 backdrop-blur-sm text-white">
+          <CardContent className="p-6 space-y-4">
+            {data?.article_title && (
+              <DetailRow label="Content">
+                <span className="font-medium" style={{ fontFamily: "'Newsreader', 'Georgia', serif" }}>
+                  {data.article_title}
+                </span>
+              </DetailRow>
+            )}
+            <DetailRow label="License Type">{licenseTypeLabel}</DetailRow>
+            {data?.amount != null && data.amount > 0 && (
+              <DetailRow label="Amount Paid">${data.amount.toFixed(2)}</DetailRow>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-center gap-3">
+          {data?.license_key && (
+            <>
+              <a
+                href={`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(data.license_key)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors"
+              >
+                <Download className="h-4 w-4" />
+                Download Invoice
+              </a>
+              <Link
+                to={`/verify/${encodeURIComponent(data.license_key)}`}
+                className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View License Record
+              </Link>
+            </>
           )}
         </div>
 
-        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 mx-auto">
-          <Shield size={12} className="mr-1.5" />
-          Verified & Recorded
-        </Badge>
-
-        {/* License key card */}
-        {data?.license_key && (
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-4">
-            <p className="text-xs text-white/40 uppercase tracking-wider">License Key</p>
-            <div className="flex items-center justify-center gap-3 bg-white/5 rounded-xl px-4 py-3">
-              <code className="text-lg md:text-xl font-mono font-bold text-white tracking-[0.15em] leading-none select-all">
-                {data.license_key}
-              </code>
-              <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white flex-shrink-0">
-                {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-              </button>
-            </div>
-
-            {/* License details */}
-            <div className="grid grid-cols-2 gap-3 text-left">
-              <div>
-                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">License type</p>
-                <p className="text-sm text-white/80 font-medium">{licenseTypeLabel}</p>
-              </div>
-              {data.amount != null && data.amount > 0 && (
-                <div>
-                  <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">Amount paid</p>
-                  <p className="text-sm text-white/80 font-medium">${data.amount.toFixed(2)}</p>
-                </div>
-              )}
-              {data.valid_from && (
-                <div>
-                  <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">Valid from</p>
-                  <p className="text-sm text-white/80 font-medium">{new Date(data.valid_from).toLocaleDateString()}</p>
-                </div>
-              )}
-              {data.valid_until && (
-                <div>
-                  <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">Valid until</p>
-                  <p className="text-sm text-white/80 font-medium">{new Date(data.valid_until).toLocaleDateString()}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Action buttons */}
-        {data?.license_key && (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a
-              href={`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(data.license_key)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white/10 border border-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
-            >
-              <FileText size={15} />
-              Certificate
-            </a>
-            <a
-              href={`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(data.license_key)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white/10 border border-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
-            >
-              <Receipt size={15} />
-              Invoice
-            </a>
-          </div>
-        )}
-
-        {/* Secondary links */}
-        <div className="flex flex-col items-center gap-3">
-          {data?.license_key && (
-            <Link
-              to={`/verify/${encodeURIComponent(data.license_key)}`}
-              className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline"
-            >
-              <Shield size={14} />
-              Verify this license
-            </Link>
-          )}
+        {/* Bottom Links */}
+        <div className="text-center space-y-3 pt-2">
           {data?.buyer_email && (
             <button
               onClick={handleResend}
               disabled={resending || resent}
-              className="inline-flex items-center gap-1.5 text-sm text-[#A78BFA] hover:underline disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-sm text-white/30 hover:text-white/50 transition-colors disabled:opacity-50"
             >
               {resent ? (
-                <><Check size={14} /> License details sent to your email</>
+                <><Check className="h-3.5 w-3.5 text-emerald-400" /> Sent to your email</>
               ) : resending ? (
-                <><Loader2 size={14} className="animate-spin" /> Sending...</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...</>
               ) : (
-                <><Send size={14} /> Resend license to my email</>
+                <><Send className="h-3.5 w-3.5" /> Resend to my email</>
               )}
             </button>
           )}
-          <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/60 transition-colors">
-            <Mail size={14} />
-            Lost your license? Resend by email
-          </Link>
-          <Link to="/" className="inline-block text-sm text-white/40 hover:text-white/60 transition-colors mt-2">
-            ← Return to Opedd
-          </Link>
+          <div>
+            <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-xs text-white/20 hover:text-white/40 transition-colors">
+              <Mail className="h-3 w-3" />
+              Lost your license? Resend by email
+            </Link>
+          </div>
         </div>
-
-        <p className="text-xs text-white/30">
-          A confirmation email has been sent to your inbox.
-        </p>
-      </motion.div>
-    </Shell>
-  );
-}
-
-/** Layout shell shared by all states */
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#040042] via-[#0A0066] to-[#040042] relative overflow-hidden flex flex-col">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#4A26ED]/15 rounded-full blur-3xl" />
       </div>
-      <header className="relative z-10 py-6 px-6">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <ArrowLeft size={18} className="text-white/60 group-hover:text-white transition-colors" />
-            <img src={opeddLogo} alt="Opedd" className="h-8" />
-          </Link>
-        </div>
-      </header>
-      <main className="relative z-10 flex-1 flex items-center justify-center px-6 pb-16">
-        {children}
-      </main>
-      <footer className="relative z-10 pb-6 text-center">
-        <a href="mailto:support@opedd.com" className="text-xs text-white/30 hover:text-white/50 transition-colors">
-          Help & Support
-        </a>
-      </footer>
-    </div>
+    </Shell>
   );
 }
