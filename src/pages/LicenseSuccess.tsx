@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send, ExternalLink } from "lucide-react";
+import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -221,7 +221,7 @@ export default function LicenseSuccess() {
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-4 py-1.5 text-sm font-medium">
             <Check className="h-4 w-4" />
-            License Secured
+            License Issued
           </div>
         </div>
 
@@ -259,28 +259,26 @@ export default function LicenseSuccess() {
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-3">
-          {data?.license_key && (
-            <>
-              <a
-                href={`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(data.license_key)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                Download Invoice
-              </a>
-              <Link
-                to={`/verify/${encodeURIComponent(data.license_key)}`}
-                className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                View License Record
-              </Link>
-            </>
-          )}
-        </div>
+        {data?.license_key && (
+          <div className="flex flex-col items-center gap-3">
+            <Link
+              to={`/verify/${encodeURIComponent(data.license_key)}`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-[#040042] hover:bg-white/90 px-6 py-3 text-sm font-semibold transition-colors w-full max-w-xs"
+            >
+              <Shield className="h-4 w-4" />
+              Verify License
+            </Link>
+            <a
+              href={`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(data.license_key)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-transparent hover:bg-white/10 border border-white/15 px-6 py-2.5 text-sm font-medium text-white transition-colors w-full max-w-xs"
+            >
+              <Download className="h-4 w-4" />
+              Download Invoice
+            </a>
+          </div>
+        )}
 
         {/* Bottom Links */}
         <div className="text-center space-y-3 pt-2">
@@ -299,7 +297,7 @@ export default function LicenseSuccess() {
               )}
             </button>
           )}
-          <div>
+          <div className="flex items-center justify-center gap-4">
             <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-xs text-white/20 hover:text-white/40 transition-colors">
               <Mail className="h-3 w-3" />
               Lost your license? Resend by email
