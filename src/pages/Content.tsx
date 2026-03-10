@@ -286,7 +286,7 @@ export default function Content() {
 
         {/* Table */}
         {!fetchError && (
-          <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm overflow-x-auto">
             {isLoading ? (
               <div className="py-20 flex items-center justify-center">
                 <Loader2 size={28} className="animate-spin text-[#040042]" />
