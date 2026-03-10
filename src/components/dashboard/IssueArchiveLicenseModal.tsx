@@ -37,7 +37,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
     setPlanLoading(true);
     getAccessToken().then(token => {
       if (!token) { setPlanLoading(false); return; }
-      fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
       })
         .then(r => r.json())
@@ -91,7 +91,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
   const handleDownloadCertificate = () => {
     if (issuedKey) {
       window.open(
-        `${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(issuedKey)}`,
+        `${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(issuedKey)}`,
         "_blank"
       );
     }
@@ -100,7 +100,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
   const handleDownloadInvoice = () => {
     if (issuedKey) {
       window.open(
-        `${EXT_SUPABASE_URL}/functions/v1/invoice?key=${encodeURIComponent(issuedKey)}`,
+        `${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(issuedKey)}`,
         "_blank"
       );
     }
@@ -144,7 +144,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
         ...(intendedUse ? { intended_use: intendedUse } : {}),
       };
 
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/issue-license`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/issue-license`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

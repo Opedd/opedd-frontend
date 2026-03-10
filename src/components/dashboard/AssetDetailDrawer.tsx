@@ -101,7 +101,7 @@ function EmbedSnippetsSection({ articleId }: { articleId: string }) {
     setLoading(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -202,7 +202,7 @@ function CertificatesSection({ articleId }: { articleId: string }) {
       setLoading(true);
       try {
         const token = await getAccessToken();
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-transactions`, {
+        const res = await fetch(`${EXT_SUPABASE_URL}/get-transactions`, {
           headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
         });
         const result = await res.json();
@@ -237,7 +237,7 @@ function CertificatesSection({ articleId }: { articleId: string }) {
               </p>
             </div>
             <a
-              href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${tx.license_key}`}
+              href={`${EXT_SUPABASE_URL}/certificate?key=${tx.license_key}`}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 flex items-center gap-1 text-[10px] font-medium text-[#4A26ED] hover:underline"
@@ -298,7 +298,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     setSavingPricing(true);
     try {
       const token = await getAccessToken();
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/update-license-prices`, {
+      await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

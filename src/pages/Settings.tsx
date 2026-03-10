@@ -169,7 +169,7 @@ export default function Settings() {
   const fetchProfile = useCallback(async () => {
     try {
       const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, { headers });
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, { headers });
       const result = await res.json();
       if (result.success && result.data) {
         const pub = result.data.publisher || result.data;
@@ -211,7 +211,7 @@ export default function Settings() {
     setTeamError(false);
     try {
       const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers,
         body: JSON.stringify({ action: "list_team" }),
@@ -246,7 +246,7 @@ export default function Settings() {
     setIsInviting(true);
     try {
       const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers,
         body: JSON.stringify({ action: "invite_member", email }),
@@ -269,7 +269,7 @@ export default function Settings() {
   const handleRemoveMember = async (memberId: string) => {
     try {
       const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers,
         body: JSON.stringify({ action: "remove_member", member_id: memberId }),
@@ -289,7 +289,7 @@ export default function Settings() {
   const handleCancelInvitation = async (invitationId: string) => {
     try {
       const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers,
         body: JSON.stringify({ action: "cancel_invitation", invitation_id: invitationId }),
@@ -360,7 +360,7 @@ export default function Settings() {
     setIsSaving(true);
     try {
       const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({
@@ -408,7 +408,7 @@ export default function Settings() {
       if (uploadError) throw new Error(uploadError.message);
       const { data: { publicUrl } } = supabase.storage.from("publisher-logos").getPublicUrl(path);
       const headers = await apiHeaders();
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({ logo_url: publicUrl }),
@@ -454,7 +454,7 @@ export default function Settings() {
     setIsRegenerating(true);
     try {
       const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers,
         body: JSON.stringify({ action: "regenerate_api_key" }),
@@ -548,7 +548,7 @@ export default function Settings() {
                             onClick={async () => {
                               try {
                                 const headers = await apiHeaders();
-                                const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                                const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
                                   method: "POST",
                                   headers,
                                   body: JSON.stringify({ action: "stripe_dashboard" }),
@@ -606,7 +606,7 @@ export default function Settings() {
                         const handleUpgrade = async (targetPlan: string) => {
                           try {
                             const headers = await apiHeaders();
-                            const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                            const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
                               method: "POST",
                               headers,
                               body: JSON.stringify({ action: "create_subscription", plan: targetPlan }),
@@ -625,7 +625,7 @@ export default function Settings() {
                         const handleManageBilling = async () => {
                           try {
                             const headers = await apiHeaders();
-                            const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                            const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
                               method: "POST",
                               headers,
                               body: JSON.stringify({ action: "create_billing_portal" }),
@@ -1245,7 +1245,7 @@ export default function Settings() {
                                   };
                                 }
                               }
-                              const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+                              const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
                                 method: "PATCH",
                                 headers,
                                 body: JSON.stringify({

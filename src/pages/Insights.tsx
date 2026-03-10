@@ -40,7 +40,7 @@ export default function Insights() {
     try {
       const token = await getAccessToken();
       if (!token) { setIsLoading(false); return; }
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-insights`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/get-insights`, {
         headers: { apikey: EXT_ANON_KEY, Accept: "application/json", Authorization: `Bearer ${token}` },
       });
       const result = await res.json();

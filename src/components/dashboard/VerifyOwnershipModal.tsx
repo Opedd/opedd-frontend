@@ -124,7 +124,7 @@ export function VerifyOwnershipModal({
       const accessToken = session?.access_token;
       if (!accessToken) throw new Error("Not authenticated");
 
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/verify-source`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/verify-source`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

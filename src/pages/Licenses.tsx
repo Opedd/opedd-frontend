@@ -197,7 +197,7 @@ export default function Licenses() {
                                 {copiedKey === lic.license_key ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                               </button>
                               <a
-                                href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(lic.license_key)}`}
+                                href={`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(lic.license_key)}`}
                                 target="_blank"
                                 className="p-1.5 rounded-lg hover:bg-[#F3F4F6] text-[#9CA3AF] hover:text-[#4A26ED] transition-colors"
                                 title="Download certificate"

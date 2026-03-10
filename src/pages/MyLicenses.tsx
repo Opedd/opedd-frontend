@@ -18,7 +18,7 @@ export default function MyLicenses() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/resend-licenses`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/resend-licenses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

@@ -97,7 +97,7 @@ export default function Ledger() {
       const params = new URLSearchParams({ limit: "50", offset: "0" });
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (typeFilter !== "all") params.set("type", typeFilter);
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-transactions?${params.toString()}`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/get-transactions?${params.toString()}`, {
         headers: { apikey: EXT_ANON_KEY, Accept: "application/json", Authorization: `Bearer ${token}` },
       });
       const result = await res.json();
@@ -152,7 +152,7 @@ export default function Ledger() {
     setIsRevoking(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
         body: JSON.stringify({ action: "revoke_license", license_key: revokeTarget.licenseKey, reason: revokeReason || undefined }),
@@ -358,7 +358,7 @@ export default function Ledger() {
                                   {tx.status === "settled" && tx.licenseKey && (
                                     <>
                                       <a
-                                        href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${tx.licenseKey}`}
+                                        href={`${EXT_SUPABASE_URL}/certificate?key=${tx.licenseKey}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={(e) => e.stopPropagation()}
@@ -368,7 +368,7 @@ export default function Ledger() {
                                         <ScrollText size={14} />
                                       </a>
                                       <a
-                                        href={`${EXT_SUPABASE_URL}/functions/v1/invoice?key=${tx.licenseKey}`}
+                                        href={`${EXT_SUPABASE_URL}/invoice?key=${tx.licenseKey}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={(e) => e.stopPropagation()}

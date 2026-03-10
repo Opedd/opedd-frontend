@@ -47,7 +47,7 @@ export function DashboardHeader() {
       const token = await getAccessToken();
       if (!token) return;
 
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications?limit=10`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/get-notifications?limit=10`, {
         headers: {
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${token}`,
@@ -74,7 +74,7 @@ export function DashboardHeader() {
       const token = await getAccessToken();
       if (!token) return;
 
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications`, {
+      await fetch(`${EXT_SUPABASE_URL}/get-notifications`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -96,7 +96,7 @@ export function DashboardHeader() {
       const token = await getAccessToken();
       if (!token) return;
 
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications`, {
+      await fetch(`${EXT_SUPABASE_URL}/get-notifications`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

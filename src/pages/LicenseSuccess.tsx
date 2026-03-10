@@ -39,7 +39,7 @@ export default function LicenseSuccess() {
     }
     try {
       const res = await fetch(
-        `${EXT_SUPABASE_URL}/functions/v1/checkout-status?session_id=${encodeURIComponent(sessionId)}`,
+        `${EXT_SUPABASE_URL}/checkout-status?session_id=${encodeURIComponent(sessionId)}`,
         { headers: { apikey: EXT_ANON_KEY, Accept: "application/json" } }
       );
       const result = await res.json();
@@ -103,7 +103,7 @@ export default function LicenseSuccess() {
     if (!data?.buyer_email || resending) return;
     setResending(true);
     try {
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/resend-licenses`, {
+      await fetch(`${EXT_SUPABASE_URL}/resend-licenses`, {
         method: "POST",
         headers: { apikey: EXT_ANON_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.buyer_email }),
@@ -257,7 +257,7 @@ export default function LicenseSuccess() {
         {data?.license_key && (
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(data.license_key)}`}
+              href={`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(data.license_key)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white/10 border border-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
@@ -266,7 +266,7 @@ export default function LicenseSuccess() {
               Certificate
             </a>
             <a
-              href={`${EXT_SUPABASE_URL}/functions/v1/invoice?key=${encodeURIComponent(data.license_key)}`}
+              href={`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(data.license_key)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white/10 border border-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"

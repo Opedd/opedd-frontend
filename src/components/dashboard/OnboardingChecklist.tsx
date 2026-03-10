@@ -71,7 +71,7 @@ export function OnboardingChecklist() {
         (async () => {
           try {
             const token = await getAccessToken();
-            const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+            const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
               headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
             });
             const json = await res.json();

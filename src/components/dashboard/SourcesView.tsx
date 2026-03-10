@@ -109,7 +109,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
       if (!accessToken) throw new Error("Not authenticated");
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/sync-content-source`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

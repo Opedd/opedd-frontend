@@ -42,7 +42,7 @@ export default function AcceptInvite() {
     const fetchInvite = async () => {
       try {
         const res = await fetch(
-          `${EXT_SUPABASE_URL}/functions/v1/accept-invite?token=${encodeURIComponent(token)}`,
+          `${EXT_SUPABASE_URL}/accept-invite?token=${encodeURIComponent(token)}`,
           { headers: { apikey: EXT_ANON_KEY } }
         );
         const result = await res.json();
@@ -102,7 +102,7 @@ export default function AcceptInvite() {
         return;
       }
 
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/accept-invite`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/accept-invite`, {
         method: "POST",
         headers: {
           apikey: EXT_ANON_KEY,
@@ -152,7 +152,7 @@ export default function AcceptInvite() {
 
     try {
       // Call accept-invite without auth, with password — server creates account + joins team
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/accept-invite`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/accept-invite`, {
         method: "POST",
         headers: {
           apikey: EXT_ANON_KEY,

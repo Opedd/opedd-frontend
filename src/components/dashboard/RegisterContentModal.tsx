@@ -151,7 +151,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       try {
         const token = await getAccessToken();
         if (!token) return;
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
           headers: {
             apikey: EXT_ANON_KEY,
             Authorization: `Bearer ${token}`,
@@ -482,7 +482,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       }
 
       // Step 3: Trigger RSS sync BEFORE showing animation — surface real errors
-      const syncRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+      const syncRes = await fetch(`${EXT_SUPABASE_URL}/sync-content-source`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -657,7 +657,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setIsSitemapImporting(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -739,7 +739,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setDetectedFeeds(null);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain)}`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/detect-feeds?domain=${encodeURIComponent(domain)}`, {
         headers: {
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${token}`,
@@ -817,7 +817,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setIsDetectingFeeds(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(`https://${domain}`)}`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/detect-feeds?domain=${encodeURIComponent(`https://${domain}`)}`, {
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error(`Feed detection failed (${res.status})`);
@@ -889,7 +889,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const accessToken = session?.access_token;
       if (!accessToken) throw new Error("Not authenticated");
 
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/verify-source`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/verify-source`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1918,7 +1918,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
         // Step 2: Fire import in background — don't await
         // import-sitemap will check if source is already verified and activate accordingly
-        fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+        fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -87,7 +87,7 @@ export default function Connectors() {
 
   const postAction = useCallback(async (action: string, extra?: Record<string, unknown>) => {
     const headers = await apiHeaders();
-    const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+    const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
       method: "POST",
       headers,
       body: JSON.stringify({ action, ...extra }),
@@ -99,7 +99,7 @@ export default function Connectors() {
     const load = async () => {
       try {
         const headers = await apiHeaders();
-        const profileRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, { headers });
+        const profileRes = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, { headers });
         const profileResult = await profileRes.json();
         if (profileResult.success && profileResult.data) {
           setPublisherId(profileResult.data.id);
@@ -426,14 +426,14 @@ export default function Connectors() {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
                           <code className="text-xs text-[#040042] font-mono truncate block">
-                            {`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}`}
+                            {`${EXT_SUPABASE_URL}/ai-defense-policy?publisher_id=${publisherId}`}
                           </code>
                         </div>
                         <Button
                           size="sm"
                           onClick={async () => {
                             try {
-                              await navigator.clipboard.writeText(`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}`);
+                              await navigator.clipboard.writeText(`${EXT_SUPABASE_URL}/ai-defense-policy?publisher_id=${publisherId}`);
                               toast({ title: "Copied", description: "robots.txt URL copied to clipboard." });
                             } catch { toast({ title: "Copy Failed", variant: "destructive" }); }
                           }}
@@ -444,7 +444,7 @@ export default function Connectors() {
                       </div>
                     </div>
                     <a
-                      href={`${EXT_SUPABASE_URL}/functions/v1/ai-defense-policy?publisher_id=${publisherId}`}
+                      href={`${EXT_SUPABASE_URL}/ai-defense-policy?publisher_id=${publisherId}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4A26ED] hover:underline"

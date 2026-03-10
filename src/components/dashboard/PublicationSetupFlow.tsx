@@ -79,7 +79,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
       try {
         const token = await getAccessToken();
         if (!token) return;
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+        const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
           headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
         });
         const result = await res.json();
@@ -107,7 +107,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     try {
       const domain = url.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
       const res = await fetch(
-        `${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain)}`,
+        `${EXT_SUPABASE_URL}/detect-feeds?domain=${encodeURIComponent(domain)}`,
         { headers: { apikey: EXT_ANON_KEY } }
       );
       const result = await res.json();
@@ -203,7 +203,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
       }
 
       // Trigger sync
-      const syncRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+      const syncRes = await fetch(`${EXT_SUPABASE_URL}/sync-content-source`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -281,7 +281,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
       }
 
       // Trigger import
-      const importRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+      const importRes = await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -341,13 +341,13 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
       const sourceId = inserted?.id || "";
 
       if (isSitemap) {
-        await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+        await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
           method: "POST",
           headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
           body: JSON.stringify({ sitemap_url: feedUrl }),
         });
       } else {
-        await fetch(`${EXT_SUPABASE_URL}/functions/v1/sync-content-source`, {
+        await fetch(`${EXT_SUPABASE_URL}/sync-content-source`, {
           method: "POST",
           headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
           body: JSON.stringify({ sourceUrl: feedUrl }),
@@ -378,7 +378,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     }
   };
 
-  const webhookUrl = `${EXT_SUPABASE_URL}/functions/v1/api`;
+  const webhookUrl = `${EXT_SUPABASE_URL}/api`;
   const detectedCase = getCase();
   const isRssFlow = detectedCase === "rss" || (detection?.platform === "substack") || (detection?.platform === "beehiiv");
 
@@ -740,7 +740,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
             <label className="text-xs font-medium text-slate-500 block mb-1.5">Register an article</label>
             <div className="bg-[#1E1E2E] rounded-xl p-4 relative">
               <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap leading-relaxed">{`curl -X POST \\
-  ${EXT_SUPABASE_URL}/functions/v1/api \\
+  ${EXT_SUPABASE_URL}/api \\
   -H "X-API-Key: ${apiKey || "op_xxxx"}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -749,7 +749,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     "source_url": "https://..."
   }'`}</pre>
               <button
-                onClick={() => handleCopy(`curl -X POST \\\n  ${EXT_SUPABASE_URL}/functions/v1/api \\\n  -H "X-API-Key: ${apiKey || "op_xxxx"}" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "action": "articles",\n    "title": "Your article title",\n    "source_url": "https://..."\n  }'`, "curl")}
+                onClick={() => handleCopy(`curl -X POST \\\n  ${EXT_SUPABASE_URL}/api \\\n  -H "X-API-Key: ${apiKey || "op_xxxx"}" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "action": "articles",\n    "title": "Your article title",\n    "source_url": "https://..."\n  }'`, "curl")}
                 className="absolute top-3 right-3 text-slate-500 hover:text-white transition-colors"
               >
                 {copied === "curl" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}

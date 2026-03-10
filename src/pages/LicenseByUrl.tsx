@@ -23,7 +23,7 @@ export default function LicenseByUrl() {
     (async () => {
       try {
         const res = await fetch(
-          `${EXT_SUPABASE_URL}/functions/v1/lookup-article?url=${encodeURIComponent(url)}`,
+          `${EXT_SUPABASE_URL}/lookup-article?url=${encodeURIComponent(url)}`,
           { headers: { apikey: EXT_ANON_KEY, Accept: "application/json" } }
         );
         const result = await res.json();

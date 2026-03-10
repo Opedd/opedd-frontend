@@ -48,7 +48,7 @@ export default function Payments() {
 
   const postAction = useCallback(async (action: string, extra?: Record<string, unknown>) => {
     const headers = await apiHeaders();
-    const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+    const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
       method: "POST",
       headers,
       body: JSON.stringify({ action, ...extra }),
@@ -60,7 +60,7 @@ export default function Payments() {
     const load = async () => {
       try {
         const headers = await apiHeaders();
-        const profileRes = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, { headers });
+        const profileRes = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, { headers });
         const profileResult = await profileRes.json();
         if (profileResult.success && profileResult.data?.stripe_connect) {
           setStripeStatus(profileResult.data.stripe_connect);

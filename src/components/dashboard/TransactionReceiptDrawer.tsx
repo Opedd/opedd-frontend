@@ -55,8 +55,8 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange }: Tr
 
   const handleCopyHash = () => { if (transaction.storyProtocolHash) { navigator.clipboard.writeText(transaction.storyProtocolHash); setCopiedHash(true); setTimeout(() => setCopiedHash(false), 2000); } };
   const handleCopyLicenseKey = () => { if (transaction.licenseKey) { navigator.clipboard.writeText(transaction.licenseKey); setCopiedKey(true); setTimeout(() => setCopiedKey(false), 2000); } };
-  const handleDownloadCertificate = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
-  const handleDownloadInvoice = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/functions/v1/invoice?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
+  const handleDownloadCertificate = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
+  const handleDownloadInvoice = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
 
   const isExpired = transaction.validUntil && new Date(transaction.validUntil) < new Date();
   const canRevoke = transaction.status === "settled" && transaction.licenseKey;

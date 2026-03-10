@@ -97,7 +97,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
     try {
       const token = await getAccessToken();
       if (!token) return;
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications?limit=10`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/get-notifications?limit=10`, {
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
       const result = await res.json();
@@ -114,7 +114,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
     try {
       const token = await getAccessToken();
       if (!token) return;
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
       const result = await res.json();
@@ -136,7 +136,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
     try {
       const token = await getAccessToken();
       if (!token) return;
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications`, {
+      await fetch(`${EXT_SUPABASE_URL}/get-notifications`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
         body: JSON.stringify({ action: "mark_all_read" }),
@@ -152,7 +152,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
     try {
       const token = await getAccessToken();
       if (!token) return;
-      await fetch(`${EXT_SUPABASE_URL}/functions/v1/get-notifications`, {
+      await fetch(`${EXT_SUPABASE_URL}/get-notifications`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
         body: JSON.stringify({ action: "mark_read", notification_id: notificationId }),

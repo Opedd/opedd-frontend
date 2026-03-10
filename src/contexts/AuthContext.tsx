@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const pendingToken = localStorage.getItem("pending_invite_token");
         if (pendingToken) {
           localStorage.removeItem("pending_invite_token");
-          fetch(`${EXT_SUPABASE_URL}/functions/v1/accept-invite`, {
+          fetch(`${EXT_SUPABASE_URL}/accept-invite`, {
             method: "POST",
             headers: {
               apikey: EXT_ANON_KEY,

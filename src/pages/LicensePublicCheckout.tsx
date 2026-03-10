@@ -88,7 +88,7 @@ export default function LicensePublicCheckout() {
       if (isFree) {
         // Free license — call issue-license
         const res = await fetch(
-          `${EXT_SUPABASE_URL}/functions/v1/issue-license`,
+          `${EXT_SUPABASE_URL}/issue-license`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
@@ -110,7 +110,7 @@ export default function LicensePublicCheckout() {
       } else {
         // Paid license — call create-checkout → Stripe
         const res = await fetch(
-          `${EXT_SUPABASE_URL}/functions/v1/create-checkout`,
+          `${EXT_SUPABASE_URL}/create-checkout`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },

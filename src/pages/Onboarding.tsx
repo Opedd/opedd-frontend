@@ -54,7 +54,7 @@ export default function Onboarding() {
   const [verificationToken] = useState(() => `opedd-verify-${Math.random().toString(36).slice(2, 10)}`);
   const [copiedTxt, setCopiedTxt] = useState(false);
   const [dnsCheckStatus, setDnsCheckStatus] = useState<"idle" | "checking" | "pending" | "verified">("idle");
-  const embedSnippet = `<script src="${EXT_SUPABASE_URL}/functions/v1/widget" data-publisher-id="YOUR_PUBLISHER_ID"><\/script>`;
+  const embedSnippet = `<script src="${EXT_SUPABASE_URL}/widget" data-publisher-id="YOUR_PUBLISHER_ID"><\/script>`;
 
   const detectFeeds = async () => {
     if (!domain.trim()) return;
@@ -62,7 +62,7 @@ export default function Onboarding() {
     try {
       const token = await getAccessToken();
       const res = await fetch(
-        `${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain.trim())}`,
+        `${EXT_SUPABASE_URL}/detect-feeds?domain=${encodeURIComponent(domain.trim())}`,
         {
           headers: {
             apikey: EXT_ANON_KEY,
@@ -91,7 +91,7 @@ export default function Onboarding() {
     setIsImporting(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +130,7 @@ export default function Onboarding() {
     setIsSettingPrices(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

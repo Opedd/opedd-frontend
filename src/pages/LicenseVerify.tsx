@@ -67,7 +67,7 @@ export default function LicenseVerify() {
     (async () => {
       try {
         const res = await fetch(
-          `${EXT_SUPABASE_URL}/functions/v1/verify-license?key=${encodeURIComponent(key)}`,
+          `${EXT_SUPABASE_URL}/verify-license?key=${encodeURIComponent(key)}`,
           { headers: { apikey: EXT_ANON_KEY, Accept: "application/json" } }
         );
         const result = await res.json();
@@ -101,7 +101,7 @@ export default function LicenseVerify() {
     if (!data || !webhookUrl.trim()) return;
     setWebhookLoading(true);
     try {
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/register-buyer-webhook`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/register-buyer-webhook`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
         body: JSON.stringify({ license_key: data.license_key, webhook_url: webhookUrl.trim() }),
@@ -410,7 +410,7 @@ export default function LicenseVerify() {
           {/* Footer */}
           <div className="text-center space-y-4 pt-4">
             <a
-              href={`${EXT_SUPABASE_URL}/functions/v1/certificate?key=${encodeURIComponent(data.license_key)}`}
+              href={`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(data.license_key)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors"

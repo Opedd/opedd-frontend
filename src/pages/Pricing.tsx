@@ -29,7 +29,7 @@ export default function Pricing() {
     setUpgrading(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
