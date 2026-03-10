@@ -289,7 +289,7 @@ export default function Content() {
           <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm">
             {isLoading ? (
               <div className="py-20 flex items-center justify-center">
-                <Loader2 size={28} className="animate-spin text-[#4A26ED]" />
+                <Loader2 size={28} className="animate-spin text-[#040042]" />
               </div>
             ) : assets.length === 0 ? (
               <div className="py-20 text-center">
