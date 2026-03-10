@@ -339,6 +339,11 @@ function Shell({ children }: { children: React.ReactNode }) {
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 pb-16">
         {children}
       </main>
+      <footer className="relative z-10 pb-6 text-center">
+        <a href="mailto:support@opedd.com" className="text-xs text-white/30 hover:text-white/50 transition-colors">
+          Help & Support
+        </a>
+      </footer>
     </div>
   );
 }

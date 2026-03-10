@@ -69,7 +69,7 @@ export function DashboardSidebar() {
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-white/50 hover:text-white/80 hover:bg-white/5 text-sm font-medium transition-colors"
           >
             <Mail size={18} strokeWidth={1.5} />
-            Get help
+            Help & Support
           </a>
           <NavLink
             to="/pricing"

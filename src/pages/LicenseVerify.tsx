@@ -418,9 +418,15 @@ export default function LicenseVerify() {
               <Download className="h-4 w-4" />
               Download Certificate
             </a>
-            <p className="text-xs text-white/20">
-              Powered by <span className="text-white/40 font-medium">Opedd Protocol</span>
-            </p>
+            <div className="flex items-center justify-center gap-3">
+              <p className="text-xs text-white/20">
+                Powered by <span className="text-white/40 font-medium">Opedd Protocol</span>
+              </p>
+              <span className="text-white/10">·</span>
+              <a href="mailto:support@opedd.com" className="text-xs text-white/20 hover:text-white/40 transition-colors">
+                Help & Support
+              </a>
+            </div>
           </div>
         </div>
       </div>
