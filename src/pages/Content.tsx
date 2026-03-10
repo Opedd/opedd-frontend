@@ -298,7 +298,7 @@ export default function Content() {
                 <p className="text-xs text-[#9CA3AF] mt-1">Register a publication on the Dashboard to start importing articles.</p>
               </div>
             ) : (
-              <table className="w-full">
+              <table className="w-full min-w-[900px]">
                 <thead>
                   <tr className="border-b border-[#E5E7EB]">
                     <th className="w-10 py-3 px-3">
