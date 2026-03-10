@@ -295,13 +295,19 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleEditPricing = () => {
-    setHumanPrice(asset.human_price != null ? String(asset.human_price) : "");
-    setAiPrice(asset.ai_price != null ? String(asset.ai_price) : "");
+  const handleEditPricing = useCallback(() => {
+    const h = displayHumanPrice != null ? String(displayHumanPrice) : (asset.human_price != null ? String(asset.human_price) : "");
+    const a = displayAiPrice != null ? String(displayAiPrice) : (asset.ai_price != null ? String(asset.ai_price) : "");
+    setHumanPrice(h);
+    setAiPrice(a);
     setEditingPricing(true);
-  };
+  }, [asset, displayHumanPrice, displayAiPrice]);
 
-  const handleSavePricing = async () => {
+  const handleCancelPricing = useCallback(() => {
+    setEditingPricing(false);
+  }, []);
+
+  const handleSavePricing = useCallback(async () => {
     setSavingPricing(true);
     try {
       const token = await getAccessToken();
@@ -329,7 +335,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     } finally {
       setSavingPricing(false);
     }
-  };
+  }, [asset.id, humanPrice, aiPrice, decodedTitle, getAccessToken, toast]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
