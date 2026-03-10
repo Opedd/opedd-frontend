@@ -84,12 +84,41 @@ export default function Dashboard() {
     }
   }, [user, licenses]);
 
+  // Check referral_source from publisher profile
+  const checkReferral = useCallback(async () => {
+    if (!user) return;
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      const profile = json.success ? json.data : null;
+      const hasReferral = !!profile?.referral_source;
+      setNeedsReferral(!hasReferral);
+    } catch {
+      setNeedsReferral(false);
+    } finally {
+      setReferralChecked(true);
+    }
+  }, [user, getAccessToken]);
+
   useEffect(() => { checkPublications(); }, [checkPublications]);
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
+  useEffect(() => { checkReferral(); }, [checkReferral]);
   
 
   if (!user) return null;
-  if (hasActivePublication === null || (isLoading && totalAssets === 0)) return <PageLoader />;
+  if (hasActivePublication === null || (isLoading && totalAssets === 0) || !referralChecked) return <PageLoader />;
+
+  // Show referral step first for new users
+  if (needsReferral && !hasActivePublication && !setupDismissed) {
+    return (
+      <DashboardLayout title="Dashboard">
+        <ReferralStep onComplete={() => setNeedsReferral(false)} />
+      </DashboardLayout>
+    );
+  }
 
   const showSetupFlow = !hasActivePublication && !setupDismissed;
 
