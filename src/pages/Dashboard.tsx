@@ -40,6 +40,10 @@ export default function Dashboard() {
   const [setupDismissed, setSetupDismissed] = useState(false);
   const [addPubDrawerOpen, setAddPubDrawerOpen] = useState(false);
 
+  // Referral step state
+  const [referralChecked, setReferralChecked] = useState(false);
+  const [needsReferral, setNeedsReferral] = useState(false);
+
   // Track incomplete setup steps for banner
   const [setupCompletion, setSetupCompletion] = useState<{ pricingDone: boolean; widgetDone: boolean }>({
     pricingDone: true,
