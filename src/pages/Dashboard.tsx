@@ -4,6 +4,7 @@ import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { Plus } from "lucide-react";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
