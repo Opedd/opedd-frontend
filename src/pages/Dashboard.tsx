@@ -4,12 +4,14 @@ import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { Plus } from "lucide-react";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { ReferralStep } from "@/components/dashboard/ReferralStep";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
@@ -38,6 +40,10 @@ export default function Dashboard() {
   const [hasActivePublication, setHasActivePublication] = useState<boolean | null>(null);
   const [setupDismissed, setSetupDismissed] = useState(false);
   const [addPubDrawerOpen, setAddPubDrawerOpen] = useState(false);
+
+  // Referral step state
+  const [referralChecked, setReferralChecked] = useState(false);
+  const [needsReferral, setNeedsReferral] = useState(false);
 
   // Track incomplete setup steps for banner
   const [setupCompletion, setSetupCompletion] = useState<{ pricingDone: boolean; widgetDone: boolean }>({
@@ -79,12 +85,41 @@ export default function Dashboard() {
     }
   }, [user, licenses]);
 
+  // Check referral_source from publisher profile
+  const checkReferral = useCallback(async () => {
+    if (!user) return;
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      const profile = json.success ? json.data : null;
+      const hasReferral = !!profile?.referral_source;
+      setNeedsReferral(!hasReferral);
+    } catch {
+      setNeedsReferral(false);
+    } finally {
+      setReferralChecked(true);
+    }
+  }, [user, getAccessToken]);
+
   useEffect(() => { checkPublications(); }, [checkPublications]);
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
+  useEffect(() => { checkReferral(); }, [checkReferral]);
   
 
   if (!user) return null;
-  if (hasActivePublication === null || (isLoading && totalAssets === 0)) return <PageLoader />;
+  if (hasActivePublication === null || (isLoading && totalAssets === 0) || !referralChecked) return <PageLoader />;
+
+  // Show referral step first for new users
+  if (needsReferral && !hasActivePublication && !setupDismissed) {
+    return (
+      <DashboardLayout title="Dashboard">
+        <ReferralStep onComplete={() => setNeedsReferral(false)} />
+      </DashboardLayout>
+    );
+  }
 
   const showSetupFlow = !hasActivePublication && !setupDismissed;
 
