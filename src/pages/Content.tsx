@@ -342,9 +342,12 @@ export default function Content() {
                           <Checkbox checked={isSelected} onCheckedChange={() => toggleSelect(asset.id)} className="h-4 w-4" />
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-[#111827] truncate max-w-[380px]">{asset.title}</span>
-                            {asset.sourceUrl && <span className="text-xs text-[#9CA3AF] truncate max-w-[380px] mt-0.5">{asset.sourceUrl}</span>}
+                          <div className="flex items-center gap-2">
+                            {logo ? <img src={logo} className="w-4 h-4 object-contain flex-shrink-0" alt="" /> : <Globe size={14} className="text-[#9CA3AF] flex-shrink-0" />}
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-medium text-[#111827] truncate max-w-[380px]">{asset.title}</span>
+                              {asset.sourceUrl && <span className="text-xs text-[#9CA3AF] truncate max-w-[380px] mt-0.5">{asset.sourceUrl}</span>}
+                            </div>
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
