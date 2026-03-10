@@ -389,15 +389,24 @@ export default function LicensePublicCheckout() {
             )}
           </div>
 
-          <a
-            href="https://opedd.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 mt-10 text-xs text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
-          >
-            Powered by
-            <img src={opeddLogo} alt="Opedd" className="h-3.5 opacity-40" />
-          </a>
+          <div className="flex items-center justify-center gap-4 mt-10">
+            <a
+              href="https://opedd.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+            >
+              Powered by
+              <img src={opeddLogo} alt="Opedd" className="h-3.5 opacity-40" />
+            </a>
+            <span className="text-[#9CA3AF]/40">·</span>
+            <a
+              href="mailto:support@opedd.com"
+              className="text-xs text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+            >
+              Help & Support
+            </a>
+          </div>
         </div>
       </div>
     </div>
