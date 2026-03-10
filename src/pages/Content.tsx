@@ -286,10 +286,10 @@ export default function Content() {
 
         {/* Table */}
         {!fetchError && (
-          <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm overflow-x-auto">
             {isLoading ? (
               <div className="py-20 flex items-center justify-center">
-                <Loader2 size={28} className="animate-spin text-[#4A26ED]" />
+                <Loader2 size={28} className="animate-spin text-[#040042]" />
               </div>
             ) : assets.length === 0 ? (
               <div className="py-20 text-center">
@@ -298,7 +298,7 @@ export default function Content() {
                 <p className="text-xs text-[#9CA3AF] mt-1">Register a publication on the Dashboard to start importing articles.</p>
               </div>
             ) : (
-              <table className="w-full">
+              <table className="w-full min-w-[900px]">
                 <thead>
                   <tr className="border-b border-[#E5E7EB]">
                     <th className="w-10 py-3 px-3">
@@ -342,9 +342,12 @@ export default function Content() {
                           <Checkbox checked={isSelected} onCheckedChange={() => toggleSelect(asset.id)} className="h-4 w-4" />
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-[#111827] truncate max-w-[380px]">{asset.title}</span>
-                            {asset.sourceUrl && <span className="text-xs text-[#9CA3AF] truncate max-w-[380px] mt-0.5">{asset.sourceUrl}</span>}
+                          <div className="flex items-center gap-2">
+                            {logo ? <img src={logo} className="w-4 h-4 object-contain flex-shrink-0" alt="" /> : <Globe size={14} className="text-[#9CA3AF] flex-shrink-0" />}
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-medium text-[#111827] truncate max-w-[380px]">{asset.title}</span>
+                              {asset.sourceUrl && <span className="text-xs text-[#9CA3AF] truncate max-w-[380px] mt-0.5">{asset.sourceUrl}</span>}
+                            </div>
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
@@ -417,7 +420,7 @@ export default function Content() {
 
       {/* Article Detail Drawer */}
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent side="right" className="sm:max-w-lg w-full p-0 flex flex-col bg-white">
+        <SheetContent side="right" className="sm:max-w-lg w-full p-0 flex flex-col bg-white [&>button.absolute]:hidden">
           {selectedAsset && (
             <>
               <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
@@ -495,7 +498,7 @@ export default function Content() {
               </div>
 
               <div className="border-t border-[#E5E7EB] px-6 py-4 bg-white flex gap-3 flex-shrink-0">
-                <Button variant="outline" className="flex-1 h-10 text-sm border-[#E5E7EB] text-[#374151] rounded-lg" onClick={() => setDrawerOpen(false)}>Close</Button>
+                <Button variant="outline" className="flex-1 h-10 text-sm border-[#040042] border-[1.5px] bg-transparent text-[#040042] hover:bg-transparent rounded-lg" onClick={() => setDrawerOpen(false)}>Close</Button>
                 <Button className="flex-1 h-10 text-sm bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-semibold rounded-lg" onClick={() => navigate(`/ledger?article=${selectedAsset.id}`)}>View transactions</Button>
               </div>
             </>
