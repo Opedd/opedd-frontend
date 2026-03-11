@@ -693,6 +693,17 @@ export default function Settings() {
                               </div>
                             </div>
 
+                            {(profile as any).cancel_at_period_end && (profile as any).current_period_end && (
+                              <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 mb-4">
+                                <Clock size={16} className="text-amber-600 flex-shrink-0" />
+                                <p className="text-sm text-amber-800">
+                                  Your plan is active until{" "}
+                                  <strong>{new Date((profile as any).current_period_end).toLocaleDateString()}</strong>.
+                                  After that it will revert to Free.
+                                </p>
+                              </div>
+                            )}
+
                             <div className="flex items-center gap-3">
                               {plan === "free" && (
                                 <Button onClick={() => handleUpgrade("pro")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
