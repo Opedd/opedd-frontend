@@ -241,9 +241,9 @@ export default function Content() {
               {totalAssets} article{totalAssets !== 1 ? "s" : ""} across {sourceCount} publication{sourceCount !== 1 ? "s" : ""}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={assets.length === 0} className="h-9 text-sm border-[#E5E7EB] text-[#374151] rounded-lg gap-1.5">
+          <button onClick={handleExportCSV} disabled={assets.length === 0} className="flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
             <Download size={14} />Export CSV
-          </Button>
+          </button>
         </div>
 
         {/* Toolbar */}
