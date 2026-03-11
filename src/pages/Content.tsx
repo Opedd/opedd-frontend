@@ -409,10 +409,10 @@ export default function Content() {
         {!fetchError && totalAssets > PAGE_SIZE && (
           <div className="flex items-center justify-between pt-4 border-t border-[#F3F4F6]">
             <span className="text-sm text-[#6B7280]">Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalAssets)} of {totalAssets} articles</span>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="border-[#E5E7EB] text-[#374151] rounded-lg">← Previous</Button>
+            <div className="flex items-center gap-3">
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className={`text-sm font-medium transition-colors ${page === 1 ? "text-[#D1D5DB] cursor-not-allowed" : "text-[#040042] hover:underline"}`}>← Previous</button>
               <span className="text-sm text-[#6B7280]">Page {page} of {totalPages}</span>
-              <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="border-[#E5E7EB] text-[#374151] rounded-lg">Next →</Button>
+              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className={`text-sm font-medium transition-colors ${page === totalPages ? "text-[#D1D5DB] cursor-not-allowed" : "text-[#040042] hover:underline"}`}>Next →</button>
             </div>
           </div>
         )}
