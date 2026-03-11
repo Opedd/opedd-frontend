@@ -134,6 +134,25 @@ export function MobileSidebar() {
                   </motion.div>
                 );
               })}
+
+              {isAdmin && (
+                <>
+                  <div className="!my-3 border-t border-white/[0.06]" />
+                  <NavLink
+                    to="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-md transition-all",
+                      isActive("/admin")
+                        ? "bg-[#0A0066] text-white"
+                        : "text-[#A5B4FC] hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    <ShieldAlert size={20} strokeWidth={1.5} />
+                    <span className="font-medium text-sm">Admin</span>
+                  </NavLink>
+                </>
+              )}
             </nav>
 
             {/* Docs link */}
