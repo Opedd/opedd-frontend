@@ -32,6 +32,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Licenses from "./pages/Licenses";
 import MyLicenses from "./pages/MyLicenses";
 import ForAiAgents from "./pages/ForAiAgents";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
