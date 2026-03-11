@@ -86,6 +86,12 @@ export default function Content() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [drawerCopied, setDrawerCopied] = useState(false);
 
+  // Pricing edit inside drawer
+  const [editingRates, setEditingRates] = useState(false);
+  const [rateHuman, setRateHuman] = useState("");
+  const [rateAi, setRateAi] = useState("");
+  const [savingRates, setSavingRates] = useState(false);
+
   const fetchSources = useCallback(async () => {
     if (!user) return;
     const sourcesResult = await supabase
@@ -163,6 +169,48 @@ export default function Content() {
     setSelectedAsset(asset);
     setDrawerOpen(true);
     setDrawerCopied(false);
+    setEditingRates(false);
+  };
+
+  const handleEditRates = () => {
+    if (!selectedAsset) return;
+    setRateHuman(selectedAsset.human_price != null ? String(selectedAsset.human_price) : "");
+    setRateAi(selectedAsset.ai_price != null ? String(selectedAsset.ai_price) : "");
+    setEditingRates(true);
+  };
+
+  const handleSaveRates = async () => {
+    if (!selectedAsset) return;
+    setSavingRates(true);
+    try {
+      const token = await getAccessToken();
+      const newHuman = rateHuman !== "" ? parseFloat(rateHuman) : undefined;
+      const newAi = rateAi !== "" ? parseFloat(rateAi) : undefined;
+      const res = await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          updates: [{ article_id: selectedAsset.id, human_price: newHuman, ai_price: newAi }],
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setSelectedAsset({
+        ...selectedAsset,
+        human_price: newHuman ?? selectedAsset.human_price,
+        ai_price: newAi ?? selectedAsset.ai_price,
+      });
+      setEditingRates(false);
+      toast({ title: "Rates updated", description: "Pricing saved successfully." });
+    } catch (err) {
+      console.error("Save rates error:", err);
+      toast({ title: "Save failed", description: "Could not update pricing.", variant: "destructive" });
+    } finally {
+      setSavingRates(false);
+    }
   };
 
   const getSourceName = (asset: Asset): string => {
@@ -463,22 +511,57 @@ export default function Content() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Rates</p>
-                    <button className="text-xs text-[#4A26ED] font-medium hover:underline">Edit</button>
+                    {!editingRates && (
+                      <button onClick={handleEditRates} className="text-xs text-[#4A26ED] font-medium hover:underline">Edit</button>
+                    )}
                   </div>
-                  <div className="space-y-0">
-                    <div className="flex items-center justify-between py-2.5 border-b border-[#F3F4F6]">
-                      <div><p className="text-sm font-medium text-[#111827]">Permission</p><p className="text-xs text-[#9CA3AF]">Quote, cite, or share</p></div>
-                      <span className="text-sm font-semibold text-[#111827]">{selectedAsset.human_price ? `$${selectedAsset.human_price}` : <span className="text-[#D1D5DB] font-normal">Not set</span>}</span>
+                  {editingRates ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-[#6B7280] mb-1 block">Human / Permission ($)</label>
+                        <input
+                          type="number" min="0" step="0.01" placeholder="0.00"
+                          value={rateHuman} onChange={(e) => setRateHuman(e.target.value)}
+                          className="w-full h-9 px-3 text-sm border border-[#E5E7EB] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-[#6B7280] mb-1 block">AI Training ($)</label>
+                        <input
+                          type="number" min="0" step="0.01" placeholder="0.00"
+                          value={rateAi} onChange={(e) => setRateAi(e.target.value)}
+                          className="w-full h-9 px-3 text-sm border border-[#E5E7EB] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveRates} disabled={savingRates}
+                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-[#040042] text-white rounded-lg hover:bg-[#040042]/90 disabled:opacity-50"
+                        >
+                          {savingRates ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                          Save
+                        </button>
+                        <button onClick={() => setEditingRates(false)} className="px-4 py-2 text-xs font-medium text-[#6B7280] hover:text-[#040042]">
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between py-2.5 border-b border-[#F3F4F6]">
-                      <div><p className="text-sm font-medium text-[#111827]">Syndication</p><p className="text-xs text-[#9CA3AF]">Republication, translation</p></div>
-                      <span className="text-sm text-[#D1D5DB] font-normal">Not set</span>
+                  ) : (
+                    <div className="space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-[#F3F4F6]">
+                        <div><p className="text-sm font-medium text-[#111827]">Permission</p><p className="text-xs text-[#9CA3AF]">Quote, cite, or share</p></div>
+                        <span className="text-sm font-semibold text-[#111827]">{selectedAsset.human_price ? `$${selectedAsset.human_price}` : <span className="text-[#D1D5DB] font-normal">Not set</span>}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-[#F3F4F6]">
+                        <div><p className="text-sm font-medium text-[#111827]">Syndication</p><p className="text-xs text-[#9CA3AF]">Republication, translation</p></div>
+                        <span className="text-sm text-[#D1D5DB] font-normal">Not set</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5">
+                        <div><p className="text-sm font-medium text-[#111827]">AI training</p><p className="text-xs text-[#9CA3AF]">Dataset licensing</p></div>
+                        <span className="text-sm font-semibold text-[#111827]">{selectedAsset.ai_price ? `$${selectedAsset.ai_price}` : <span className="text-[#D1D5DB] font-normal">Disabled</span>}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between py-2.5">
-                      <div><p className="text-sm font-medium text-[#111827]">AI training</p><p className="text-xs text-[#9CA3AF]">Dataset licensing</p></div>
-                      <span className="text-sm font-semibold text-[#111827]">{selectedAsset.ai_price ? `$${selectedAsset.ai_price}` : <span className="text-[#D1D5DB] font-normal">Disabled</span>}</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
