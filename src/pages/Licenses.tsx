@@ -191,8 +191,8 @@ export default function Licenses() {
                 <div className="py-12 text-center">
                   <FileText size={36} className="text-white/20 mx-auto mb-3" />
                   <p className="text-sm font-medium text-white/50">No licenses found for this email.</p>
-                  <p className="text-xs text-white/30 mt-1">
-                    If you recently purchased a license, it may take a few minutes to appear.
+                  <p className="text-xs text-white/30 mt-1.5 max-w-[320px] mx-auto">
+                    If you made a purchase, make sure you're using the same email address you used at checkout.
                   </p>
                 </div>
               ) : (
