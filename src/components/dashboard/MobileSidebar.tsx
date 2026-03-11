@@ -23,6 +23,8 @@ const integrationNavItems = [
 export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const isActive = (path: string) => location.pathname === path;
 
