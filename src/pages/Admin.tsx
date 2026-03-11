@@ -1,0 +1,479 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import {
+  Users, DollarSign, Activity, AlertTriangle, Search, Copy, Check,
+  ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+
+const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
+
+// --------------- Types ---------------
+
+interface Stats {
+  total_publishers: number;
+  total_transactions: number;
+  total_revenue: number;
+  transactions_today: number;
+  revenue_today: number;
+  failed_webhooks_24h: number;
+}
+
+interface Publisher {
+  id: string;
+  display_name: string;
+  website_url: string | null;
+  plan: string;
+  article_count: number;
+  total_revenue: number;
+  stripe_connected: boolean;
+  created_at: string;
+}
+
+interface Transaction {
+  id: string;
+  created_at: string;
+  buyer_email: string;
+  amount: number;
+  license_type: string;
+  license_key: string;
+  status: string;
+}
+
+interface FailedWebhook {
+  id: string;
+  publisher_name: string;
+  event_type: string;
+  attempts: number;
+  last_attempt_at: string;
+  status: string;
+}
+
+// --------------- Helpers ---------------
+
+function maskEmail(email: string) {
+  const [local, domain] = email.split("@");
+  if (!domain) return email;
+  return local.slice(0, 2) + "•••@" + domain;
+}
+
+function truncateKey(key: string) {
+  if (key.length <= 12) return key;
+  return key.slice(0, 8) + "…" + key.slice(-4);
+}
+
+function StatCard({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) {
+  return (
+    <div className="bg-[#040042] rounded-xl p-5 border border-white/5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+          <Icon size={18} className="text-white/70" />
+        </div>
+        <span className="text-xs font-medium text-white/40 uppercase tracking-wider">{label}</span>
+      </div>
+      <p className="text-2xl font-bold text-white">{value}</p>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    completed: "bg-emerald-500/10 text-emerald-400",
+    pending: "bg-amber-500/10 text-amber-400",
+    failed: "bg-red-500/10 text-red-400",
+  };
+  return (
+    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${colors[status] || "bg-white/10 text-white/50"}`}>
+      {status}
+    </span>
+  );
+}
+
+function TypeBadge({ type }: { type: string }) {
+  const isAi = type.toLowerCase() === "ai";
+  return (
+    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${isAi ? "bg-violet-500/10 text-violet-400" : "bg-sky-500/10 text-sky-400"}`}>
+      {type}
+    </span>
+  );
+}
+
+function PlanBadge({ plan }: { plan: string }) {
+  const colors: Record<string, string> = {
+    free: "bg-white/10 text-white/50",
+    pro: "bg-violet-500/10 text-violet-400",
+    enterprise: "bg-[#040042] text-white border border-white/20",
+  };
+  return (
+    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${colors[plan] || colors.free}`}>
+      {plan}
+    </span>
+  );
+}
+
+// --------------- Main Component ---------------
+
+export default function Admin() {
+  const { user, getAccessToken } = useAuth();
+  const { toast } = useToast();
+  const [tab, setTab] = useState<"overview" | "publishers" | "transactions" | "webhooks">("overview");
+
+  // Guard
+  if (user?.email !== ADMIN_EMAIL) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] flex">
+      <DashboardSidebar />
+      <main className="flex-1 p-6 lg:p-8 overflow-x-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-6">
+            <ShieldAlert size={24} className="text-[#040042]" />
+            <h1 className="text-xl font-bold text-[#111827]">Admin Dashboard</h1>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-1 mb-6 border-b border-[#E5E7EB]">
+            {(["overview", "publishers", "transactions", "webhooks"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
+                  tab === t
+                    ? "border-[#040042] text-[#040042]"
+                    : "border-transparent text-[#6B7280] hover:text-[#111827]"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {tab === "overview" && <OverviewTab getAccessToken={getAccessToken} />}
+          {tab === "publishers" && <PublishersTab getAccessToken={getAccessToken} />}
+          {tab === "transactions" && <TransactionsTab getAccessToken={getAccessToken} toast={toast} />}
+          {tab === "webhooks" && <WebhooksTab getAccessToken={getAccessToken} />}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// --------------- Overview Tab ---------------
+
+function OverviewTab({ getAccessToken }: { getAccessToken: () => Promise<string | null> }) {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=stats`, {
+          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error();
+        setStats(await res.json());
+      } catch {
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [getAccessToken]);
+
+  if (loading) return <LoadingState />;
+  if (!stats) return <p className="text-sm text-[#6B7280]">Failed to load stats.</p>;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <StatCard label="Total Publishers" value={stats.total_publishers} icon={Users} />
+      <StatCard label="Total Transactions" value={stats.total_transactions} icon={Activity} />
+      <StatCard label="Total Revenue" value={`$${stats.total_revenue.toFixed(2)}`} icon={DollarSign} />
+      <StatCard label="Transactions Today" value={stats.transactions_today} icon={Activity} />
+      <StatCard label="Revenue Today" value={`$${stats.revenue_today.toFixed(2)}`} icon={DollarSign} />
+      <StatCard label="Failed Webhooks (24h)" value={stats.failed_webhooks_24h} icon={AlertTriangle} />
+    </div>
+  );
+}
+
+// --------------- Publishers Tab ---------------
+
+function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<string | null> }) {
+  const [publishers, setPublishers] = useState<Publisher[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<"display_name" | "total_revenue" | "article_count">("display_name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=publishers`, {
+          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error();
+        setPublishers(await res.json());
+      } catch {
+        setPublishers([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [getAccessToken]);
+
+  const handleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const filtered = publishers
+    .filter(p => p.display_name?.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      const av = a[sortKey] ?? "";
+      const bv = b[sortKey] ?? "";
+      const cmp = typeof av === "number" ? av - (bv as number) : String(av).localeCompare(String(bv));
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+  if (loading) return <LoadingState />;
+
+  return (
+    <div className="space-y-4">
+      <div className="relative max-w-xs">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+        <Input
+          placeholder="Search publishers…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="pl-10 h-10 border-[#E5E7EB]"
+        />
+      </div>
+      <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                <SortTh label="Name" active={sortKey === "display_name"} dir={sortDir} onClick={() => handleSort("display_name")} />
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Website</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Plan</th>
+                <SortTh label="Articles" active={sortKey === "article_count"} dir={sortDir} onClick={() => handleSort("article_count")} />
+                <SortTh label="Revenue" active={sortKey === "total_revenue"} dir={sortDir} onClick={() => handleSort("total_revenue")} />
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Stripe</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} className="py-12 text-center text-[#9CA3AF]">No publishers found.</td></tr>
+              ) : filtered.map(p => (
+                <tr key={p.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
+                  <td className="py-3 px-4 font-medium text-[#111827]">{p.display_name || "—"}</td>
+                  <td className="py-3 px-4 text-[#6B7280] truncate max-w-[180px]">{p.website_url || "—"}</td>
+                  <td className="py-3 px-4"><PlanBadge plan={p.plan} /></td>
+                  <td className="py-3 px-4 text-[#111827]">{p.article_count}</td>
+                  <td className="py-3 px-4 text-[#111827] font-medium">${p.total_revenue.toFixed(2)}</td>
+                  <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-[#D1D5DB]">✗</span>}</td>
+                  <td className="py-3 px-4 text-[#6B7280]">{new Date(p.created_at).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SortTh({ label, active, dir, onClick }: { label: string; active: boolean; dir: string; onClick: () => void }) {
+  return (
+    <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide cursor-pointer select-none" onClick={onClick}>
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <ArrowUpDown size={12} className={active ? "text-[#040042]" : "text-[#D1D5DB]"} />
+      </span>
+    </th>
+  );
+}
+
+// --------------- Transactions Tab ---------------
+
+function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Promise<string | null>; toast: ReturnType<typeof useToast>["toast"] }) {
+  const [txns, setTxns] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const LIMIT = 50;
+
+  const fetchPage = useCallback(async (p: number) => {
+    setLoading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=transactions&limit=${LIMIT}&offset=${p * LIMIT}`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const rows = Array.isArray(data) ? data : data.transactions ?? [];
+      setTxns(rows);
+      setHasMore(rows.length === LIMIT);
+    } catch {
+      setTxns([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [getAccessToken]);
+
+  useEffect(() => { fetchPage(page); }, [page, fetchPage]);
+
+  const handleCopy = (key: string) => {
+    navigator.clipboard.writeText(key);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 1500);
+  };
+
+  if (loading) return <LoadingState />;
+
+  return (
+    <div className="space-y-4">
+      <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Date</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Buyer</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Amount</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Type</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">License Key</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {txns.length === 0 ? (
+                <tr><td colSpan={6} className="py-12 text-center text-[#9CA3AF]">No transactions found.</td></tr>
+              ) : txns.map(tx => (
+                <tr key={tx.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
+                  <td className="py-3 px-4 text-[#6B7280]">{new Date(tx.created_at).toLocaleDateString()}</td>
+                  <td className="py-3 px-4 text-[#6B7280]">{maskEmail(tx.buyer_email)}</td>
+                  <td className="py-3 px-4 font-medium text-[#111827]">${tx.amount.toFixed(2)}</td>
+                  <td className="py-3 px-4"><TypeBadge type={tx.license_type} /></td>
+                  <td className="py-3 px-4">
+                    <span className="inline-flex items-center gap-1.5">
+                      <code className="text-xs font-mono text-[#6B7280]">{truncateKey(tx.license_key)}</code>
+                      <button onClick={() => handleCopy(tx.license_key)} className="text-[#9CA3AF] hover:text-[#040042] transition-colors">
+                        {copiedKey === tx.license_key ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                      </button>
+                    </span>
+                  </td>
+                  <td className="py-3 px-4"><StatusBadge status={tx.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          disabled={page === 0}
+          className={`text-sm flex items-center gap-1 transition-colors ${page === 0 ? "text-[#D1D5DB] cursor-default" : "text-[#040042] hover:underline"}`}
+        >
+          <ChevronLeft size={14} /> Previous
+        </button>
+        <span className="text-xs text-[#9CA3AF]">Page {page + 1}</span>
+        <button
+          onClick={() => setPage(p => p + 1)}
+          disabled={!hasMore}
+          className={`text-sm flex items-center gap-1 transition-colors ${!hasMore ? "text-[#D1D5DB] cursor-default" : "text-[#040042] hover:underline"}`}
+        >
+          Next <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --------------- Webhooks Tab ---------------
+
+function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string | null> }) {
+  const [webhooks, setWebhooks] = useState<FailedWebhook[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=failed_webhooks`, {
+          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error();
+        setWebhooks(await res.json());
+      } catch {
+        setWebhooks([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [getAccessToken]);
+
+  if (loading) return <LoadingState />;
+
+  if (webhooks.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-lg mb-1">🎉</p>
+        <p className="text-sm font-medium text-[#6B7280]">No failed webhooks</p>
+        <p className="text-xs text-[#9CA3AF] mt-1">All webhook deliveries are healthy.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Publisher</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Event Type</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Attempts</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Last Try</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {webhooks.map(wh => (
+              <tr key={wh.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
+                <td className="py-3 px-4 font-medium text-[#111827]">{wh.publisher_name}</td>
+                <td className="py-3 px-4 text-[#6B7280]">{wh.event_type}</td>
+                <td className="py-3 px-4 text-[#111827]">{wh.attempts}</td>
+                <td className="py-3 px-4 text-[#6B7280]">{new Date(wh.last_attempt_at).toLocaleString()}</td>
+                <td className="py-3 px-4"><StatusBadge status={wh.status} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// --------------- Shared ---------------
+
+function LoadingState() {
+  return (
+    <div className="py-16 flex justify-center">
+      <Loader2 size={24} className="animate-spin text-[#040042]" />
+    </div>
+  );
+}
