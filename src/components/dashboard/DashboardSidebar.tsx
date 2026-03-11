@@ -1,8 +1,11 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle, BookOpen, ExternalLink, Mail } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle, BookOpen, ExternalLink, Mail, ShieldAlert } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { MobileSidebar } from "./MobileSidebar";
+import { useAuth } from "@/contexts/AuthContext";
+
+const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
 const navItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -16,6 +19,8 @@ const navItems = [
 
 export function DashboardSidebar() {
   const location = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   return (
     <>
@@ -50,6 +55,22 @@ export function DashboardSidebar() {
               </NavLink>
             );
           })}
+          {isAdmin && (
+            <>
+              <div className="my-2 border-t border-white/[0.06]" />
+              <NavLink
+                to="/admin"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
+                  location.pathname === "/admin"
+                    ? "bg-white/10 text-[#FDFEFF]"
+                    : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                }`}
+              >
+                <ShieldAlert size={20} strokeWidth={1.5} />
+                <span className="font-medium text-sm">Admin</span>
+              </NavLink>
+            </>
+          )}
         </nav>
 
         {/* Footer */}

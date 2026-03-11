@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen, Library } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen, Library, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
+const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Content", path: "/content", icon: Library },
@@ -21,6 +23,8 @@ const integrationNavItems = [
 export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -130,6 +134,25 @@ export function MobileSidebar() {
                   </motion.div>
                 );
               })}
+
+              {isAdmin && (
+                <>
+                  <div className="!my-3 border-t border-white/[0.06]" />
+                  <NavLink
+                    to="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-md transition-all",
+                      isActive("/admin")
+                        ? "bg-[#0A0066] text-white"
+                        : "text-[#A5B4FC] hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    <ShieldAlert size={20} strokeWidth={1.5} />
+                    <span className="font-medium text-sm">Admin</span>
+                  </NavLink>
+                </>
+              )}
             </nav>
 
             {/* Docs link */}

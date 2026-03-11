@@ -32,6 +32,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Licenses from "./pages/Licenses";
 import MyLicenses from "./pages/MyLicenses";
 import ForAiAgents from "./pages/ForAiAgents";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
               <Route path="/licenses" element={<Licenses />} />
               <Route path="/my-licenses" element={<MyLicenses />} />
               <Route path="/for-ai-agents" element={<ForAiAgents />} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
