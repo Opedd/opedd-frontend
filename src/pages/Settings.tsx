@@ -111,12 +111,22 @@ const tabContentVariants = {
 };
 
 export default function Settings() {
-  const { user, getAccessToken } = useAuth();
+  const { user, getAccessToken, logout } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cancel subscription state
+  const [cancelSubOpen, setCancelSubOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  // Delete account state
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState<PublisherProfile | null>(null);
