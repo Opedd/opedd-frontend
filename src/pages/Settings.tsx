@@ -707,12 +707,20 @@ export default function Settings() {
                                   <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
                                     Manage billing
                                   </Button>
+                                  <button onClick={() => setCancelSubOpen(true)} className="text-sm text-[#6B7280] hover:text-red-600 hover:underline transition-colors">
+                                    Cancel subscription
+                                  </button>
                                 </>
                               )}
                               {plan === "enterprise" && (
-                                <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
-                                  Manage billing
-                                </Button>
+                                <>
+                                  <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
+                                    Manage billing
+                                  </Button>
+                                  <button onClick={() => setCancelSubOpen(true)} className="text-sm text-[#6B7280] hover:text-red-600 hover:underline transition-colors">
+                                    Cancel subscription
+                                  </button>
+                                </>
                               )}
                             </div>
                           </div>
