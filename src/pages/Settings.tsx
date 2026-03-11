@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { PageLoader } from "@/components/ui/PageLoader";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -103,12 +111,22 @@ const tabContentVariants = {
 };
 
 export default function Settings() {
-  const { user, getAccessToken } = useAuth();
+  const { user, getAccessToken, logout } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cancel subscription state
+  const [cancelSubOpen, setCancelSubOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  // Delete account state
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState<PublisherProfile | null>(null);
@@ -689,12 +707,20 @@ export default function Settings() {
                                   <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
                                     Manage billing
                                   </Button>
+                                  <button onClick={() => setCancelSubOpen(true)} className="text-sm text-[#6B7280] hover:text-red-600 hover:underline transition-colors">
+                                    Cancel subscription
+                                  </button>
                                 </>
                               )}
                               {plan === "enterprise" && (
-                                <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
-                                  Manage billing
-                                </Button>
+                                <>
+                                  <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
+                                    Manage billing
+                                  </Button>
+                                  <button onClick={() => setCancelSubOpen(true)} className="text-sm text-[#6B7280] hover:text-red-600 hover:underline transition-colors">
+                                    Cancel subscription
+                                  </button>
+                                </>
                               )}
                             </div>
                           </div>
@@ -1279,7 +1305,122 @@ export default function Settings() {
               </AnimatePresence>
             </Tabs>
           )}
+
+          {/* Danger Zone — always visible below tabs */}
+          {!isLoading && (
+            <div className="mt-10 border border-red-300 rounded-xl p-6 bg-white">
+              <h2 className="text-lg font-bold text-red-600 mb-1">Delete Account</h2>
+              <p className="text-sm text-[#6B7280] mb-4">
+                Permanently delete your publisher account. Your financial records are retained for legal compliance, but all personal information will be anonymised.
+              </p>
+              <button
+                onClick={() => { setDeleteConfirmText(""); setDeleteOpen(true); }}
+                className="border border-red-400 text-red-600 rounded-lg px-4 py-2 text-sm font-semibold hover:bg-red-50 transition-colors"
+              >
+                Delete My Account
+              </button>
+            </div>
+          )}
         </div>
+
+      {/* Cancel Subscription Dialog */}
+      <Dialog open={cancelSubOpen} onOpenChange={setCancelSubOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancel Subscription</DialogTitle>
+            <DialogDescription>
+              Your plan will remain active until the end of your billing period. After that it will revert to Free.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setCancelSubOpen(false)} disabled={isCancelling}>
+              Keep Plan
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isCancelling}
+              onClick={async () => {
+                setIsCancelling(true);
+                try {
+                  const headers = await apiHeaders();
+                  const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify({ action: "cancel_subscription" }),
+                  });
+                  const result = await res.json();
+                  if (result.success) {
+                    toast({ title: "Subscription cancelled", description: "Your plan stays active until end of billing period." });
+                    setCancelSubOpen(false);
+                    fetchProfile();
+                  } else {
+                    throw new Error(result.error?.message || "Cancellation failed");
+                  }
+                } catch (err: unknown) {
+                  toast({ title: "Cancellation failed", description: err instanceof Error ? err.message : "Please try again", variant: "destructive" });
+                } finally {
+                  setIsCancelling(false);
+                }
+              }}
+            >
+              {isCancelling ? <><Loader2 size={14} className="mr-2 animate-spin" />Cancelling...</> : "Confirm Cancellation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete Account</DialogTitle>
+            <DialogDescription>
+              This action is permanent. Type <span className="font-mono font-bold text-[#040042]">DELETE</span> below to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={deleteConfirmText}
+            onChange={e => setDeleteConfirmText(e.target.value)}
+            placeholder="Type DELETE to confirm"
+            className="font-mono"
+          />
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={deleteConfirmText !== "DELETE" || isDeleting}
+              onClick={async () => {
+                setIsDeleting(true);
+                try {
+                  const token = await getAccessToken();
+                  const res = await fetch(`${EXT_SUPABASE_URL}/delete-account`, {
+                    method: "POST",
+                    headers: {
+                      apikey: EXT_ANON_KEY,
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  });
+                  if (!res.ok) {
+                    const result = await res.json().catch(() => ({}));
+                    throw new Error(result.error || `Request failed (${res.status})`);
+                  }
+                  await logout();
+                  navigate("/");
+                } catch (err: unknown) {
+                  toast({ title: "Delete failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+            >
+              {isDeleting ? <><Loader2 size={14} className="mr-2 animate-spin" />Deleting...</> : "Delete My Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
