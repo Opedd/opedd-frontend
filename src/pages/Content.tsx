@@ -498,8 +498,8 @@ export default function Content() {
               </div>
 
               <div className="border-t border-[#E5E7EB] px-6 py-4 bg-white flex gap-3 flex-shrink-0">
-                <Button variant="outline" className="flex-1 h-10 text-sm border-[#040042] border-[1.5px] bg-transparent text-[#040042] hover:bg-transparent rounded-lg" onClick={() => setDrawerOpen(false)}>Close</Button>
-                <Button className="flex-1 h-10 text-sm bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-semibold rounded-lg" onClick={() => navigate(`/ledger?article=${selectedAsset.id}`)}>View transactions</Button>
+                <button onClick={() => setDrawerOpen(false)} className="flex-1 h-10 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors font-medium">Close</button>
+                <Button className="flex-1 h-10 text-sm bg-[#040042] hover:bg-[#040042]/90 text-white font-semibold rounded-lg" onClick={() => navigate(`/ledger?article=${selectedAsset.id}`)}>View transactions</Button>
               </div>
             </>
           )}

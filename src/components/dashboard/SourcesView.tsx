@@ -311,11 +311,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 {/* Source logo: show platform logo based on URL detection */}
                 <div className="relative flex-shrink-0">
                   <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
-                    {platformLogo ? (
-                      <img src={platformLogo} alt={platformKey || "platform"} className="w-10 h-10 object-contain" />
-                    ) : (
-                      <Globe size={20} className="text-slate-400" />
-                    )}
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(source.feed_url.replace(/^https?:\/\//, '').split('/')[0])}&sz=64`}
+                      alt={source.name}
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'; }}
+                    />
                   </div>
                 </div>
 
