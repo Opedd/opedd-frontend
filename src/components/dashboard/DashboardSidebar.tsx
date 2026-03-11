@@ -19,6 +19,8 @@ const navItems = [
 
 export function DashboardSidebar() {
   const location = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   return (
     <>
