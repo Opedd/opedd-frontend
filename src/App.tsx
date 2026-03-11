@@ -74,6 +74,7 @@ const App = () => (
               <Route path="/licenses" element={<Licenses />} />
               <Route path="/my-licenses" element={<MyLicenses />} />
               <Route path="/for-ai-agents" element={<ForAiAgents />} />
+              <Route path="/status" element={<Status />} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
