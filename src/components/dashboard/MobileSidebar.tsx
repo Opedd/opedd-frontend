@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen, Library } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen, Library, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
+const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Content", path: "/content", icon: Library },
