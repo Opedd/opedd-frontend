@@ -567,12 +567,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           </div>
 
           <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
-            <Button
+            <button
               onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
-              className="bg-white border border-[#E5E7EB] text-[#040042]/60 hover:bg-slate-50 hover:text-[#040042] rounded-lg h-9 px-4 text-sm font-medium"
+              className="text-sm font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors px-4 h-9 flex items-center"
             >
               Cancel
-            </Button>
+            </button>
             <Button
               disabled={deleteConfirmInput !== deleteConfirmSource?.name}
               onClick={() => {
