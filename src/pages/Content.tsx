@@ -519,18 +519,22 @@ export default function Content() {
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs text-[#6B7280] mb-1 block">Human / Permission ($)</label>
-                        <input
-                          type="number" min="0" step="0.01" placeholder="0.00"
-                          value={rateHuman} onChange={(e) => setRateHuman(e.target.value)}
-                          className="w-full h-9 px-3 text-sm border border-[#E5E7EB] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+                        <Input
+                          type="text" inputMode="decimal" placeholder="0.00"
+                          value={rateHuman}
+                          onChange={(e) => setRateHuman(e.target.value)}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          className="h-9 text-sm bg-white"
                         />
                       </div>
                       <div>
                         <label className="text-xs text-[#6B7280] mb-1 block">AI Training ($)</label>
-                        <input
-                          type="number" min="0" step="0.01" placeholder="0.00"
-                          value={rateAi} onChange={(e) => setRateAi(e.target.value)}
-                          className="w-full h-9 px-3 text-sm border border-[#E5E7EB] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+                        <Input
+                          type="text" inputMode="decimal" placeholder="0.00"
+                          value={rateAi}
+                          onChange={(e) => setRateAi(e.target.value)}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          className="h-9 text-sm bg-white"
                         />
                       </div>
                       <div className="flex gap-2">
