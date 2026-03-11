@@ -55,6 +55,22 @@ export function DashboardSidebar() {
               </NavLink>
             );
           })}
+          {isAdmin && (
+            <>
+              <div className="my-2 border-t border-white/[0.06]" />
+              <NavLink
+                to="/admin"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
+                  location.pathname === "/admin"
+                    ? "bg-white/10 text-[#FDFEFF]"
+                    : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                }`}
+              >
+                <ShieldAlert size={20} strokeWidth={1.5} />
+                <span className="font-medium text-sm">Admin</span>
+              </NavLink>
+            </>
+          )}
         </nav>
 
         {/* Footer */}
