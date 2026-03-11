@@ -270,6 +270,51 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     setDisplayAiPrice(asset?.ai_price ?? null);
   }, [asset?.id]);
 
+  const handleEditPricing = useCallback(() => {
+    if (!asset) return;
+    const h = displayHumanPrice != null ? String(displayHumanPrice) : (asset.human_price != null ? String(asset.human_price) : "");
+    const a = displayAiPrice != null ? String(displayAiPrice) : (asset.ai_price != null ? String(asset.ai_price) : "");
+    setHumanPrice(h);
+    setAiPrice(a);
+    setEditingPricing(true);
+  }, [asset, displayHumanPrice, displayAiPrice]);
+
+  const handleCancelPricing = useCallback(() => {
+    setEditingPricing(false);
+  }, []);
+
+  const handleSavePricing = useCallback(async () => {
+    if (!asset) return;
+    setSavingPricing(true);
+    try {
+      const token = await getAccessToken();
+      const newHuman = humanPrice !== "" ? parseFloat(humanPrice) || 0 : undefined;
+      const newAi = aiPrice !== "" ? parseFloat(aiPrice) || 0 : undefined;
+      const res = await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          updates: [{ article_id: asset.id, human_price: newHuman, ai_price: newAi }],
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (newHuman !== undefined) setDisplayHumanPrice(newHuman);
+      if (newAi !== undefined) setDisplayAiPrice(newAi);
+      const title = decodeText(asset.title);
+      toast({ title: "Pricing Updated", description: `Prices saved for "${title}".` });
+      setEditingPricing(false);
+    } catch (err) {
+      console.error("Pricing save error:", err);
+      toast({ title: "Update Failed", description: "Could not save pricing.", variant: "destructive" });
+    } finally {
+      setSavingPricing(false);
+    }
+  }, [asset, humanPrice, aiPrice, getAccessToken, toast]);
+
   if (!asset) return null;
 
   const sc = statusConfig(asset.status);
@@ -294,48 +339,6 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const handleEditPricing = useCallback(() => {
-    const h = displayHumanPrice != null ? String(displayHumanPrice) : (asset.human_price != null ? String(asset.human_price) : "");
-    const a = displayAiPrice != null ? String(displayAiPrice) : (asset.ai_price != null ? String(asset.ai_price) : "");
-    setHumanPrice(h);
-    setAiPrice(a);
-    setEditingPricing(true);
-  }, [asset, displayHumanPrice, displayAiPrice]);
-
-  const handleCancelPricing = useCallback(() => {
-    setEditingPricing(false);
-  }, []);
-
-  const handleSavePricing = useCallback(async () => {
-    setSavingPricing(true);
-    try {
-      const token = await getAccessToken();
-      const newHuman = humanPrice !== "" ? parseFloat(humanPrice) || 0 : undefined;
-      const newAi = aiPrice !== "" ? parseFloat(aiPrice) || 0 : undefined;
-      const res = await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          updates: [{ article_id: asset.id, human_price: newHuman, ai_price: newAi }],
-        }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      if (newHuman !== undefined) setDisplayHumanPrice(newHuman);
-      if (newAi !== undefined) setDisplayAiPrice(newAi);
-      toast({ title: "Pricing Updated", description: `Prices saved for "${decodedTitle}".` });
-      setEditingPricing(false);
-    } catch (err) {
-      console.error("Pricing save error:", err);
-      toast({ title: "Update Failed", description: "Could not save pricing.", variant: "destructive" });
-    } finally {
-      setSavingPricing(false);
-    }
-  }, [asset.id, humanPrice, aiPrice, decodedTitle, getAccessToken, toast]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
