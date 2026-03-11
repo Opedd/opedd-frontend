@@ -20,7 +20,7 @@ const footerLinks = {
     { label: "Documentation", href: "https://docs.opedd.com" },
     { label: "Get help", href: "mailto:support@opedd.com" },
     { label: "Community", href: "#" },
-    { label: "Status", href: "#" },
+    { label: "Status", href: "/status" },
   ],
   Legal: [
     { label: "Privacy", href: "https://legal.opedd.com/privacy", external: true },
