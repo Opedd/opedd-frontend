@@ -186,6 +186,12 @@ export default function Content() {
       const token = await getAccessToken();
       const newHuman = rateHuman !== "" ? parseFloat(rateHuman) : undefined;
       const newAi = rateAi !== "" ? parseFloat(rateAi) : undefined;
+
+      // API expects: { articleIds: [...], humanPrice, aiPrice }
+      const payload: Record<string, unknown> = { articleIds: [selectedAsset.id] };
+      if (newHuman !== undefined && !isNaN(newHuman)) payload.humanPrice = newHuman;
+      if (newAi !== undefined && !isNaN(newAi)) payload.aiPrice = newAi;
+
       const res = await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
         method: "POST",
         headers: {
@@ -193,21 +199,27 @@ export default function Content() {
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          updates: [{ article_id: selectedAsset.id, human_price: newHuman, ai_price: newAi }],
-        }),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setSelectedAsset({
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      // Update the drawer display immediately
+      const updatedAsset = {
         ...selectedAsset,
-        human_price: newHuman ?? selectedAsset.human_price,
-        ai_price: newAi ?? selectedAsset.ai_price,
-      });
+        human_price: newHuman !== undefined && !isNaN(newHuman) ? newHuman : selectedAsset.human_price,
+        ai_price: newAi !== undefined && !isNaN(newAi) ? newAi : selectedAsset.ai_price,
+      };
+      setSelectedAsset(updatedAsset);
+      // Also update the row in the table
+      setAssets(prev => prev.map(a => a.id === selectedAsset.id ? updatedAsset : a));
       setEditingRates(false);
       toast({ title: "Rates updated", description: "Pricing saved successfully." });
     } catch (err) {
       console.error("Save rates error:", err);
-      toast({ title: "Save failed", description: "Could not update pricing.", variant: "destructive" });
+      toast({ title: "Save failed", description: String(err instanceof Error ? err.message : err), variant: "destructive" });
     } finally {
       setSavingRates(false);
     }
