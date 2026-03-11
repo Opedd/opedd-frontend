@@ -339,9 +339,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg p-0 flex flex-col bg-white border-l border-[#E8F2FB] [&>button.absolute]:hidden">
+      <SheetContent className="w-full sm:max-w-lg !p-0 flex flex-col bg-white border-l border-[#E8F2FB] [&>button.absolute]:hidden">
         {/* Header */}
-        <SheetHeader className="px-6 pt-5 pb-4 border-b border-[#E8F2FB] space-y-3 shrink-0">
+        <SheetHeader className="px-6 pt-5 pb-4 border-b border-[#E8F2FB] space-y-3 shrink-0 mt-0">
           <div className="flex items-center gap-3">
             <Badge variant="outline" className={`text-xs px-2.5 py-1 gap-1.5 ${sc.className}`}>
               {sc.icon}

@@ -241,9 +241,9 @@ export default function Content() {
               {totalAssets} article{totalAssets !== 1 ? "s" : ""} across {sourceCount} publication{sourceCount !== 1 ? "s" : ""}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={assets.length === 0} className="h-9 text-sm border-[#E5E7EB] text-[#374151] rounded-lg gap-1.5">
+          <button onClick={handleExportCSV} disabled={assets.length === 0} className="flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
             <Download size={14} />Export CSV
-          </Button>
+          </button>
         </div>
 
         {/* Toolbar */}
@@ -409,10 +409,10 @@ export default function Content() {
         {!fetchError && totalAssets > PAGE_SIZE && (
           <div className="flex items-center justify-between pt-4 border-t border-[#F3F4F6]">
             <span className="text-sm text-[#6B7280]">Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalAssets)} of {totalAssets} articles</span>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="border-[#E5E7EB] text-[#374151] rounded-lg">← Previous</Button>
+            <div className="flex items-center gap-3">
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className={`text-sm font-medium transition-colors ${page === 1 ? "text-[#D1D5DB] cursor-not-allowed" : "text-[#040042] hover:underline"}`}>← Previous</button>
               <span className="text-sm text-[#6B7280]">Page {page} of {totalPages}</span>
-              <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="border-[#E5E7EB] text-[#374151] rounded-lg">Next →</Button>
+              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className={`text-sm font-medium transition-colors ${page === totalPages ? "text-[#D1D5DB] cursor-not-allowed" : "text-[#040042] hover:underline"}`}>Next →</button>
             </div>
           </div>
         )}
@@ -420,7 +420,7 @@ export default function Content() {
 
       {/* Article Detail Drawer */}
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent side="right" className="sm:max-w-lg w-full p-0 flex flex-col bg-white [&>button.absolute]:hidden">
+        <SheetContent side="right" className="sm:max-w-lg w-full !p-0 flex flex-col bg-white [&>button.absolute]:hidden">
           {selectedAsset && (
             <>
               <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
@@ -498,8 +498,8 @@ export default function Content() {
               </div>
 
               <div className="border-t border-[#E5E7EB] px-6 py-4 bg-white flex gap-3 flex-shrink-0">
-                <Button variant="outline" className="flex-1 h-10 text-sm border-[#040042] border-[1.5px] bg-transparent text-[#040042] hover:bg-transparent rounded-lg" onClick={() => setDrawerOpen(false)}>Close</Button>
-                <Button className="flex-1 h-10 text-sm bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-semibold rounded-lg" onClick={() => navigate(`/ledger?article=${selectedAsset.id}`)}>View transactions</Button>
+                <button onClick={() => setDrawerOpen(false)} className="flex-1 h-10 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors font-medium">Close</button>
+                <Button className="flex-1 h-10 text-sm bg-[#040042] hover:bg-[#040042]/90 text-white font-semibold rounded-lg" onClick={() => navigate(`/ledger?article=${selectedAsset.id}`)}>View transactions</Button>
               </div>
             </>
           )}

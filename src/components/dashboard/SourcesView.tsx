@@ -311,11 +311,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 {/* Source logo: show platform logo based on URL detection */}
                 <div className="relative flex-shrink-0">
                   <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
-                    {platformLogo ? (
-                      <img src={platformLogo} alt={platformKey || "platform"} className="w-10 h-10 object-contain" />
-                    ) : (
-                      <Globe size={20} className="text-slate-400" />
-                    )}
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(source.feed_url.replace(/^https?:\/\//, '').split('/')[0])}&sz=64`}
+                      alt={source.name}
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'; }}
+                    />
                   </div>
                 </div>
 
@@ -454,43 +455,22 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                   <span className="text-[11px] text-[#040042]/40 font-medium">Processing</span>
                 ) : (
                   <>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            size="sm"
-                            onClick={() => handleResync(source)}
-                            disabled={isSyncing}
-                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#0A0066] hover:text-white hover:border-[#0A0066] transition-colors"
-                          >
-                            {isSyncing ? (
-                              <Loader2 size={12} className="animate-spin" />
-                            ) : (
-                              <RefreshCw size={12} />
-                            )}
-                            Re-sync
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Fetch new articles from this source</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <button
+                      onClick={() => handleResync(source)}
+                      disabled={isSyncing}
+                      className="flex items-center gap-1.5 text-xs font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {isSyncing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                      Re-sync
+                    </button>
 
-                    {/* Set Default Pricing */}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            size="sm"
-                            onClick={() => setPricingSource(source)}
-                            className="h-8 text-xs gap-1.5 bg-transparent border border-slate-200 text-slate-500 hover:bg-[#0A0066] hover:text-white hover:border-[#0A0066] transition-colors"
-                          >
-                            <DollarSign size={12} />
-                            Set Pricing
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Set default pricing for all articles from this source</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <button
+                      onClick={() => setPricingSource(source)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors"
+                    >
+                      <DollarSign size={12} />
+                      Set Pricing
+                    </button>
 
                   </>
                 )}
@@ -588,12 +568,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           </div>
 
           <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
-            <Button
+            <button
               onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
-              className="bg-white border border-[#E5E7EB] text-[#040042]/60 hover:bg-slate-50 hover:text-[#040042] rounded-lg h-9 px-4 text-sm font-medium"
+              className="text-sm font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors px-4 h-9 flex items-center"
             >
               Cancel
-            </Button>
+            </button>
             <Button
               disabled={deleteConfirmInput !== deleteConfirmSource?.name}
               onClick={() => {
