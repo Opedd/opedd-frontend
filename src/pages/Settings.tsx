@@ -810,6 +810,13 @@ export default function Settings() {
                         </div>
                       </div>
 
+                      {/* Support: Resend licenses */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-3">
+                        <h2 className="font-bold text-[#040042] text-sm">Lost your license email?</h2>
+                        <p className="text-xs text-slate-500">Enter the buyer's email to resend all license keys to their inbox.</p>
+                        <ResendLicensesForm />
+                      </div>
+
                       {/* Save Button */}
                       <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
