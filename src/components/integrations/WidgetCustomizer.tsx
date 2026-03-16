@@ -373,7 +373,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                     <p className="text-[10px] text-white/50">{darkTheme ? "For dark website backgrounds" : "For light website backgrounds"}</p>
                   </div>
                 </div>
-                <Switch checked={darkTheme} onCheckedChange={setDarkTheme} className="data-[state=checked]:bg-[#7C3AED]" />
+                <Switch checked={darkTheme} onCheckedChange={setDarkTheme} />
               </div>
             </div>
           </div>
