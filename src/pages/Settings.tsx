@@ -869,7 +869,7 @@ export default function Settings() {
                       </div>
 
                       {/* Save Button */}
-                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
+                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
                     </motion.div>
