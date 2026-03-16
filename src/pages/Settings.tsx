@@ -1221,7 +1221,7 @@ export default function Settings() {
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={handleRegenerateApiKey} className="bg-red-600 hover:bg-red-700 text-white rounded-lg">Yes, Regenerate Key</AlertDialogAction>
+                                      <AlertDialogAction onClick={handleRegenerateApiKey} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Yes, Regenerate Key</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
