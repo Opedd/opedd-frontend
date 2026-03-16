@@ -1027,9 +1027,8 @@ export default function Settings() {
                         <div className="flex flex-col items-center justify-center py-16 gap-4">
                           <p className="text-slate-500 text-sm">Failed to load team data.</p>
                           <Button
-                            variant="outline"
                             onClick={() => { setTeamLoaded(false); setTeamError(false); }}
-                            className="border-[#4A26ED] text-[#4A26ED] hover:bg-[#4A26ED]/5 rounded-xl"
+                            className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-xl"
                           >
                             Try Again
                           </Button>
