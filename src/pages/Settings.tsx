@@ -1403,7 +1403,7 @@ export default function Settings() {
                               setIsSavingContent(false);
                             }
                           }}
-                          className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6"
+                          className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white px-6"
                         >
                           {isSavingContent ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Content Settings"}
                         </Button>
