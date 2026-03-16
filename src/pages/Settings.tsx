@@ -1498,7 +1498,7 @@ export default function Settings() {
               Cancel
             </Button>
             <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#E53E3E] hover:bg-[#C53030] text-white"
               disabled={deleteConfirmText !== "DELETE" || isDeleting}
               onClick={async () => {
                 setIsDeleting(true);

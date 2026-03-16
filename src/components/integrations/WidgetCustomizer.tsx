@@ -418,7 +418,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
             onClick={handleCopyCode}
             className={cn(
               "h-10 px-5 font-semibold transition-all flex-shrink-0 ml-6",
-              codeCopied ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+              codeCopied ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-[#3182CE] hover:bg-[#2B6CB0] text-white"
             )}
           >
             {codeCopied ? <><Check size={15} className="mr-2" />Copied!</> : <><Copy size={15} className="mr-2" />Copy Embed Code</>}
