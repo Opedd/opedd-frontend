@@ -152,10 +152,9 @@ function ResendLicensesForm() {
       />
       <Button
         size="sm"
-        variant="outline"
         disabled={sending || !email.trim()}
         onClick={handleResend}
-        className="flex-shrink-0"
+        className="flex-shrink-0 bg-[#3182CE] hover:bg-[#2B6CB0] text-white"
       >
         {sending ? <Loader2 size={14} className="animate-spin" /> : "Resend All Licenses"}
       </Button>
@@ -759,13 +758,13 @@ export default function Settings() {
 
                             <div className="flex items-center gap-3">
                               {plan === "free" && (
-                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
+                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold text-sm">
                                   Upgrade to Pro →
                                 </Button>
                               )}
                               {plan === "pro" && (
                                 <>
-                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
+                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold text-sm">
                                     Upgrade to Enterprise →
                                   </Button>
                                   <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
@@ -870,7 +869,7 @@ export default function Settings() {
                       </div>
 
                       {/* Save Button */}
-                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
+                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
                     </motion.div>
@@ -972,7 +971,7 @@ export default function Settings() {
                           <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
                         </div>
 
-                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
+                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
                           {isSaving ? "Saving..." : "Save rates"}
                         </Button>
                       </div>
@@ -1028,9 +1027,8 @@ export default function Settings() {
                         <div className="flex flex-col items-center justify-center py-16 gap-4">
                           <p className="text-slate-500 text-sm">Failed to load team data.</p>
                           <Button
-                            variant="outline"
                             onClick={() => { setTeamLoaded(false); setTeamError(false); }}
-                            className="border-[#4A26ED] text-[#4A26ED] hover:bg-[#4A26ED]/5 rounded-xl"
+                            className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-xl"
                           >
                             Try Again
                           </Button>
@@ -1049,7 +1047,7 @@ export default function Settings() {
                                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                   <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-12 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                                 </div>
-                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-semibold">
+                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold">
                                   {isInviting ? <><Loader2 size={14} className="mr-2 animate-spin" />Sending...</> : <><Send size={14} className="mr-2" />Send Invite</>}
                                 </Button>
                               </div>
@@ -1089,7 +1087,7 @@ export default function Settings() {
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
                                             <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleRemoveMember(member.id)} className="bg-red-600 hover:bg-red-700 text-white rounded-lg">Remove Member</AlertDialogAction>
+                                            <AlertDialogAction onClick={() => handleRemoveMember(member.id)} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Remove Member</AlertDialogAction>
                                           </AlertDialogFooter>
                                         </AlertDialogContent>
                                       </AlertDialog>
@@ -1161,7 +1159,7 @@ export default function Settings() {
                           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
                             <code className="text-sm text-[#040042] font-mono truncate block">{publisherId}</code>
                           </div>
-                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0 transition-all">
+                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium flex-shrink-0 transition-all">
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>
@@ -1190,10 +1188,10 @@ export default function Settings() {
                                     {apiKeyRevealed ? apiKey : apiKey.slice(0, 10) + "•".repeat(20)}
                                   </code>
                                 </div>
-                                <Button size="sm" variant="outline" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} className="h-11 px-3 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg transition-all">
+                                <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} className="h-11 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
                                   {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </Button>
-                                <Button size="sm" onClick={handleCopyApiKey} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium transition-all">
+                                <Button size="sm" onClick={handleCopyApiKey} className="h-11 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium transition-all">
                                   {apiKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
                                 </Button>
                               </div>
@@ -1212,7 +1210,7 @@ export default function Settings() {
                                 </p>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button size="sm" variant="outline" disabled={isRegenerating} className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium transition-all">
+                                    <Button size="sm" disabled={isRegenerating} className="h-9 px-4 bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg font-medium transition-all">
                                       {isRegenerating ? <><RefreshCw size={14} className="mr-2 animate-spin" />Regenerating...</> : <><RefreshCw size={14} className="mr-2" />Regenerate Key</>}
                                     </Button>
                                   </AlertDialogTrigger>
@@ -1223,7 +1221,7 @@ export default function Settings() {
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={handleRegenerateApiKey} className="bg-red-600 hover:bg-red-700 text-white rounded-lg">Yes, Regenerate Key</AlertDialogAction>
+                                      <AlertDialogAction onClick={handleRegenerateApiKey} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Yes, Regenerate Key</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
@@ -1232,7 +1230,7 @@ export default function Settings() {
                           ) : (
                             <div className="text-center py-4">
                               <p className="text-sm text-slate-500 mb-3">No API key generated yet.</p>
-                              <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+                              <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg">
                                 {isRegenerating ? <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</> : <><Key size={14} className="mr-2" />Generate API Key</>}
                               </Button>
                             </div>
@@ -1405,7 +1403,7 @@ export default function Settings() {
                               setIsSavingContent(false);
                             }
                           }}
-                          className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6"
+                          className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white px-6"
                         >
                           {isSavingContent ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Content Settings"}
                         </Button>
@@ -1448,7 +1446,7 @@ export default function Settings() {
               Keep Plan
             </Button>
             <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#E53E3E] hover:bg-[#C53030] text-white"
               disabled={isCancelling}
               onClick={async () => {
                 setIsCancelling(true);
@@ -1500,7 +1498,7 @@ export default function Settings() {
               Cancel
             </Button>
             <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#E53E3E] hover:bg-[#C53030] text-white"
               disabled={deleteConfirmText !== "DELETE" || isDeleting}
               onClick={async () => {
                 setIsDeleting(true);
