@@ -152,10 +152,9 @@ function ResendLicensesForm() {
       />
       <Button
         size="sm"
-        variant="outline"
         disabled={sending || !email.trim()}
         onClick={handleResend}
-        className="flex-shrink-0"
+        className="flex-shrink-0 bg-[#3182CE] hover:bg-[#2B6CB0] text-white"
       >
         {sending ? <Loader2 size={14} className="animate-spin" /> : "Resend All Licenses"}
       </Button>
