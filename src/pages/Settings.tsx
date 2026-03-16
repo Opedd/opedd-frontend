@@ -111,6 +111,58 @@ const tabContentVariants = {
   }
 };
 
+function ResendLicensesForm() {
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleResend = async () => {
+    if (!email.trim()) return;
+    setSending(true);
+    try {
+      await fetch(`${EXT_SUPABASE_URL}/resend-licenses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      setSent(true);
+    } catch {
+      setSent(true);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <p className="text-sm text-emerald-600 flex items-center gap-1.5">
+        <Check size={14} /> Email sent if any licenses exist for that address.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex gap-2">
+      <Input
+        type="email"
+        placeholder="buyer@example.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="flex-1 text-sm"
+      />
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={sending || !email.trim()}
+        onClick={handleResend}
+        className="flex-shrink-0"
+      >
+        {sending ? <Loader2 size={14} className="animate-spin" /> : "Resend All Licenses"}
+      </Button>
+    </div>
+  );
+}
+
 export default function Settings() {
   const { user, getAccessToken, logout } = useAuth();
   const { toast } = useToast();
@@ -808,6 +860,13 @@ export default function Settings() {
                           </div>
                           <Switch checked={contactForPricing} onCheckedChange={setContactForPricing} />
                         </div>
+                      </div>
+
+                      {/* Support: Resend licenses */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-3">
+                        <h2 className="font-bold text-[#040042] text-sm">Lost your license email?</h2>
+                        <p className="text-xs text-slate-500">Enter the buyer's email to resend all license keys to their inbox.</p>
+                        <ResendLicensesForm />
                       </div>
 
                       {/* Save Button */}
