@@ -67,6 +67,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { WidgetEmbedCard } from "@/components/dashboard/WidgetEmbedCard";
 
 interface StripeConnect {
   connected: boolean;
@@ -1070,6 +1071,9 @@ export default function Settings() {
                         </div>
                         <p className="text-xs text-slate-400 mt-3">Use this in your widget embed snippet, WordPress plugin, and AI defense policy URL</p>
                       </div>
+
+                      {/* Widget Embed Code */}
+                      <WidgetEmbedCard publisherId={publisherId} />
 
                       {/* API Key */}
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
