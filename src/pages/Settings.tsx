@@ -1230,7 +1230,7 @@ export default function Settings() {
                           ) : (
                             <div className="text-center py-4">
                               <p className="text-sm text-slate-500 mb-3">No API key generated yet.</p>
-                              <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+                              <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg">
                                 {isRegenerating ? <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</> : <><Key size={14} className="mr-2" />Generate API Key</>}
                               </Button>
                             </div>
