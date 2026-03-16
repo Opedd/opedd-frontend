@@ -1446,7 +1446,7 @@ export default function Settings() {
               Keep Plan
             </Button>
             <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-[#E53E3E] hover:bg-[#C53030] text-white"
               disabled={isCancelling}
               onClick={async () => {
                 setIsCancelling(true);
