@@ -1087,7 +1087,7 @@ export default function Settings() {
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
                                             <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleRemoveMember(member.id)} className="bg-red-600 hover:bg-red-700 text-white rounded-lg">Remove Member</AlertDialogAction>
+                                            <AlertDialogAction onClick={() => handleRemoveMember(member.id)} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Remove Member</AlertDialogAction>
                                           </AlertDialogFooter>
                                         </AlertDialogContent>
                                       </AlertDialog>
