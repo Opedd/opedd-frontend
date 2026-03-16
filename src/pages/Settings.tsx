@@ -971,7 +971,7 @@ export default function Settings() {
                           <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
                         </div>
 
-                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
+                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
                           {isSaving ? "Saving..." : "Save rates"}
                         </Button>
                       </div>
