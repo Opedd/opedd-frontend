@@ -81,7 +81,7 @@ export default function Terms() {
               <p>Questions about these Terms: <a href="mailto:hello@opedd.com" className="text-indigo-600 hover:underline">hello@opedd.com</a></p>
             </section>
 
-            <p className="mt-8">See also: <a href="https://legal.opedd.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Privacy Policy</a></p>
+            <p className="mt-8">See also: <a href="/privacy" className="text-indigo-600 hover:underline">Privacy Policy</a></p>
           </div>
         </div>
       </main>
