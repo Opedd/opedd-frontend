@@ -1210,7 +1210,7 @@ export default function Settings() {
                                 </p>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button size="sm" variant="outline" disabled={isRegenerating} className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-lg font-medium transition-all">
+                                    <Button size="sm" disabled={isRegenerating} className="h-9 px-4 bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg font-medium transition-all">
                                       {isRegenerating ? <><RefreshCw size={14} className="mr-2 animate-spin" />Regenerating...</> : <><RefreshCw size={14} className="mr-2" />Regenerate Key</>}
                                     </Button>
                                   </AlertDialogTrigger>
