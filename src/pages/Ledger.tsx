@@ -261,6 +261,7 @@ export default function Ledger() {
           <motion.div variants={itemVariants}>
             <Tabs value={activeTab}>
               <div className="mb-4">
+              </div>
 
               <TabsContent value="transactions">
                 {transactions.length === 0 ? (

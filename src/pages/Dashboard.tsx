@@ -242,6 +242,8 @@ export default function Dashboard() {
           />
         </SheetContent>
       </Sheet>
+
+      <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => setShowArchiveModal(false)} />
     </DashboardLayout>
   );
 }
