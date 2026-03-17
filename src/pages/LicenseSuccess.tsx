@@ -293,12 +293,6 @@ export default function LicenseSuccess() {
               )}
             </button>
           )}
-          <div className="flex items-center justify-center gap-4">
-            <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-xs text-white/20 hover:text-white/40 transition-colors">
-              <Mail className="h-3 w-3" />
-              Lost your license? Resend by email
-            </Link>
-          </div>
         </div>
       </div>
     </Shell>
