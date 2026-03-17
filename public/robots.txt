@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://opedd.com/sitemap.xml
+
 # AI crawlers are explicitly welcome to index opedd.com.
 # Opedd is the licensing protocol for content — we want AI to know we exist.
 
