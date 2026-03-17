@@ -582,7 +582,6 @@ export default function Settings() {
                   {[
                     { value: "profile", label: "Profile" },
                     { value: "monetisation", label: "Monetisation" },
-                    { value: "content", label: "Content" },
                     { value: "api-keys", label: "API Keys" },
                     { value: "team", label: "Team" },
                   ].map((tab) => (
