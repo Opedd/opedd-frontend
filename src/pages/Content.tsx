@@ -651,13 +651,6 @@ export default function Content() {
         selectedIds={Array.from(selectedIds)}
         onSuccess={() => { setBulkPricingOpen(false); setSelectedIds(new Set()); fetchAssets(); }}
       />
-          </TabsContent>
-
-          <TabsContent value="pricing-rules" className="mt-6">
-            <PricingRulesTab />
-          </TabsContent>
-        </Tabs>
-      </div>
     </DashboardLayout>
   );
 }
