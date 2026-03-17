@@ -182,23 +182,45 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Archive Licenses Card */}
-        <div className="bg-[#040042] rounded-xl p-6 shadow-sm flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-              <Archive size={20} className="text-white" />
+        {/* Action Cards Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Embed Widget Card */}
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-[#3182CE]/10 flex items-center justify-center">
+                <Code size={20} className="text-[#3182CE]" />
+              </div>
+              <div>
+                <h3 className="text-[#111827] font-semibold text-base">Add licensing to your site</h3>
+                <p className="text-[#6B7280] text-sm mt-0.5">Embed one script tag to add a licensing button to every article.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-white font-semibold text-base">Archive Licenses</h3>
-              <p className="text-white/60 text-sm mt-0.5 max-w-md">Sell full-catalog licenses to enterprises and AI companies. One license covers your entire archive for a defined period.</p>
-            </div>
+            <Button
+              onClick={() => navigate("/connectors?tab=widget")}
+              className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
+            >
+              Get embed code
+            </Button>
           </div>
-          <Button
-            onClick={() => setShowArchiveModal(true)}
-            className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
-          >
-            Issue Archive License
-          </Button>
+
+          {/* Archive Licenses Card */}
+          <div className="bg-[#040042] rounded-xl p-6 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                <Archive size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold text-base">Archive Licenses</h3>
+                <p className="text-white/60 text-sm mt-0.5 max-w-md">Sell full-catalog licenses to enterprises and AI companies.</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => setShowArchiveModal(true)}
+              className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
+            >
+              Issue Archive License
+            </Button>
+          </div>
         </div>
 
         {/* Import Progress Banner */}
