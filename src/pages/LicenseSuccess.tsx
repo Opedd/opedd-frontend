@@ -176,10 +176,6 @@ export default function LicenseSuccess() {
           <p className="text-white/50 text-sm mb-6 max-w-sm mx-auto">
             Your license key will arrive by email shortly. If you don't receive it within 10 minutes, use the resend option below.
           </p>
-          <Link to="/my-licenses" className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/60 transition-colors">
-            <Mail className="h-3.5 w-3.5" />
-            Resend my licenses
-          </Link>
         </div>
       </Shell>
     );
