@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -58,7 +59,11 @@ interface WebhookDelivery {
 export default function Connectors() {
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("widget");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab === "widget" || tab === "webhooks" || tab === "ai-policy" ? tab : "widget";
+  });
 
   // Webhook state
   const [webhookStatus, setWebhookStatus] = useState<WebhookStatus | null>(null);
