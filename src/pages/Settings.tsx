@@ -202,13 +202,6 @@ export default function Settings() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-  // Content tab state
-  const [excludedPatterns, setExcludedPatterns] = useState<string[]>([]);
-  const [newPattern, setNewPattern] = useState("");
-  const [categoryRules, setCategoryRules] = useState<Array<{ category: string; human: string; ai: string }>>([]);
-  const [isFetchingCategories, setIsFetchingCategories] = useState(false);
-  const [categoriesFetched, setCategoriesFetched] = useState(false);
-  const [isSavingContent, setIsSavingContent] = useState(false);
 
   // Save feedback banners
   const [saveBanner, setSaveBanner] = useState<"success" | "error" | null>(null);
