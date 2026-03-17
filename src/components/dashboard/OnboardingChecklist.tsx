@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Circle, ArrowRight, PartyPopper } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 interface StepState {
   content_imported: boolean;
-  pricing_set: boolean;
   stripe_connected: boolean;
   widget_added: boolean;
 }
@@ -21,43 +21,35 @@ const STEPS = [
     path: "/content",
   },
   {
-    key: "pricing_set" as const,
-    label: "Set your pricing",
-    cta: "Set pricing",
-    path: "/settings?tab=pricing",
-  },
-  {
     key: "stripe_connected" as const,
     label: "Connect Stripe",
     cta: "Connect Stripe",
-    path: "/settings?tab=payouts",
+    path: "/payments",
   },
   {
     key: "widget_added" as const,
-    label: "Add the widget",
-    cta: "Add widget",
-    path: "/connectors",
+    label: "Embed the licensing widget",
+    cta: "Get embed code",
+    path: "/connectors?tab=widget",
   },
 ];
 
-const DISMISS_KEY = "opedd_onboarding_dismissed";
+const DISMISS_KEY = "opedd_onboarding_complete_dismissed";
 
 export function OnboardingChecklist() {
   const navigate = useNavigate();
   const { user, getAccessToken } = useAuth();
   const [steps, setSteps] = useState<StepState>({
     content_imported: false,
-    pricing_set: false,
     stripe_connected: false,
     widget_added: false,
   });
   const [loading, setLoading] = useState(true);
-  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem(DISMISS_KEY) === "true");
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === "true");
 
   const fetchState = useCallback(async () => {
     if (!user) return;
     try {
-      // Parallel: check assets count, sources with widget-eligible types, and publisher profile
       const [assetsRes, sourcesRes, profileData] = await Promise.all([
         supabase
           .from("assets")
@@ -84,16 +76,10 @@ export function OnboardingChecklist() {
 
       const hasContent = (assetsRes.count ?? 0) > 0;
       const hasWidget = (sourcesRes.count ?? 0) > 0;
-
-      const defaultHuman = profileData?.default_human_price ?? 0;
-      const defaultAi = profileData?.default_ai_price ?? 0;
-      const pricingSet = defaultHuman > 0 || defaultAi > 0;
-
       const stripeConnected = profileData?.stripe_onboarding_complete === true;
 
       setSteps({
         content_imported: hasContent,
-        pricing_set: pricingSet,
         stripe_connected: stripeConnected,
         widget_added: hasWidget,
       });
@@ -108,12 +94,15 @@ export function OnboardingChecklist() {
     fetchState();
   }, [fetchState]);
 
-  if (loading || dismissed) return null;
+  if (loading) return null;
 
   const completedCount = Object.values(steps).filter(Boolean).length;
   const totalCount = STEPS.length;
   const allDone = completedCount === totalCount;
   const pct = (completedCount / totalCount) * 100;
+
+  // Only hide when all done AND user has dismissed the success state
+  if (allDone && dismissed) return null;
 
   if (allDone) {
     return (
@@ -127,7 +116,7 @@ export function OnboardingChecklist() {
           <button
             onClick={() => {
               setDismissed(true);
-              sessionStorage.setItem(DISMISS_KEY, "true");
+              localStorage.setItem(DISMISS_KEY, "true");
             }}
             className="text-xs text-[#9CA3AF] hover:text-[#6B7280] font-medium"
           >
@@ -137,8 +126,6 @@ export function OnboardingChecklist() {
       </div>
     );
   }
-
-  const firstIncompleteIdx = STEPS.findIndex((s) => !steps[s.key]);
 
   return (
     <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
@@ -154,44 +141,39 @@ export function OnboardingChecklist() {
       <Progress value={pct} className="h-2 mb-5 bg-[#F3F4F6] [&>div]:bg-[#4A26ED]" />
 
       <ul className="space-y-1">
-        {STEPS.map((step, idx) => {
+        {STEPS.map((step) => {
           const done = steps[step.key];
-          const isNext = idx === firstIncompleteIdx;
 
           return (
             <li key={step.key}>
-              <button
-                onClick={() => navigate(step.path)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                  isNext
-                    ? "bg-[#4A26ED]/5 hover:bg-[#4A26ED]/10"
-                    : "hover:bg-[#F9FAFB]"
+              <div
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  done ? "bg-transparent" : "hover:bg-[#F9FAFB]"
                 }`}
               >
                 {done ? (
                   <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
                 ) : (
-                  <Circle size={20} className={`flex-shrink-0 ${isNext ? "text-[#4A26ED]" : "text-[#D1D5DB]"}`} />
+                  <Circle size={20} className="text-[#D1D5DB] flex-shrink-0" />
                 )}
                 <span
                   className={`text-sm flex-1 ${
-                    done
-                      ? "text-[#9CA3AF] line-through"
-                      : isNext
-                        ? "text-[#111827] font-semibold"
-                        : "text-[#6B7280]"
+                    done ? "text-[#9CA3AF] line-through" : "text-[#111827] font-medium"
                   }`}
                 >
                   {step.label}
                 </span>
-                {!done && isNext && (
-                  <span className="text-xs font-semibold text-[#4A26ED] bg-[#4A26ED]/10 px-2.5 py-1 rounded-md">
+                {!done && (
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(step.path)}
+                    className="h-8 px-3 text-xs bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold rounded-lg"
+                  >
                     {step.cta}
-                  </span>
+                    <ArrowRight size={12} className="ml-1" />
+                  </Button>
                 )}
-                {!done && !isNext && <ArrowRight size={16} className="text-[#D1D5DB] flex-shrink-0" />}
-                {done && <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0 opacity-50" />}
-              </button>
+              </div>
             </li>
           );
         })}
