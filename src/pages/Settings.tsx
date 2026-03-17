@@ -251,16 +251,7 @@ export default function Settings() {
         setDefaultSyndicationPrice((d as any).default_syndication_price != null ? String((d as any).default_syndication_price) : "500.00");
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "");
         setLogoPreview(d.logo_url || null);
-        setExcludedPatterns(d.excluded_url_patterns || []);
-        // Load category pricing rules
-        const cats = (d.pricing_rules as any)?.categories || {};
-        const catArray = Object.entries(cats).map(([category, prices]: [string, any]) => ({
-          category,
-          human: String(prices.human ?? ""),
-          ai: String(prices.ai ?? ""),
-        }));
-        setCategoryRules(catArray);
-        // Derive stripe status from publisher fields if stripe_connect not present — kept for profile context only
+        setLogoPreview(d.logo_url || null);
       }
     } catch (err) {
       console.warn("[Settings] Failed to fetch profile:", err);
