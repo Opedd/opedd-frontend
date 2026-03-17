@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/llms.txt", "destination": "https://djdzcciayennqchjgybx.supabase.co/functions/v1/llms-txt" }
+    { "source": "/llms.txt", "destination": "https://djdzcciayennqchjgybx.supabase.co/functions/v1/llms-txt" },
+    { "source": "/((?!llms.txt).*)", "destination": "/index.html" }
   ]
 }
