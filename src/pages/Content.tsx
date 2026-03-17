@@ -509,7 +509,6 @@ export default function Content() {
             </div>
           </div>
         )}
-      </div>
           </TabsContent>
 
           <TabsContent value="pricing-rules" className="mt-6">
