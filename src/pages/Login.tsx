@@ -129,12 +129,6 @@ export default function Login() {
             Create Account
           </Link>
         </p>
-        <p className="text-[#040042]/40 text-xs">
-          Not a publisher?{" "}
-          <Link to="/my-licenses" className="text-[#4A26ED] hover:underline">
-            Find your licenses →
-          </Link>
-        </p>
       </div>
     </>
   );
