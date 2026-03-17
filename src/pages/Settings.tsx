@@ -818,6 +818,22 @@ export default function Settings() {
                       <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
+
+                      {/* Danger Zone */}
+                      <div className="mt-10 pt-8 border-t border-slate-200">
+                        <div className="border border-red-300 rounded-xl p-6 bg-white">
+                          <h2 className="text-lg font-bold text-red-600 mb-1">Delete Account</h2>
+                          <p className="text-sm text-[#6B7280] mb-4">
+                            Permanently delete your publisher account. Your financial records are retained for legal compliance, but all personal information will be anonymised.
+                          </p>
+                          <button
+                            onClick={() => { setDeleteConfirmText(""); setDeleteOpen(true); }}
+                            className="border border-red-400 text-red-600 rounded-lg px-4 py-2 text-sm font-semibold hover:bg-red-50 transition-colors"
+                          >
+                            Delete My Account
+                          </button>
+                        </div>
+                      </div>
                     </motion.div>
                   )}
                 </TabsContent>
@@ -1191,21 +1207,6 @@ export default function Settings() {
             </Tabs>
           )}
 
-          {/* Danger Zone — always visible below tabs */}
-          {!isLoading && (
-            <div className="mt-10 border border-red-300 rounded-xl p-6 bg-white">
-              <h2 className="text-lg font-bold text-red-600 mb-1">Delete Account</h2>
-              <p className="text-sm text-[#6B7280] mb-4">
-                Permanently delete your publisher account. Your financial records are retained for legal compliance, but all personal information will be anonymised.
-              </p>
-              <button
-                onClick={() => { setDeleteConfirmText(""); setDeleteOpen(true); }}
-                className="border border-red-400 text-red-600 rounded-lg px-4 py-2 text-sm font-semibold hover:bg-red-50 transition-colors"
-              >
-                Delete My Account
-              </button>
-            </div>
-          )}
         </div>
 
       {/* Cancel Subscription Dialog */}
