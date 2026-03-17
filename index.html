@@ -18,6 +18,119 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@OpeddIO" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://opedd.com/#organization",
+          "name": "Opedd",
+          "url": "https://opedd.com",
+          "logo": "https://opedd.com/logo.png",
+          "description": "Opedd is the programmatic content licensing infrastructure for the human and AI era — the Stripe for Content Licensing. Publishers set their own prices and sell licenses directly to AI companies, enterprises, and media organisations.",
+          "foundingDate": "2025",
+          "founder": {
+            "@type": "Person",
+            "name": "Alexandre Bridi"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "hello@opedd.com",
+            "contactType": "customer support"
+          },
+          "sameAs": [
+            "https://github.com/Opedd",
+            "https://www.npmjs.com/package/opedd-mcp"
+          ]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://opedd.com/#product",
+          "name": "Opedd Protocol",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "url": "https://opedd.com",
+          "description": "API-driven content licensing platform. Publishers embed one script to register articles, set prices, and receive instant Stripe payouts when AI companies or enterprises purchase licenses.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free to start. 10% platform fee on transactions."
+          },
+          "provider": {
+            "@id": "https://opedd.com/#organization"
+          },
+          "featureList": [
+            "One-line embed for Ghost, WordPress, Substack, and custom CMS",
+            "Human, AI training, AI inference, and archive license types",
+            "Instant Stripe Connect payouts",
+            "On-chain license proof on Base (Ethereum L2)",
+            "MCP server for autonomous AI agent purchases",
+            "Publisher analytics dashboard",
+            "Programmatic API with X-API-Key auth",
+            "AI crawler defense policy generation"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://opedd.com/#website",
+          "url": "https://opedd.com",
+          "name": "Opedd",
+          "description": "The Stripe for Content Licensing",
+          "publisher": {
+            "@id": "https://opedd.com/#organization"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Opedd?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Opedd is a programmatic content licensing platform — the Stripe for Content Licensing. Publishers embed a single script to register their articles and sell licenses directly to AI companies, enterprises, and media organisations, with instant Stripe payouts."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does Opedd work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Publishers add one script tag to their site. Opedd automatically registers every article, assigns it a license price, and displays a licensing widget. Buyers purchase licenses via hosted checkout or API. Every license is recorded on the Base blockchain for immutable proof."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Who is Opedd for?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Opedd is built for independent publishers, newsletters, academic journals, and media organisations who want to monetise their content for AI training, enterprise reuse, and editorial licensing without intermediaries like Copyright Clearance Center or RightsLink."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can AI companies license content through Opedd?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. AI companies, researchers, and enterprises can purchase AI training or AI inference licenses directly through Opedd's API or checkout. Opedd also provides an MCP server so AI agents can autonomously discover and purchase licenses."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How much does Opedd cost?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Opedd is free to start. The platform takes a 10% fee on each transaction via Stripe Connect. Publishers keep 90% of every license sale."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
 
   <body>
