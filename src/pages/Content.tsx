@@ -61,6 +61,11 @@ type SortKey = "title" | "revenue" | "status";
 type SortDir = "asc" | "desc";
 
 export default function Content() {
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab === "pricing-rules" ? tab : "articles";
+  });
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
