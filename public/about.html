@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Opedd — The Stripe for Content Licensing</title>
+  <meta name="description" content="Opedd is the programmatic content licensing infrastructure for the human and AI era. Publishers set their own prices and sell licenses directly to AI companies, enterprises, and media organisations." />
+  <link rel="canonical" href="https://opedd.com/about.html" />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 24px; color: #1a1a2e; line-height: 1.7; }
+    h1 { font-size: 2rem; margin-bottom: 8px; }
+    h2 { font-size: 1.3rem; margin-top: 40px; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+    p { margin: 0 0 16px; }
+    ul, ol { margin: 0 0 16px; padding-left: 24px; }
+    li { margin-bottom: 8px; }
+    a { color: #4f46e5; }
+    .meta { color: #6b7280; font-size: 0.9rem; margin-bottom: 32px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    td, th { border: 1px solid #e5e7eb; padding: 10px 14px; text-align: left; font-size: 0.95rem; }
+    th { background: #f9fafb; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <h1>About Opedd</h1>
+  <p class="meta">Founded 2025 · opedd.com · hello@opedd.com</p>
+
+  <p>
+    Opedd is the programmatic content licensing infrastructure for the human and AI era.
+    It is the direct API-driven replacement for legacy licensing aggregators such as the
+    Copyright Clearance Center (CCC) and RightsLink — built for a world where AI companies,
+    enterprises, and media organisations need to license content at machine speed.
+  </p>
+
+  <p>
+    Publishers embed a single script tag on their website. Every article is automatically
+    registered, priced, and made available for licensing. Buyers — AI labs, enterprises,
+    researchers, newsrooms — purchase licenses via a hosted checkout or directly through
+    the Opedd API. Payments are settled instantly via Stripe Connect. Every license is
+    recorded on the Base blockchain (Coinbase L2) for permanent, tamper-proof proof of
+    purchase.
+  </p>
+
+  <h2>The Problem Opedd Solves</h2>
+
+  <p>
+    AI companies including OpenAI, Google, Anthropic, and Meta trained large language models
+    on billions of published articles, research papers, and news stories — without licensing
+    agreements in place. Publishers received nothing. At the same time, enterprises and media
+    organisations that legally license content for editorial reuse are forced through slow,
+    opaque intermediaries that take large cuts and pay out on 60–90 day cycles.
+  </p>
+
+  <p>
+    Opedd fixes both problems with one infrastructure layer: direct, programmatic licensing
+    with instant payouts and on-chain proof.
+  </p>
+
+  <h2>How It Works</h2>
+
+  <ol>
+    <li><strong>Embed:</strong> Publisher adds one script tag to their site (Ghost, WordPress, Substack, custom CMS).</li>
+    <li><strong>Register:</strong> Opedd automatically discovers and registers every article as a licensable asset.</li>
+    <li><strong>Price:</strong> Publisher sets human license price and AI license price per article, or in bulk.</li>
+    <li><strong>License:</strong> Buyers purchase via hosted checkout, REST API, or AI agent (MCP protocol).</li>
+    <li><strong>Proof:</strong> License key issued, transaction recorded on Base blockchain.</li>
+    <li><strong>Payout:</strong> Publisher receives payment instantly via Stripe Connect (90% of transaction).</li>
+  </ol>
+
+  <h2>License Types</h2>
+
+  <table>
+    <tr>
+      <th>Type</th>
+      <th>Use Case</th>
+    </tr>
+    <tr>
+      <td>Human</td>
+      <td>Editorial reuse, citation, republication by journalists or organisations</td>
+    </tr>
+    <tr>
+      <td>AI Training</td>
+      <td>Use of content in training datasets for large language models</td>
+    </tr>
+    <tr>
+      <td>AI Inference</td>
+      <td>Real-time retrieval and use of content by AI systems at inference time</td>
+    </tr>
+    <tr>
+      <td>Archive</td>
+      <td>Bulk coverage license for a publisher's full catalog over a defined period</td>
+    </tr>
+  </table>
+
+  <h2>Target Publishers</h2>
+
+  <p>
+    Opedd is designed for independent publishers, newsletters, academic journals, and
+    global media organisations. Examples of target publishers include The Economist,
+    Financial Times, The Information, MIT Technology Review, Quanta Magazine, Platformer,
+    Exponential View, 404 Media, The Dispatch, and The Free Press.
+  </p>
+
+  <h2>Pricing</h2>
+
+  <p>
+    Opedd is free to start. The platform charges a 10% fee on each transaction via
+    Stripe Connect. Publishers keep 90% of every license sale. There are no upfront
+    costs and no minimum commitments.
+  </p>
+
+  <p>
+    Publisher subscriptions (Pro at $79/month, Enterprise at $249/month) are available
+    for advanced features including team management, priority support, and higher API limits.
+  </p>
+
+  <h2>Technical Infrastructure</h2>
+
+  <ul>
+    <li><strong>Widget:</strong> Single JavaScript embed, works on any CMS. Auto-registers articles on first page load.</li>
+    <li><strong>REST API:</strong> Full programmatic access with X-API-Key authentication. Endpoints for article lookup, license issuance, verification, and usage.</li>
+    <li><strong>MCP Server:</strong> AI agents (Claude, Cursor, Windsurf) can discover, purchase, and verify licenses autonomously mid-conversation via <code>npx opedd-mcp</code>.</li>
+    <li><strong>Blockchain:</strong> Every license registered on Base (Ethereum L2) via the OpeddRegistry smart contract. Contract address: <code>0xf2cb1347de16c362eb67549dc1521fc8ab2f8d6d</code> (Base Sepolia).</li>
+    <li><strong>AI Defense Policy:</strong> Publishers can generate a custom <code>robots.txt</code> and <code>ai.txt</code> that blocks unlicensed AI crawlers while allowing licensed access.</li>
+    <li><strong>License Discovery:</strong> Machine-readable <code>opedd.json</code> file served at each publisher's domain for AI agent discovery.</li>
+  </ul>
+
+  <h2>Comparison to Legacy Solutions</h2>
+
+  <table>
+    <tr>
+      <th></th>
+      <th>Opedd</th>
+      <th>CCC / RightsLink</th>
+    </tr>
+    <tr>
+      <td>Setup time</td>
+      <td>Under 10 minutes</td>
+      <td>Weeks to months</td>
+    </tr>
+    <tr>
+      <td>Payout speed</td>
+      <td>Instant (Stripe)</td>
+      <td>60–90 days</td>
+    </tr>
+    <tr>
+      <td>Platform fee</td>
+      <td>10%</td>
+      <td>30–50%</td>
+    </tr>
+    <tr>
+      <td>AI licensing</td>
+      <td>Yes (training + inference)</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>On-chain proof</td>
+      <td>Yes (Base blockchain)</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>Programmatic API</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>AI agent support</td>
+      <td>Yes (MCP server)</td>
+      <td>No</td>
+    </tr>
+  </table>
+
+  <h2>Company</h2>
+
+  <ul>
+    <li><strong>Founded:</strong> 2025</li>
+    <li><strong>Founder:</strong> Alexandre Bridi</li>
+    <li><strong>Website:</strong> <a href="https://opedd.com">opedd.com</a></li>
+    <li><strong>Dashboard:</strong> <a href="https://app.opedd.com">app.opedd.com</a></li>
+    <li><strong>MCP Server:</strong> <a href="https://www.npmjs.com/package/opedd-mcp">npmjs.com/package/opedd-mcp</a></li>
+    <li><strong>GitHub:</strong> <a href="https://github.com/Opedd">github.com/Opedd</a></li>
+    <li><strong>Contact:</strong> <a href="mailto:hello@opedd.com">hello@opedd.com</a></li>
+  </ul>
+
+</body>
+</html>
