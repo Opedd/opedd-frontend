@@ -370,43 +370,6 @@ export default function Settings() {
     }
   }, [activeTab, teamLoaded, isLoadingTeam, fetchTeam]);
 
-  // Fetch distinct categories from licenses when Content tab is opened
-  useEffect(() => {
-    if (activeTab !== "content" || categoriesFetched || !profile?.id) return;
-    const fetchCategories = async () => {
-      setIsFetchingCategories(true);
-      try {
-        const headers = await apiHeaders();
-        const res = await fetch(
-          `${EXT_SUPABASE_REST}/rest/v1/licenses?select=category&publisher_id=eq.${profile.id}&category=not.is.null`,
-          { headers }
-        );
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          const unique = [...new Set(data.map((r: any) => r.category).filter(Boolean))] as string[];
-          // Merge with existing pricing_rules — keep saved prices, add new categories with defaults
-          setCategoryRules(prev => {
-            const existingMap = new Map(prev.map(r => [r.category.toLowerCase(), r]));
-            return unique.map(cat => {
-              const key = cat.toLowerCase();
-              if (existingMap.has(key)) return existingMap.get(key)!;
-              return {
-                category: cat,
-                human: profile.default_human_price != null ? String(profile.default_human_price) : "5.00",
-                ai: profile.default_ai_price != null ? String(profile.default_ai_price) : "10.00",
-              };
-            });
-          });
-        }
-      } catch (err) {
-        console.warn("[Settings] Failed to fetch categories:", err);
-      } finally {
-        setIsFetchingCategories(false);
-        setCategoriesFetched(true);
-      }
-    };
-    fetchCategories();
-  }, [activeTab, categoriesFetched, profile?.id, apiHeaders]);
 
   if (!user) return null;
 
