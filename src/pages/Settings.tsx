@@ -1257,25 +1257,35 @@ export default function Settings() {
 
       {/* Delete Account Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-red-600">Delete Account</DialogTitle>
-            <DialogDescription>
-              This action is permanent. Type <span className="font-mono font-bold text-[#040042]">DELETE</span> below to confirm.
+        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+          <DialogHeader className="space-y-0 mb-5">
+            <DialogTitle className="text-lg font-semibold text-[#040042]">Delete Account</DialogTitle>
+            <DialogDescription className="text-sm text-[#040042]/50 mt-1.5 leading-relaxed">
+              This will permanently delete your publisher account, all your content, licensing settings, and API keys. Your financial records are retained for legal compliance but all personal information will be anonymised. <span className="font-semibold text-[#040042]">This action cannot be undone.</span>
             </DialogDescription>
           </DialogHeader>
-          <Input
-            value={deleteConfirmText}
-            onChange={e => setDeleteConfirmText(e.target.value)}
-            placeholder="Type DELETE to confirm"
-            className="font-mono"
-          />
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={isDeleting}>
+
+          <div className="space-y-2 mb-6">
+            <label className="text-xs font-medium text-[#040042]/50">
+              Type <span className="font-mono font-semibold text-[#040042]">DELETE</span> to confirm
+            </label>
+            <Input
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+              className="bg-white border-slate-200 focus:border-[#4A26ED]/40 focus:ring-[#4A26ED]/10 h-10 rounded-lg text-sm font-mono"
+            />
+          </div>
+
+          <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
+            <button
+              onClick={() => { setDeleteOpen(false); setDeleteConfirmText(""); }}
+              disabled={isDeleting}
+              className="text-sm font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors px-4 h-9 flex items-center"
+            >
               Cancel
-            </Button>
+            </button>
             <Button
-              className="bg-[#E53E3E] hover:bg-[#C53030] text-white"
               disabled={deleteConfirmText !== "DELETE" || isDeleting}
               onClick={async () => {
                 setIsDeleting(true);
@@ -1301,6 +1311,7 @@ export default function Settings() {
                   setIsDeleting(false);
                 }
               }}
+              className="bg-[#EF4444] hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
             >
               {isDeleting ? <><Loader2 size={14} className="mr-2 animate-spin" />Deleting...</> : "Delete My Account"}
             </Button>
