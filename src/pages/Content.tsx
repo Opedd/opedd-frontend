@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PricingRulesTab } from "@/components/dashboard/PricingRulesTab";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -58,6 +61,11 @@ type SortKey = "title" | "revenue" | "status";
 type SortDir = "asc" | "desc";
 
 export default function Content() {
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab === "pricing-rules" ? tab : "articles";
+  });
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -303,10 +311,33 @@ export default function Content() {
               {totalAssets} article{totalAssets !== 1 ? "s" : ""} across {sourceCount} publication{sourceCount !== 1 ? "s" : ""}
             </p>
           </div>
-          <button onClick={handleExportCSV} disabled={assets.length === 0} className="flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-            <Download size={14} />Export CSV
-          </button>
+          {activeTab === "articles" && (
+            <button onClick={handleExportCSV} disabled={assets.length === 0} className="flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              <Download size={14} />Export CSV
+            </button>
+          )}
         </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="border-b border-[#E5E7EB]">
+            <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
+              {[
+                { value: "articles", label: "Articles" },
+                { value: "pricing-rules", label: "Pricing Rules" },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[14px] font-normal tracking-tight text-[#6B7280] transition-colors data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-[#1f2937]"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
+          <TabsContent value="articles" className="mt-6 space-y-6">
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 flex-wrap">
@@ -478,6 +509,12 @@ export default function Content() {
             </div>
           </div>
         )}
+          </TabsContent>
+
+          <TabsContent value="pricing-rules" className="mt-6">
+            <PricingRulesTab />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Article Detail Drawer */}
