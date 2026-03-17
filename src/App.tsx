@@ -30,7 +30,7 @@ import Privacy from "./pages/Privacy";
 import Pricing from "./pages/Pricing";
 import AuthCallback from "./pages/AuthCallback";
 import Licenses from "./pages/Licenses";
-import MyLicenses from "./pages/MyLicenses";
+
 import ForAiAgents from "./pages/ForAiAgents";
 import Admin from "./pages/Admin";
 import Status from "./pages/Status";
