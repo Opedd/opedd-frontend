@@ -24,6 +24,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Asset, PaginatedResponse, DbAsset, mapDbAssetToUiAsset } from "@/types/asset";
+import { BulkPricingModal } from "@/components/dashboard/BulkPricingModal";
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
@@ -79,6 +80,7 @@ export default function Content() {
 
   // Multi-select
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkPricingOpen, setBulkPricingOpen] = useState(false);
 
   // Detail drawer
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -460,7 +462,7 @@ export default function Content() {
         {selectedIds.size > 0 && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#111827] text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-2xl">
             <span className="text-sm font-medium">{selectedIds.size} article{selectedIds.size !== 1 ? "s" : ""} selected</span>
-            <Button size="sm" className="h-8 bg-[#4A26ED] hover:bg-[#3B1FD4] text-white text-xs rounded-lg">Set Prices</Button>
+            <Button size="sm" onClick={() => setBulkPricingOpen(true)} className="h-8 bg-[#4A26ED] hover:bg-[#3B1FD4] text-white text-xs rounded-lg">Set Prices</Button>
             <button onClick={() => setSelectedIds(new Set())} className="text-xs text-white/60 hover:text-white transition-colors">Clear</button>
           </div>
         )}
@@ -604,6 +606,13 @@ export default function Content() {
           )}
         </SheetContent>
       </Sheet>
+
+      <BulkPricingModal
+        open={bulkPricingOpen}
+        onOpenChange={setBulkPricingOpen}
+        selectedIds={Array.from(selectedIds)}
+        onSuccess={() => { setBulkPricingOpen(false); setSelectedIds(new Set()); fetchAssets(); }}
+      />
     </DashboardLayout>
   );
 }

@@ -10,10 +10,10 @@ const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 const navItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Content", path: "/content", icon: Library },
-  { title: "Transactions", path: "/ledger", icon: Wallet },
+  { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Insights", path: "/insights", icon: BarChart3 },
   { title: "Connectors", path: "/connectors", icon: Zap },
-  { title: "Payments", path: "/payments", icon: CreditCard },
+  { title: "Payouts", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 

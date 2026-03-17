@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet, TrendingUp, FileCheck, Sparkles, User, Shield,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
-  AlertTriangle, MessageSquare, Ban, ScrollText, Receipt,
+  AlertTriangle, Ban, ScrollText, Receipt,
 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -69,7 +69,7 @@ export default function Ledger() {
   const { toast } = useToast();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("transactions");
+  const [activeTab] = useState("transactions");
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
@@ -265,17 +265,8 @@ export default function Ledger() {
 
         {!fetchError && (
           <motion.div variants={itemVariants}>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <div className="border-b border-[#E5E7EB] mb-4">
-                <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
-                  <TabsTrigger value="transactions" className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm text-[#6B7280] data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-                    Transactions
-                  </TabsTrigger>
-                  <TabsTrigger value="requests" className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm text-[#6B7280] data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-                    Requests
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+            <Tabs value={activeTab}>
+              <div className="mb-4">
 
               <TabsContent value="transactions">
                 {transactions.length === 0 ? (
@@ -398,13 +389,6 @@ export default function Ledger() {
                 )}
               </TabsContent>
 
-              <TabsContent value="requests">
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
-                  <MessageSquare size={40} className="mx-auto text-[#D1D5DB] mb-4" />
-                  <h3 className="text-base font-semibold text-[#111827] mb-1">No pricing requests yet</h3>
-                  <p className="text-sm text-[#6B7280] max-w-xs mx-auto">When buyers request a quote via "Contact for Pricing", their inquiries will appear here.</p>
-                </div>
-              </TabsContent>
             </Tabs>
           </motion.div>
         )}
