@@ -510,6 +510,13 @@ export default function Content() {
           </div>
         )}
       </div>
+          </TabsContent>
+
+          <TabsContent value="pricing-rules" className="mt-6">
+            <PricingRulesTab />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Article Detail Drawer */}
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
