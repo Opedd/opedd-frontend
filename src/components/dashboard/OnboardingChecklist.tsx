@@ -4,6 +4,7 @@ import { CheckCircle2, Circle, ArrowRight, PartyPopper, Loader2 } from "lucide-r
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 interface SetupState {
@@ -37,6 +38,7 @@ const STEPS = [
 export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?: () => void }) {
   const navigate = useNavigate();
   const { getAccessToken } = useAuth();
+  const { toast } = useToast();
   const [isStripeConnecting, setIsStripeConnecting] = useState(false);
   const [state, setState] = useState<SetupState>({
     content_imported: false,
@@ -89,10 +91,14 @@ export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?:
       if (result.success && result.data?.onboarding_url) {
         window.location.href = result.data.onboarding_url;
       } else {
-        navigate("/payments");
+        throw new Error(result.error || "Failed to start Stripe onboarding");
       }
-    } catch {
-      navigate("/payments");
+    } catch (err) {
+      toast({
+        title: "Stripe Connect Failed",
+        description: err instanceof Error ? err.message : "Something went wrong",
+        variant: "destructive",
+      });
     } finally {
       setIsStripeConnecting(false);
     }
