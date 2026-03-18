@@ -1,0 +1,88 @@
+name: E2E Gatekeeper
+
+# Triggers: every push to main and every PR targeting main.
+# Vercel's "Ignored Build Step" is configured to check this workflow — if it
+# fails, Vercel skips the deployment entirely.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel any in-progress run for the same branch/PR when a new commit arrives.
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15        # hard ceiling — never let a hung test block the queue
+
+    env:
+      # Passed straight through to Playwright / test fixtures
+      SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      PLAYWRIGHT_BASE_URL:  http://localhost:8080
+      # Keeps Vite from opening a browser tab in CI
+      CI: true
+
+    steps:
+      # ── 1. Source ────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node ─────────────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20        # LTS — matches Vercel's build runtime
+          cache: npm
+
+      # ── 3. Dependencies ──────────────────────────────────────────────────────
+      - name: Install npm dependencies
+        run: npm ci
+
+      # ── 4. Playwright browsers ───────────────────────────────────────────────
+      # Only installs Chromium (the one project in playwright.config.ts).
+      # --with-deps installs the OS-level shared libs (libnss, libgbm, etc.)
+      - name: Install Playwright + Chromium
+        run: npx playwright install --with-deps chromium
+
+      # ── 5. Build the frontend ────────────────────────────────────────────────
+      # Tests run against the compiled bundle served by `vite preview` — the
+      # same artifact Vercel would deploy, so failures are genuine regressions.
+      - name: Build frontend
+        run: npm run build
+
+      # ── 6. Start the preview server (background) ─────────────────────────────
+      # `vite preview` serves the build on port 8080 (matches playwright.config).
+      # We wait for it to be ready before handing off to Playwright.
+      - name: Start Vite preview server
+        run: |
+          npm run preview -- --port 8080 --host &
+          # Poll until the server responds (max 30 s)
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080 > /dev/null && echo "Server ready" && break
+            echo "Waiting for server... ($i/30)"
+            sleep 1
+          done
+
+      # ── 7. Run the full E2E suite ────────────────────────────────────────────
+      # Exit code != 0 fails this step → fails the job → blocks Vercel deploy.
+      - name: Run Playwright E2E tests
+        run: npm run test:e2e
+
+      # ── 8. Upload artefacts on failure ───────────────────────────────────────
+      # Screenshots, videos, and traces are only kept when tests fail.
+      # Download from the "Summary" tab → "Artifacts" in GitHub Actions.
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

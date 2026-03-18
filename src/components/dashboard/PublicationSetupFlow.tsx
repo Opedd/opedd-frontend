@@ -429,7 +429,7 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
 
           <button
             onClick={() => setStep("api_path")}
-            className="text-sm text-[#4A26ED] hover:underline font-medium flex items-center gap-1.5"
+            className="text-sm text-[#4A26ED] hover:underline font-medium flex items-center gap-1.5 min-h-[44px] px-2"
           >
             <Terminal size={14} className="flex-shrink-0" />
             Use API instead

@@ -52,9 +52,11 @@ export default function Onboarding() {
   const [importResult, setImportResult] = useState<{ inserted: number } | null>(null);
   const [copiedSnippet, setCopiedSnippet] = useState(false);
   const [publisherId, setPublisherId] = useState<string | null>(null);
-  const [verificationToken] = useState(() => `opedd-verify-${Math.random().toString(36).slice(2, 10)}`);
+  const [verificationToken, setVerificationToken] = useState("");
   const [copiedTxt, setCopiedTxt] = useState(false);
   const [dnsCheckStatus, setDnsCheckStatus] = useState<"idle" | "checking" | "pending" | "verified">("idle");
+  const [sourceId, setSourceId] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   const embedSnippet = `<script src="${EXT_SUPABASE_URL}/widget" data-publisher-id="${publisherId ?? "YOUR_PUBLISHER_ID"}"><\/script>`;
 
   React.useEffect(() => {
@@ -116,7 +118,9 @@ export default function Onboarding() {
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || "Import failed");
-      setImportResult({ inserted: result.data.new_articles_inserted });
+      setImportResult({ inserted: result.data.new_articles_inserted ?? result.data.article_urls_queued ?? 0 });
+      if (result.data.content_source_id) setSourceId(result.data.content_source_id);
+      if (result.data.verification_token) setVerificationToken(result.data.verification_token);
       // If using sitemap (custom domain), offer verification; otherwise skip to prices
       if (selectedSitemap && !selectedSitemap.includes("substack") && !selectedSitemap.includes("beehiiv")) {
         setStep("verify");
@@ -410,12 +414,34 @@ export default function Onboarding() {
               </div>
 
               <Button
-                onClick={() => {
+                onClick={async () => {
+                  if (!sourceId || isVerifying) return;
+                  setIsVerifying(true);
                   setDnsCheckStatus("checking");
-                  // Placeholder — will call verify-license endpoint when backend is ready
-                  setTimeout(() => setDnsCheckStatus("pending"), 2000);
+                  try {
+                    const token = await getAccessToken();
+                    const res = await fetch(`${EXT_SUPABASE_URL}/verify-source`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        apikey: EXT_ANON_KEY,
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({ source_id: sourceId, method: "dns_txt" }),
+                    });
+                    const result = await res.json();
+                    if (result.success && result.data?.verified) {
+                      setDnsCheckStatus("verified");
+                    } else {
+                      setDnsCheckStatus("pending");
+                    }
+                  } catch {
+                    setDnsCheckStatus("pending");
+                  } finally {
+                    setIsVerifying(false);
+                  }
                 }}
-                disabled={dnsCheckStatus === "checking"}
+                disabled={isVerifying || !sourceId}
                 variant="outline"
                 className="w-full h-11 border-slate-200"
               >
