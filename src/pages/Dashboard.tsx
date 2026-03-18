@@ -187,8 +187,8 @@ export default function Dashboard() {
           {/* Embed Widget Card */}
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-[#3182CE]/10 flex items-center justify-center">
-                <Code size={20} className="text-[#3182CE]" />
+              <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
+                <Code size={20} className="text-[#4A26ED]" />
               </div>
               <div>
                 <h3 className="text-[#111827] font-semibold text-base">Add licensing to your site</h3>

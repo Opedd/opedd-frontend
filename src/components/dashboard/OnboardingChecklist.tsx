@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Circle, ArrowRight, PartyPopper } from "lucide-react";
+import { CheckCircle2, Circle, ArrowRight, PartyPopper, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,6 +39,7 @@ const DISMISS_KEY = "opedd_onboarding_complete_dismissed";
 export function OnboardingChecklist() {
   const navigate = useNavigate();
   const { user, getAccessToken } = useAuth();
+  const [isStripeConnecting, setIsStripeConnecting] = useState(false);
   const [steps, setSteps] = useState<StepState>({
     content_imported: false,
     stripe_connected: false,
@@ -89,6 +90,31 @@ export function OnboardingChecklist() {
       setLoading(false);
     }
   }, [user, getAccessToken]);
+
+  const handleConnectStripe = useCallback(async () => {
+    setIsStripeConnecting(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        method: "POST",
+        headers: {
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "connect_stripe" }),
+      });
+      const result = await res.json();
+      if (result.success && result.data?.onboarding_url) {
+        window.location.href = result.data.onboarding_url;
+      }
+    } catch {
+      // Fallback to payments page if something goes wrong
+      navigate("/payments");
+    } finally {
+      setIsStripeConnecting(false);
+    }
+  }, [getAccessToken, navigate]);
 
   useEffect(() => {
     fetchState();
@@ -166,11 +192,15 @@ export function OnboardingChecklist() {
                 {!done && (
                     <Button
                     size="sm"
-                    onClick={() => navigate(step.path)}
+                    onClick={() => step.key === "stripe_connected" ? handleConnectStripe() : navigate(step.path)}
+                    disabled={step.key === "stripe_connected" && isStripeConnecting}
                     className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg"
                   >
-                    {step.cta}
-                    <ArrowRight size={12} className="ml-1" />
+                    {step.key === "stripe_connected" && isStripeConnecting ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <>{step.cta}<ArrowRight size={12} className="ml-1" /></>
+                    )}
                   </Button>
                 )}
               </div>

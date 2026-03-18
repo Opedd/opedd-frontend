@@ -269,7 +269,7 @@ export function PricingRulesTab() {
         <Button
           disabled={isSaving}
           onClick={handleSave}
-          className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white px-6"
+          className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6"
         >
           {isSaving ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Pricing Rules"}
         </Button>

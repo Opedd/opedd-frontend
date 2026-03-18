@@ -85,26 +85,30 @@ export default function Payments() {
     try {
       const result = await postAction("connect_stripe");
       if (result.success && result.data?.onboarding_url) {
-        window.open(result.data.onboarding_url, "_blank");
+        // Redirect in same tab — Stripe returns to /settings?stripe=complete
+        window.location.href = result.data.onboarding_url;
       } else {
         throw new Error(result.error?.message || "Failed to start Stripe onboarding");
       }
     } catch (err: unknown) {
       toast({ title: "Stripe Connect Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    } finally {
       setIsStripeConnecting(false);
     }
   };
 
   const handleOpenStripeDashboard = async () => {
+    // Open window synchronously (before async call) to avoid popup blocker
+    const newWindow = window.open("", "_blank");
     try {
       const result = await postAction("stripe_dashboard");
       if (result.success && result.data?.dashboard_url) {
-        window.open(result.data.dashboard_url, "_blank");
+        if (newWindow) newWindow.location.href = result.data.dashboard_url;
       } else {
+        if (newWindow) newWindow.close();
         throw new Error(result.error?.message || "Failed to open dashboard");
       }
     } catch (err: unknown) {
+      if (newWindow) newWindow.close();
       toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
     }
   };
@@ -169,10 +173,11 @@ export default function Payments() {
                     </p>
                     <Button
                       size="sm"
-                      onClick={handleOpenStripeDashboard}
+                      onClick={handleConnectStripe}
+                      disabled={isStripeConnecting}
                       className="flex-shrink-0 h-8 px-3 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-xs font-semibold rounded-lg"
                     >
-                      Complete Setup
+                      {isStripeConnecting ? <Loader2 size={12} className="animate-spin" /> : "Complete Setup"}
                     </Button>
                   </div>
                 )}

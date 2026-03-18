@@ -154,7 +154,7 @@ function ResendLicensesForm() {
         size="sm"
         disabled={sending || !email.trim()}
         onClick={handleResend}
-        className="flex-shrink-0 bg-[#3182CE] hover:bg-[#2B6CB0] text-white"
+        className="flex-shrink-0 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
       >
         {sending ? <Loader2 size={14} className="animate-spin" /> : "Resend All Licenses"}
       </Button>
@@ -814,7 +814,7 @@ export default function Settings() {
                       </div>
 
                       {/* Save Button */}
-                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-10 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
+                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
 
@@ -931,7 +931,7 @@ export default function Settings() {
                           <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
                         </div>
 
-                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-10 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
+                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
                           {isSaving ? "Saving..." : "Save rates"}
                         </Button>
                       </div>
@@ -1007,7 +1007,7 @@ export default function Settings() {
                                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                   <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                                 </div>
-                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-10 px-6 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold">
+                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-semibold">
                                   {isInviting ? <><Loader2 size={14} className="mr-2 animate-spin" />Sending...</> : <><Send size={14} className="mr-2" />Send Invite</>}
                                 </Button>
                               </div>
@@ -1119,7 +1119,7 @@ export default function Settings() {
                           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
                             <code className="text-sm text-[#040042] font-mono truncate block">{publisherId}</code>
                           </div>
-                          <Button size="sm" onClick={handleCopyPublisherId} className="h-10 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium flex-shrink-0 transition-all">
+                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0 transition-all">
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>
@@ -1151,7 +1151,7 @@ export default function Settings() {
                                 <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} className="h-10 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
                                   {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </Button>
-                                <Button size="sm" onClick={handleCopyApiKey} className="h-10 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium transition-all">
+                                <Button size="sm" onClick={handleCopyApiKey} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium transition-all">
                                   {apiKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
                                 </Button>
                               </div>
