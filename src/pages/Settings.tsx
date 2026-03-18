@@ -704,7 +704,7 @@ export default function Settings() {
 
                             <div className="flex items-center gap-3">
                               {plan === "free" && (
-                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold text-sm">
+                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
                                   Upgrade to Pro →
                                 </Button>
                               )}
