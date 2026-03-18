@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Asset, PaginatedResponse, DbAsset, mapDbAssetToUiAsset } from "@/types/asset";
 import { BulkPricingModal } from "@/components/dashboard/BulkPricingModal";
+import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
