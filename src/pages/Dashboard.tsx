@@ -112,7 +112,7 @@ export default function Dashboard() {
   
 
   if (!user) return null;
-  if (hasActivePublication === null || (isLoading && totalAssets === 0) || !referralChecked) return <PageLoader />;
+  if (hasActivePublication === null || !referralChecked) return <PageLoader />;
 
   // Show referral step first for new users
   if (needsReferral && !hasActivePublication && !setupDismissed) {
