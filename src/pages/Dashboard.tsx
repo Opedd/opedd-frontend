@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Code } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
@@ -180,26 +180,6 @@ export default function Dashboard() {
             <p className="text-white/60 text-xs font-medium uppercase tracking-wide">Total Revenue</p>
             <p className="text-2xl font-bold text-white mt-1">${totalRevenue.toFixed(2)}</p>
           </div>
-        </div>
-
-        {/* Action Cards Row */}
-        {/* Embed Widget Card */}
-        <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
-              <Code size={20} className="text-[#4A26ED]" />
-            </div>
-            <div>
-              <h3 className="text-[#111827] font-semibold text-base">Add licensing to your site</h3>
-              <p className="text-[#6B7280] text-sm mt-0.5">Embed one script tag to add a licensing button to every article.</p>
-            </div>
-          </div>
-          <Button
-            onClick={() => navigate("/connectors?tab=widget")}
-            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
-          >
-            Get embed code
-          </Button>
         </div>
 
         {/* Import Progress Banner */}
