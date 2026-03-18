@@ -14,7 +14,7 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const val = sessionStorage.getItem(BANNER_KEY);
+    const val = localStorage.getItem(BANNER_KEY);
     if (val === "true") setDismissed(true);
   }, []);
 
@@ -24,7 +24,7 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
 
   const handleDismiss = () => {
     setDismissed(true);
-    sessionStorage.setItem(BANNER_KEY, "true");
+    localStorage.setItem(BANNER_KEY, "true");
   };
 
   const steps = [

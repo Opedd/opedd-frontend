@@ -102,14 +102,15 @@ export function OnboardingChecklist() {
 
   if (loading) return null;
 
-  // Permanently hidden once DB says setup is complete
-  if (state.setup_complete) return null;
-
   const stepKeys = ["content_imported", "stripe_connected", "widget_added"] as const;
   const completedCount = stepKeys.filter((k) => state[k]).length;
   const totalCount = STEPS.length;
   const allDone = completedCount === totalCount;
   const pct = (completedCount / totalCount) * 100;
+
+  // Hide permanently only when setup was completed AND all steps are still active.
+  // If a step later becomes incomplete (e.g. Stripe disconnected), show the checklist again.
+  if (state.setup_complete && allDone) return null;
 
   // All 3 steps done but setup_complete not yet persisted — show success banner
   if (allDone) {

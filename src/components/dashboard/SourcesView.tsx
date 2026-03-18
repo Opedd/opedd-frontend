@@ -85,11 +85,20 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     setIsLoading(true);
     try {
       const [sourcesRes, publisherRes] = await Promise.all([
-        supabase.from("rss_sources").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        (supabase.from as any)("content_sources")
+          .select("id, name, url, source_type, sync_status, article_count, last_synced_at, created_at, verification_token, verification_status")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
         (supabase.from as any)("publishers").select("logo_url").eq("user_id", user.id).maybeSingle(),
       ]);
       if (sourcesRes.error) throw sourcesRes.error;
-      setSources(sourcesRes.data || []);
+      // Map content_sources columns to the Source interface
+      const mapped = (sourcesRes.data || []).map((row: any) => ({
+        ...row,
+        feed_url: row.url,
+        platform: row.source_type,
+      }));
+      setSources(mapped);
       setPublisherLogoUrl(publisherRes.data?.logo_url || null);
     } catch (err) {
       console.error("Error fetching sources:", err);
@@ -135,7 +144,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           {
             event: 'UPDATE',
             schema: 'public',
-            table: 'rss_sources',
+            table: 'content_sources',
             filter: `id=eq.${source.id}`,
           },
           (payload: any) => {
@@ -181,27 +190,9 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   const handleDelete = async (source: Source) => {
     try {
-      // Find content_source by feed_url + user
-      const { data: contentSource } = await (supabase as any)
-        .from("content_sources")
-        .select("id")
-        .eq("url", source.feed_url)
-        .eq("user_id", user!.id)
-        .maybeSingle();
-
-      if (contentSource?.id) {
-        // Delete articles linked to this source
-        await (supabase as any).from("licenses").delete().eq("source_id", contentSource.id);
-        // Delete the content source
-        await (supabase as any).from("content_sources").delete().eq("id", contentSource.id);
-      }
-
-      // Always delete the rss_sources record
-      await supabase
-        .from("rss_sources")
-        .delete()
-        .eq("id", source.id)
-        .eq("user_id", user!.id);
+      // Delete articles linked to this source, then the source itself
+      await (supabase as any).from("licenses").delete().eq("source_id", source.id);
+      await (supabase as any).from("content_sources").delete().eq("id", source.id).eq("user_id", user!.id);
 
       setSources(prev => prev.filter(s => s.id !== source.id));
       toast({
