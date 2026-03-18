@@ -763,7 +763,7 @@ export default function Settings() {
                           <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label className="text-[#040042] font-bold text-sm">Publisher Name</Label>
-                              <Input value={publisherName} onChange={(e) => setPublisherName(e.target.value)} placeholder="Your display name" className="bg-slate-50 border-slate-200 h-12 rounded-lg focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                              <Input value={publisherName} onChange={(e) => setPublisherName(e.target.value)} placeholder="Your display name" className="bg-slate-50 border-slate-200 h-10 rounded-lg focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                             </div>
                             <div className="space-y-2">
                               <Label className="text-[#040042] font-bold text-sm">Email Address</Label>
