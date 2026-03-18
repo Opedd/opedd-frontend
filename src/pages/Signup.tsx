@@ -39,16 +39,18 @@ export default function Signup() {
   const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
 
-  // When waiting for email verification, listen for auth state changes so the
-  // page auto-redirects as soon as the user clicks the link in another tab.
+  // When waiting for email verification, poll for a session every 3s so the
+  // page auto-redirects as soon as the user clicks the link (in any tab).
   useEffect(() => {
     if (viewMode !== "verify-email") return;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session) {
+    const interval = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        clearInterval(interval);
         window.location.href = "/dashboard";
       }
-    });
-    return () => subscription.unsubscribe();
+    }, 3000);
+    return () => clearInterval(interval);
   }, [viewMode]);
 
   const validateForm = (): string | null => {

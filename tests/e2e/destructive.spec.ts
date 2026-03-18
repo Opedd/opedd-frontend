@@ -178,22 +178,15 @@ test("11 · Spam: clicking 'Detect my content' 5× rapidly fires only 1 API call
     });
   });
 
-  await loginAndGoto(page, "/dashboard");
+  // Navigate directly to /onboarding where "Detect my content" is always the primary CTA
+  // (Dashboard no longer embeds the setup flow inline — it lives in /onboarding)
+  await loginAndGoto(page, "/onboarding");
 
-  // Handle referral step if it appears (publisher-profile doesn't return referral_source
-  // because auth.ts select doesn't include it — so this gate always fires for test users)
-  const skipBtn = page.getByText("Skip");
-  if (await skipBtn.isVisible({ timeout: 4_000 }).catch(() => false)) {
-    await skipBtn.click();
-    await page.waitForLoadState("networkidle");
-  }
-
-  // The setup flow should be visible (new publisher, no active publication)
-  const urlInput = page.locator('input[placeholder*="yoursite"]').first();
+  const urlInput = page.locator('input[placeholder*="yoursite"], input[placeholder*="domain"]').first();
   await expect(urlInput).toBeVisible({ timeout: 8_000 });
   await urlInput.fill("https://e2e-spam-test.invalid");
 
-  const detectBtn = page.getByRole("button", { name: /detect my content/i }).first();
+  const detectBtn = page.getByRole("button", { name: /detect my content|detect/i }).first();
   await expect(detectBtn).toBeVisible({ timeout: 5_000 });
 
   // Fire 5 rapid clicks. After the first click the button may enter a loading state

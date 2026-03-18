@@ -175,7 +175,7 @@ export function OnboardingChecklist() {
                     size="sm"
                     onClick={() => step.key === "stripe_connected" ? handleConnectStripe() : navigate(step.path)}
                     disabled={step.key === "stripe_connected" && isStripeConnecting}
-                    className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg"
+                    className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg"
                   >
                     {step.key === "stripe_connected" && isStripeConnecting ? (
                       <Loader2 size={12} className="animate-spin" />
