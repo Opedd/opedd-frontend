@@ -552,19 +552,18 @@ export default function Settings() {
                       {profile?.stripe_account_id && (
                         !profile.stripe_onboarding_complete || (profile.stripe_connect && !profile.stripe_connect.payouts_enabled)
                       ) && (
-                        <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
-                          <AlertTriangle size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                       <div className="flex items-start gap-3 rounded-xl border border-[#4A26ED]/20 bg-[#EEF0FF] px-5 py-4">
+                          <AlertTriangle size={18} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-amber-900">
+                            <p className="text-sm font-medium text-[#040042]">
                               {!profile.stripe_onboarding_complete
                                 ? "Your Stripe payouts are not yet enabled. Complete your Stripe account setup to receive payments."
                                 : "Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments."}
                             </p>
                           </div>
                           <Button
-                            variant="outline"
                             size="sm"
-                            className="border-amber-400 text-amber-800 hover:bg-amber-100 flex-shrink-0"
+                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white flex-shrink-0"
                             onClick={async () => {
                               try {
                                 const headers = await apiHeaders();
