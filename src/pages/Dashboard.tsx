@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [sourcesKey, setSourcesKey] = useState(0);
-  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  
 
   // Setup flow state
   const [hasActivePublication, setHasActivePublication] = useState<boolean | null>(null);
