@@ -911,7 +911,7 @@ export default function Settings() {
                           </div>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                            <Input type="number" min="0" step="0.01" value={defaultSyndicationPrice} onChange={(e) => setDefaultSyndicationPrice(e.target.value)} className="bg-white border-slate-200 h-11 rounded-xl pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                            <Input type="number" min="0" step="0.01" value={defaultSyndicationPrice} onChange={(e) => setDefaultSyndicationPrice(e.target.value)} className="bg-white border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                           </div>
                           <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
                         </div>
