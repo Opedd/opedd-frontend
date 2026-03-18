@@ -1151,7 +1151,7 @@ export default function Settings() {
                                 <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} className="h-10 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
                                   {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </Button>
-                                <Button size="sm" onClick={handleCopyApiKey} className="h-11 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium transition-all">
+                                <Button size="sm" onClick={handleCopyApiKey} className="h-10 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium transition-all">
                                   {apiKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
                                 </Button>
                               </div>
