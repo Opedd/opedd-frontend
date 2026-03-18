@@ -51,10 +51,24 @@ export default function Onboarding() {
   const [isSettingPrices, setIsSettingPrices] = useState(false);
   const [importResult, setImportResult] = useState<{ inserted: number } | null>(null);
   const [copiedSnippet, setCopiedSnippet] = useState(false);
+  const [publisherId, setPublisherId] = useState<string | null>(null);
   const [verificationToken] = useState(() => `opedd-verify-${Math.random().toString(36).slice(2, 10)}`);
   const [copiedTxt, setCopiedTxt] = useState(false);
   const [dnsCheckStatus, setDnsCheckStatus] = useState<"idle" | "checking" | "pending" | "verified">("idle");
-  const embedSnippet = `<script src="${EXT_SUPABASE_URL}/widget" data-publisher-id="YOUR_PUBLISHER_ID"><\/script>`;
+  const embedSnippet = `<script src="${EXT_SUPABASE_URL}/widget" data-publisher-id="${publisherId ?? "YOUR_PUBLISHER_ID"}"><\/script>`;
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        if (json.success && json.data?.id) setPublisherId(json.data.id);
+      } catch { /* non-critical */ }
+    })();
+  }, [getAccessToken]);
 
   const detectFeeds = async () => {
     if (!domain.trim()) return;

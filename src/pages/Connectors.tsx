@@ -13,7 +13,6 @@ import {
   Eye,
   AlertTriangle,
   Shield,
-  RefreshCw,
   Info,
 } from "lucide-react";
 import {
@@ -77,7 +76,6 @@ export default function Connectors() {
   const [showDeliveries, setShowDeliveries] = useState(false);
   const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
   const [publisherId, setPublisherId] = useState<string | null>(null);
-  const [retryingDeliveryId, setRetryingDeliveryId] = useState<string | null>(null);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -307,29 +305,7 @@ export default function Connectors() {
                                 </Badge>
                                 <span className="text-slate-500">{d.attempts ?? "—"}/{d.max_attempts ?? 3}</span>
                                 <span className="text-slate-400">{new Date(d.timestamp).toLocaleString()}</span>
-                                <div>
-                                  {d.status === "failed" && (
-                                    <button
-                                      disabled={retryingDeliveryId === d.id}
-                                      onClick={async () => {
-                                        setRetryingDeliveryId(d.id);
-                                        try {
-                                          await postAction("retry_webhook_delivery", { delivery_id: d.id });
-                                          toast({ title: "Retry queued", description: "The delivery will be retried shortly." });
-                                          handleViewDeliveries();
-                                        } catch {
-                                          toast({ title: "Retry failed", variant: "destructive" });
-                                        } finally {
-                                          setRetryingDeliveryId(null);
-                                        }
-                                      }}
-                                      className="text-[#4A26ED] hover:text-[#3B1ED1] font-medium flex items-center gap-1"
-                                    >
-                                      {retryingDeliveryId === d.id ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
-                                      Retry
-                                    </button>
-                                  )}
-                                </div>
+                                <div />
                               </div>
                             ))}
                           </div>

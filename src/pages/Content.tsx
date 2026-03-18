@@ -607,10 +607,6 @@ export default function Content() {
                         <div><p className="text-sm font-medium text-[#111827]">Permission</p><p className="text-xs text-[#9CA3AF]">Quote, cite, or share</p></div>
                         <span className="text-sm font-semibold text-[#111827]">{selectedAsset.human_price ? `$${selectedAsset.human_price}` : <span className="text-[#D1D5DB] font-normal">Not set</span>}</span>
                       </div>
-                      <div className="flex items-center justify-between py-2.5 border-b border-[#F3F4F6]">
-                        <div><p className="text-sm font-medium text-[#111827]">Syndication</p><p className="text-xs text-[#9CA3AF]">Republication, translation</p></div>
-                        <span className="text-sm text-[#D1D5DB] font-normal">Not set</span>
-                      </div>
                       <div className="flex items-center justify-between py-2.5">
                         <div><p className="text-sm font-medium text-[#111827]">AI training</p><p className="text-xs text-[#9CA3AF]">Dataset licensing</p></div>
                         <span className="text-sm font-semibold text-[#111827]">{selectedAsset.ai_price ? `$${selectedAsset.ai_price}` : <span className="text-[#D1D5DB] font-normal">Disabled</span>}</span>

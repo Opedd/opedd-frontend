@@ -115,19 +115,25 @@ function ResendLicensesForm() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const { toast } = useToast();
 
   const handleResend = async () => {
     if (!email.trim()) return;
     setSending(true);
     try {
-      await fetch(`${EXT_SUPABASE_URL}/resend-licenses`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/resend-licenses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-      setSent(true);
+      const result = await res.json();
+      if (res.ok && result.success !== false) {
+        setSent(true);
+      } else {
+        toast({ title: "Failed to send", description: result.error?.message || "Please try again", variant: "destructive" });
+      }
     } catch {
-      setSent(true);
+      toast({ title: "Failed to send", description: "Something went wrong. Please try again.", variant: "destructive" });
     } finally {
       setSending(false);
     }
@@ -567,18 +573,34 @@ export default function Settings() {
                             onClick={async () => {
                               try {
                                 const headers = await apiHeaders();
-                                const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                                  method: "POST",
-                                  headers,
-                                  body: JSON.stringify({ action: "stripe_dashboard" }),
-                                });
-                                const result = await res.json();
-                                if (result.success && result.data?.url) {
-                                  window.open(result.data.url, "_blank");
-                                } else if (result.data?.onboarding_url) {
-                                  window.open(result.data.onboarding_url, "_blank");
+                                if (!profile.stripe_onboarding_complete) {
+                                  // Incomplete onboarding — redirect in same tab to avoid popup blocker
+                                  const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                                    method: "POST",
+                                    headers,
+                                    body: JSON.stringify({ action: "connect_stripe" }),
+                                  });
+                                  const result = await res.json();
+                                  if (result.success && result.data?.onboarding_url) {
+                                    window.location.href = result.data.onboarding_url;
+                                  } else {
+                                    toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
+                                  }
                                 } else {
-                                  toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
+                                  // Onboarding complete but payouts disabled — open Stripe dashboard
+                                  const newWindow = window.open("", "_blank");
+                                  const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                                    method: "POST",
+                                    headers,
+                                    body: JSON.stringify({ action: "stripe_dashboard" }),
+                                  });
+                                  const result = await res.json();
+                                  if (result.success && result.data?.dashboard_url) {
+                                    if (newWindow) newWindow.location.href = result.data.dashboard_url;
+                                  } else {
+                                    if (newWindow) newWindow.close();
+                                    toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
+                                  }
                                 }
                               } catch {
                                 toast({ title: "Error", description: "Something went wrong", variant: "destructive" });
@@ -856,15 +878,15 @@ export default function Settings() {
                             onClick={async () => {
                               try {
                                 const headers = await apiHeaders();
+                                // Always use connect_stripe when onboarding is incomplete (stripe_dashboard fails on incomplete accounts)
                                 const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
                                   method: "POST",
                                   headers,
-                                  body: JSON.stringify({ action: profile.stripe_account_id ? "stripe_dashboard" : "connect_stripe" }),
+                                  body: JSON.stringify({ action: "connect_stripe" }),
                                 });
                                 const result = await res.json();
-                                const url = result.data?.url || result.data?.onboarding_url;
-                                if (url) {
-                                  window.open(url, "_blank");
+                                if (result.success && result.data?.onboarding_url) {
+                                  window.location.href = result.data.onboarding_url;
                                 } else {
                                   toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
                                 }
