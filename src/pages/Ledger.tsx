@@ -69,7 +69,7 @@ export default function Ledger() {
   const { toast } = useToast();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeTab] = useState("transactions");
+  const [activeTab, setActiveTab] = useState("licenses");
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
@@ -213,12 +213,12 @@ export default function Ledger() {
   if (isLoading && transactions.length === 0) return <PageLoader />;
 
   return (
-    <DashboardLayout title="Transactions" subtitle="All licensing revenue and settlements">
+    <DashboardLayout title="Buyers" subtitle="License agreements and buyer transactions">
       <motion.div className="p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
         <motion.div className="flex items-center justify-between" variants={itemVariants}>
           <div>
-            <h1 className="text-2xl font-bold text-[#111827]">Transactions</h1>
-            <p className="text-sm text-[#6B7280] mt-0.5">All licensing revenue and settlements</p>
+            <h1 className="text-2xl font-bold text-[#111827]">Buyers</h1>
+            <p className="text-sm text-[#6B7280] mt-0.5">License agreements and buyer transactions</p>
           </div>
           <Button onClick={handleExportCSV} disabled={isExporting || transactions.length === 0} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-medium px-4 py-2 rounded-lg">
             {isExporting ? <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</> : <><Download size={16} className="mr-2" />Export CSV</>}
@@ -259,18 +259,20 @@ export default function Ledger() {
 
         {!fetchError && (
           <motion.div variants={itemVariants}>
-            <Tabs value={activeTab}>
-              <div className="mb-4">
-              </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="bg-[#F3F4F6] rounded-lg p-1 mb-6">
+                <TabsTrigger value="licenses" className="rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">Active Licenses</TabsTrigger>
+                <TabsTrigger value="inquiries" className="rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">Inquiries</TabsTrigger>
+              </TabsList>
 
-              <TabsContent value="transactions">
+              <TabsContent value="licenses">
                 {transactions.length === 0 ? (
                   <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
                     <FileCheck size={40} className="mx-auto text-[#D1D5DB] mb-4" />
                     <h3 className="text-base font-semibold text-[#111827] mb-1">No transactions yet</h3>
                     <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-5">Once buyers license your articles, all transactions will appear here with full details.</p>
                     <Button
-                      onClick={() => navigate("/settings")}
+                      onClick={() => navigate("/licensing")}
                       className="bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-medium px-5 py-2 rounded-lg"
                     >
                       Share your licensing page
@@ -382,6 +384,22 @@ export default function Ledger() {
                     </Table>
                   </div>
                 )}
+              </TabsContent>
+
+              <TabsContent value="inquiries">
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
+                  <Wallet size={40} className="mx-auto text-[#D1D5DB] mb-4" />
+                  <h3 className="text-base font-semibold text-[#111827] mb-1">No inquiries yet</h3>
+                  <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-5">
+                    When buyers contact you directly about licensing, their inquiries will appear here.
+                  </p>
+                  <Button
+                    onClick={() => navigate("/licensing")}
+                    className="bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-medium px-5 py-2 rounded-lg"
+                  >
+                    Share your licensing page
+                  </Button>
+                </div>
               </TabsContent>
 
             </Tabs>

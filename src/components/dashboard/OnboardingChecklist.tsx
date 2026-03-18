@@ -1,80 +1,78 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Circle, ArrowRight, PartyPopper, Loader2 } from "lucide-react";
+import {
+  CheckCircle2, Circle, ArrowRight, PartyPopper, Loader2, Copy, Check,
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
-interface SetupState {
-  content_imported: boolean;
-  stripe_connected: boolean;
-  widget_added: boolean;
-  setup_complete: boolean;
+interface Props {
+  contentImported: boolean;
+  pricingConfigured: boolean;
+  stripeConnected: boolean;
+  setupComplete: boolean;
+  publisherSlug: string | null;
+  onRegisterContent?: () => void;
 }
 
-const STEPS = [
-  {
-    key: "content_imported" as const,
-    label: "Import your content",
-    cta: "Import content",
-    path: "/content",
-  },
-  {
-    key: "stripe_connected" as const,
-    label: "Connect Stripe",
-    cta: "Connect Stripe",
-    path: "/payments",
-  },
-  {
-    key: "widget_added" as const,
-    label: "Embed the licensing widget",
-    cta: "Get embed code",
-    path: "/connectors?tab=widget",
-  },
-];
-
-export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?: () => void }) {
+export function OnboardingChecklist({
+  contentImported,
+  pricingConfigured,
+  stripeConnected,
+  setupComplete,
+  publisherSlug,
+  onRegisterContent,
+}: Props) {
   const navigate = useNavigate();
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
+
   const [isStripeConnecting, setIsStripeConnecting] = useState(false);
-  const [state, setState] = useState<SetupState>({
-    content_imported: false,
-    stripe_connected: false,
-    widget_added: false,
-    setup_complete: false,
-  });
-  const [loading, setLoading] = useState(true);
-  // Local dismiss: only used to hide the "You're all set!" banner in the current session.
-  // The checklist is permanently hidden once setup_complete=true in DB (no localStorage needed).
+  const [linkCopied, setLinkCopied] = useState(false);
   const [sessionDismissed, setSessionDismissed] = useState(false);
 
-  const fetchState = useCallback(async () => {
-    try {
-      const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        const d = json.data;
-        setState({
-          content_imported: d.content_imported || false,
-          stripe_connected: d.stripe_onboarding_complete || false,
-          widget_added: d.widget_added || false,
-          setup_complete: d.setup_complete || false,
-        });
-      }
-    } catch (err) {
-      console.warn("[OnboardingChecklist] fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [getAccessToken]);
+  // Step 4 completes automatically when steps 1–3 are all done
+  const shareComplete = contentImported && pricingConfigured && stripeConnected;
 
-  const handleConnectStripe = useCallback(async () => {
+  const steps = [
+    {
+      key: "content" as const,
+      label: "Import your content",
+      description: "Add your RSS feed or sitemap to populate your catalog.",
+      cta: "Import Content",
+      done: contentImported,
+    },
+    {
+      key: "pricing" as const,
+      label: "Set up your license types",
+      description: "Configure what types of licenses you offer and at what price.",
+      cta: "Configure Licensing",
+      done: pricingConfigured,
+    },
+    {
+      key: "stripe" as const,
+      label: "Connect Stripe to get paid",
+      description: "Link your Stripe account to receive payments directly.",
+      cta: "Connect Stripe",
+      done: stripeConnected,
+    },
+    {
+      key: "share" as const,
+      label: "Share your licensing page",
+      description: "Your public storefront is live. Share it with buyers and AI companies.",
+      cta: "Copy Link",
+      done: shareComplete,
+    },
+  ] as const;
+
+  const completedCount = steps.filter((s) => s.done).length;
+  const allDone = completedCount === steps.length;
+  const pct = (completedCount / steps.length) * 100;
+
+  const handleConnectStripe = async () => {
     setIsStripeConnecting(true);
     try {
       const token = await getAccessToken();
@@ -102,25 +100,23 @@ export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?:
     } finally {
       setIsStripeConnecting(false);
     }
-  }, [getAccessToken, navigate]);
+  };
 
-  useEffect(() => {
-    fetchState();
-  }, [fetchState]);
+  const handleCopyLink = async () => {
+    const url = publisherSlug ? `https://opedd.com/p/${publisherSlug}` : "https://opedd.com/p/";
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      /* ignore */
+    }
+  };
 
-  if (loading) return null;
+  // Permanently hide once setup_complete=true and all steps done
+  if (setupComplete && allDone) return null;
 
-  const stepKeys = ["content_imported", "stripe_connected", "widget_added"] as const;
-  const completedCount = stepKeys.filter((k) => state[k]).length;
-  const totalCount = STEPS.length;
-  const allDone = completedCount === totalCount;
-  const pct = (completedCount / totalCount) * 100;
-
-  // Hide permanently only when setup was completed AND all steps are still active.
-  // If a step later becomes incomplete (e.g. Stripe disconnected), show the checklist again.
-  if (state.setup_complete && allDone) return null;
-
-  // All 3 steps done but setup_complete not yet persisted — show success banner
+  // "You're all set!" banner — shown when all 4 steps are done, dismiss per session
   if (allDone) {
     if (sessionDismissed) return null;
     return (
@@ -129,7 +125,7 @@ export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?:
           <PartyPopper size={24} className="text-emerald-500 flex-shrink-0" />
           <div className="flex-1">
             <h3 className="text-base font-bold text-[#111827]">You're all set!</h3>
-            <p className="text-sm text-[#6B7280] mt-0.5">Your publication is fully configured and ready to earn.</p>
+            <p className="text-sm text-[#6B7280] mt-0.5">Your licensing page is live and ready to earn.</p>
           </div>
           <button
             onClick={() => setSessionDismissed(true)}
@@ -144,58 +140,92 @@ export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?:
 
   return (
     <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-base font-bold text-[#111827]">Get started with Opedd</h3>
-          <p className="text-sm text-[#6B7280] mt-0.5">
-            {completedCount} of {totalCount} steps complete
-          </p>
-        </div>
+      <div className="mb-4">
+        <h3 className="text-base font-bold text-[#111827]">Get started with Opedd</h3>
+        <p className="text-sm text-[#6B7280] mt-0.5">{completedCount} of {steps.length} steps complete</p>
       </div>
 
       <Progress value={pct} className="h-2 mb-5 bg-[#F3F4F6] [&>div]:bg-[#4A26ED]" />
 
       <ul className="space-y-1">
-        {STEPS.map((step) => {
-          const done = state[step.key];
+        {steps.map((step) => (
+          <li key={step.key}>
+            <div
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                step.done ? "bg-transparent" : "hover:bg-[#F9FAFB]"
+              }`}
+            >
+              {step.done ? (
+                <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
+              ) : (
+                <Circle size={20} className="text-[#D1D5DB] flex-shrink-0" />
+              )}
 
-          return (
-            <li key={step.key}>
-              <div
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                  done ? "bg-transparent" : "hover:bg-[#F9FAFB]"
-                }`}
-              >
-                {done ? (
-                  <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
-                ) : (
-                  <Circle size={20} className="text-[#D1D5DB] flex-shrink-0" />
-                )}
-                <span
-                  className={`text-sm flex-1 ${
-                    done ? "text-[#9CA3AF] line-through" : "text-[#111827] font-medium"
-                  }`}
-                >
+              <div className="flex-1 min-w-0">
+                <span className={`text-sm block ${step.done ? "text-[#9CA3AF] line-through" : "text-[#111827] font-medium"}`}>
                   {step.label}
                 </span>
-                {!done && (
-                  <Button
-                    size="sm"
-                    onClick={() => step.key === "stripe_connected" ? handleConnectStripe() : step.key === "content_imported" && onRegisterContent ? onRegisterContent() : navigate(step.path)}
-                    disabled={step.key === "stripe_connected" && isStripeConnecting}
-                    className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg"
-                  >
-                    {step.key === "stripe_connected" && isStripeConnecting ? (
-                      <Loader2 size={12} className="animate-spin" />
-                    ) : (
-                      <>{step.cta}<ArrowRight size={12} className="ml-1" /></>
-                    )}
-                  </Button>
+                {!step.done && (
+                  <span className="text-xs text-[#9CA3AF]">{step.description}</span>
                 )}
               </div>
-            </li>
-          );
-        })}
+
+              {!step.done && (
+                <>
+                  {step.key === "content" && (
+                    <Button
+                      size="sm"
+                      onClick={() => onRegisterContent ? onRegisterContent() : navigate("/content")}
+                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                    >
+                      {step.cta}<ArrowRight size={12} className="ml-1" />
+                    </Button>
+                  )}
+
+                  {step.key === "pricing" && (
+                    <Button
+                      size="sm"
+                      onClick={() => navigate("/licensing")}
+                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                    >
+                      {step.cta}<ArrowRight size={12} className="ml-1" />
+                    </Button>
+                  )}
+
+                  {step.key === "stripe" && (
+                    <Button
+                      size="sm"
+                      onClick={handleConnectStripe}
+                      disabled={isStripeConnecting}
+                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                    >
+                      {isStripeConnecting ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <>{step.cta}<ArrowRight size={12} className="ml-1" /></>
+                      )}
+                    </Button>
+                  )}
+
+                  {step.key === "share" && (
+                    <Button
+                      size="sm"
+                      onClick={handleCopyLink}
+                      disabled={!shareComplete}
+                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                    >
+                      {linkCopied ? (
+                        <><Check size={12} className="mr-1" />Copied!</>
+                      ) : (
+                        <><Copy size={12} className="mr-1" />{step.cta}</>
+                      )}
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+          </li>
+        ))}
       </ul>
     </div>
   );

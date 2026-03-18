@@ -30,6 +30,8 @@ import Privacy from "./pages/Privacy";
 import Pricing from "./pages/Pricing";
 import AuthCallback from "./pages/AuthCallback";
 import Licenses from "./pages/Licenses";
+import Licensing from "./pages/Licensing";
+import PublisherLicensingPage from "./pages/PublisherLicensingPage";
 
 import ForAiAgents from "./pages/ForAiAgents";
 import Admin from "./pages/Admin";
@@ -52,6 +54,7 @@ const App = () => (
               <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
+              <Route path="/licensing" element={<ProtectedRoute><Licensing /></ProtectedRoute>} />
               <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
               <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
               <Route path="/connectors" element={<ProtectedRoute><Connectors /></ProtectedRoute>} />
@@ -60,6 +63,7 @@ const App = () => (
               {/* Redirect old routes */}
               <Route path="/integrations" element={<Navigate to="/connectors" replace />} />
               <Route path="/license/success" element={<LicenseSuccess />} />
+              <Route path="/p/:publisherSlug" element={<PublisherLicensingPage />} />
               <Route path="/l/:id" element={<LicensePublicCheckout />} />
               <Route path="/l" element={<LicenseByUrl />} />
               <Route path="/verify" element={<LicenseVerify />} />

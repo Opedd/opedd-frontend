@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { Shield, Loader2, ChevronDown, CheckCircle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,34 @@ interface AssetRow {
   licensing_enabled: boolean | null;
 }
 
-type LicenseType = "human" | "ai";
+type LicenseType = "editorial" | "ai_inference" | "ai_training" | "corporate";
+
+const LICENSE_TYPE_OPTIONS: { value: LicenseType; label: string }[] = [
+  { value: "editorial",    label: "Editorial License" },
+  { value: "ai_inference", label: "AI / RAG License" },
+  { value: "ai_training",  label: "AI Training License" },
+  { value: "corporate",    label: "Corporate License" },
+];
+
+const VALID_LICENSE_TYPES = new Set<string>(LICENSE_TYPE_OPTIONS.map((o) => o.value));
+
+function parseLicenseType(raw: string | null): LicenseType {
+  if (raw && VALID_LICENSE_TYPES.has(raw)) return raw as LicenseType;
+  return "editorial";
+}
+
+function getPrice(type: LicenseType, asset: AssetRow): number {
+  switch (type) {
+    case "editorial":    return asset.human_price ?? 0;
+    case "ai_inference": return asset.ai_price ?? 0;
+    case "ai_training":  return asset.ai_price ?? 0;
+    case "corporate":    return (asset.human_price ?? 0) * 5;
+  }
+}
+
+function getLicenseLabel(type: LicenseType): string {
+  return LICENSE_TYPE_OPTIONS.find((o) => o.value === type)?.label ?? type;
+}
 
 const INTENDED_USE_OPTIONS = [
   { value: "personal", label: "Personal Use" },
@@ -29,12 +56,14 @@ const INTENDED_USE_OPTIONS = [
 
 export default function LicensePublicCheckout() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
 
   const [asset, setAsset] = useState<AssetRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  const [selected, setSelected] = useState<LicenseType | null>(null);
+  const licenseTypeParam = new URLSearchParams(location.search).get("type");
+  const [selected, setSelected] = useState<LicenseType>(parseLicenseType(licenseTypeParam));
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState("");
   const [email, setEmail] = useState("");
@@ -42,7 +71,6 @@ export default function LicensePublicCheckout() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [freeSuccess, setFreeSuccess] = useState<{ license_key: string } | null>(null);
-
 
   useEffect(() => {
     if (!id) return;
@@ -58,10 +86,6 @@ export default function LicensePublicCheckout() {
           setNotFound(true);
         } else {
           setAsset(row);
-          const hasH = row.human_price != null;
-          const hasA = row.ai_price != null;
-          if (hasH && !hasA) setSelected("human");
-          if (hasA && !hasH) setSelected("ai");
         }
       } catch {
         setNotFound(true);
@@ -71,7 +95,7 @@ export default function LicensePublicCheckout() {
   }, [id]);
 
   const handleSubmit = async () => {
-    if (!selected || !email || !asset) return;
+    if (!email || !asset) return;
     setError(null);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -80,7 +104,7 @@ export default function LicensePublicCheckout() {
       return;
     }
 
-    const price = selected === "human" ? (asset.human_price ?? 0) : (asset.ai_price ?? 0);
+    const price = getPrice(selected, asset);
     const isFree = price === 0;
 
     setSubmitting(true);
@@ -138,14 +162,11 @@ export default function LicensePublicCheckout() {
   };
 
 
-  const hasHuman = asset?.human_price != null;
-  const hasAi = asset?.ai_price != null;
   const isVerified = asset?.verification_status === "verified";
-  const canSubmit = !!selected && !!email && !submitting && !freeSuccess;
-  const selectedPrice = selected === "human" ? (asset?.human_price ?? 0) : selected === "ai" ? (asset?.ai_price ?? 0) : 0;
+  const selectedPrice = asset ? getPrice(selected, asset) : 0;
+  const selectedLabel = getLicenseLabel(selected);
   const isPaid = selectedPrice > 0;
-
-  const selectedLabel = selected === "human" ? "Human License" : selected === "ai" ? "AI Training License" : null;
+  const canSubmit = !!email && !submitting && !freeSuccess;
 
   // — Loading —
   if (loading) {
@@ -168,11 +189,6 @@ export default function LicensePublicCheckout() {
     );
   }
 
-
-  // — License option cards —
-  const licenseOptions: { type: LicenseType; label: string; price: number }[] = [];
-  if (hasHuman) licenseOptions.push({ type: "human", label: "Human License", price: asset.human_price ?? 0 });
-  if (hasAi) licenseOptions.push({ type: "ai", label: "AI Training License", price: asset.ai_price ?? 0 });
 
   // — Left panel content (shared between desktop and mobile) —
   const ArticleInfo = ({ mobile = false }: { mobile?: boolean }) => (
@@ -315,34 +331,30 @@ export default function LicensePublicCheckout() {
 
             {/* License Type */}
             <div className="space-y-1.5">
-              <Label className="text-[#040042]/70 text-sm">
+              <Label htmlFor="license-type" className="text-[#040042]/70 text-sm">
                 License Type <span className="text-red-500">*</span>
               </Label>
-              <div
-                className={`grid gap-3 ${licenseOptions.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}
-              >
-                {licenseOptions.map(({ type, label, price }) => {
-                  const active = selected === type;
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => setSelected(type)}
-                      className={`rounded-xl border-2 p-4 text-left transition-all duration-200 ${
-                        active
-                          ? "border-[#4A26ED] bg-[#4A26ED]/5 shadow-[0_0_20px_rgba(74,38,237,0.12)]"
-                          : "border-[#040042]/10 hover:border-[#040042]/25 bg-white"
-                      }`}
-                    >
-                      <p className="text-xs text-[#040042]/40 uppercase tracking-wider mb-1.5">
-                        {label}
-                      </p>
-                      <p className="text-xl font-semibold text-[#040042]">
-                        {price > 0 ? `$${price.toFixed(2)}` : "Free"}
-                      </p>
-                    </button>
-                  );
-                })}
+              <div className="relative">
+                <select
+                  id="license-type"
+                  value={selected}
+                  onChange={(e) => setSelected(e.target.value as LicenseType)}
+                  className="w-full h-11 rounded-md border border-[#040042]/15 bg-white px-3 py-2 text-sm text-[#040042] appearance-none focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/30 focus:border-[#4A26ED]"
+                >
+                  {LICENSE_TYPE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#040042]/30 pointer-events-none" />
               </div>
+              {/* Price display for selected type */}
+              {asset && (
+                <p className="text-sm font-semibold text-[#040042] pt-1">
+                  {selectedPrice > 0 ? `$${selectedPrice.toFixed(2)}` : "Free"}
+                </p>
+              )}
             </div>
 
             {/* Error */}

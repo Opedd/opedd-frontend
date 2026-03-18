@@ -86,6 +86,7 @@ interface PublisherProfile {
   website_url: string | null;
   description: string | null;
   logo_url: string | null;
+  contact_email: string | null;
   article_count: number;
   plan?: string;
   transaction_count: number;
@@ -191,6 +192,7 @@ export default function Settings() {
   const [publisherName, setPublisherName] = useState("");
   const [bio, setBio] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [defaultHumanPrice, setDefaultHumanPrice] = useState("5.00");
   const [defaultSyndicationPrice, setDefaultSyndicationPrice] = useState("500.00");
   const [defaultAiPrice, setDefaultAiPrice] = useState("");
@@ -220,6 +222,7 @@ export default function Settings() {
   const [currentUserRole, setCurrentUserRole] = useState<string>("owner");
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [isLoadingTeam, setIsLoadingTeam] = useState(false);
   const [teamLoaded, setTeamLoaded] = useState(false);
   const [teamError, setTeamError] = useState(false);
@@ -253,6 +256,7 @@ export default function Settings() {
         setPublisherName(d.name || "");
         setBio(d.description || "");
         setWebsiteUrl(d.website_url || "");
+        setContactEmail(d.contact_email || "");
         setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "25.00");
         setDefaultSyndicationPrice((d as any).default_syndication_price != null ? String((d as any).default_syndication_price) : "500.00");
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "");
@@ -327,6 +331,7 @@ export default function Settings() {
   };
 
   const handleRemoveMember = async (memberId: string) => {
+    setRemovingMemberId(memberId);
     try {
       const headers = await apiHeaders();
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
@@ -343,6 +348,8 @@ export default function Settings() {
       }
     } catch (err: unknown) {
       toast({ title: "Remove Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setRemovingMemberId(null);
     }
   };
 
@@ -393,6 +400,7 @@ export default function Settings() {
           default_ai_price: defaultAiPrice ? parseFloat(defaultAiPrice) : null,
           website_url: websiteUrl,
           description: bio,
+          contact_email: contactEmail || null,
         }),
       });
       const result = await res.json();
@@ -807,6 +815,20 @@ export default function Settings() {
                             <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself and your work..." className="bg-slate-50 border-slate-200 rounded-lg min-h-[100px] resize-none focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                             <p className="text-xs text-slate-400">Displayed on your public licensing page</p>
                           </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-[#6B7280]">Licensing Contact Email</Label>
+                            <div className="relative">
+                              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                              <Input
+                                type="email"
+                                value={contactEmail}
+                                onChange={(e) => setContactEmail(e.target.value)}
+                                placeholder="licensing@yourdomain.com"
+                                className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                              />
+                            </div>
+                            <p className="text-xs text-slate-400">Buyers will use this email to contact you about Syndication and custom licenses.</p>
+                          </div>
                         </div>
                       </div>
 
@@ -837,7 +859,7 @@ export default function Settings() {
 
                       {/* Save Button */}
                       <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
-                        {isSaving ? "Saving..." : "Save Changes"}
+                        {isSaving ? <><Loader2 size={16} className="animate-spin mr-2" />Saving...</> : "Save Changes"}
                       </Button>
 
                       {/* Danger Zone */}
@@ -954,7 +976,7 @@ export default function Settings() {
                         </div>
 
                         <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
-                          {isSaving ? "Saving..." : "Save rates"}
+                          {isSaving ? <><Loader2 size={16} className="animate-spin mr-2" />Saving...</> : "Save rates"}
                         </Button>
                       </div>
 
@@ -1069,7 +1091,9 @@ export default function Settings() {
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
                                             <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleRemoveMember(member.id)} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Remove Member</AlertDialogAction>
+                                            <AlertDialogAction onClick={() => handleRemoveMember(member.id)} disabled={removingMemberId === member.id} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">
+                                              {removingMemberId === member.id ? <><Loader2 size={14} className="animate-spin mr-2" />Removing...</> : "Remove Member"}
+                                            </AlertDialogAction>
                                           </AlertDialogFooter>
                                         </AlertDialogContent>
                                       </AlertDialog>

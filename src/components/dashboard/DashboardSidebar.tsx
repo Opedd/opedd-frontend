@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle, BookOpen, ExternalLink, Mail, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle, BookOpen, ExternalLink, Mail, ShieldAlert, Scale } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import { MobileSidebar } from "./MobileSidebar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,12 +8,13 @@ import { useAuth } from "@/contexts/AuthContext";
 const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
 const navItems = [
-  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { title: "Content", path: "/content", icon: Library },
-  { title: "Ledger", path: "/ledger", icon: Wallet },
-  { title: "Insights", path: "/insights", icon: BarChart3 },
-  { title: "Connectors", path: "/connectors", icon: Zap },
-  { title: "Payouts", path: "/payments", icon: CreditCard },
+  { title: "Overview", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Catalog", path: "/content", icon: Library },
+  { title: "Licensing", path: "/licensing", icon: Scale },
+  { title: "Buyers", path: "/ledger", icon: Wallet },
+  { title: "Analytics", path: "/insights", icon: BarChart3 },
+  { title: "Distribution", path: "/connectors", icon: Zap },
+  { title: "Payments", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 

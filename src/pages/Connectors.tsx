@@ -11,9 +11,12 @@ import {
   Copy,
   Check,
   Eye,
+  EyeOff,
   AlertTriangle,
   Shield,
   Info,
+  Code2,
+  Download,
 } from "lucide-react";
 import {
   Tooltip,
@@ -38,6 +41,46 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
 
+function deriveSlug(websiteUrl: string | null): string {
+  if (!websiteUrl) return "";
+  const domain = websiteUrl.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].split(":")[0];
+  return domain.split(".")[0].toLowerCase();
+}
+
+function deriveDomain(websiteUrl: string | null): string {
+  if (!websiteUrl) return "";
+  return websiteUrl.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].split(":")[0];
+}
+
+interface CodeBlockProps {
+  code: string;
+}
+
+function CodeBlock({ code }: CodeBlockProps) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* ignore */ }
+  };
+  return (
+    <div className="relative">
+      <pre className="bg-gray-900 text-green-400 font-mono text-sm rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+        {code}
+      </pre>
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 inline-flex items-center gap-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded px-2 py-1 transition-colors"
+      >
+        {copied ? <Check size={11} /> : <Copy size={11} />}
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
+}
+
 interface WebhookStatus {
   configured: boolean;
   url: string | null;
@@ -61,7 +104,7 @@ export default function Connectors() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "widget" || tab === "webhooks" || tab === "ai-policy" ? tab : "widget";
+    return tab === "widget" || tab === "webhooks" || tab === "ai-policy" || tab === "api-access" ? tab : "widget";
   });
 
   // Webhook state
@@ -76,6 +119,12 @@ export default function Connectors() {
   const [showDeliveries, setShowDeliveries] = useState(false);
   const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
   const [publisherId, setPublisherId] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
+  const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
+  const [discoveryLinkCopied, setDiscoveryLinkCopied] = useState(false);
+  const [discoveryDownloading, setDiscoveryDownloading] = useState(false);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -106,6 +155,8 @@ export default function Connectors() {
         const profileResult = await profileRes.json();
         if (profileResult.success && profileResult.data) {
           setPublisherId(profileResult.data.id);
+          if (profileResult.data.api_key) setApiKey(profileResult.data.api_key);
+          if (profileResult.data.website_url) setWebsiteUrl(profileResult.data.website_url);
           if (profileResult.data.webhook) {
             setWebhookStatus(profileResult.data.webhook);
           } else {
@@ -204,6 +255,7 @@ export default function Connectors() {
               {[
                 { value: "widget", label: "Widget" },
                 { value: "webhooks", label: "Webhooks" },
+                { value: "api-access", label: "API Access" },
                 { value: "ai-policy", label: "AI Policy" },
               ].map((tab) => (
                 <TabsTrigger
@@ -379,6 +431,192 @@ export default function Connectors() {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          {/* API Access Tab */}
+          <TabsContent value="api-access" className="mt-6">
+            {(() => {
+              const slug = deriveSlug(websiteUrl);
+              const domain = deriveDomain(websiteUrl);
+              const maskedKey = apiKey ? `op_${"•".repeat(24)}` : null;
+              const displayKey = apiKey
+                ? (apiKeyRevealed ? apiKey : maskedKey!)
+                : "—";
+              const discoveryUrl = domain
+                ? `${EXT_SUPABASE_URL}/license-discovery?domain=${domain}`
+                : null;
+
+              const handleCopyApiKey = async () => {
+                if (!apiKey) return;
+                try {
+                  await navigator.clipboard.writeText(apiKey);
+                  setApiKeyCopied(true);
+                  setTimeout(() => setApiKeyCopied(false), 2000);
+                } catch { /* ignore */ }
+              };
+
+              const handleDownloadDiscovery = async () => {
+                if (!discoveryUrl) return;
+                setDiscoveryDownloading(true);
+                try {
+                  const res = await fetch(discoveryUrl);
+                  const json = await res.json();
+                  const blob = new Blob([JSON.stringify(json, null, 2)], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "opedd.json";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch {
+                  /* ignore */
+                } finally {
+                  setDiscoveryDownloading(false);
+                }
+              };
+
+              const handleCopyDiscoveryLink = async () => {
+                if (!discoveryUrl) return;
+                try {
+                  await navigator.clipboard.writeText(discoveryUrl);
+                  setDiscoveryLinkCopied(true);
+                  setTimeout(() => setDiscoveryLinkCopied(false), 2000);
+                } catch { /* ignore */ }
+              };
+
+              return (
+                <div className="space-y-6">
+                  {/* Section 1 — API Key */}
+                  <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
+                        <Code2 size={18} className="text-[#4A26ED]" />
+                      </div>
+                      <div>
+                        <h2 className="font-bold text-[#040042] text-base">Your API Key</h2>
+                        <p className="text-sm text-slate-500 mt-0.5">
+                          Use this key to authenticate requests to the Opedd API.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 overflow-hidden">
+                        <code className="text-sm font-mono text-[#040042] truncate block select-all">
+                          {displayKey}
+                        </code>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setApiKeyRevealed((r) => !r)}
+                        className="h-10 px-3 border-slate-200 text-slate-600 hover:bg-slate-50 flex-shrink-0"
+                        disabled={!apiKey}
+                      >
+                        {apiKeyRevealed ? <EyeOff size={14} /> : <Eye size={14} />}
+                        <span className="ml-1.5 text-xs">{apiKeyRevealed ? "Hide" : "Reveal"}</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCopyApiKey}
+                        className="h-10 px-3 border-slate-200 text-slate-600 hover:bg-slate-50 flex-shrink-0"
+                        disabled={!apiKey}
+                      >
+                        {apiKeyCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                        <span className="ml-1.5 text-xs">{apiKeyCopied ? "Copied" : "Copy"}</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Section 2 — Endpoints */}
+                  <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-5">
+                    <h2 className="font-bold text-[#040042] text-base">Endpoints</h2>
+
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                        List your licensed articles
+                      </p>
+                      <CodeBlock
+                        code={`GET https://api.opedd.com/api?action=publisher_articles&slug=${slug || "{your-slug}"}\nX-API-Key: ${apiKey || "{your-api-key}"}`}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                        Get your publisher profile
+                      </p>
+                      <CodeBlock
+                        code={`GET https://api.opedd.com/api?action=publisher&slug=${slug || "{your-slug}"}`}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                        Verify a license
+                      </p>
+                      <CodeBlock
+                        code={`GET https://api.opedd.com/verify/{license-key}`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Section 3 — Machine-Readable Discovery */}
+                  <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+                    <div>
+                      <h2 className="font-bold text-[#040042] text-base">Machine-Readable Discovery</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">
+                        AI agents and crawlers can discover your licensing terms automatically.
+                      </p>
+                    </div>
+
+                    {domain ? (
+                      <>
+                        <CodeBlock
+                          code={`GET https://api.opedd.com/license-discovery?domain=${domain}`}
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleDownloadDiscovery}
+                          disabled={discoveryDownloading}
+                          className="h-9 px-4 border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/5 text-sm font-medium"
+                        >
+                          {discoveryDownloading
+                            ? <Loader2 size={14} className="animate-spin mr-2" />
+                            : <Download size={14} className="mr-2" />}
+                          Download opedd.json
+                        </Button>
+                      </>
+                    ) : (
+                      <p className="text-sm text-slate-400 italic">
+                        Add your website URL in Settings to generate your discovery endpoint.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Section 4 — For AI Labs */}
+                  <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+                    <h2 className="font-bold text-[#040042] text-base">For AI Labs</h2>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      Share your API endpoint with AI companies and research teams to allow them to programmatically browse and license your content. Your catalog, pricing, and license terms are machine-readable.
+                    </p>
+                    {discoveryUrl && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCopyDiscoveryLink}
+                        className="h-9 px-4 border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/5 text-sm font-medium"
+                      >
+                        {discoveryLinkCopied
+                          ? <><Check size={14} className="mr-2 text-emerald-600" />Copied</>
+                          : <><Copy size={14} className="mr-2" />Copy shareable link</>}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* AI Policy Tab */}

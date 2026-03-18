@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus } from "lucide-react";
+import { Plus, Copy, ExternalLink, Check } from "lucide-react";
 
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
@@ -19,6 +19,7 @@ import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -32,10 +33,15 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { licenses } = useAuthenticatedApi();
   const [totalAssets, setTotalAssets] = useState(0);
-  const [protectedCount, setProtectedCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [sourcesKey, setSourcesKey] = useState(0);
+  const [publisherSlug, setPublisherSlug] = useState<string | null>(null);
+  const [urlCopied, setUrlCopied] = useState(false);
+  const [contentImported, setContentImported] = useState(false);
+  const [pricingConfigured, setPricingConfigured] = useState(false);
+  const [stripeConnected, setStripeConnected] = useState(false);
+  const [setupComplete, setSetupComplete] = useState(false);
   
 
   // Setup flow state
@@ -68,13 +74,22 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  function deriveSlug(websiteUrl: string | null): string {
+    if (!websiteUrl) return "";
+    const domain = websiteUrl
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .split("/")[0]
+      .split(":")[0];
+    return domain.split(".")[0].toLowerCase();
+  }
+
   const fetchMetrics = useCallback(async () => {
     if (!user) return;
     try {
       setIsLoading(true);
       const result = await licenses.list<PaginatedResponse<DbAsset>>({ page: 1, limit: 1 });
       setTotalAssets(result.total);
-      setProtectedCount(result.protectedCount);
       if (result.total > 0) {
         const fullResult = await licenses.list<PaginatedResponse<DbAsset>>({ page: 1, limit: 100 });
         const rev = (Array.isArray(fullResult.data) ? fullResult.data : []).reduce((sum: number, a: any) => sum + (a.total_revenue || 0), 0);
@@ -87,15 +102,17 @@ export default function Dashboard() {
     }
   }, [user, licenses]);
 
-  // Check referral_source from publisher profile
+  function isPricingConfigured(pricingRules: any): boolean {
+    if (!pricingRules?.license_types) return false;
+    return Object.values(pricingRules.license_types).some(
+      (t: any) => t?.enabled && (t.price_per_article || t.price_annual || t.price_monthly || t.price_onetime || t.quote_only)
+    );
+  }
+
+  // Fetch publisher profile — referral check + all checklist completion state
   const checkReferral = useCallback(async () => {
     if (!user) return;
-    // If the user already submitted referral this session/browser, skip the modal
-    if (localStorage.getItem("opedd_referral_done")) {
-      setNeedsReferral(false);
-      setReferralChecked(true);
-      return;
-    }
+    const skipReferralCheck = !!localStorage.getItem("opedd_referral_done");
     try {
       const token = await getAccessToken();
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
@@ -103,9 +120,20 @@ export default function Dashboard() {
       });
       const json = await res.json();
       const profile = json.success ? json.data : null;
-      const hasReferral = !!profile?.referral_source;
-      if (hasReferral) localStorage.setItem("opedd_referral_done", "1");
-      setNeedsReferral(!hasReferral);
+      if (profile?.website_url) {
+        setPublisherSlug(deriveSlug(profile.website_url));
+      }
+      setContentImported(!!profile?.content_imported);
+      setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
+      setStripeConnected(!!profile?.stripe_onboarding_complete);
+      setSetupComplete(!!profile?.setup_complete);
+      if (!skipReferralCheck) {
+        const hasReferral = !!profile?.referral_source;
+        if (hasReferral) localStorage.setItem("opedd_referral_done", "1");
+        setNeedsReferral(!hasReferral);
+      } else {
+        setNeedsReferral(false);
+      }
     } catch {
       setNeedsReferral(false);
     } finally {
@@ -122,40 +150,105 @@ export default function Dashboard() {
   if (hasActivePublication === null || !referralChecked) return <PageLoader />;
 
   const showBanner = !setupCompletion.pricingDone || !setupCompletion.widgetDone;
+  const licensingUrl = publisherSlug ? `opedd.com/p/${publisherSlug}` : null;
+  const licensingHref = publisherSlug ? `https://opedd.com/p/${publisherSlug}` : null;
+
+  const handleCopyUrl = async () => {
+    if (!licensingHref) return;
+    try {
+      await navigator.clipboard.writeText(licensingHref);
+      setUrlCopied(true);
+      setTimeout(() => setUrlCopied(false), 2000);
+    } catch { /* ignore */ }
+  };
 
   return (
     <DashboardLayout
-      title="Dashboard"
+      title="Overview"
       headerActions={<></>}
     >
       <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
-        {/* Fix 3: Incomplete setup banner */}
-        {showBanner && (
-          <SetupBanner
-            pricingDone={setupCompletion.pricingDone}
-            widgetDone={setupCompletion.widgetDone}
-            onSetPricing={() => setAddPubDrawerOpen(true)}
-            onEmbedWidget={() => navigate("/connectors")}
-          />
-        )}
         {/* Onboarding Checklist */}
-        <OnboardingChecklist onRegisterContent={() => setAddPubDrawerOpen(true)} />
+        <OnboardingChecklist
+          contentImported={contentImported}
+          pricingConfigured={pricingConfigured}
+          stripeConnected={stripeConnected}
+          setupComplete={setupComplete}
+          publisherSlug={publisherSlug}
+          onRegisterContent={() => setAddPubDrawerOpen(true)}
+        />
 
         {/* Compact Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Total Assets</p>
+            <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Licensed Works</p>
             <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
           </div>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">Protected</p>
-            <p className="text-2xl font-bold text-[#040042] mt-1">{protectedCount}</p>
-          </div>
-          <div className="bg-[#0A0066] rounded-xl p-4 shadow-sm">
+          <div className="bg-[#0A0066] rounded-xl p-6 shadow-sm">
             <p className="text-white/60 text-xs font-medium uppercase tracking-wide">Total Revenue</p>
             <p className="text-2xl font-bold text-white mt-1">${totalRevenue.toFixed(2)}</p>
           </div>
         </div>
+
+        {/* Licensing Page Card */}
+        <Card className="p-5 shadow-sm">
+          {licensingHref ? (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {/* Left: icon + text */}
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
+                  <ExternalLink size={18} className="text-[#4A26ED]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[#111827]">Your Public Licensing Page</p>
+                  <p className="text-xs text-[#6B7280] mt-0.5">Share this link with buyers, media desks, and AI companies.</p>
+                </div>
+              </div>
+              {/* Center: URL pill */}
+              <div className="flex-1 min-w-0 sm:max-w-[280px]">
+                <span className="block bg-[#F3F4F6] rounded-lg px-3 py-2 font-mono text-xs text-[#6B7280] truncate">
+                  {licensingUrl}
+                </span>
+              </div>
+              {/* Right: action buttons */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyUrl}
+                  className="h-8 px-3 text-xs font-medium gap-1.5"
+                >
+                  {urlCopied ? <Check size={13} /> : <Copy size={13} />}
+                  {urlCopied ? "Copied!" : "Copy Link"}
+                </Button>
+                <Button
+                  size="sm"
+                  asChild
+                  className="h-8 px-3 text-xs font-medium bg-[#4A26ED] hover:bg-[#3B1ED1] text-white gap-1.5"
+                >
+                  <a href={licensingHref} target="_blank" rel="noreferrer">
+                    <ExternalLink size={13} />
+                    Preview
+                  </a>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+                <ExternalLink size={18} className="text-[#9CA3AF]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#111827]">Your Public Licensing Page</p>
+                <p className="text-xs text-[#6B7280] mt-0.5">
+                  Set your website URL in{" "}
+                  <button onClick={() => navigate("/settings")} className="text-[#4A26ED] hover:underline font-medium">Settings</button>
+                  {" "}to activate your page.
+                </p>
+              </div>
+            </div>
+          )}
+        </Card>
 
         {/* Import Progress Banner */}
         <ImportProgressBanner onComplete={fetchMetrics} />
