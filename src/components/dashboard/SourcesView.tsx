@@ -79,6 +79,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   const [deleteConfirmSource, setDeleteConfirmSource] = useState<Source | null>(null);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
   const [publisherLogoUrl, setPublisherLogoUrl] = useState<string | null>(null);
+  const [publisherId, setPublisherId] = useState<string | null>(null);
 
   const fetchSources = async () => {
     if (!user) return;
@@ -89,7 +90,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           .select("id, name, url, source_type, sync_status, article_count, last_synced_at, created_at, verification_token, verification_status")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
-        (supabase.from as any)("publishers").select("logo_url").eq("user_id", user.id).maybeSingle(),
+        (supabase.from as any)("publishers").select("id, logo_url").eq("user_id", user.id).maybeSingle(),
       ]);
       if (sourcesRes.error) throw sourcesRes.error;
       // Map content_sources columns to the Source interface
@@ -100,6 +101,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       }));
       setSources(mapped);
       setPublisherLogoUrl(publisherRes.data?.logo_url || null);
+      setPublisherId(publisherRes.data?.id || null);
     } catch (err) {
       console.error("Error fetching sources:", err);
     } finally {
@@ -190,11 +192,23 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   const handleDelete = async (source: Source) => {
     try {
-      // Delete articles linked to this source, then the source itself
-      await (supabase as any).from("licenses").delete().eq("source_id", source.id);
+      // Delete articles explicitly linked to this source
+      if (publisherId) {
+        await (supabase as any).from("licenses").delete().eq("source_id", source.id).eq("publisher_id", publisherId);
+      }
+
+      // Delete the source itself
       await (supabase as any).from("content_sources").delete().eq("id", source.id).eq("user_id", user!.id);
 
-      setSources(prev => prev.filter(s => s.id !== source.id));
+      const remaining = sources.filter(s => s.id !== source.id);
+
+      // If no sources remain, delete all orphaned articles for this publisher
+      // (articles imported before source_id tracking was added have source_id=null)
+      if (remaining.length === 0 && publisherId) {
+        await (supabase as any).from("licenses").delete().eq("publisher_id", publisherId);
+      }
+
+      setSources(remaining);
       toast({
         title: "Source Removed",
         description: `${source.name} and its articles have been removed.`,
