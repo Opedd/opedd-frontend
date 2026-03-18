@@ -34,7 +34,7 @@ const STEPS = [
   },
 ];
 
-export function OnboardingChecklist() {
+export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?: () => void }) {
   const navigate = useNavigate();
   const { getAccessToken } = useAuth();
   const [isStripeConnecting, setIsStripeConnecting] = useState(false);
@@ -173,7 +173,7 @@ export function OnboardingChecklist() {
                 {!done && (
                   <Button
                     size="sm"
-                    onClick={() => step.key === "stripe_connected" ? handleConnectStripe() : navigate(step.path)}
+                    onClick={() => step.key === "stripe_connected" ? handleConnectStripe() : step.key === "content_imported" && onRegisterContent ? onRegisterContent() : navigate(step.path)}
                     disabled={step.key === "stripe_connected" && isStripeConnecting}
                     className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg"
                   >

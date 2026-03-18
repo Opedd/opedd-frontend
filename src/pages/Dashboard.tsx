@@ -139,7 +139,7 @@ export default function Dashboard() {
           />
         )}
         {/* Onboarding Checklist */}
-        <OnboardingChecklist />
+        <OnboardingChecklist onRegisterContent={() => setAddPubDrawerOpen(true)} />
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
