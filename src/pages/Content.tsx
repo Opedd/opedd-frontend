@@ -511,6 +511,25 @@ export default function Content() {
         )}
           </TabsContent>
 
+          {/* Archive Licenses Section */}
+          <TabsContent value="articles" forceMount className="data-[state=inactive]:hidden mt-0">
+            <div className="border-t border-[#E5E7EB] pt-6 mt-6">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-semibold text-[#040042]">Archive Licenses</h2>
+              </div>
+              <p className="text-sm text-[#6B7280] mb-4">
+                Issue a single deal covering your full catalog for a defined period — for enterprise buyers and AI companies.
+              </p>
+              <Button
+                onClick={() => setShowArchiveModal(true)}
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg"
+              >
+                <Archive size={16} className="mr-1.5" />
+                Issue Archive License
+              </Button>
+            </div>
+          </TabsContent>
+
           <TabsContent value="pricing-rules" className="mt-6">
             <PricingRulesTab />
           </TabsContent>
