@@ -182,11 +182,11 @@ test("11 · Spam: clicking 'Detect my content' 5× rapidly fires only 1 API call
   // (Dashboard no longer embeds the setup flow inline — it lives in /onboarding)
   await loginAndGoto(page, "/onboarding");
 
-  const urlInput = page.locator('input[placeholder*="yoursite"], input[placeholder*="domain"]').first();
+  const urlInput = page.locator('input[placeholder*="theinformation"], input[placeholder*="yoursite"], input[placeholder*="domain"]').first();
   await expect(urlInput).toBeVisible({ timeout: 8_000 });
-  await urlInput.fill("https://e2e-spam-test.invalid");
+  await urlInput.fill("e2e-spam-test.invalid");
 
-  const detectBtn = page.getByRole("button", { name: /detect my content|detect/i }).first();
+  const detectBtn = page.getByRole("button", { name: /detect my content|detect content feeds/i }).first();
   await expect(detectBtn).toBeVisible({ timeout: 5_000 });
 
   // Fire 5 rapid clicks. After the first click the button may enter a loading state
