@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Archive, Code } from "lucide-react";
-import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
+import { Plus, Code } from "lucide-react";
+
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [sourcesKey, setSourcesKey] = useState(0);
-  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  
 
   // Setup flow state
   const [hasActivePublication, setHasActivePublication] = useState<boolean | null>(null);
@@ -183,44 +183,23 @@ export default function Dashboard() {
         </div>
 
         {/* Action Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Embed Widget Card */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
-                <Code size={20} className="text-[#4A26ED]" />
-              </div>
-              <div>
-                <h3 className="text-[#111827] font-semibold text-base">Add licensing to your site</h3>
-                <p className="text-[#6B7280] text-sm mt-0.5">Embed one script tag to add a licensing button to every article.</p>
-              </div>
+        {/* Embed Widget Card */}
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center">
+              <Code size={20} className="text-[#4A26ED]" />
             </div>
-            <Button
-              onClick={() => navigate("/connectors?tab=widget")}
-              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
-            >
-              Get embed code
-            </Button>
-          </div>
-
-          {/* Archive Licenses Card */}
-          <div className="bg-[#040042] rounded-xl p-6 shadow-sm flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-                <Archive size={20} className="text-white" />
-              </div>
-              <div>
-                <h3 className="text-white font-semibold text-base">Archive Licenses</h3>
-                <p className="text-white/60 text-sm mt-0.5 max-w-md">Sell full-catalog licenses to enterprises and AI companies.</p>
-              </div>
+            <div>
+              <h3 className="text-[#111827] font-semibold text-base">Add licensing to your site</h3>
+              <p className="text-[#6B7280] text-sm mt-0.5">Embed one script tag to add a licensing button to every article.</p>
             </div>
-            <Button
-              onClick={() => setShowArchiveModal(true)}
-              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
-            >
-              Issue Archive License
-            </Button>
           </div>
+          <Button
+            onClick={() => navigate("/connectors?tab=widget")}
+            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
+          >
+            Get embed code
+          </Button>
         </div>
 
         {/* Import Progress Banner */}
@@ -265,7 +244,7 @@ export default function Dashboard() {
         </SheetContent>
       </Sheet>
 
-      <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => setShowArchiveModal(false)} />
+      
     </DashboardLayout>
   );
 }

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Search, FileText, Loader2, Link2, MoreHorizontal, Check,
   Globe, Calendar, User, ExternalLink, Copy, X, AlertTriangle,
-  ArrowUpDown, Download,
+  ArrowUpDown, Download, Archive,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Asset, PaginatedResponse, DbAsset, mapDbAssetToUiAsset } from "@/types/asset";
 import { BulkPricingModal } from "@/components/dashboard/BulkPricingModal";
+import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
@@ -89,6 +90,7 @@ export default function Content() {
   // Multi-select
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPricingOpen, setBulkPricingOpen] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
 
   // Detail drawer
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -511,6 +513,25 @@ export default function Content() {
         )}
           </TabsContent>
 
+          {/* Archive Licenses Section */}
+          <TabsContent value="articles" forceMount className="data-[state=inactive]:hidden mt-0">
+            <div className="border-t border-[#E5E7EB] pt-6 mt-6">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-semibold text-[#040042]">Archive Licenses</h2>
+              </div>
+              <p className="text-sm text-[#6B7280] mb-4">
+                Issue a single deal covering your full catalog for a defined period — for enterprise buyers and AI companies.
+              </p>
+              <Button
+                onClick={() => setShowArchiveModal(true)}
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg"
+              >
+                <Archive size={16} className="mr-1.5" />
+                Issue Archive License
+              </Button>
+            </div>
+          </TabsContent>
+
           <TabsContent value="pricing-rules" className="mt-6">
             <PricingRulesTab />
           </TabsContent>
@@ -646,6 +667,8 @@ export default function Content() {
         selectedIds={Array.from(selectedIds)}
         onSuccess={() => { setBulkPricingOpen(false); setSelectedIds(new Set()); fetchAssets(); }}
       />
+
+      <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => setShowArchiveModal(false)} />
     </DashboardLayout>
   );
 }
