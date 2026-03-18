@@ -1007,7 +1007,7 @@ export default function Settings() {
                                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                   <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                                 </div>
-                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold">
+                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-10 px-6 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold">
                                   {isInviting ? <><Loader2 size={14} className="mr-2 animate-spin" />Sending...</> : <><Send size={14} className="mr-2" />Send Invite</>}
                                 </Button>
                               </div>
