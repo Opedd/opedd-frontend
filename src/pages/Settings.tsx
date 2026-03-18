@@ -769,7 +769,7 @@ export default function Settings() {
                               <Label className="text-[#040042] font-bold text-sm">Email Address</Label>
                               <div className="relative">
                                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <Input value={profile?.email || user.email || ""} disabled className="bg-slate-100 border-slate-200 h-12 rounded-lg pl-11 opacity-70 cursor-not-allowed" />
+                                <Input value={profile?.email || user.email || ""} disabled className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 opacity-70 cursor-not-allowed" />
                               </div>
                             </div>
                           </div>
