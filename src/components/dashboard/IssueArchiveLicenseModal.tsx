@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Handshake, Loader2, CheckCircle2, Copy, Download, ExternalLink } from "lucide-react";
+import { Handshake, Loader2, CheckCircle2, Copy, Download, ExternalLink, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -31,6 +31,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
 
   const [publisherPlan, setPublisherPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   React.useEffect(() => {
     if (!open) return;
@@ -185,21 +186,54 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
         ) : publisherPlan === "free" ? (
           /* Upgrade wall */
           <div className="p-6 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto">
-              <Handshake size={28} className="text-amber-500" />
+            <div className="w-14 h-14 rounded-2xl bg-[#4A26ED]/10 border border-[#4A26ED]/20 flex items-center justify-center mx-auto">
+              <Handshake size={28} className="text-[#4A26ED]" />
             </div>
             <div>
-              <p className="font-bold text-[#040042] text-lg">Pro Feature</p>
+              <p className="font-bold text-[#040042] text-lg">Upgrade to Pro</p>
               <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
-                Enterprise deals are available on Pro and Enterprise plans. Upgrade to issue site-wide licenses.
+                Archive licenses are available on Pro and Enterprise plans. Upgrade now to issue site-wide deals instantly.
               </p>
             </div>
-            <a
-              href="/pricing"
-              className="block w-full py-2.5 rounded-lg text-sm font-semibold text-white text-center bg-[#4A26ED] hover:bg-[#3B1ED1] transition-colors"
+            <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-left space-y-2">
+              {["Issue archive & enterprise deals", "Bulk pricing rules", "Priority support"].map(f => (
+                <div key={f} className="flex items-center gap-2 text-sm text-slate-600">
+                  <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
+                  {f}
+                </div>
+              ))}
+            </div>
+            <Button
+              onClick={async () => {
+                setIsUpgrading(true);
+                try {
+                  const token = await getAccessToken();
+                  const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ action: "create_subscription", plan: "pro" }),
+                  });
+                  const result = await res.json();
+                  if (result.success && result.data?.url) {
+                    window.location.href = result.data.url;
+                  } else {
+                    throw new Error(result.error || "Could not start checkout");
+                  }
+                } catch (err) {
+                  toast({ title: "Error", description: err instanceof Error ? err.message : "Please try again.", variant: "destructive" });
+                } finally {
+                  setIsUpgrading(false);
+                }
+              }}
+              disabled={isUpgrading}
+              className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg h-11 font-semibold"
             >
-              View Pricing Plans
-            </a>
+              {isUpgrading ? (
+                <><Loader2 size={16} className="mr-2 animate-spin" />Preparing checkout...</>
+              ) : (
+                <><Zap size={16} className="mr-2" />Upgrade to Pro — $79/mo</>
+              )}
+            </Button>
             <button onClick={handleClose} className="text-sm text-slate-400 hover:text-slate-600 w-full">
               Maybe later
             </button>
