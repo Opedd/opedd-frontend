@@ -88,6 +88,8 @@ export function OnboardingChecklist({ onRegisterContent }: { onRegisterContent?:
       const result = await res.json();
       if (result.success && result.data?.onboarding_url) {
         window.location.href = result.data.onboarding_url;
+      } else {
+        navigate("/payments");
       }
     } catch {
       navigate("/payments");
