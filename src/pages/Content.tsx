@@ -667,6 +667,8 @@ export default function Content() {
         selectedIds={Array.from(selectedIds)}
         onSuccess={() => { setBulkPricingOpen(false); setSelectedIds(new Set()); fetchAssets(); }}
       />
+
+      <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => setShowArchiveModal(false)} />
     </DashboardLayout>
   );
 }
