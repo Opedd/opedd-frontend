@@ -111,6 +111,10 @@ export default function Connectors() {
           } else {
             setWebhookStatus({ configured: false, url: null });
           }
+          // If landing on widget tab and setup not yet complete, mark widget as viewed
+          if (activeTab === "widget" && !profileResult.data.widget_added) {
+            postAction("mark_widget_added").catch(() => {});
+          }
         }
       } catch (err) {
         console.warn("[Connectors] Load failed:", err);
@@ -118,7 +122,7 @@ export default function Connectors() {
       }
     };
     load();
-  }, [apiHeaders]);
+  }, [apiHeaders]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!user) return null;
 

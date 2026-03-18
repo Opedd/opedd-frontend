@@ -4,13 +4,13 @@ import { CheckCircle2, Circle, ArrowRight, PartyPopper, Loader2 } from "lucide-r
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
-interface StepState {
+interface SetupState {
   content_imported: boolean;
   stripe_connected: boolean;
   widget_added: boolean;
+  setup_complete: boolean;
 }
 
 const STEPS = [
@@ -34,62 +34,43 @@ const STEPS = [
   },
 ];
 
-const DISMISS_KEY = "opedd_onboarding_complete_dismissed";
-
 export function OnboardingChecklist() {
   const navigate = useNavigate();
-  const { user, getAccessToken } = useAuth();
+  const { getAccessToken } = useAuth();
   const [isStripeConnecting, setIsStripeConnecting] = useState(false);
-  const [steps, setSteps] = useState<StepState>({
+  const [state, setState] = useState<SetupState>({
     content_imported: false,
     stripe_connected: false,
     widget_added: false,
+    setup_complete: false,
   });
   const [loading, setLoading] = useState(true);
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === "true");
+  // Local dismiss: only used to hide the "You're all set!" banner in the current session.
+  // The checklist is permanently hidden once setup_complete=true in DB (no localStorage needed).
+  const [sessionDismissed, setSessionDismissed] = useState(false);
 
   const fetchState = useCallback(async () => {
-    if (!user) return;
     try {
-      const [assetsRes, sourcesRes, profileData] = await Promise.all([
-        supabase
-          .from("assets")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id),
-        supabase
-          .from("rss_sources")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("sync_status", "active"),
-        (async () => {
-          try {
-            const token = await getAccessToken();
-            const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-              headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-            });
-            const json = await res.json();
-            return json.success ? json.data : null;
-          } catch {
-            return null;
-          }
-        })(),
-      ]);
-
-      const hasContent = (assetsRes.count ?? 0) > 0;
-      const hasWidget = (sourcesRes.count ?? 0) > 0;
-      const stripeConnected = profileData?.stripe_onboarding_complete === true;
-
-      setSteps({
-        content_imported: hasContent,
-        stripe_connected: stripeConnected,
-        widget_added: hasWidget,
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
       });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const d = json.data;
+        setState({
+          content_imported: d.content_imported || false,
+          stripe_connected: d.stripe_onboarding_complete || false,
+          widget_added: d.widget_added || false,
+          setup_complete: d.setup_complete || false,
+        });
+      }
     } catch (err) {
       console.warn("[OnboardingChecklist] fetch error:", err);
     } finally {
       setLoading(false);
     }
-  }, [user, getAccessToken]);
+  }, [getAccessToken]);
 
   const handleConnectStripe = useCallback(async () => {
     setIsStripeConnecting(true);
@@ -109,7 +90,6 @@ export function OnboardingChecklist() {
         window.location.href = result.data.onboarding_url;
       }
     } catch {
-      // Fallback to payments page if something goes wrong
       navigate("/payments");
     } finally {
       setIsStripeConnecting(false);
@@ -122,15 +102,18 @@ export function OnboardingChecklist() {
 
   if (loading) return null;
 
-  const completedCount = Object.values(steps).filter(Boolean).length;
+  // Permanently hidden once DB says setup is complete
+  if (state.setup_complete) return null;
+
+  const stepKeys = ["content_imported", "stripe_connected", "widget_added"] as const;
+  const completedCount = stepKeys.filter((k) => state[k]).length;
   const totalCount = STEPS.length;
   const allDone = completedCount === totalCount;
   const pct = (completedCount / totalCount) * 100;
 
-  // Only hide when all done AND user has dismissed the success state
-  if (allDone && dismissed) return null;
-
+  // All 3 steps done but setup_complete not yet persisted — show success banner
   if (allDone) {
+    if (sessionDismissed) return null;
     return (
       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
         <div className="flex items-center gap-3">
@@ -140,10 +123,7 @@ export function OnboardingChecklist() {
             <p className="text-sm text-[#6B7280] mt-0.5">Your publication is fully configured and ready to earn.</p>
           </div>
           <button
-            onClick={() => {
-              setDismissed(true);
-              localStorage.setItem(DISMISS_KEY, "true");
-            }}
+            onClick={() => setSessionDismissed(true)}
             className="text-xs text-[#9CA3AF] hover:text-[#6B7280] font-medium"
           >
             Dismiss
@@ -168,7 +148,7 @@ export function OnboardingChecklist() {
 
       <ul className="space-y-1">
         {STEPS.map((step) => {
-          const done = steps[step.key];
+          const done = state[step.key];
 
           return (
             <li key={step.key}>
@@ -190,7 +170,7 @@ export function OnboardingChecklist() {
                   {step.label}
                 </span>
                 {!done && (
-                    <Button
+                  <Button
                     size="sm"
                     onClick={() => step.key === "stripe_connected" ? handleConnectStripe() : navigate(step.path)}
                     disabled={step.key === "stripe_connected" && isStripeConnecting}
