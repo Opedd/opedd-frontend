@@ -710,7 +710,7 @@ export default function Settings() {
                               )}
                               {plan === "pro" && (
                                 <>
-                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold text-sm">
+                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
                                     Upgrade to Enterprise →
                                   </Button>
                                   <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
