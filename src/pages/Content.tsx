@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Search, FileText, Loader2, Link2, MoreHorizontal, Check,
   Globe, Calendar, User, ExternalLink, Copy, X, AlertTriangle,
-  ArrowUpDown, Download, Archive,
+  ArrowUpDown, Download, Handshake,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -90,13 +90,15 @@ export default function Content() {
   // Multi-select
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPricingOpen, setBulkPricingOpen] = useState(false);
-  const [showArchiveModal, setShowArchiveModal] = useState(false);
 
   // Detail drawer
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [drawerCopied, setDrawerCopied] = useState(false);
+
+  // Archive license modal
+  const [archiveLicenseOpen, setArchiveLicenseOpen] = useState(false);
 
   // Pricing edit inside drawer
   const [editingRates, setEditingRates] = useState(false);
@@ -326,6 +328,7 @@ export default function Content() {
             <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
               {[
                 { value: "articles", label: "Articles" },
+                { value: "archive-license", label: "Archive License" },
                 { value: "pricing-rules", label: "Pricing Rules" },
               ].map((tab) => (
                 <TabsTrigger
@@ -513,20 +516,25 @@ export default function Content() {
         )}
           </TabsContent>
 
-          {/* Archive Licenses Section */}
-          <TabsContent value="articles" forceMount className="data-[state=inactive]:hidden mt-0">
-            <div className="border-t border-[#E5E7EB] pt-6 mt-6">
-              <div className="flex items-center justify-between mb-1">
-                <h2 className="text-lg font-semibold text-[#040042]">Archive Licenses</h2>
+          <TabsContent value="archive-license" className="mt-6">
+            <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
+                  <Handshake size={20} className="text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#111827]">Archive License</h2>
+                  <p className="text-sm text-[#6B7280] mt-0.5">Issue a site-wide license covering all your published content for a negotiated date range.</p>
+                </div>
               </div>
-              <p className="text-sm text-[#6B7280] mb-4">
-                Issue a single deal covering your full catalog for a defined period — for enterprise buyers and AI companies.
+              <p className="text-sm text-[#6B7280]">
+                Archive licenses are enterprise deals — one license key grants access to your entire content archive for a defined coverage period. Use this to close bulk AI training, syndication, or republication agreements.
               </p>
               <Button
-                onClick={() => setShowArchiveModal(true)}
-                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg"
+                onClick={() => setArchiveLicenseOpen(true)}
+                className="bg-[#040042] hover:bg-[#040042]/90 text-white rounded-lg h-10 px-5 font-semibold text-sm gap-2"
               >
-                <Archive size={16} className="mr-1.5" />
+                <Handshake size={16} />
                 Issue Archive License
               </Button>
             </div>
@@ -668,7 +676,11 @@ export default function Content() {
         onSuccess={() => { setBulkPricingOpen(false); setSelectedIds(new Set()); fetchAssets(); }}
       />
 
-      <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => setShowArchiveModal(false)} />
+      <IssueArchiveLicenseModal
+        open={archiveLicenseOpen}
+        onOpenChange={setArchiveLicenseOpen}
+        onSuccess={() => setArchiveLicenseOpen(false)}
+      />
     </DashboardLayout>
   );
 }
