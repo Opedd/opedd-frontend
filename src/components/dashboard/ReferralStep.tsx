@@ -27,7 +27,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
   const [otherText, setOtherText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const saveReferral = async (value: string | null) => {
+  const saveReferral = async (value: string) => {
     setSubmitting(true);
     try {
       const token = await getAccessToken();
@@ -54,13 +54,9 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
     saveReferral(value);
   };
 
-  const handleSkip = () => {
-    saveReferral(null);
-  };
-
   return (
-    <div className="p-6 max-w-xl w-full mx-auto space-y-6">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 w-full max-w-md mx-4 space-y-6">
         <div>
           <div className="w-12 h-12 bg-[#4A26ED]/10 rounded-xl flex items-center justify-center mb-4">
             <MessageSquare size={24} className="text-[#4A26ED]" />
@@ -89,15 +85,13 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
 
         {/* Other free text */}
         {selected === "Other" && (
-          <div className="space-y-1.5">
-            <Input
-              value={otherText}
-              onChange={(e) => setOtherText(e.target.value)}
-              placeholder="Tell us where…"
-              className="h-11"
-              autoFocus
-            />
-          </div>
+          <Input
+            value={otherText}
+            onChange={(e) => setOtherText(e.target.value)}
+            placeholder="Tell us where…"
+            className="h-11"
+            autoFocus
+          />
         )}
 
         {/* Submit */}
@@ -112,20 +106,9 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
               Saving…
             </>
           ) : (
-            "Continue"
+            "Continue to Dashboard"
           )}
         </button>
-
-        {/* Skip */}
-        <div className="text-center">
-          <button
-            onClick={handleSkip}
-            disabled={submitting}
-            className="text-sm text-slate-400 hover:text-slate-500 transition-colors"
-          >
-            Skip
-          </button>
-        </div>
       </div>
     </div>
   );

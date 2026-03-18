@@ -114,15 +114,6 @@ export default function Dashboard() {
   if (!user) return null;
   if (hasActivePublication === null || !referralChecked) return <PageLoader />;
 
-  // Show referral step first for new users
-  if (needsReferral && !hasActivePublication && !setupDismissed) {
-    return (
-      <DashboardLayout title="Dashboard">
-        <ReferralStep onComplete={() => setNeedsReferral(false)} />
-      </DashboardLayout>
-    );
-  }
-
   const showSetupFlow = !hasActivePublication && !setupDismissed;
 
   if (showSetupFlow) {
@@ -224,7 +215,9 @@ export default function Dashboard() {
         </SheetContent>
       </Sheet>
 
-      
+      {needsReferral && (
+        <ReferralStep onComplete={() => setNeedsReferral(false)} />
+      )}
     </DashboardLayout>
   );
 }
