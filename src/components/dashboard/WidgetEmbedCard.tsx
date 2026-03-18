@@ -66,7 +66,7 @@ export function WidgetEmbedCard({ publisherId }: { publisherId: string }) {
 
       {/* Copy button */}
       <div className="mt-3 flex items-center justify-between">
-        <Button size="sm" onClick={handleCopy} className="h-9 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium transition-all">
+        <Button size="sm" onClick={handleCopy} className="h-9 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium transition-all">
           {copied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy snippet</>}
         </Button>
         <p className="text-xs text-slate-400 max-w-xs text-right">

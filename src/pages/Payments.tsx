@@ -180,15 +180,15 @@ export default function Payments() {
                 {isStripeFullyConnected ? (
                   <div className="space-y-4">
                     {!stripeStatus?.payouts_enabled && (
-                      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-center gap-3">
-                        <AlertTriangle size={18} className="text-amber-600 flex-shrink-0" />
-                        <p className="flex-1 text-sm text-amber-800">
+                      <div className="rounded-lg border border-[#4A26ED]/20 bg-[#EEF0FF] p-4 flex items-center gap-3">
+                        <AlertTriangle size={18} className="text-[#4A26ED] flex-shrink-0" />
+                        <p className="flex-1 text-sm text-[#040042]">
                           Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments.
                         </p>
                         <Button
                           size="sm"
                           onClick={handleOpenStripeDashboard}
-                          className="flex-shrink-0 h-8 px-3 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg"
+                          className="flex-shrink-0 h-8 px-3 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-xs font-semibold rounded-lg"
                         >
                           Complete verification
                         </Button>

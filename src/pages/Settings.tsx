@@ -741,7 +741,7 @@ export default function Settings() {
                         <div className="grid gap-5">
                           {/* Logo Upload */}
                           <div className="space-y-2">
-                            <Label className="text-[#040042] font-bold text-sm">Publication Logo</Label>
+                            <Label className="text-sm font-medium text-[#6B7280]">Publication Logo</Label>
                             <div className="flex items-center gap-4">
                               <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                                 {logoPreview ? (

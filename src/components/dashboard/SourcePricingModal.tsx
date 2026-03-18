@@ -128,7 +128,7 @@ export function SourcePricingModal({ open, onOpenChange, sourceId, sourceName, o
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full h-12 rounded-xl bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold text-sm shadow-lg shadow-[#3182CE]/25 transition-all active:scale-[0.98] gap-2"
+            className="w-full h-12 rounded-xl bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm shadow-lg shadow-[#4A26ED]/25 transition-all active:scale-[0.98] gap-2"
           >
             {isSaving ? (
               <Loader2 size={16} className="animate-spin" />
