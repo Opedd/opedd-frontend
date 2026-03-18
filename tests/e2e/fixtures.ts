@@ -44,9 +44,10 @@ export const TEST_PASSWORD = "E2eTest1234!";
 export const TEST_NAME = "E2E Test Publisher";
 
 /**
- * Creates a confirmed (no email verification needed) test user and waits
- * for the Supabase auth trigger to auto-create the `publishers` row.
- * Returns the user id and a fresh access token.
+ * Creates a confirmed (no email verification needed) test user AND a
+ * corresponding publishers row (since there is no DB trigger — the app
+ * creates the row via the Express backend on first sign-up).
+ * Returns the user id, publisher id, and a fresh access token.
  */
 export async function createTestUser(): Promise<{
   userId: string;
@@ -67,6 +68,20 @@ export async function createTestUser(): Promise<{
     throw new Error(`Failed to create test user: ${error?.message}`);
   }
 
+  const userId = data.user.id;
+
+  // No DB trigger exists — create the publishers row directly with the service-role client
+  const { error: pubError } = await admin.from("publishers").insert({
+    user_id: userId,
+    name: TEST_NAME,
+  });
+
+  if (pubError) {
+    // Clean up auth user before throwing
+    await admin.auth.admin.deleteUser(userId);
+    throw new Error(`Failed to create publishers row: ${pubError.message}`);
+  }
+
   // Sign in to get an access token
   const { data: session, error: loginError } = await admin.auth.signInWithPassword({
     email,
@@ -78,7 +93,7 @@ export async function createTestUser(): Promise<{
   }
 
   return {
-    userId: data.user.id,
+    userId,
     email,
     accessToken: session.session.access_token,
   };
