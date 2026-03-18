@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { Plus, Code } from "lucide-react";
-import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
+
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
