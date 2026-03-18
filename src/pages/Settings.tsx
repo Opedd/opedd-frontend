@@ -766,7 +766,7 @@ export default function Settings() {
                               <Input value={publisherName} onChange={(e) => setPublisherName(e.target.value)} placeholder="Your display name" className="bg-slate-50 border-slate-200 h-10 rounded-lg focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[#040042] font-bold text-sm">Email Address</Label>
+                              <Label className="text-sm font-medium text-[#6B7280]">Email Address</Label>
                               <div className="relative">
                                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <Input value={profile?.email || user.email || ""} disabled className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 opacity-70 cursor-not-allowed" />
