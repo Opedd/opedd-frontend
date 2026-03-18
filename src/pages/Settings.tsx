@@ -774,7 +774,7 @@ export default function Settings() {
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-[#040042] font-bold text-sm">Website URL</Label>
+                            <Label className="text-sm font-medium text-[#6B7280]">Website URL</Label>
                             <div className="relative">
                               <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                               <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://yoursite.com" className="bg-slate-50 border-slate-200 h-12 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
