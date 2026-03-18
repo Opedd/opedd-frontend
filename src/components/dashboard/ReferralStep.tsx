@@ -29,9 +29,11 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
 
   const saveReferral = async (value: string) => {
     setSubmitting(true);
+    // Cache immediately so navigation doesn't re-show the modal
+    localStorage.setItem("opedd_referral_done", "1");
     try {
       const token = await getAccessToken();
-      await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -40,6 +42,8 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
         },
         body: JSON.stringify({ referral_source: value }),
       });
+      const result = await res.json();
+      if (!result.success) console.warn("[ReferralStep] save failed:", result.error);
     } catch (err) {
       console.warn("[ReferralStep] save error:", err);
     } finally {

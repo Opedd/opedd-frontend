@@ -90,6 +90,12 @@ export default function Dashboard() {
   // Check referral_source from publisher profile
   const checkReferral = useCallback(async () => {
     if (!user) return;
+    // If the user already submitted referral this session/browser, skip the modal
+    if (localStorage.getItem("opedd_referral_done")) {
+      setNeedsReferral(false);
+      setReferralChecked(true);
+      return;
+    }
     try {
       const token = await getAccessToken();
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
@@ -98,6 +104,7 @@ export default function Dashboard() {
       const json = await res.json();
       const profile = json.success ? json.data : null;
       const hasReferral = !!profile?.referral_source;
+      if (hasReferral) localStorage.setItem("opedd_referral_done", "1");
       setNeedsReferral(!hasReferral);
     } catch {
       setNeedsReferral(false);
@@ -113,29 +120,6 @@ export default function Dashboard() {
 
   if (!user) return null;
   if (hasActivePublication === null || !referralChecked) return <PageLoader />;
-
-  const showSetupFlow = !hasActivePublication && !setupDismissed;
-
-  if (showSetupFlow) {
-    return (
-      <DashboardLayout title="Dashboard">
-        <PublicationSetupFlow
-          onComplete={(completionState) => {
-            setSetupDismissed(true);
-            setHasActivePublication(true);
-            if (completionState) {
-              setSetupCompletion({
-                pricingDone: completionState.pricingDone,
-                widgetDone: completionState.widgetDone,
-              });
-            }
-            fetchMetrics();
-            setSourcesKey(k => k + 1);
-          }}
-        />
-      </DashboardLayout>
-    );
-  }
 
   const showBanner = !setupCompletion.pricingDone || !setupCompletion.widgetDone;
 
