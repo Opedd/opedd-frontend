@@ -90,6 +90,7 @@ export default function Content() {
   // Multi-select
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPricingOpen, setBulkPricingOpen] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
 
   // Detail drawer
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
