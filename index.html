@@ -7,7 +7,9 @@
     <meta name="description" content="Opedd is the programmatic content licensing infrastructure for publishers and AI companies. Set your prices, issue verifiable licenses, get paid instantly via Stripe. Free to start." />
     <meta name="author" content="Opedd" />
     <meta name="theme-color" content="#040042" />
-    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="canonical" href="https://opedd.com" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <script id="vtag-ai-js" async src="https://r2.leadsy.ai/tag.js" data-pid="GOw9Ep73HHO8Da3P" data-version="062024"></script>
 
@@ -33,7 +35,12 @@
           "@id": "https://opedd.com/#organization",
           "name": "Opedd",
           "url": "https://opedd.com",
-          "logo": "https://opedd.com/favicon.png",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://opedd.com/favicon.png",
+            "width": 512,
+            "height": 512
+          },
           "description": "Opedd is the programmatic content licensing infrastructure for the human and AI era — the Stripe for Content Licensing. Publishers set their own prices and sell licenses directly to AI companies, enterprises, and media organisations.",
           "foundingDate": "2025",
           "founder": {

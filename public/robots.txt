@@ -1,6 +1,21 @@
 User-agent: *
 Allow: /
 
+# Block authenticated / internal routes — no crawl budget wasted on login redirects
+Disallow: /dashboard
+Disallow: /content
+Disallow: /insights
+Disallow: /ledger
+Disallow: /connectors
+Disallow: /payments
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /admin
+Disallow: /auth/
+Disallow: /invite/
+Disallow: /widget-preview
+Disallow: /license/success
+
 Sitemap: https://opedd.com/sitemap.xml
 
 # AI crawlers are explicitly welcome to index opedd.com.
