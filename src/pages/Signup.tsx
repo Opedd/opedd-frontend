@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -38,6 +38,18 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
+
+  // When waiting for email verification, listen for auth state changes so the
+  // page auto-redirects as soon as the user clicks the link in another tab.
+  useEffect(() => {
+    if (viewMode !== "verify-email") return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session) {
+        window.location.href = "/dashboard";
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [viewMode]);
 
   const validateForm = (): string | null => {
     if (!firstName.trim()) {
