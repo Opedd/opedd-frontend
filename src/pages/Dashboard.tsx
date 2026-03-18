@@ -197,7 +197,7 @@ export default function Dashboard() {
             </div>
             <Button
               onClick={() => navigate("/connectors?tab=widget")}
-              className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
+              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
             >
               Get embed code
             </Button>
@@ -216,7 +216,7 @@ export default function Dashboard() {
             </div>
             <Button
               onClick={() => setShowArchiveModal(true)}
-              className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
+              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold px-5 py-2 rounded-lg flex-shrink-0"
             >
               Issue Archive License
             </Button>

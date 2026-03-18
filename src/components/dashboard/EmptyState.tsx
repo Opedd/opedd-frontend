@@ -28,7 +28,7 @@ export function EmptyState({ onAddClick }: EmptyStateProps) {
         Register your first content asset to start earning from human citations and AI model access
       </p>
 
-      <button className="mt-6 px-6 py-3 bg-[#D1009A] text-white rounded-xl font-medium hover:bg-[#B8008A] transition-colors active:scale-[0.98] animate-pulse hover:animate-none">
+      <button className="mt-6 px-6 py-3 bg-[#4A26ED] text-white rounded-lg font-medium hover:bg-[#3B1ED1] transition-colors active:scale-[0.98]">
         Add Your First Asset
       </button>
     </div>

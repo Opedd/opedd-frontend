@@ -164,10 +164,10 @@ export function OnboardingChecklist() {
                   {step.label}
                 </span>
                 {!done && (
-                  <Button
+                    <Button
                     size="sm"
                     onClick={() => navigate(step.path)}
-                    className="h-8 px-3 text-xs bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold rounded-lg"
+                    className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg"
                   >
                     {step.cta}
                     <ArrowRight size={12} className="ml-1" />

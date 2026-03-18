@@ -552,19 +552,18 @@ export default function Settings() {
                       {profile?.stripe_account_id && (
                         !profile.stripe_onboarding_complete || (profile.stripe_connect && !profile.stripe_connect.payouts_enabled)
                       ) && (
-                        <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
-                          <AlertTriangle size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                       <div className="flex items-start gap-3 rounded-xl border border-[#4A26ED]/20 bg-[#EEF0FF] px-5 py-4">
+                          <AlertTriangle size={18} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-amber-900">
+                            <p className="text-sm font-medium text-[#040042]">
                               {!profile.stripe_onboarding_complete
                                 ? "Your Stripe payouts are not yet enabled. Complete your Stripe account setup to receive payments."
                                 : "Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments."}
                             </p>
                           </div>
                           <Button
-                            variant="outline"
                             size="sm"
-                            className="border-amber-400 text-amber-800 hover:bg-amber-100 flex-shrink-0"
+                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white flex-shrink-0"
                             onClick={async () => {
                               try {
                                 const headers = await apiHeaders();
@@ -704,13 +703,13 @@ export default function Settings() {
 
                             <div className="flex items-center gap-3">
                               {plan === "free" && (
-                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold text-sm">
+                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
                                   Upgrade to Pro →
                                 </Button>
                               )}
                               {plan === "pro" && (
                                 <>
-                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white font-semibold text-sm">
+                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
                                     Upgrade to Enterprise →
                                   </Button>
                                   <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
@@ -742,7 +741,7 @@ export default function Settings() {
                         <div className="grid gap-5">
                           {/* Logo Upload */}
                           <div className="space-y-2">
-                            <Label className="text-[#040042] font-bold text-sm">Publication Logo</Label>
+                            <Label className="text-sm font-medium text-[#6B7280]">Publication Logo</Label>
                             <div className="flex items-center gap-4">
                               <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                                 {logoPreview ? (
@@ -763,19 +762,19 @@ export default function Settings() {
 
                           <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label className="text-[#040042] font-bold text-sm">Publisher Name</Label>
-                              <Input value={publisherName} onChange={(e) => setPublisherName(e.target.value)} placeholder="Your display name" className="bg-slate-50 border-slate-200 h-12 rounded-lg focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                              <Label className="text-sm font-medium text-[#6B7280]">Publisher Name</Label>
+                              <Input value={publisherName} onChange={(e) => setPublisherName(e.target.value)} placeholder="Your display name" className="bg-slate-50 border-slate-200 h-10 rounded-lg focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                             </div>
                             <div className="space-y-2">
-                              <Label className="text-[#040042] font-bold text-sm">Email Address</Label>
+                              <Label className="text-sm font-medium text-[#6B7280]">Email Address</Label>
                               <div className="relative">
                                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <Input value={profile?.email || user.email || ""} disabled className="bg-slate-100 border-slate-200 h-12 rounded-lg pl-11 opacity-70 cursor-not-allowed" />
+                                <Input value={profile?.email || user.email || ""} disabled className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 opacity-70 cursor-not-allowed" />
                               </div>
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-[#040042] font-bold text-sm">Website URL</Label>
+                            <Label className="text-sm font-medium text-[#6B7280]">Website URL</Label>
                             <div className="relative">
                               <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                               <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://yoursite.com" className="bg-slate-50 border-slate-200 h-12 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
@@ -815,7 +814,7 @@ export default function Settings() {
                       </div>
 
                       {/* Save Button */}
-                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
+                      <Button onClick={handleSave} disabled={isSaving} className="w-full h-10 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
                         {isSaving ? "Saving..." : "Save Changes"}
                       </Button>
 
@@ -844,17 +843,16 @@ export default function Settings() {
                     <motion.div key="monetisation" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                       {/* Stripe payouts warning */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
-                        <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
-                          <AlertTriangle size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                         <div className="flex items-start gap-3 rounded-xl border border-[#4A26ED]/20 bg-[#EEF0FF] px-5 py-4">
+                          <AlertTriangle size={18} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-amber-900">
+                            <p className="text-sm font-medium text-[#040042]">
                               Payouts not enabled. Complete your Stripe Connect setup to receive payments. Without this, all revenue is held and cannot be disbursed.
                             </p>
                           </div>
                           <Button
-                            variant="outline"
                             size="sm"
-                            className="border-amber-400 text-amber-800 hover:bg-amber-100 flex-shrink-0"
+                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white flex-shrink-0"
                             onClick={async () => {
                               try {
                                 const headers = await apiHeaders();
@@ -898,7 +896,7 @@ export default function Settings() {
                           </div>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                            <Input type="number" min="0" step="0.01" value={defaultHumanPrice} onChange={(e) => setDefaultHumanPrice(e.target.value)} className="bg-white border-slate-200 h-11 rounded-xl pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                            <Input type="number" min="0" step="0.01" value={defaultHumanPrice} onChange={(e) => setDefaultHumanPrice(e.target.value)} className="bg-white border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                           </div>
                           <p className="text-xs text-slate-500 italic">For students, bloggers, and small reuse. Typical range: $10 – $50</p>
                         </div>
@@ -913,7 +911,7 @@ export default function Settings() {
                           </div>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                            <Input type="number" min="0" step="0.01" value={defaultSyndicationPrice} onChange={(e) => setDefaultSyndicationPrice(e.target.value)} className="bg-white border-slate-200 h-11 rounded-xl pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                            <Input type="number" min="0" step="0.01" value={defaultSyndicationPrice} onChange={(e) => setDefaultSyndicationPrice(e.target.value)} className="bg-white border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                           </div>
                           <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
                         </div>
@@ -928,12 +926,12 @@ export default function Settings() {
                           </div>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                            <Input type="number" min="0" step="0.01" value={defaultAiPrice} onChange={(e) => setDefaultAiPrice(e.target.value)} placeholder="0.00" className="bg-white border-slate-200 h-11 rounded-xl pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                            <Input type="number" min="0" step="0.01" value={defaultAiPrice} onChange={(e) => setDefaultAiPrice(e.target.value)} placeholder="0.00" className="bg-white border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                           </div>
                           <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
                         </div>
 
-                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
+                        <Button onClick={handleSave} disabled={isSaving} className="w-full h-10 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
                           {isSaving ? "Saving..." : "Save rates"}
                         </Button>
                       </div>
@@ -988,9 +986,9 @@ export default function Settings() {
                       ) : teamError ? (
                         <div className="flex flex-col items-center justify-center py-16 gap-4">
                           <p className="text-slate-500 text-sm">Failed to load team data.</p>
-                          <Button
+                            <Button
                             onClick={() => { setTeamLoaded(false); setTeamError(false); }}
-                            className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-xl"
+                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg"
                           >
                             Try Again
                           </Button>
@@ -1007,9 +1005,9 @@ export default function Settings() {
                               <div className="flex items-center gap-3">
                                 <div className="flex-1 relative">
                                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                  <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-12 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                                  <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                                 </div>
-                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold">
+                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-10 px-6 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-semibold">
                                   {isInviting ? <><Loader2 size={14} className="mr-2 animate-spin" />Sending...</> : <><Send size={14} className="mr-2" />Send Invite</>}
                                 </Button>
                               </div>
@@ -1121,7 +1119,7 @@ export default function Settings() {
                           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
                             <code className="text-sm text-[#040042] font-mono truncate block">{publisherId}</code>
                           </div>
-                          <Button size="sm" onClick={handleCopyPublisherId} className="h-11 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium flex-shrink-0 transition-all">
+                          <Button size="sm" onClick={handleCopyPublisherId} className="h-10 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium flex-shrink-0 transition-all">
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>
@@ -1150,10 +1148,10 @@ export default function Settings() {
                                     {apiKeyRevealed ? apiKey : apiKey.slice(0, 10) + "•".repeat(20)}
                                   </code>
                                 </div>
-                                <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} className="h-11 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
+                                <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} className="h-10 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
                                   {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </Button>
-                                <Button size="sm" onClick={handleCopyApiKey} className="h-11 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium transition-all">
+                                <Button size="sm" onClick={handleCopyApiKey} className="h-10 px-4 bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg font-medium transition-all">
                                   {apiKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
                                 </Button>
                               </div>
@@ -1192,7 +1190,7 @@ export default function Settings() {
                           ) : (
                             <div className="text-center py-4">
                               <p className="text-sm text-slate-500 mb-3">No API key generated yet.</p>
-                              <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#3182CE] hover:bg-[#2B6CB0] text-white rounded-lg">
+                              <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
                                 {isRegenerating ? <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</> : <><Key size={14} className="mr-2" />Generate API Key</>}
                               </Button>
                             </div>
