@@ -265,7 +265,6 @@ export default function Payments() {
               {[
                 { value: "plan", label: "Opedd Plan" },
                 { value: "stripe", label: "Payout Setup" },
-                { value: "wallet", label: "Wallet" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
