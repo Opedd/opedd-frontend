@@ -10,7 +10,7 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  User, Shield, Sparkles,
+  User, Shield, Sparkles, FileCheck,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
   AlertTriangle, Ban, ScrollText, Receipt,
 } from "lucide-react";
