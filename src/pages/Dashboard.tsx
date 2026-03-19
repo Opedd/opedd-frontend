@@ -184,9 +184,9 @@ export default function Dashboard() {
             <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Licensed Works</p>
             <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
           </div>
-          <div className="bg-[#0A0066] rounded-xl p-6 shadow-sm">
-            <p className="text-white/60 text-xs font-medium uppercase tracking-wide">Total Revenue</p>
-            <p className="text-2xl font-bold text-white mt-1">${totalRevenue.toFixed(2)}</p>
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
+            <p className="text-2xl font-bold text-[#111827] mt-1">${totalRevenue.toFixed(2)}</p>
           </div>
         </div>
 
