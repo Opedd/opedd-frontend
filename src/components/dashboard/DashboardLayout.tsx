@@ -32,13 +32,12 @@ const planBadgeStyles: Record<PlanType, { classes: string; label: string }> = {
 };
 
 const navItems = [
-  { title: "Overview", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: FileText },
   { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Buyers", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Payments", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
