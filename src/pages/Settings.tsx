@@ -1728,6 +1728,19 @@ export default function Settings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Embedded Stripe Checkout Modal */}
+      {checkoutClientSecret && checkoutStripePromise && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <button onClick={handleCloseCheckout} className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] hover:border-[#040042] transition-colors"><X size={16} /></button>
+            <div className="p-2">
+              <EmbeddedCheckoutProvider stripe={checkoutStripePromise} options={{ clientSecret: checkoutClientSecret }}>
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
