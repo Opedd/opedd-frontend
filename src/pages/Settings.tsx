@@ -1091,41 +1091,7 @@ export default function Settings() {
                         </Button>
                       </div>
 
-                      {/* Widget Preview */}
-                      <div className="border-t border-slate-100 pt-6">
-                        <h3 className="text-sm font-semibold text-[#040042] mb-3">Widget preview</h3>
-                        <div className="flex gap-3 flex-wrap">
-                          {defaultHumanPrice && parseFloat(defaultHumanPrice) > 0 ? (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-semibold text-[#040042]">Permission <span className="text-[#4A26ED]">${defaultHumanPrice}</span></p>
-                              <p className="text-xs text-slate-500 mt-0.5">Instant license</p>
-                            </div>
-                          ) : (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-medium text-slate-500">Request permission →</p>
-                            </div>
-                          )}
-                          {defaultSyndicationPrice && parseFloat(defaultSyndicationPrice) > 0 ? (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-semibold text-[#040042]">Syndication <span className="text-[#4A26ED]">${defaultSyndicationPrice}+</span></p>
-                              <p className="text-xs text-slate-500 mt-0.5">Full rights</p>
-                            </div>
-                          ) : (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-medium text-slate-500">Request syndication →</p>
-                            </div>
-                          )}
-                          {defaultAiPrice && parseFloat(defaultAiPrice) > 0 && (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-semibold text-[#040042]">AI Training <span className="text-[#4A26ED]">${defaultAiPrice}</span></p>
-                              <p className="text-xs text-slate-500 mt-0.5">Dataset license</p>
-                            </div>
-                          )}
-                        </div>
-                        {(!defaultHumanPrice || parseFloat(defaultHumanPrice) === 0) && (!defaultSyndicationPrice || parseFloat(defaultSyndicationPrice) === 0) && (
-                          <p className="text-xs text-slate-400 mt-2 italic">If rates are blank, widget shows "Request pricing →"</p>
-                        )}
-                      </div>
+
                     </motion.div>
                   )}
                 </TabsContent>
