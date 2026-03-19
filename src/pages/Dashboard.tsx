@@ -6,7 +6,7 @@ import { Plus, Copy, ExternalLink, Check } from "lucide-react";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
@@ -242,7 +242,7 @@ export default function Dashboard() {
                 <p className="text-sm font-semibold text-[#111827]">Your Public Licensing Page</p>
                 <p className="text-xs text-[#6B7280] mt-0.5">
                   Set your website URL in{" "}
-                  <button onClick={() => navigate("/settings")} className="text-[#4A26ED] hover:underline font-medium">Settings</button>
+                  <Link to="/settings" className="text-[#4A26ED] hover:underline font-medium">Settings</Link>
                   {" "}to activate your page.
                 </p>
               </div>
