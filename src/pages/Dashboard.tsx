@@ -199,7 +199,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout
-      title="Overview"
+      title="Dashboard"
       headerActions={<></>}
     >
       <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
