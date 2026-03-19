@@ -181,8 +181,8 @@ export default function Dashboard() {
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <p className="text-[#040042]/60 text-xs font-medium uppercase tracking-wide">Licensed Works</p>
-            <p className="text-2xl font-bold text-[#040042] mt-1">{totalAssets}</p>
+            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Licensed Works</p>
+            <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
           </div>
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
