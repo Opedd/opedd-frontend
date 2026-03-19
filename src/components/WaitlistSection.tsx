@@ -34,7 +34,7 @@ const WaitlistSection = () => {
             <div className="flex justify-center">
               <Link to="/signup">
                 <Button
-                  variant="hero-primary"
+                  variant="default"
                   size="lg"
                   className="w-full max-w-sm group"
                 >

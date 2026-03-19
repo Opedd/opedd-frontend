@@ -99,7 +99,7 @@ const Header = () => {
               </Button>
             </Link>
             <Link to="/signup">
-              <Button variant="oxford" size="sm">
+              <Button variant="default" size="sm">
                 Get Started Free
               </Button>
             </Link>
@@ -157,7 +157,7 @@ const Header = () => {
                   </Button>
                 </Link>
                 <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="oxford" size="sm" className="w-full">
+                  <Button variant="default" size="sm" className="w-full">
                     Get Started Free
                   </Button>
                 </Link>

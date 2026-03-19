@@ -291,7 +291,7 @@ export default function Signup() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#4A26ED]/30 disabled:opacity-50 transition-all active:scale-[0.98]"
+          className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all"
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </button>
@@ -417,9 +417,9 @@ export default function Signup() {
   );
 
   return (
-    <div className="min-h-screen bg-[#040042] flex">
+    <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-[#040042] to-[#0A0066]">
+      <div className="hidden lg:flex lg:w-[40%] flex-col justify-between p-12 bg-[#4A26ED]">
         <Link to="/">
           <img src={opeddLogo} alt="Opedd" className="h-10" />
         </Link>
@@ -427,17 +427,19 @@ export default function Signup() {
           <h1 className="text-4xl font-bold text-white leading-tight">
             Own Your Content.
             <br />
-            <span className="text-[#D1009A]">Control Your Revenue.</span>
+            Control Your Revenue.
           </h1>
-          <p className="text-white/60 text-lg max-w-md">
-            Join publishers who are monetizing AI training and protecting their intellectual property.
-          </p>
+          <ul className="space-y-3 text-white/90 font-medium">
+            <li className="flex items-center gap-2">✓ Direct licensing to AI companies</li>
+            <li className="flex items-center gap-2">✓ Stripe-quality checkout for buyers</li>
+            <li className="flex items-center gap-2">✓ On-chain proof of every license</li>
+          </ul>
         </div>
-        <p className="text-white/40 text-sm">© 2026 Opedd. All rights reserved.</p>
+        <p className="text-white/50 text-sm">© 2026 Opedd. All rights reserved.</p>
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-[#F2F9FF]">
+      <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 flex justify-center">

@@ -101,10 +101,10 @@ export default function Insights() {
         ) : !fetchError && (
           <>
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
-              <div className="bg-[#040042] rounded-xl p-6 text-white shadow-sm">
-                <TrendingUp size={18} className="text-white/60 mb-3" />
-                <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-                <p className="text-2xl font-bold mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                <TrendingUp size={18} className="text-[#4A26ED] mb-3" />
+                <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+                <p className="text-2xl font-bold text-[#111827] mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
               </div>
               <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
                 <FileCheck size={18} className="text-[#4A26ED] mb-3" />

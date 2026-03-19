@@ -48,7 +48,7 @@ const HeroSection = () => {
             className="flex items-center justify-center gap-4 flex-wrap"
           >
             <Link to="/signup">
-              <Button variant="hero-primary" size="lg" className="h-14 px-8 rounded-xl group">
+              <Button variant="default" size="lg" className="h-14 px-8 rounded-xl group">
                 Start for free
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>

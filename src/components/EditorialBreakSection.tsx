@@ -94,7 +94,7 @@ const EditorialBreakSection = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button variant="oxford" size="sm" className="flex-1 group">
+                  <Button variant="default" size="sm" className="flex-1 group">
                     <FileText className="w-4 h-4 mr-2" />
                     Republish this Article
                     <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />

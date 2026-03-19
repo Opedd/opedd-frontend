@@ -532,7 +532,7 @@ export default function Content() {
               </p>
               <Button
                 onClick={() => setArchiveLicenseOpen(true)}
-                className="bg-[#040042] hover:bg-[#040042]/90 text-white rounded-lg h-10 px-5 font-semibold text-sm gap-2"
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
               >
                 <Handshake size={16} />
                 Issue Archive License
@@ -551,14 +551,14 @@ export default function Content() {
         <SheetContent side="right" className="sm:max-w-lg w-full !p-0 flex flex-col bg-white [&>button.absolute]:hidden">
           {selectedAsset && (
             <>
-              <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
+              <div className="bg-white border-b border-[#E5E7EB] px-6 py-5 flex-shrink-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-[#A78BFA] text-xs font-semibold uppercase tracking-wide mb-1">Article</p>
-                    <h2 className="text-white font-bold text-base leading-snug">{selectedAsset.title}</h2>
+                    <p className="text-[#4A26ED] text-xs font-semibold uppercase tracking-wide mb-1">Article</p>
+                    <h2 className="text-[#111827] font-bold text-base leading-snug">{selectedAsset.title}</h2>
                   </div>
-                  <button onClick={() => setDrawerOpen(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <X size={16} className="text-white" />
+                  <button onClick={() => setDrawerOpen(false)} className="w-8 h-8 rounded-lg hover:bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+                    <X size={16} className="text-[#6B7280]" />
                   </button>
                 </div>
               </div>
@@ -620,7 +620,7 @@ export default function Content() {
                       <div className="flex gap-2">
                         <button
                           onClick={handleSaveRates} disabled={savingRates}
-                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-[#040042] text-white rounded-lg hover:bg-[#040042]/90 disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-[#4A26ED] text-white rounded-lg hover:bg-[#3B1ED1] disabled:opacity-50"
                         >
                           {savingRates ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                           Save
