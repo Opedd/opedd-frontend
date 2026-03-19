@@ -225,7 +225,65 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Licensing Page Card */}
+        {/* Admin Platform Stats */}
+        {isAdmin && (
+          <div className="space-y-3">
+            <h2 className="text-[15px] font-semibold text-[#111827]">Platform</h2>
+            {adminStatsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-5 h-5 border-2 border-[#4A26ED] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : adminStats ? (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users size={14} className="text-[#6B7280]" />
+                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Publishers</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#111827]">{adminStats.total_publishers}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Activity size={14} className="text-[#6B7280]" />
+                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Transactions</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#111827]">{adminStats.total_transactions}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign size={14} className="text-[#6B7280]" />
+                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Platform Revenue</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#111827]">${adminStats.total_revenue.toFixed(2)}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Activity size={14} className="text-[#6B7280]" />
+                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Txns Today</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#111827]">{adminStats.transactions_today}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign size={14} className="text-[#6B7280]" />
+                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Revenue Today</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#111827]">${adminStats.revenue_today.toFixed(2)}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangleIcon size={14} className="text-amber-500" />
+                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Failed Webhooks</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#111827]">{adminStats.failed_webhooks_24h}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-[#6B7280]">Failed to load platform stats.</p>
+            )}
+          </div>
+        )}
+
         <Card className="p-5 shadow-sm">
           {licensingHref ? (
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
