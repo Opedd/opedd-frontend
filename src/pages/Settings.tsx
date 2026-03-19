@@ -1026,9 +1026,9 @@ export default function Settings() {
                       {/* Stripe payouts nudge */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
                         <p className="text-sm text-amber-600 mb-4">
-                          Stripe not connected — buyers cannot pay you yet.{' '}
-                          <button onClick={() => navigate('/payments?tab=stripe')} className="underline font-medium">
-                            Set up payouts →
+                          Stripe payouts not set up —{' '}
+                          <button onClick={() => setActiveTab('billing')} className="underline font-medium">
+                            configure in Settings → Billing
                           </button>
                         </p>
                       )}
