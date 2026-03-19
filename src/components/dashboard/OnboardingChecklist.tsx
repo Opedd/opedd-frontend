@@ -181,7 +181,7 @@ export function OnboardingChecklist({
                     <Button
                       size="sm"
                       onClick={() => onRegisterContent ? onRegisterContent() : navigate("/content")}
-                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {step.cta}<ArrowRight size={12} className="ml-1" />
                     </Button>
@@ -191,7 +191,7 @@ export function OnboardingChecklist({
                     <Button
                       size="sm"
                       onClick={() => navigate("/licensing")}
-                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {step.cta}<ArrowRight size={12} className="ml-1" />
                     </Button>
@@ -202,7 +202,7 @@ export function OnboardingChecklist({
                       size="sm"
                       onClick={handleConnectStripe}
                       disabled={isStripeConnecting}
-                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {isStripeConnecting ? (
                         <Loader2 size={12} className="animate-spin" />
@@ -217,7 +217,7 @@ export function OnboardingChecklist({
                       size="sm"
                       onClick={handleCopyLink}
                       disabled={!shareComplete}
-                      className="h-8 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {linkCopied ? (
                         <><Check size={12} className="mr-1" />Copied!</>

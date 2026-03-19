@@ -73,7 +73,7 @@ test.afterAll(async () => {
 async function loginAndGoto(page: Page, path: string) {
   // Inject session into localStorage before the app loads — avoids UI login
   await page.addInitScript(
-    ({ email, token }) => {
+    ({ email, token, uid }) => {
       const key = "sb-djdzcciayennqchjgybx-auth-token";
       const value = JSON.stringify({
         access_token: token,
@@ -81,11 +81,11 @@ async function loginAndGoto(page: Page, path: string) {
         token_type: "bearer",
         expires_in: 3600,
         expires_at: Math.floor(Date.now() / 1000) + 3600,
-        user: { email, id: "" },
+        user: { email, id: uid },
       });
       localStorage.setItem(key, value);
     },
-    { email: userEmail, token: accessToken }
+    { email: userEmail, token: accessToken, uid: userId }
   );
   await page.goto(path, { waitUntil: "networkidle" });
 }
