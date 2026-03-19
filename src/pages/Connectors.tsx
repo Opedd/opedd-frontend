@@ -436,23 +436,6 @@ export default function Connectors() {
             </div>
           </TabsContent>
 
-          {/* API Access Tab */}
-          <TabsContent value="api-access" className="mt-6">
-            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-              <h2 className="font-bold text-[#040042] mb-2">API Keys</h2>
-              <p className="text-sm text-[#6B7280] mb-4">
-                Your API key is managed in Settings → API Keys.
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => window.location.href = "/settings?tab=api-keys"}
-                className="text-sm font-medium"
-              >
-                Go to API Keys →
-              </Button>
-            </div>
-          </TabsContent>
 
           {/* AI Policy Tab */}
           <TabsContent value="ai-policy" className="mt-6">
