@@ -894,7 +894,7 @@ export default function Settings() {
                               <span className="text-sm text-[#6B7280]">{summary}</span>
                             </div>
                             <button
-                              onClick={() => navigate("/payments")}
+                              onClick={() => setActiveTab("billing")}
                               className="text-sm font-medium text-[#4A26ED] hover:underline"
                             >
                               Manage Plan →
