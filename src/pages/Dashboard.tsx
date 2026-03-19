@@ -42,6 +42,21 @@ export default function Dashboard() {
   const [pricingConfigured, setPricingConfigured] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
+
+  const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
+  // Admin stats state
+  interface AdminStats {
+    total_publishers: number;
+    total_transactions: number;
+    total_revenue: number;
+    transactions_today: number;
+    revenue_today: number;
+    failed_webhooks_24h: number;
+  }
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [adminStatsLoading, setAdminStatsLoading] = useState(false);
   
 
   // Setup flow state
