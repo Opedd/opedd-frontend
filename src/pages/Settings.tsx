@@ -1054,8 +1054,7 @@ export default function Settings() {
                         <p className="text-xs text-slate-400 mt-3">Use this in your widget embed snippet, WordPress plugin, and AI defense policy URL</p>
                       </div>
 
-                      {/* Widget Embed Code */}
-                      <WidgetEmbedCard publisherId={publisherId} />
+                      {/* Widget Embed Code — moved to Distribution/Widget tab */}
 
                       {/* API Key */}
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
