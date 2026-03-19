@@ -54,7 +54,7 @@ const HeroSection = () => {
               </Button>
             </Link>
             <Link to="/pricing">
-              <Button variant="outline" size="lg" className="h-14 px-8 rounded-xl border-soft-white/30 text-soft-white hover:bg-soft-white/10 hover:text-soft-white">
+              <Button variant="outline" size="lg" className="h-14 px-8 rounded-xl border-soft-white/30 text-soft-white hover:text-soft-white">
                 View pricing
               </Button>
             </Link>
