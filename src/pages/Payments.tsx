@@ -14,10 +14,13 @@ import {
   XCircle,
   AlertTriangle,
   Check,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 
 interface StripeConnect {
   connected: boolean;
@@ -105,6 +108,10 @@ export default function Payments() {
   const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
   const [isBillingPortalLoading, setIsBillingPortalLoading] = useState(false);
 
+  // Embedded checkout state
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+  const [checkoutStripePromise, setCheckoutStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
+
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
     if (!token) throw new Error("Not authenticated");
@@ -149,6 +156,14 @@ export default function Payments() {
       }
     };
     load();
+
+    // Handle return from embedded checkout
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscription") === "success") {
+      const plan = params.get("plan");
+      toast({ title: "Subscription activated!", description: `You're now on the ${plan} plan.` });
+      window.history.replaceState({}, "", "/payments");
+    }
   }, [apiHeaders, postAction]);
 
   if (!user) return null;
@@ -187,16 +202,24 @@ export default function Payments() {
   const handleUpgrade = async (plan: "pro" | "enterprise") => {
     setIsUpgrading(plan);
     try {
-      const result = await postAction("create_subscription", { plan });
-      if (result.success && result.data?.url) {
-        window.location.href = result.data.url;
+      const result = await postAction("create_subscription", { plan, embedded: true });
+      if (result.success && result.data?.client_secret) {
+        const stripePromise = loadStripe(result.data.publishable_key);
+        setCheckoutStripePromise(stripePromise);
+        setCheckoutClientSecret(result.data.client_secret);
       } else {
         throw new Error(typeof result.error === "string" ? result.error : "Failed to start checkout");
       }
     } catch (err: unknown) {
       toast({ title: "Upgrade Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
       setIsUpgrading(null);
     }
+  };
+
+  const handleCloseCheckout = () => {
+    setCheckoutClientSecret(null);
+    setCheckoutStripePromise(null);
   };
 
   const handleBillingPortal = async () => {
@@ -497,6 +520,28 @@ export default function Payments() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Embedded Stripe Checkout Modal */}
+      {checkoutClientSecret && checkoutStripePromise && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={handleCloseCheckout}
+              className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] hover:border-[#040042] transition-colors"
+            >
+              <X size={16} />
+            </button>
+            <div className="p-2">
+              <EmbeddedCheckoutProvider
+                stripe={checkoutStripePromise}
+                options={{ clientSecret: checkoutClientSecret }}
+              >
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
