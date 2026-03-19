@@ -551,14 +551,14 @@ export default function Content() {
         <SheetContent side="right" className="sm:max-w-lg w-full !p-0 flex flex-col bg-white [&>button.absolute]:hidden">
           {selectedAsset && (
             <>
-              <div className="bg-[#040042] px-6 py-5 flex-shrink-0">
+              <div className="bg-white border-b border-[#E5E7EB] px-6 py-5 flex-shrink-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-[#A78BFA] text-xs font-semibold uppercase tracking-wide mb-1">Article</p>
-                    <h2 className="text-white font-bold text-base leading-snug">{selectedAsset.title}</h2>
+                    <p className="text-[#4A26ED] text-xs font-semibold uppercase tracking-wide mb-1">Article</p>
+                    <h2 className="text-[#111827] font-bold text-base leading-snug">{selectedAsset.title}</h2>
                   </div>
-                  <button onClick={() => setDrawerOpen(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <X size={16} className="text-white" />
+                  <button onClick={() => setDrawerOpen(false)} className="w-8 h-8 rounded-lg hover:bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+                    <X size={16} className="text-[#6B7280]" />
                   </button>
                 </div>
               </div>
