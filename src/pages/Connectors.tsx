@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
+import { WidgetEmbedCard } from "@/components/dashboard/WidgetEmbedCard";
 
 function deriveSlug(websiteUrl: string | null): string {
   if (!websiteUrl) return "";
