@@ -256,7 +256,6 @@ export default function Connectors() {
               {[
                 { value: "widget", label: "Widget" },
                 { value: "webhooks", label: "Webhooks" },
-                { value: "api-access", label: "API Access" },
                 { value: "ai-policy", label: "AI Policy" },
               ].map((tab) => (
                 <TabsTrigger
