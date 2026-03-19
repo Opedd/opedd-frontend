@@ -48,6 +48,15 @@ function getLicenseLabel(type: LicenseType): string {
   return LICENSE_TYPE_OPTIONS.find((o) => o.value === type)?.label ?? type;
 }
 
+function toBackendLicenseType(type: LicenseType): string {
+  switch (type) {
+    case "editorial":    return "human";
+    case "corporate":    return "human";
+    case "ai_training":  return "ai";
+    case "ai_inference": return "ai_inference";
+  }
+}
+
 const INTENDED_USE_OPTIONS = [
   { value: "personal", label: "Personal Use" },
   { value: "editorial", label: "Editorial / Journalism" },
@@ -126,7 +135,7 @@ export default function LicensePublicCheckout() {
         const res = await fetch(`${EXT_SUPABASE_URL}/issue-license`, {
           method: "POST",
           headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
-          body: JSON.stringify({ article_id: asset.id, buyer_email: email, buyer_name: name || undefined, buyer_organization: organization || undefined, intended_use: intendedUse || undefined, license_type: selected }),
+          body: JSON.stringify({ article_id: asset.id, buyer_email: email, buyer_name: name || undefined, buyer_organization: organization || undefined, intended_use: intendedUse || undefined, license_type: toBackendLicenseType(selected) }),
         });
         const result = await res.json();
         if (!res.ok || !result.success) throw new Error(result.error || "License issuance failed");
@@ -135,7 +144,7 @@ export default function LicensePublicCheckout() {
         const res = await fetch(`${EXT_SUPABASE_URL}/create-checkout`, {
           method: "POST",
           headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
-          body: JSON.stringify({ article_id: asset.id, buyer_email: email, license_type: selected, buyer_name: name || undefined, buyer_organization: organization || undefined, intended_use: intendedUse || undefined }),
+          body: JSON.stringify({ article_id: asset.id, buyer_email: email, license_type: toBackendLicenseType(selected), buyer_name: name || undefined, buyer_organization: organization || undefined, intended_use: intendedUse || undefined }),
         });
         const result = await res.json();
         if (!res.ok || !result.success) throw new Error(result.error || "Checkout creation failed");
