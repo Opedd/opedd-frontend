@@ -271,7 +271,10 @@ export default function Connectors() {
 
           {/* Widget Tab */}
           <TabsContent value="widget" className="mt-6">
-            <WidgetCustomizer publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
+            <div className="space-y-6">
+              <WidgetCustomizer publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
+              <WidgetEmbedCard publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
+            </div>
           </TabsContent>
 
           {/* Webhooks Tab */}
