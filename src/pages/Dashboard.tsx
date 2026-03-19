@@ -256,11 +256,11 @@ export default function Dashboard() {
         {/* Sources Section */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[#040042]">Sources</h2>
+            <h2 className="text-[15px] font-semibold text-[#111827]">Sources</h2>
             <Button
               size="sm"
               onClick={() => setAddPubDrawerOpen(true)}
-              className="h-9 px-4 rounded-lg bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white text-sm font-semibold"
+              className="h-9 px-4 rounded-lg bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-sm font-medium"
             >
               <Plus size={15} className="mr-1.5 flex-shrink-0" />
               Register content
