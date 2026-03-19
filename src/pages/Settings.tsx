@@ -175,7 +175,11 @@ export default function Settings() {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("profile");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab === "monetisation" || tab === "api-keys" || tab === "team" ? tab : "profile";
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cancel subscription state
