@@ -99,7 +99,7 @@ const EditorialBreakSection = () => {
                     Republish this Article
                     <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1 border-oxford/30 text-soft-white hover:bg-oxford/10 group">
+                  <Button variant="outline" size="sm" className="flex-1 border-oxford/30 text-soft-white group">
                     <Bot className="w-4 h-4 mr-2" />
                     AI Citation Access
                   </Button>
