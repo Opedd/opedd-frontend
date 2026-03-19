@@ -15,6 +15,8 @@ import {
   ExternalLink,
   AlertCircle,
 } from "lucide-react";
+import { PricingRulesTab } from "@/components/dashboard/PricingRulesTab";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
