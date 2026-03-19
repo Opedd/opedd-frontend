@@ -9,7 +9,7 @@ import { EXT_SUPABASE_URL } from "@/lib/constants";
 import {
   Sparkles, User, FileText, ExternalLink, Copy, CheckCircle2,
   Link2, Shield, Bot, Cpu, Hash, Download, Building2, Briefcase,
-  Archive, Calendar, AlertTriangle,
+  Archive, Calendar, AlertTriangle, RefreshCw, Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -47,15 +47,18 @@ interface TransactionReceiptDrawerProps {
   transaction: Transaction | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onRetryBlockchain?: (transactionId: string) => Promise<void>;
 }
 
-export function TransactionReceiptDrawer({ transaction, open, onOpenChange }: TransactionReceiptDrawerProps) {
+export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRetryBlockchain }: TransactionReceiptDrawerProps) {
   const [copiedHash, setCopiedHash] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   if (!transaction) return null;
 
   const handleCopyHash = () => { if (transaction.blockchainTxHash) { navigator.clipboard.writeText(transaction.blockchainTxHash); setCopiedHash(true); setTimeout(() => setCopiedHash(false), 2000); } };
+  const handleRetryBlockchain = async () => { if (!onRetryBlockchain) return; setRetrying(true); try { await onRetryBlockchain(transaction.id); } finally { setRetrying(false); } };
   const handleCopyLicenseKey = () => { if (transaction.licenseKey) { navigator.clipboard.writeText(transaction.licenseKey); setCopiedKey(true); setTimeout(() => setCopiedKey(false), 2000); } };
   const handleDownloadCertificate = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
   const handleDownloadInvoice = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
@@ -220,7 +223,15 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange }: Tr
             ) : transaction.blockchainStatus === "pending" || transaction.blockchainStatus === "submitted" ? (
               <p className="text-white/60 text-sm">On-chain registration in progress — hash will appear shortly.</p>
             ) : transaction.blockchainStatus === "failed" ? (
-              <p className="text-amber-400 text-sm">On-chain registration failed. The license is still valid — contact support if needed.</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-amber-400 text-sm">On-chain registration failed. The license is still valid.</p>
+                {onRetryBlockchain && (
+                  <button onClick={handleRetryBlockchain} disabled={retrying} className="flex items-center gap-1.5 text-xs font-medium text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0">
+                    {retrying ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+                    {retrying ? "Retrying…" : "Retry"}
+                  </button>
+                )}
+              </div>
             ) : (
               <p className="text-white/60 text-sm">No blockchain record for this transaction type.</p>
             )}

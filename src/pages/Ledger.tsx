@@ -174,6 +174,24 @@ export default function Ledger() {
     }
   };
 
+  const handleRetryBlockchain = async (transactionId: string) => {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/retry-blockchain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ transaction_id: transactionId }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error?.message || "Retry failed");
+      setTransactions(prev => prev.map(tx => tx.id === transactionId ? { ...tx, blockchainStatus: "pending" } : tx));
+      setSelectedTransaction(prev => prev?.id === transactionId ? { ...prev, blockchainStatus: "pending" } : prev);
+      toast({ title: "Retry queued", description: "On-chain registration has been re-queued. This may take a minute." });
+    } catch (err: any) {
+      toast({ title: "Retry failed", description: err.message, variant: "destructive" });
+    }
+  };
+
   const handleExportCSV = async () => {
     setIsExporting(true);
     const headers = ["Date", "Article", "Buyer", "Type", "Amount", "Status", "License Key"];
@@ -375,7 +393,7 @@ export default function Ledger() {
         )}
       </motion.div>
 
-      <TransactionReceiptDrawer open={drawerOpen} onOpenChange={setDrawerOpen} transaction={selectedTransaction} />
+      <TransactionReceiptDrawer open={drawerOpen} onOpenChange={setDrawerOpen} transaction={selectedTransaction} onRetryBlockchain={handleRetryBlockchain} />
       <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => { setShowArchiveModal(false); fetchTransactions(); }} />
 
       {/* Revoke confirmation dialog */}
