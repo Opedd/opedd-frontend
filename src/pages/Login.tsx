@@ -68,14 +68,14 @@ export default function Login() {
 
       {/* Divider */}
       <div className="flex items-center gap-3 my-1">
-        <div className="flex-1 h-px bg-[#040042]/10" />
-        <span className="text-xs text-[#040042]/40 font-medium">or</span>
-        <div className="flex-1 h-px bg-[#040042]/10" />
+        <div className="flex-1 h-px bg-[#E5E7EB]" />
+        <span className="text-xs text-[#9CA3AF] font-medium">or</span>
+        <div className="flex-1 h-px bg-[#E5E7EB]" />
       </div>
 
       <form onSubmit={handleLogin} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-[#040042]/80 font-medium">
+          <Label htmlFor="email" className="text-[#6B7280] font-medium">
             Email Address
           </Label>
           <Input
@@ -85,11 +85,10 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-[#040042]/80 font-medium">
+          <Label htmlFor="password" className="text-[#6B7280] font-medium">
             Password
           </Label>
           <Input
@@ -99,7 +98,6 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl"
           />
         </div>
         
@@ -123,7 +121,7 @@ export default function Login() {
       </form>
 
       <div className="mt-6 text-center space-y-2">
-        <p className="text-[#040042]/50 text-sm">
+        <p className="text-[#6B7280] text-sm">
           Don't have an account?{" "}
           <Link to="/signup" className="text-[#4A26ED] font-medium hover:underline">
             Create Account
