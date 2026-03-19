@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { PublicationGate } from "@/components/dashboard/PublicationGate";
 
 // --- Interfaces ---
 
@@ -60,6 +61,9 @@ interface PublisherProfile {
   pricing_rules: PricingRules | null;
   stripe_onboarding_complete: boolean;
   article_count?: number;
+  publication_verified?: boolean;
+  pending_sources?: Array<{ id: string; name: string; url: string; verification_status: string; sync_status: string }>;
+  email?: string;
 }
 
 interface Transaction {
@@ -533,6 +537,12 @@ export default function Licensing() {
 
   return (
     <DashboardLayout title="Licensing">
+      <PublicationGate
+        isVerified={profile?.publication_verified ?? false}
+        pendingSources={profile?.pending_sources ?? []}
+        onSourceDeleted={fetchProfile}
+        adminEmail={profile?.email}
+      >
       <div className="max-w-3xl mx-auto space-y-8 pb-12">
         <h1 className="text-2xl font-bold text-gray-900">Licensing</h1>
 
@@ -713,6 +723,7 @@ export default function Licensing() {
         </section>
 
       </div>
+      </PublicationGate>
     </DashboardLayout>
   );
 }

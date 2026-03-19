@@ -79,6 +79,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+import { PublicationGate, LockedTabContent } from "@/components/dashboard/PublicationGate";
 
 const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
@@ -112,6 +113,8 @@ interface PublisherProfile {
   created_at: string;
   excluded_url_patterns?: string[];
   pricing_rules?: Record<string, any> | null;
+  publication_verified?: boolean;
+  pending_sources?: Array<{ id: string; name: string; url: string; verification_status: string; sync_status: string }>;
 }
 
 const tabContentVariants = {
@@ -196,6 +199,7 @@ export default function Settings() {
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const isAdmin = user?.email === ADMIN_EMAIL;
+  const isGated = !profile?.publication_verified && !isAdmin;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cancel subscription state
@@ -765,6 +769,13 @@ export default function Settings() {
           {isLoading ? (
             <PageLoader />
           ) : (
+            <PublicationGate
+              isVerified={profile?.publication_verified ?? false}
+              pendingSources={profile?.pending_sources ?? []}
+              onSourceDeleted={() => { setProfile(null); setIsLoading(true); }}
+              adminEmail={profile?.email}
+              bannerOnly
+            >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               {/* Global tab style — #4A26ED underline */}
               <div className="border-b border-[#E5E7EB]">
@@ -1023,6 +1034,7 @@ export default function Settings() {
                 <TabsContent value="pricing" className="mt-6" forceMount={activeTab === "pricing" ? true : undefined}>
                   {activeTab === "pricing" && (
                     <motion.div key="monetisation" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {isGated ? <LockedTabContent /> : <>
                       {/* Stripe payouts nudge */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
                         <p className="text-sm text-amber-600 mb-4">
@@ -1090,7 +1102,7 @@ export default function Settings() {
                           {isSaving ? <><Loader2 size={16} className="animate-spin mr-2" />Saving...</> : "Save rates"}
                         </Button>
                       </div>
-
+                      </>}
 
                     </motion.div>
                   )}
@@ -1100,6 +1112,7 @@ export default function Settings() {
                 <TabsContent value="team" className="mt-6" forceMount={activeTab === "team" ? true : undefined}>
                   {activeTab === "team" && (
                     <motion.div key="team" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {isGated ? <LockedTabContent /> : <>
                       {isLoadingTeam ? (
                         <div className="flex items-center justify-center py-20">
                           <Loader2 className="animate-spin text-[#4A26ED]" size={32} />
@@ -1216,6 +1229,7 @@ export default function Settings() {
                           )}
                         </>
                       )}
+                      </>}
                     </motion.div>
                   )}
                 </TabsContent>
@@ -1224,6 +1238,7 @@ export default function Settings() {
                 <TabsContent value="api-keys" className="mt-6" forceMount={activeTab === "api-keys" ? true : undefined}>
                   {activeTab === "api-keys" && (
                     <motion.div key="api-keys" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {isGated ? <LockedTabContent /> : <>
                       {/* Publisher ID */}
                       <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
@@ -1319,6 +1334,7 @@ export default function Settings() {
                           )}
                         </div>
                       </div>
+                      </>}
                     </motion.div>
                   )}
                 </TabsContent>
@@ -1326,6 +1342,7 @@ export default function Settings() {
                 <TabsContent value="billing" className="mt-6" forceMount={activeTab === "billing" ? true : undefined}>
                   {activeTab === "billing" && (
                     <motion.div key="billing" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {isGated ? <LockedTabContent /> : <>
                       <p className="text-sm text-[#6B7280]">Opedd Plan controls what you pay us. Payout Setup controls how we pay you.</p>
 
                       {/* Subscription Plan */}
@@ -1462,6 +1479,7 @@ export default function Settings() {
                         <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-4">Coming soon — accept crypto payments directly from your audience.</p>
                         <Button disabled className="bg-[#4A26ED]/20 text-[#4A26ED]/50 rounded-lg cursor-not-allowed">Connect Wallet</Button>
                       </div>
+                      </>}
                     </motion.div>
                   )}
                 </TabsContent>
@@ -1615,6 +1633,7 @@ export default function Settings() {
 
               </AnimatePresence>
             </Tabs>
+            </PublicationGate>
           )}
 
         </div>

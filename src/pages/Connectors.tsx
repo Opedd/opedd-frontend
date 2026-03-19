@@ -41,6 +41,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
 import { WidgetEmbedCard } from "@/components/dashboard/WidgetEmbedCard";
+import { PublicationGate } from "@/components/dashboard/PublicationGate";
 
 function deriveSlug(websiteUrl: string | null): string {
   if (!websiteUrl) return "";
@@ -122,6 +123,9 @@ export default function Connectors() {
   const [publisherId, setPublisherId] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
+  const [publicationVerified, setPublicationVerified] = useState(false);
+  const [pendingSources, setPendingSources] = useState<Array<{ id: string; name: string; url: string; verification_status: string; sync_status: string }>>([]);
+  const [publisherEmail, setPublisherEmail] = useState<string | null>(null);
   const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
   const [apiKeyCopied, setApiKeyCopied] = useState(false);
   const [discoveryLinkCopied, setDiscoveryLinkCopied] = useState(false);
@@ -158,6 +162,9 @@ export default function Connectors() {
           setPublisherId(profileResult.data.id);
           if (profileResult.data.api_key) setApiKey(profileResult.data.api_key);
           if (profileResult.data.website_url) setWebsiteUrl(profileResult.data.website_url);
+          setPublicationVerified(!!profileResult.data.publication_verified);
+          setPendingSources(profileResult.data.pending_sources || []);
+          setPublisherEmail(profileResult.data.email || null);
           if (profileResult.data.webhook) {
             setWebhookStatus(profileResult.data.webhook);
           } else {
@@ -246,8 +253,26 @@ export default function Connectors() {
 
   const supportedWebhookEvents = ["license.issued", "license.paid", "license.verified", "license.revoked"];
 
+  const refetchProfile = async () => {
+    try {
+      const headers = await apiHeaders();
+      const profileRes = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, { headers });
+      const profileResult = await profileRes.json();
+      if (profileResult.success && profileResult.data) {
+        setPublicationVerified(!!profileResult.data.publication_verified);
+        setPendingSources(profileResult.data.pending_sources || []);
+      }
+    } catch { /* fail silently */ }
+  };
+
   return (
     <DashboardLayout title="Connectors">
+      <PublicationGate
+        isVerified={publicationVerified}
+        pendingSources={pendingSources}
+        onSourceDeleted={refetchProfile}
+        adminEmail={publisherEmail}
+      >
       <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Global tab style */}
@@ -503,6 +528,7 @@ export default function Connectors() {
           </TabsContent>
         </Tabs>
       </div>
+      </PublicationGate>
     </DashboardLayout>
   );
 }
