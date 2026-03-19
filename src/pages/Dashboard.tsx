@@ -81,7 +81,7 @@ export default function Dashboard() {
         .from("rss_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("sync_status", "active");
+        .in("sync_status", ["active", "protected"]);
       setHasActivePublication((count ?? 0) > 0);
     } catch {
       setHasActivePublication(false);
