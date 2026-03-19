@@ -60,7 +60,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // 3. Cross-tab auth sync — when another tab logs out, sync this tab
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "sb-auth-token" || e.key?.startsWith("sb-")) {
+        supabase.auth.getSession().then(({ data: { session: latestSession } }) => {
+          setSession(latestSession);
+          setUser(latestSession?.user ?? null);
+          if (!latestSession) {
+            // Other tab signed out — clear local state
+            setIsLoading(false);
+          }
+        });
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   // Computed access token from current session

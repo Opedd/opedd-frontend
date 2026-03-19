@@ -452,10 +452,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           .eq("feed_url", syncFeedUrl)
           .maybeSingle();
 
+        const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         if (existingSource?.id) {
           // Update existing source with new token
           await supabase.from("rss_sources").update({
             verification_token: token,
+            verification_token_expires_at: tokenExpiresAt,
             sync_status: "pending",
             last_synced_at: new Date().toISOString(),
             verification_status: "pending",
@@ -472,6 +474,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               sync_status: "pending",
               last_synced_at: new Date().toISOString(),
               verification_token: token,
+              verification_token_expires_at: tokenExpiresAt,
             })
             .select("id")
             .single();
@@ -696,6 +699,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     registrationPath: string;
   }): Promise<{ token: string; sourceId: string }> => {
     const tok = generateVerificationCode();
+    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     try {
       const { data: existing } = await supabase
         .from("rss_sources")
@@ -707,6 +711,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       if (existing?.id) {
         await supabase.from("rss_sources").update({
           verification_token: tok,
+          verification_token_expires_at: tokenExpiresAt,
           sync_status: "active",
           verification_status: "pending",
           last_synced_at: new Date().toISOString(),
@@ -724,6 +729,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           sync_status: "active",
           last_synced_at: new Date().toISOString(),
           verification_token: tok,
+          verification_token_expires_at: tokenExpiresAt,
         })
         .select("id")
         .single();

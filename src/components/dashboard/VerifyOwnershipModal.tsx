@@ -103,9 +103,10 @@ export function VerifyOwnershipModal({
     setIsRegenerating(true);
     try {
       const newToken = generateVerificationCode();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const { error } = await supabase
         .from("rss_sources")
-        .update({ sync_status: "pending", verification_token: newToken, verification_status: "pending" } as any)
+        .update({ sync_status: "pending", verification_token: newToken, verification_status: "pending", verification_token_expires_at: expiresAt } as any)
         .eq("id", source.id);
       if (error) throw error;
       setToken(newToken);

@@ -178,6 +178,11 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       setTimeout(() => {
         supabase.removeChannel(channel);
         setSyncingId(null);
+        toast({
+          title: "Sync is taking longer than expected",
+          description: "It's still running in the background. Refresh in a minute to see new articles.",
+          variant: "destructive",
+        });
       }, 30000);
     } catch (err) {
       console.error("Resync error:", err);

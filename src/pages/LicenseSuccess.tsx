@@ -4,6 +4,7 @@ import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send, CheckCircl
 import { Card, CardContent } from "@/components/ui/card";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface CheckoutData {
   status: "pending" | "completed" | "failed";
@@ -108,9 +109,9 @@ export default function LicenseSuccess() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [fetchStatus, sessionId]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!data?.license_key) return;
-    navigator.clipboard.writeText(data.license_key);
+    await copyToClipboard(data.license_key);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -158,6 +159,24 @@ export default function LicenseSuccess() {
           <p className="text-[#6B7280] text-sm mb-6 max-w-sm mx-auto">
             Your license key will arrive by email shortly. If you don't receive it within 10 minutes, use the resend option below.
           </p>
+          {data?.buyer_email && (
+            <button
+              onClick={handleResend}
+              disabled={resending || resent}
+              className="inline-flex items-center gap-1.5 text-sm text-[#4A26ED] hover:underline disabled:opacity-50"
+            >
+              {resent ? (
+                <><Check className="h-3.5 w-3.5 text-[#10B981]" /> Sent to {data.buyer_email}</>
+              ) : resending ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...</>
+              ) : (
+                <><Send className="h-3.5 w-3.5" /> Resend license to {data.buyer_email}</>
+              )}
+            </button>
+          )}
+          {sessionId && (
+            <p className="text-xs text-[#9CA3AF] mt-4">Session: {sessionId}</p>
+          )}
         </div>
       </Shell>
     );
