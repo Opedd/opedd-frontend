@@ -28,6 +28,8 @@ interface PublicationGateProps {
    * Use this inside Settings where individual tabs control their own gating.
    */
   bannerOnly?: boolean;
+  /** Whether the publisher has any articles — used to detect orphaned state */
+  hasContent?: boolean;
   /** The content to render when gate is open */
   children: React.ReactNode;
 }
@@ -40,6 +42,7 @@ export function PublicationGate({
   onSourceDeleted,
   adminEmail,
   bannerOnly = false,
+  hasContent = false,
   children,
 }: PublicationGateProps) {
   const navigate = useNavigate();
@@ -119,6 +122,13 @@ export function PublicationGate({
                       </div>
                     ))}
                   </div>
+                </>
+              ) : hasContent ? (
+                <>
+                  <p className="text-sm font-semibold text-amber-900">Publication source removed</p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    Your articles are still here, but you need to reconnect and verify a publication source to unlock pricing and the widget.
+                  </p>
                 </>
               ) : (
                 <>

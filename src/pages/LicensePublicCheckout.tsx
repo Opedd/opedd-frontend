@@ -63,6 +63,7 @@ export default function LicensePublicCheckout() {
   const [asset, setAsset] = useState<AssetRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [licensingDisabled, setLicensingDisabled] = useState(false);
 
   const licenseTypeParam = new URLSearchParams(location.search).get("type");
   const [selected, setSelected] = useState<LicenseType>(parseLicenseType(licenseTypeParam));
@@ -86,8 +87,10 @@ export default function LicensePublicCheckout() {
         });
         const rows = await res.json();
         const row = Array.isArray(rows) ? rows[0] : null;
-        if (!row || !row.licensing_enabled) {
+        if (!row) {
           setNotFound(true);
+        } else if (!row.licensing_enabled) {
+          setLicensingDisabled(true);
         } else {
           setAsset(row);
           if (row.publisher_id) {
@@ -155,6 +158,16 @@ export default function LicensePublicCheckout() {
     return (
       <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-[#4A26ED]" />
+      </div>
+    );
+  }
+
+  if (licensingDisabled) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FA] flex flex-col items-center justify-center gap-4 px-4">
+        <img src={opeddLogoColor} alt="Opedd" className="h-7 opacity-60" />
+        <p className="text-[#111827] text-sm font-medium">Licensing paused</p>
+        <p className="text-[#6B7280] text-xs max-w-xs text-center">The publisher has temporarily paused licensing for this article. Check back later or contact the publisher directly.</p>
       </div>
     );
   }

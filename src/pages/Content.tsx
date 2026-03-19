@@ -501,7 +501,7 @@ export default function Content() {
         {selectedIds.size > 0 && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#111827] text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-2xl">
             <span className="text-sm font-medium">{selectedIds.size} article{selectedIds.size !== 1 ? "s" : ""} selected</span>
-            <Button size="sm" onClick={() => setBulkPricingOpen(true)} className="h-8 bg-[#4A26ED] hover:bg-[#3B1FD4] text-white text-xs rounded-lg">Set Prices</Button>
+            <Button size="sm" onClick={() => { setBulkPricingOpen(true); setDrawerOpen(false); }} disabled={savingRates} className="h-8 bg-[#4A26ED] hover:bg-[#3B1FD4] text-white text-xs rounded-lg disabled:opacity-50">Set Prices</Button>
             <button onClick={() => setSelectedIds(new Set())} className="text-xs text-white/60 hover:text-white transition-colors">Clear</button>
           </div>
         )}

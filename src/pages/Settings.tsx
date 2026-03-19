@@ -474,6 +474,28 @@ export default function Settings() {
     }
   }, [activeTab, teamLoaded, isLoadingTeam, fetchTeam]);
 
+  // Realtime: if THIS user is removed from the team, force redirect to home
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("team-membership-watch")
+      .on("postgres_changes", {
+        event: "DELETE",
+        schema: "public",
+        table: "team_members",
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        toast({
+          title: "Access Removed",
+          description: "You have been removed from this team. Redirecting...",
+          variant: "destructive",
+        });
+        setTimeout(() => navigate("/"), 2000);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, navigate, toast]);
+
   // Billing tab: load stripe status & plan
   const fetchBillingData = useCallback(async () => {
     try {
