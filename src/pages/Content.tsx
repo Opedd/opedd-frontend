@@ -329,7 +329,6 @@ export default function Content() {
               {[
                 { value: "articles", label: "Articles" },
                 { value: "archive-license", label: "Archive License" },
-                { value: "pricing-rules", label: "Pricing Rules" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
