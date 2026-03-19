@@ -247,6 +247,62 @@ export default function Settings() {
   const [teamLoaded, setTeamLoaded] = useState(false);
   const [teamError, setTeamError] = useState(false);
 
+  // Billing tab state
+  interface StripeConnect {
+    connected: boolean;
+    onboarding_complete: boolean;
+    charges_enabled?: boolean;
+    payouts_enabled?: boolean;
+  }
+  const [stripeStatus, setStripeStatus] = useState<StripeConnect | null>(null);
+  const [isStripeLoading, setIsStripeLoading] = useState(true);
+  const [isStripeConnecting, setIsStripeConnecting] = useState(false);
+  const [publisherPlan, setPublisherPlan] = useState<string>("free");
+  const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
+  const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
+  const [isBillingPortalLoading, setIsBillingPortalLoading] = useState(false);
+  const [billing, setBilling] = useState<"monthly" | "annually">("monthly");
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+  const [checkoutStripePromise, setCheckoutStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
+
+  // Admin tab state
+  interface AdminPublisher {
+    id: string;
+    display_name: string;
+    website_url: string | null;
+    plan: string;
+    article_count: number;
+    total_revenue: number;
+    stripe_connected: boolean;
+    created_at: string;
+  }
+  interface AdminTransaction {
+    id: string;
+    created_at: string;
+    buyer_email: string;
+    amount: number;
+    license_type: string;
+    license_key: string;
+    status: string;
+  }
+  interface AdminFailedWebhook {
+    id: string;
+    publisher_name: string;
+    event_type: string;
+    attempts: number;
+    last_attempt_at: string;
+    status: string;
+  }
+  const [adminPublishers, setAdminPublishers] = useState<AdminPublisher[]>([]);
+  const [adminTxns, setAdminTxns] = useState<AdminTransaction[]>([]);
+  const [adminWebhooks, setAdminWebhooks] = useState<AdminFailedWebhook[]>([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminLoaded, setAdminLoaded] = useState(false);
+  const [adminSearch, setAdminSearch] = useState("");
+  const [adminTxPage, setAdminTxPage] = useState(0);
+  const [adminTxHasMore, setAdminTxHasMore] = useState(false);
+  const [copiedLicenseKey, setCopiedLicenseKey] = useState<string | null>(null);
+
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
     if (!token) throw new Error("Not authenticated");
@@ -257,6 +313,16 @@ export default function Settings() {
       "Content-Type": "application/json",
     };
   }, [getAccessToken]);
+
+  const postAction = useCallback(async (action: string, extra?: Record<string, unknown>) => {
+    const headers = await apiHeaders();
+    const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ action, ...extra }),
+    });
+    return res.json();
+  }, [apiHeaders]);
 
   const fetchProfile = useCallback(async () => {
     try {
