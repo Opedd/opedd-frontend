@@ -380,7 +380,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             {/* Avatar dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-8 h-8 rounded-full bg-[#4A26ED] flex items-center justify-center hover:ring-2 hover:ring-[#4A26ED]/20 transition-all">
+                <button className="w-9 h-9 rounded-full bg-[#4A26ED] flex items-center justify-center hover:ring-2 hover:ring-[#4A26ED]/20 transition-all">
                   <span className="text-xs font-bold text-white">{getInitial()}</span>
                 </button>
               </DropdownMenuTrigger>
