@@ -87,7 +87,7 @@ export default function Pricing() {
           </button>
           {billing === "annually" && (
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
-              Save 18%
+              Save 20%
             </span>
           )}
         </div>
@@ -105,7 +105,7 @@ export default function Pricing() {
             </div>
             <p className="text-sm mb-4" style={{ color: "#6B7280" }}>No credit card required</p>
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full mb-5" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>
-              12% platform fee
+              15% platform fee
             </span>
             <button
               onClick={() => navigate("/signup")}
@@ -125,23 +125,24 @@ export default function Pricing() {
             <h3 className="text-xl font-bold" style={{ color: "#040042" }}>Pro</h3>
             <div className="mt-3 mb-1 flex items-baseline gap-1">
               <span className="text-4xl font-bold" style={{ color: "#040042" }}>
-                ${billing === "monthly" ? "79" : "65"}
+                ${billing === "monthly" ? "29" : "23"}
               </span>
               <span className="text-sm" style={{ color: "#6B7280" }}>/ month</span>
             </div>
             {billing === "annually" && (
-              <p className="text-xs mb-1" style={{ color: "#6B7280" }}>Billed $780/year</p>
+              <p className="text-xs mb-1" style={{ color: "#6B7280" }}>Billed $276/year</p>
             )}
             <p className="text-sm mb-4" style={{ color: "#6B7280" }}>For serious publishers</p>
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full mb-5" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
-              7% platform fee
+              8% platform fee
             </span>
             <button
-              onClick={() => navigate("/signup")}
-              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6"
+              onClick={() => handleUpgrade("pro")}
+              disabled={upgrading}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6 disabled:opacity-50"
               style={{ backgroundColor: "#4A26ED" }}
             >
-              Upgrade to Pro
+              {upgrading ? "Loading…" : "Upgrade to Pro"}
             </button>
             <FeatureList features={proFeatures} variant="light" />
           </div>
@@ -151,12 +152,12 @@ export default function Pricing() {
             <h3 className="text-xl font-bold text-white">Enterprise</h3>
             <div className="mt-3 mb-1 flex items-baseline gap-1">
               <span className="text-4xl font-bold text-white">
-                ${billing === "monthly" ? "249" : "199"}
+                ${billing === "monthly" ? "99" : "79"}
               </span>
               <span className="text-sm text-white/60">/ month</span>
             </div>
             {billing === "annually" && (
-              <p className="text-xs text-white/60 mb-1">Billed $2,388/year</p>
+              <p className="text-xs text-white/60 mb-1">Billed $948/year</p>
             )}
             <p className="text-sm text-white/60 mb-4">For media organizations</p>
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full text-white mb-5" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
@@ -187,9 +188,9 @@ export default function Pricing() {
             <thead>
               <tr className="border-b text-left" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                 <th className="pb-3 pr-4 font-medium text-white/50">Monthly licensing revenue</th>
-                <th className="pb-3 px-4 font-medium text-white/50">Free (12% fee)</th>
-                <th className="pb-3 px-4 font-medium text-white/50">Pro ($79 + 7%)</th>
-                <th className="pb-3 pl-4 font-medium text-white/50">Enterprise ($249 + 5%)</th>
+                <th className="pb-3 px-4 font-medium text-white/50">Free (15% fee)</th>
+                <th className="pb-3 px-4 font-medium text-white/50">Pro ($29 + 8%)</th>
+                <th className="pb-3 pl-4 font-medium text-white/50">Enterprise ($99 + 5%)</th>
               </tr>
             </thead>
             <tbody>
@@ -274,7 +275,7 @@ export default function Pricing() {
 type Feature = { t: string; ok: boolean };
 
 const freeFeatures: Feature[] = [
-  { t: "100 articles", ok: true },
+  { t: "500 articles", ok: true },
   { t: "1 content source", ok: true },
   { t: "Badge widget", ok: true },
   { t: "License certificates (PDF)", ok: true },
@@ -313,15 +314,16 @@ const enterpriseFeatures: Feature[] = [
 ];
 
 const mathRows = [
-  { sales: "$1,000", free: "$120 in fees", pro: "$149 total", proWin: false, ent: "$299 total", entWin: false },
-  { sales: "$5,000", free: "$600 in fees", pro: "$429 total", proWin: true, ent: "$499 total", entWin: false },
-  { sales: "$15,000", free: "$1,800 in fees", pro: "$1,129 total", proWin: true, ent: "$999 total", entWin: true },
-  { sales: "$50,000", free: "$6,000 in fees", pro: "$3,579 total", proWin: true, ent: "$2,749 total", entWin: true },
+  { sales: "$500",    free: "$75 in fees",    pro: "$69 total",     proWin: true,  ent: "$124 total",    entWin: false },
+  { sales: "$1,000",  free: "$150 in fees",   pro: "$109 total",    proWin: true,  ent: "$149 total",    entWin: false },
+  { sales: "$5,000",  free: "$750 in fees",   pro: "$429 total",    proWin: true,  ent: "$349 total",    entWin: true  },
+  { sales: "$20,000", free: "$3,000 in fees", pro: "$1,629 total",  proWin: true,  ent: "$1,099 total",  entWin: true  },
+  { sales: "$50,000", free: "$7,500 in fees", pro: "$4,029 total",  proWin: true,  ent: "$2,599 total",  entWin: true  },
 ];
 
 const faqs = [
   { q: "Can I switch plans anytime?", a: "Yes. Upgrades apply immediately. Downgrades apply at the next billing cycle." },
-  { q: "What is the platform fee?", a: "Opedd takes a small percentage of each licensing transaction. Your plan determines your rate: 12% (Free), 7% (Pro), or 5% (Enterprise). Stripe processing fees (~2.9% + $0.30) apply separately." },
+  { q: "What is the platform fee?", a: "Opedd takes a small percentage of each licensing transaction. Your plan determines your rate: 15% (Free), 8% (Pro), or 5% (Enterprise). Stripe processing fees (~2.9% + $0.30) apply separately." },
   { q: 'What counts as an "article"?', a: "Any piece of content registered in your library — articles, essays, newsletters, reports, or podcast transcripts." },
   { q: "What is an archive license?", a: "A site-wide license covering all your content within a date range. Used for enterprise deals (e.g., an AI company licensing your full 2024 archive)." },
   { q: "What is on-chain proof?", a: "Enterprise licenses are recorded on the Base blockchain, giving buyers tamper-proof permanent proof of purchase — useful for legal and compliance teams." },

@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 
 const tiers = [
   {
-    name: "Starter",
+    name: "Free",
     icon: Zap,
     price: "$0",
     period: "forever",
-    description: "10 articles free—perfect for testing human licensing and content reuse",
+    description: "500 articles free — perfect for getting started with content licensing",
     features: [
-      { name: "10 articles indexed free", included: true },
+      { name: "500 articles indexed", included: true },
       { name: "Human licensing & content reuse", included: true },
       { name: "Basic AI protection", included: true },
       { name: "Ownership tracking", included: true },
@@ -23,7 +23,7 @@ const tiers = [
     popular: false,
   },
   {
-    name: "Professional",
+    name: "Pro",
     icon: Crown,
     price: "$29",
     period: "/month",
@@ -38,14 +38,14 @@ const tiers = [
       { name: "Priority support", included: true },
       { name: "API access", included: false },
     ],
-    cta: "Start Free Trial",
+    cta: "Upgrade to Pro",
     popular: true,
   },
   {
     name: "Enterprise",
     icon: Building2,
-    price: "Custom",
-    period: "",
+    price: "$99",
+    period: "/month",
     description: "For media companies and large publishers",
     features: [
       { name: "Unlimited articles", included: true },
@@ -180,10 +180,10 @@ const PricingSection = () => {
                     Feature
                   </th>
                   <th className="text-center p-4 font-semibold text-soft-white">
-                    Starter
+                    Free
                   </th>
                   <th className="text-center p-4 font-semibold text-oxford">
-                    Professional
+                    Pro
                   </th>
                   <th className="text-center p-4 font-semibold text-soft-white">
                     Enterprise
@@ -192,7 +192,7 @@ const PricingSection = () => {
               </thead>
               <tbody>
                 {[
-                  { feature: "Articles Indexed", free: "10", pro: "Unlimited", enterprise: "Unlimited" },
+                  { feature: "Articles Indexed", free: "500", pro: "Unlimited", enterprise: "Unlimited" },
                   { feature: "RSS Feeds", free: "1", pro: "10", enterprise: "Unlimited" },
                   { feature: "Human Licensing & Reuse", free: true, pro: true, enterprise: true },
                   { feature: "Basic AI Protection", free: true, pro: true, enterprise: true },

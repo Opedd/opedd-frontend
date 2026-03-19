@@ -58,13 +58,14 @@ const PLANS: Plan[] = [
   {
     key: "pro",
     name: "Pro",
-    price: "$79",
+    price: "$29",
     period: "/month",
     description: "For growing independent publishers",
     features: [
       { text: "Unlimited articles" },
+      { text: "8% platform fee (vs 15% free)" },
       { text: "Custom webhooks" },
-      { text: "Team members (up to 3)" },
+      { text: "Team members (up to 5)" },
       { text: "Priority support" },
       { text: "Advanced analytics" },
     ],
@@ -73,11 +74,12 @@ const PLANS: Plan[] = [
   {
     key: "enterprise",
     name: "Enterprise",
-    price: "$249",
+    price: "$99",
     period: "/month",
     description: "For media organisations & large catalogs",
     features: [
       { text: "Everything in Pro" },
+      { text: "5% platform fee (vs 15% free)" },
       { text: "Unlimited team members" },
       { text: "Custom integrations" },
       { text: "Dedicated support" },
