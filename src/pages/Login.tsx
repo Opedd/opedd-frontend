@@ -134,7 +134,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-[40%] flex-col justify-between p-12 bg-[#4A26ED]">
+      <div className="hidden lg:flex lg:w-[40%] flex-col justify-between p-12 bg-[#040042]">
         <Link to="/">
           <img src={opeddLogo} alt="Opedd" className="h-10" />
         </Link>
