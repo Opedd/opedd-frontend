@@ -99,7 +99,7 @@ const Header = () => {
               </Button>
             </Link>
             <Link to="/signup">
-              <Button variant="oxford" size="sm">
+              <Button variant="default" size="sm">
                 Get Started Free
               </Button>
             </Link>
