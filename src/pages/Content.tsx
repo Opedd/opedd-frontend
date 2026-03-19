@@ -65,7 +65,7 @@ export default function Content() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "pricing-rules" ? tab : "articles";
+    return tab === "archive-license" ? tab : "articles";
   });
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
