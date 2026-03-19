@@ -470,6 +470,147 @@ export default function Settings() {
     }
   }, [activeTab, teamLoaded, isLoadingTeam, fetchTeam]);
 
+  // Billing tab: load stripe status & plan
+  const fetchBillingData = useCallback(async () => {
+    try {
+      const headers = await apiHeaders();
+      const profileRes = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, { headers });
+      const profileResult = await profileRes.json();
+      if (profileResult.success && profileResult.data) {
+        const d = profileResult.data;
+        if (d.stripe_connect) setStripeStatus(d.stripe_connect);
+        if (d.plan) setPublisherPlan(d.plan);
+        if (d.stripe_customer_id) setStripeCustomerId(d.stripe_customer_id);
+      }
+      const stripeResult = await postAction("stripe_status");
+      if (stripeResult.success && stripeResult.data) {
+        setStripeStatus(stripeResult.data);
+      }
+    } catch (err) {
+      console.warn("[Settings/Billing] Load failed:", err);
+    } finally {
+      setIsStripeLoading(false);
+    }
+  }, [apiHeaders, postAction]);
+
+  useEffect(() => {
+    if (activeTab === "billing") fetchBillingData();
+  }, [activeTab, fetchBillingData]);
+
+  // Admin tab: load publishers, transactions, webhooks
+  const fetchAdminData = useCallback(async () => {
+    if (!isAdmin) return;
+    setAdminLoading(true);
+    try {
+      const token = await getAccessToken();
+      const headers = { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` };
+      const [pubRes, txRes, whRes] = await Promise.all([
+        fetch(`${EXT_SUPABASE_URL}/admin?action=publishers`, { headers }),
+        fetch(`${EXT_SUPABASE_URL}/admin?action=transactions&limit=50&offset=${adminTxPage * 50}`, { headers }),
+        fetch(`${EXT_SUPABASE_URL}/admin?action=failed_webhooks`, { headers }),
+      ]);
+      const [pubJson, txJson, whJson] = await Promise.all([pubRes.json(), txRes.json(), whRes.json()]);
+      setAdminPublishers(pubJson.data?.publishers ?? []);
+      const txRows = txJson.data?.transactions ?? [];
+      setAdminTxns(txRows);
+      setAdminTxHasMore(txRows.length === 50);
+      setAdminWebhooks(whJson.data?.failed_webhooks ?? []);
+    } catch {
+      // silently fail
+    } finally {
+      setAdminLoading(false);
+      setAdminLoaded(true);
+    }
+  }, [isAdmin, getAccessToken, adminTxPage]);
+
+  useEffect(() => {
+    if (activeTab === "admin" && isAdmin && !adminLoaded) fetchAdminData();
+  }, [activeTab, isAdmin, adminLoaded, fetchAdminData]);
+
+  // Billing handlers
+  const handleConnectStripe = async () => {
+    setIsStripeConnecting(true);
+    try {
+      const result = await postAction("connect_stripe");
+      if (result.success && result.data?.onboarding_url) {
+        window.location.href = result.data.onboarding_url;
+      } else {
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to start Stripe onboarding");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Stripe Connect Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+      setIsStripeConnecting(false);
+    }
+  };
+
+  const handleOpenStripeDashboard = async () => {
+    const newWindow = window.open("", "_blank");
+    try {
+      const result = await postAction("stripe_dashboard");
+      if (result.success && result.data?.dashboard_url) {
+        if (newWindow) newWindow.location.href = result.data.dashboard_url;
+      } else {
+        if (newWindow) newWindow.close();
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to open dashboard");
+      }
+    } catch (err: unknown) {
+      if (newWindow) newWindow.close();
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    }
+  };
+
+  const handleUpgrade = async (plan: "pro" | "enterprise") => {
+    setIsUpgrading(plan);
+    try {
+      const result = await postAction("create_subscription", { plan, embedded: true, billing });
+      if (result.success && result.data?.client_secret) {
+        const stripePromise = loadStripe(result.data.publishable_key);
+        setCheckoutStripePromise(stripePromise);
+        setCheckoutClientSecret(result.data.client_secret);
+      } else {
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to start checkout");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Upgrade Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsUpgrading(null);
+    }
+  };
+
+  const handleCloseCheckout = () => {
+    setCheckoutClientSecret(null);
+    setCheckoutStripePromise(null);
+  };
+
+  const handleBillingPortal = async () => {
+    setIsBillingPortalLoading(true);
+    const newWindow = window.open("", "_blank");
+    try {
+      const result = await postAction("billing_portal");
+      if (result.success && result.data?.url) {
+        if (newWindow) newWindow.location.href = result.data.url;
+      } else {
+        if (newWindow) newWindow.close();
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to open billing portal");
+      }
+    } catch (err: unknown) {
+      if (newWindow) newWindow.close();
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsBillingPortalLoading(false);
+    }
+  };
+
+  const isStripeFullyConnected = stripeStatus?.connected && stripeStatus?.onboarding_complete;
+  const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
+
+  // Plan data
+  const PLANS = [
+    { key: "free", name: "Free", price: "$0", period: "/month", description: "For publishers getting started", features: [{ text: "Up to 500 articles" }, { text: "Widget embedding" }, { text: "Basic analytics" }, { text: "Email support" }], highlighted: false },
+    { key: "pro", name: "Pro", price: "$29", period: "/month", description: "For growing independent publishers", features: [{ text: "Unlimited articles" }, { text: "8% platform fee (vs 15% free)" }, { text: "Custom webhooks" }, { text: "Team members (up to 5)" }, { text: "Priority support" }, { text: "Advanced analytics" }], highlighted: true },
+    { key: "enterprise", name: "Enterprise", price: "$99", period: "/month", description: "For media organisations & large catalogs", features: [{ text: "Everything in Pro" }, { text: "5% platform fee (vs 15% free)" }, { text: "Unlimited team members" }, { text: "Custom integrations" }, { text: "Dedicated support" }, { text: "SLA guarantee" }], highlighted: false },
+  ];
+  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = { pro: { price: "$23", total: "$276/year" }, enterprise: { price: "$79", total: "$948/year" } };
 
   if (!user) return null;
 
