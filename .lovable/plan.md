@@ -1,49 +1,70 @@
 
 
-## Problem Diagnosis
+## Plan: Update Auth & Public Pages to Light Theme
 
-The sync completes successfully on the external licensing backend, but the articles never appear in the dashboard. Here is why:
+### Problem
+Multiple pages still use the old dark navy (`#040042`) styling with glassmorphism effects, `bg-[#F2F9FF]` inputs, `h-12` heights, and gradient accents. These were not updated in the previous overhaul.
 
-1. **No local record created**: When you register a publication, the code only sends the data to the external V1 API. It never inserts a corresponding record into the local `rss_sources` table, so the Sources tab stays empty.
+### Pages Requiring Updates
 
-2. **Asset fetch fails silently**: The Dashboard tries to load articles from the external API (`/content-sources/me/assets`), but this endpoint returns 401/404 errors (JWT mismatch between Lovable Cloud and the external backend). The error is swallowed silently, so no articles appear.
+**Auth Pages (partially updated but inconsistent):**
+1. **Login.tsx** — Inputs still use `bg-[#F2F9FF]`, `border-[#040042]/10`, `h-12 rounded-xl`, divider uses `#040042` opacity colors, labels use `#040042/80`
+2. **Signup.tsx** — Same input issues, `#040042` text colors throughout, verify-email view uses gradients and glassmorphism (`bg-gradient-to-br`, `backdrop-blur-sm`, `shadow-2xl`)
 
-3. **Two disconnected data stores**: Single works are saved directly to the local `assets` table (and show up fine), but publication syncs only exist on the external API with no local copy.
+**Public Pages (still fully dark navy):**
+3. **Onboarding.tsx** — Entire page is `bg-[#040042]` with white text, progress dots on dark bg. Card inside is white but text uses `#040042`
+4. **LicenseSuccess.tsx** — Shell component uses `min-h-screen bg-[#040042]`, glassmorphism cards (`bg-white/5 backdrop-blur-sm`), white text on dark
+5. **LicensePublicCheckout.tsx** — Left panel `bg-[#040042]`, loading/error states dark navy, serif fonts
+6. **LicenseVerify.tsx** — Likely same dark navy pattern
+7. **Licenses.tsx** (Buyer Portal) — Likely dark navy
+8. **LicenseByUrl.tsx** — Dark navy background
 
-## Solution
+### Changes Per File
 
-After a successful publication sync via the external API, **also insert a local record** into both `rss_sources` and `assets` tables. This ensures the Sources tab and Library tab display the data regardless of whether the external API is reachable.
+**1. Login.tsx**
+- Replace input classes: `bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl` → standard `h-10` with default Input styles
+- Labels: `text-[#040042]/80` → `text-[#6B7280]`
+- Divider: `bg-[#040042]/10`, `text-[#040042]/40` → `bg-[#E5E7EB]`, `text-[#9CA3AF]`
+- Footer text: `text-[#040042]/50` → `text-[#6B7280]`
 
-### Step 1: Insert local `rss_sources` record after API creation
+**2. Signup.tsx**
+- Same input standardization as Login
+- All `#040042` text references → proper design tokens
+- Verify-email view: remove gradients/glassmorphism, use white card with border, solid purple button instead of gradient, remove `animate-pulse` ring
+- Select dropdown: update colors to match design system
 
-In `RegisterContentModal.tsx`, after the external API `contentSources.create` call succeeds, insert a matching row into the local `rss_sources` table with the source name, feed URL, platform, and sync status.
+**3. Onboarding.tsx**
+- Change page background from `bg-[#040042]` to `bg-[#F7F8FA]`
+- Progress bar: dark-on-light instead of light-on-dark
+- Header: white bg with border instead of dark
+- Card: already white, fix text colors from `#040042` to `#111827`
+- Remove `shadow-2xl` → `shadow-sm`
 
-### Step 2: Sync articles into local `assets` table
+**4. LicenseSuccess.tsx**
+- Shell: `bg-[#040042]` → `bg-[#F7F8FA]` with white centered card
+- Replace all `text-white/XX` → proper light-theme text colors
+- Cards: `bg-white/5 backdrop-blur-sm` → `bg-white border border-[#E5E7EB] shadow-sm`
+- Buttons: solid styles instead of transparent-on-dark
+- Keep Opedd branding prominent
 
-After the external `contentSources.sync` call, attempt to fetch the synced articles from the external API. If the external API is unreachable (401/404), create a placeholder asset linked to the source so the user can see something was registered. Update the local `rss_sources.article_count` accordingly.
+**5. LicensePublicCheckout.tsx**
+- Left panel: `bg-[#040042]` → `bg-[#4A26ED]` (brand purple, matching login left panel)
+- Right panel: standardize inputs and form to design system
+- Loading/error states: light background
+- Remove serif font override
 
-### Step 3: Update Dashboard asset fetching to use local data as primary source
+**6. LicenseVerify.tsx**
+- Same dark-to-light conversion pattern
 
-Modify `fetchAssets` in `Dashboard.tsx` to query the local `assets` table directly (via Supabase) as the primary data source, with the external API as an optional enrichment layer. This eliminates the dependency on the external API for displaying registered content.
+**7. Licenses.tsx** (Buyer Portal)
+- Convert from dark navy to light theme with white cards
 
-### Step 4: Link assets to sources
+**8. LicenseByUrl.tsx**
+- Convert from dark navy to light theme
 
-When inserting assets locally after a sync, set the `publication_id` field to the local `rss_sources.id` so that the Library tab's source filter works correctly. Map the `source_id` on the UI asset type to this local ID.
-
-### Technical Details
-
-**RegisterContentModal.tsx changes:**
-- After `contentSources.create` succeeds, run `supabase.from("rss_sources").insert(...)` with name, feed_url, platform, user_id, sync_status: "active"
-- After `contentSources.sync` succeeds, attempt to fetch articles from the API and insert them into the local `assets` table
-- If the API fetch fails, still mark the source as active with article_count from the sync response
-
-**Dashboard.tsx changes:**
-- Replace `contentSources.listAssets` call with a direct Supabase query: `supabase.from("assets").select("*").eq("user_id", user.id)`
-- Remove the external API dependency for the primary asset list
-- Keep the external API call as an optional secondary enrichment (non-blocking)
-
-**SourcesView.tsx changes:**
-- No structural changes needed -- it already reads from local `rss_sources`, which will now have data
-
-This approach makes the local database the source of truth for the UI, while the external API handles the licensing/verification backend logic.
+### Approach
+- All changes are styling-only — no logic, API calls, or routing changes
+- Use the established design tokens consistently
+- Maintain the split-panel layout for auth pages (purple left, white right)
+- Public buyer-facing pages get the clean white/gray treatment
 
