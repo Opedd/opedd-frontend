@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 const mainNavItems = [
-  { title: "Overview", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: Library },
   { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Buyers", path: "/ledger", icon: Wallet },
@@ -17,7 +17,6 @@ const mainNavItems = [
 
 const integrationNavItems = [
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Billing", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
