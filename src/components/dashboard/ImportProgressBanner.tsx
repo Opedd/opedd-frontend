@@ -15,64 +15,67 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
   const { user } = useAuth();
   const [record, setRecord] = useState<ImportRecord | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autoDismissRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
-  const fetchImport = useCallback(async () => {
-    if (!user) return;
+  const fetchOnce = useCallback(async (): Promise<string | null> => {
+    if (!user) return null;
     try {
       const { data: pub } = await (supabase.from as any)("publishers")
         .select("id")
         .eq("user_id", user.id)
         .single();
-      if (!pub) return;
+      if (!pub) return null;
       const { data } = await (supabase.from as any)("import_queue")
         .select("status, inserted_count, total_urls, processed_urls, created_at")
         .eq("publisher_id", pub.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
-      if (data) setRecord(data as ImportRecord);
+      if (data) {
+        setRecord(data as ImportRecord);
+        return data.status;
+      }
     } catch {
-      // no records
+      // no records — leave record as null
     }
+    return null;
   }, [user]);
 
-  // Polling
+  // Poll only while import is active (queued/processing). Stop on terminal state or no record.
   useEffect(() => {
-    fetchImport();
-    const poll = () => {
-      timerRef.current = setTimeout(async () => {
-        await fetchImport();
-        poll();
-      }, 5000);
-    };
-    poll();
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [fetchImport]);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let autoDismiss: ReturnType<typeof setTimeout> | null = null;
 
-  // Stop polling + auto-dismiss on done
-  useEffect(() => {
-    if (!record) return;
-    if (record.status === "done") {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      onComplete?.();
-      autoDismissRef.current = setTimeout(() => setDismissed(true), 4000);
-    }
-    if (record.status === "failed") {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    }
-    return () => {
-      if (autoDismissRef.current) clearTimeout(autoDismissRef.current);
+    const runPoll = async () => {
+      const status = await fetchOnce();
+      if (cancelled) return;
+
+      if (status === "done") {
+        onCompleteRef.current?.();
+        autoDismiss = setTimeout(() => setDismissed(true), 4000);
+        return; // stop polling
+      }
+
+      // Continue polling only if still active
+      if (status === "queued" || status === "processing") {
+        timer = setTimeout(runPoll, 5000);
+      }
+      // null / "failed" — stop polling
     };
-  }, [record?.status, onComplete]);
+
+    runPoll();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      if (autoDismiss) clearTimeout(autoDismiss);
+    };
+  }, [fetchOnce]);
 
   if (dismissed || !record) return null;
   if (record.status !== "queued" && record.status !== "processing" && record.status !== "done" && record.status !== "failed") return null;
 
-  // Done state
   if (record.status === "done") {
     return (
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
@@ -87,7 +90,6 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
     );
   }
 
-  // Failed state
   if (record.status === "failed") {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
@@ -100,7 +102,6 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
     );
   }
 
-  // Active state (queued / processing)
   const progress = record.total_urls > 0 ? (record.inserted_count / record.total_urls) * 100 : 0;
   const remaining = record.total_urls - record.inserted_count;
   const etaMinutes = Math.ceil(remaining / 250);
