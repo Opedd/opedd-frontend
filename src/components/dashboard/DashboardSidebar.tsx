@@ -50,22 +50,7 @@ export function DashboardSidebar() {
               </NavLink>
             );
           })}
-          {isAdmin && (
-            <>
-              <div className="my-2 mx-3 border-t border-[#E5E7EB]" />
-              <NavLink
-                to="/admin"
-                className={`flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname === "/admin"
-                    ? "bg-[#EEF0FD] text-[#4A26ED] font-semibold"
-                    : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
-                }`}
-              >
-                <ShieldAlert size={16} strokeWidth={1.5} />
-                <span>Admin</span>
-              </NavLink>
-            </>
-          )}
+          {/* Admin link removed — merged into Settings */}
         </nav>
 
         <div className="p-3 border-t border-[#E5E7EB] space-y-1">
