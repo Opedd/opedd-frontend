@@ -17,6 +17,7 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
+        /* Semantic shadcn tokens */
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -59,6 +60,35 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+
+        /* Opedd Brand Colors */
+        navy: {
+          deep: '#040042',
+          darker: '#020030',
+        },
+        soft: {
+          white: '#FDFEFF',
+        },
+        alice: {
+          gray: '#F2F9FF',
+        },
+        plum: {
+          magenta: '#D1009A',
+        },
+        oxford: {
+          DEFAULT: '#4A26ED',
+          light: '#EEF0FD',
+          dark: '#3B1ED1',
+        },
+        violet: {
+          gray: '#343F56',
+        },
+        sky: {
+          blue: '#00D5FF',
+        },
+        aqua: {
+          teal: '#00EADF',
         },
       },
       borderRadius: {

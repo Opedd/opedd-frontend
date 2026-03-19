@@ -12,7 +12,7 @@ const HeroSection = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBg})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/80 via-navy-deep/60 to-navy-deep" />
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/70 via-navy-deep/50 to-navy-deep" />
       </div>
 
       {/* Grid Pattern Overlay */}
@@ -25,7 +25,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6 text-soft-white"
+            className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6 bg-gradient-to-r from-soft-white via-alice-gray to-oxford bg-clip-text text-transparent"
           >
             Make Your Content Sovereign.
           </motion.h1>
@@ -35,7 +35,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg md:text-xl text-alice-gray max-w-3xl mx-auto mb-10 leading-relaxed"
+            className="text-lg md:text-xl text-alice-gray/80 max-w-3xl mx-auto mb-10 leading-relaxed"
           >
             The licensing infrastructure for the AI age. Set your prices, issue verifiable license keys, get paid automatically.
           </motion.p>
@@ -48,13 +48,13 @@ const HeroSection = () => {
             className="flex items-center justify-center gap-4 flex-wrap"
           >
             <Link to="/signup">
-              <Button variant="default" size="lg" className="h-14 px-8 rounded-xl group">
+              <Button size="lg" className="h-14 px-8 rounded-xl group bg-oxford hover:bg-oxford-dark text-white">
                 Start for free
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link to="/pricing">
-              <Button variant="outline" size="lg" className="h-14 px-8 rounded-xl border-soft-white/30 text-soft-white hover:bg-soft-white/10">
+              <Button variant="outline" size="lg" className="h-14 px-8 rounded-xl border-soft-white/30 text-soft-white hover:bg-soft-white/10 hover:text-soft-white">
                 View pricing
               </Button>
             </Link>

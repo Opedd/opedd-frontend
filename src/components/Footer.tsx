@@ -26,7 +26,6 @@ const footerLinks = {
     { label: "Privacy", href: "https://legal.opedd.com/privacy", external: true },
     { label: "Terms", href: "https://legal.opedd.com/terms", external: true },
     { label: "Licenses", href: "/licenses" },
-    
   ],
 };
 
@@ -39,7 +38,7 @@ const socialLinks = [
 
 const Footer = () => {
   return (
-    <footer className="py-16 lg:py-24 border-t border-soft-white/10 relative bg-[#040042]">
+    <footer className="py-16 lg:py-24 border-t border-white/10 relative bg-navy-deep">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
@@ -51,13 +50,9 @@ const Footer = () => {
               transition={{ duration: 0.6 }}
             >
               <a href="#" className="flex items-center mb-4">
-                <img 
-                  src={opeddLogo} 
-                  alt="Opedd" 
-                  className="h-10 w-auto"
-                />
+                <img src={opeddLogo} alt="Opedd" className="h-10 w-auto" />
               </a>
-              <p className="text-sm text-alice-gray mb-6 max-w-xs">
+              <p className="text-sm text-alice-gray/60 mb-6 max-w-xs">
                 The next-gen content sovereignty infrastructure for creators and publishers.
               </p>
 
@@ -69,7 +64,7 @@ const Footer = () => {
                     <a
                       key={social.label}
                       href={social.href}
-                      className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center text-alice-gray hover:text-accent hover:bg-muted transition-colors"
+                      className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-alice-gray/70 hover:bg-oxford/20 hover:text-oxford hover:border-oxford/40 transition-colors"
                       aria-label={social.label}
                     >
                       <Icon className="w-5 h-5" />
@@ -98,7 +93,7 @@ const Footer = () => {
                     <a
                       href={link.href}
                       {...((link as any).external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                      className="text-sm text-alice-gray hover:text-accent transition-colors"
+                      className="text-sm text-alice-gray/70 hover:text-oxford transition-colors"
                     >
                       {link.label}
                     </a>
@@ -115,17 +110,17 @@ const Footer = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 pt-8 border-t border-soft-white/10 flex flex-col md:flex-row items-center justify-between gap-4"
+          className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4"
         >
-          <p className="text-sm text-alice-gray">
+          <p className="text-sm text-alice-gray/50">
             © 2026 Opedd. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-sm text-alice-gray">
-            <a href="https://legal.opedd.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Terms of Service</a>
-            <span className="text-alice-gray/40">·</span>
-            <a href="https://legal.opedd.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Privacy Policy</a>
-            <span className="text-alice-gray/40">·</span>
-            <a href="mailto:support@opedd.com" className="hover:text-accent transition-colors">Support</a>
+          <div className="flex items-center gap-4 text-sm text-alice-gray/50">
+            <a href="https://legal.opedd.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-alice-gray/80 transition-colors">Terms of Service</a>
+            <span className="text-alice-gray/20">·</span>
+            <a href="https://legal.opedd.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-alice-gray/80 transition-colors">Privacy Policy</a>
+            <span className="text-alice-gray/20">·</span>
+            <a href="mailto:support@opedd.com" className="hover:text-alice-gray/80 transition-colors">Support</a>
           </div>
         </motion.div>
       </div>

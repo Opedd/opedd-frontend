@@ -25,7 +25,7 @@ const WaitlistSection = () => {
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-soft-white mb-4">
                 Start licensing your content today
               </h2>
-              <p className="text-alice-gray">
+              <p className="text-alice-gray/80">
                 Free to start. No credit card required. Set up in under 5 minutes.
               </p>
             </div>
@@ -34,9 +34,8 @@ const WaitlistSection = () => {
             <div className="flex justify-center">
               <Link to="/signup">
                 <Button
-                  variant="default"
                   size="lg"
-                  className="w-full max-w-sm group"
+                  className="w-full max-w-sm group bg-oxford hover:bg-oxford-dark text-white"
                 >
                   Create your free account
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -45,8 +44,8 @@ const WaitlistSection = () => {
             </div>
 
             {/* Trust indicators */}
-            <div className="mt-8 pt-6 border-t border-soft-white/10">
-              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-alice-gray">
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-alice-gray/70">
                 <span className="flex items-center gap-1">
                   <Check className="w-4 h-4 text-oxford" />
                   No credit card

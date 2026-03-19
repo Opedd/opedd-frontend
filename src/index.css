@@ -10,7 +10,31 @@ html {
 
 @layer base {
   :root {
-    /* Opedd Light Theme — Instantly/Linear inspired */
+    /* === OPEDD BRAND — PRIMARY PALETTE === */
+    --navy-deep: 240 100% 13%;
+    --navy-darker: 240 100% 9%;
+    --soft-white: 200 100% 99%;
+    --alice-gray: 207 100% 97%;
+    --plum-magenta: 324 100% 41%;
+    --oxford: 252 84% 54%;
+    --oxford-light: 234 80% 97%;
+    --oxford-dark: 252 84% 47%;
+    --violet-gray: 218 22% 27%;
+    --sky-blue: 191 100% 50%;
+    --aqua-teal: 176 100% 47%;
+
+    /* === DASHBOARD TOKENS === */
+    --bg-page: 220 14% 97%;
+    --bg-card: 0 0% 100%;
+    --text-primary: 220 13% 10%;
+    --text-secondary: 220 9% 46%;
+    --text-muted: 220 9% 64%;
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --error: 0 84% 60%;
+    --info: 217 91% 60%;
+
+    /* === SHADCN TOKENS === */
     --background: 220 14% 97%;
     --foreground: 220 13% 10%;
 
@@ -40,20 +64,6 @@ html {
     --ring: 252 84% 54%;
 
     --radius: 0.75rem;
-
-    /* Opedd tokens */
-    --opedd-purple: 252 84% 54%;
-    --opedd-purple-light: 234 80% 97%;
-    --opedd-purple-dark: 252 84% 47%;
-    --bg-page: 220 14% 97%;
-    --bg-card: 0 0% 100%;
-    --text-primary: 220 13% 10%;
-    --text-secondary: 220 9% 46%;
-    --text-muted: 220 9% 64%;
-    --success: 160 84% 39%;
-    --warning: 38 92% 50%;
-    --error: 0 84% 60%;
-    --info: 217 91% 60%;
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
@@ -108,5 +118,20 @@ html {
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
+  }
+
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl;
+  }
+
+  .hover-glow {
+    @apply hover:border-white/20 transition-all duration-300;
+  }
+
+  .grid-pattern {
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }
