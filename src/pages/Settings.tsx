@@ -771,9 +771,11 @@ export default function Settings() {
                 <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
                   {[
                     { value: "profile", label: "Profile" },
-                    { value: "monetisation", label: "Monetisation" },
-                    { value: "api-keys", label: "API Keys" },
+                    { value: "pricing", label: "Pricing" },
                     { value: "team", label: "Team" },
+                    { value: "api-keys", label: "API Keys" },
+                    { value: "billing", label: "Billing" },
+                    ...(isAdmin ? [{ value: "admin", label: "Admin" }] : []),
                   ].map((tab) => (
                     <TabsTrigger
                       key={tab.value}
