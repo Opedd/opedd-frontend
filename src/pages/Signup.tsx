@@ -291,7 +291,7 @@ export default function Signup() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#4A26ED]/30 disabled:opacity-50 transition-all active:scale-[0.98]"
+          className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all"
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </button>

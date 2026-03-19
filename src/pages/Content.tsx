@@ -620,7 +620,7 @@ export default function Content() {
                       <div className="flex gap-2">
                         <button
                           onClick={handleSaveRates} disabled={savingRates}
-                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-[#040042] text-white rounded-lg hover:bg-[#040042]/90 disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-[#4A26ED] text-white rounded-lg hover:bg-[#3B1ED1] disabled:opacity-50"
                         >
                           {savingRates ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                           Save

@@ -165,7 +165,7 @@ export default function Login() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-[#040042]/5">
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#E5E7EB]">
             {viewMode === "login" && renderLoginForm()}
             {viewMode === "forgot-password" && (
               <ForgotPasswordFlow onBackToLogin={() => setViewMode("login")} />
