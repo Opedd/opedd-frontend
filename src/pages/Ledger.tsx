@@ -106,7 +106,7 @@ export default function Ledger() {
       } else {
         const txList = result.data?.transactions || [];
         const mapped: Transaction[] = txList.map((tx: any) => {
-          const isAI = tx.license_type === "ai";
+          const isAI = tx.license_type === "ai" || tx.license_type === "ai_inference" || tx.license_type === "ai_training";
           const isArchive = tx.license_type === "archive";
           return {
             id: tx.id,

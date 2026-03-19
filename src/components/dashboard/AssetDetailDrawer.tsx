@@ -298,7 +298,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange, platform, onSetLi
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          updates: [{ article_id: asset.id, human_price: newHuman, ai_price: newAi }],
+          articleIds: [asset.id],
+          ...(newHuman !== undefined && { humanPrice: newHuman }),
+          ...(newAi !== undefined && { aiPrice: newAi }),
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

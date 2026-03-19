@@ -76,6 +76,7 @@ export default function Onboarding() {
         });
         const json = await res.json();
         if (json.success && json.data?.id) setPublisherId(json.data.id);
+        if (json.success && json.data?.setup_complete) navigate("/dashboard", { replace: true });
       } catch { /* non-critical */ }
     })();
   }, [getAccessToken]);

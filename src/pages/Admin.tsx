@@ -178,7 +178,8 @@ function OverviewTab({ getAccessToken }: { getAccessToken: () => Promise<string 
           headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error();
-        setStats(await res.json());
+        const json = await res.json();
+        setStats(json.data ?? null);
       } catch {
         setStats(null);
       } finally {
@@ -219,7 +220,8 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
           headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error();
-        setPublishers(await res.json());
+        const json = await res.json();
+        setPublishers(json.data?.publishers ?? []);
       } catch {
         setPublishers([]);
       } finally {
@@ -320,8 +322,8 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error();
-      const data = await res.json();
-      const rows = Array.isArray(data) ? data : data.transactions ?? [];
+      const json = await res.json();
+      const rows = json.data?.transactions ?? [];
       setTxns(rows);
       setHasMore(rows.length === LIMIT);
     } catch {
@@ -417,7 +419,8 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
           headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error();
-        setWebhooks(await res.json());
+        const json = await res.json();
+        setWebhooks(json.data?.failed_webhooks ?? []);
       } catch {
         setWebhooks([]);
       } finally {

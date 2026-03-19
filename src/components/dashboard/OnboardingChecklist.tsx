@@ -32,7 +32,9 @@ export function OnboardingChecklist({
 
   const [isStripeConnecting, setIsStripeConnecting] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [sessionDismissed, setSessionDismissed] = useState(false);
+  const [sessionDismissed, setSessionDismissed] = useState(
+    () => localStorage.getItem("opedd_checklist_dismissed") === "true"
+  );
 
   // Step 4 completes automatically when steps 1–3 are all done
   const shareComplete = contentImported && pricingConfigured && stripeConnected;
@@ -113,8 +115,8 @@ export function OnboardingChecklist({
     }
   };
 
-  // Permanently hide once setup_complete=true and all steps done
-  if (setupComplete && allDone) return null;
+  // Permanently hide once setup_complete=true
+  if (setupComplete) return null;
 
   // "You're all set!" banner — shown when all 4 steps are done, dismiss per session
   if (allDone) {
@@ -128,7 +130,10 @@ export function OnboardingChecklist({
             <p className="text-sm text-[#6B7280] mt-0.5">Your licensing page is live and ready to earn.</p>
           </div>
           <button
-            onClick={() => setSessionDismissed(true)}
+            onClick={() => {
+            localStorage.setItem("opedd_checklist_dismissed", "true");
+            setSessionDismissed(true);
+          }}
             className="text-xs text-[#9CA3AF] hover:text-[#6B7280] font-medium"
           >
             Dismiss
