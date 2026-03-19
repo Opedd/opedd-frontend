@@ -794,41 +794,14 @@ export default function Settings() {
                 <TabsContent value="monetisation" className="mt-6" forceMount={activeTab === "monetisation" ? true : undefined}>
                   {activeTab === "monetisation" && (
                     <motion.div key="monetisation" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-                      {/* Stripe payouts warning */}
+                      {/* Stripe payouts nudge */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
-                         <div className="flex items-start gap-3 rounded-xl border border-[#4A26ED]/20 bg-[#EEF0FF] px-5 py-4">
-                          <AlertTriangle size={18} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-[#040042]">
-                              Payouts not enabled. Complete your Stripe Connect setup to receive payments. Without this, all revenue is held and cannot be disbursed.
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white flex-shrink-0"
-                            onClick={async () => {
-                              try {
-                                const headers = await apiHeaders();
-                                // Always use connect_stripe when onboarding is incomplete (stripe_dashboard fails on incomplete accounts)
-                                const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                                  method: "POST",
-                                  headers,
-                                  body: JSON.stringify({ action: "connect_stripe" }),
-                                });
-                                const result = await res.json();
-                                if (result.success && result.data?.onboarding_url) {
-                                  window.location.href = result.data.onboarding_url;
-                                } else {
-                                  toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
-                                }
-                              } catch {
-                                toast({ title: "Error", description: "Something went wrong", variant: "destructive" });
-                              }
-                            }}
-                          >
-                            Complete Setup
-                          </Button>
-                        </div>
+                        <p className="text-sm text-amber-600 mb-4">
+                          Stripe not connected — buyers cannot pay you yet.{' '}
+                          <button onClick={() => navigate('/payments?tab=stripe')} className="underline font-medium">
+                            Set up payouts →
+                          </button>
+                        </p>
                       )}
                       {/* Info note */}
                       <div className="bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-xl px-4 py-3">
