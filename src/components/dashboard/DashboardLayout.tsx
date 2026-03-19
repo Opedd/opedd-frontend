@@ -32,13 +32,12 @@ const planBadgeStyles: Record<PlanType, { classes: string; label: string }> = {
 };
 
 const navItems = [
-  { title: "Overview", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: FileText },
   { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Buyers", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Payments", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
@@ -181,24 +180,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             </NavLink>
           );
         })}
-        {isAdmin && (
-          <>
-            <div className="my-2 mx-3 border-t border-[#E5E7EB]" />
-            <NavLink
-              to="/admin"
-              onClick={onItemClick}
-              className={cn(
-                "flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium transition-colors",
-                isActive("/admin")
-                  ? "bg-[#EEF0FD] text-[#4A26ED] font-semibold"
-                  : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
-              )}
-            >
-              <ShieldAlert size={16} strokeWidth={1.5} />
-              Admin
-            </NavLink>
-          </>
-        )}
+        {/* Admin link removed — merged into Settings */}
       </nav>
 
       {/* Bottom */}

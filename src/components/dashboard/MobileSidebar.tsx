@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 const mainNavItems = [
-  { title: "Overview", path: "/dashboard", icon: LayoutDashboard },
+  { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: Library },
   { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Buyers", path: "/ledger", icon: Wallet },
@@ -17,7 +17,6 @@ const mainNavItems = [
 
 const integrationNavItems = [
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Billing", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
@@ -117,24 +116,7 @@ export function MobileSidebar() {
                 );
               })}
 
-              {isAdmin && (
-                <>
-                  <div className="my-2 mx-3 border-t border-[#E5E7EB]" />
-                  <NavLink
-                    to="/admin"
-                    onClick={() => setIsOpen(false)}
-                    className={cn(
-                      "flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium transition-colors",
-                      isActive("/admin")
-                        ? "bg-[#EEF0FD] text-[#4A26ED] font-semibold"
-                        : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
-                    )}
-                  >
-                    <ShieldAlert size={16} strokeWidth={1.5} />
-                    <span>Admin</span>
-                  </NavLink>
-                </>
-              )}
+              {/* Admin link removed — merged into Settings */}
             </nav>
 
             <div className="px-3 pb-2">

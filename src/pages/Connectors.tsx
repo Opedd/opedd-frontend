@@ -105,7 +105,7 @@ export default function Connectors() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "widget" || tab === "webhooks" || tab === "ai-policy" || tab === "api-access" ? tab : "widget";
+    return tab === "widget" || tab === "webhooks" || tab === "ai-policy" ? tab : "widget";
   });
 
   // Webhook state
@@ -256,7 +256,6 @@ export default function Connectors() {
               {[
                 { value: "widget", label: "Widget" },
                 { value: "webhooks", label: "Webhooks" },
-                { value: "api-access", label: "API Access" },
                 { value: "ai-policy", label: "AI Policy" },
               ].map((tab) => (
                 <TabsTrigger
@@ -437,23 +436,6 @@ export default function Connectors() {
             </div>
           </TabsContent>
 
-          {/* API Access Tab */}
-          <TabsContent value="api-access" className="mt-6">
-            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-              <h2 className="font-bold text-[#040042] mb-2">API Keys</h2>
-              <p className="text-sm text-[#6B7280] mb-4">
-                Your API key is managed in Settings → API Keys.
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => window.location.href = "/settings?tab=api-keys"}
-                className="text-sm font-medium"
-              >
-                Go to API Keys →
-              </Button>
-            </div>
-          </TabsContent>
 
           {/* AI Policy Tab */}
           <TabsContent value="ai-policy" className="mt-6">

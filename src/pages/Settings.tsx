@@ -40,6 +40,16 @@ import {
   X,
   Info,
   MessageSquare,
+  CreditCard,
+  Wallet,
+  Lock,
+  ExternalLink,
+  CheckCircle2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  Activity,
 } from "lucide-react";
 import {
   Tooltip,
@@ -67,6 +77,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+
+const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
 
 interface StripeConnect {
@@ -178,8 +192,10 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "monetisation" || tab === "api-keys" || tab === "team" ? tab : "profile";
+    const validTabs = ["pricing", "api-keys", "team", "billing", "admin"];
+    return validTabs.includes(tab || "") ? tab! : "profile";
   });
+  const isAdmin = user?.email === ADMIN_EMAIL;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cancel subscription state
@@ -231,6 +247,62 @@ export default function Settings() {
   const [teamLoaded, setTeamLoaded] = useState(false);
   const [teamError, setTeamError] = useState(false);
 
+  // Billing tab state
+  interface StripeConnect {
+    connected: boolean;
+    onboarding_complete: boolean;
+    charges_enabled?: boolean;
+    payouts_enabled?: boolean;
+  }
+  const [stripeStatus, setStripeStatus] = useState<StripeConnect | null>(null);
+  const [isStripeLoading, setIsStripeLoading] = useState(true);
+  const [isStripeConnecting, setIsStripeConnecting] = useState(false);
+  const [publisherPlan, setPublisherPlan] = useState<string>("free");
+  const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
+  const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
+  const [isBillingPortalLoading, setIsBillingPortalLoading] = useState(false);
+  const [billing, setBilling] = useState<"monthly" | "annually">("monthly");
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+  const [checkoutStripePromise, setCheckoutStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
+
+  // Admin tab state
+  interface AdminPublisher {
+    id: string;
+    display_name: string;
+    website_url: string | null;
+    plan: string;
+    article_count: number;
+    total_revenue: number;
+    stripe_connected: boolean;
+    created_at: string;
+  }
+  interface AdminTransaction {
+    id: string;
+    created_at: string;
+    buyer_email: string;
+    amount: number;
+    license_type: string;
+    license_key: string;
+    status: string;
+  }
+  interface AdminFailedWebhook {
+    id: string;
+    publisher_name: string;
+    event_type: string;
+    attempts: number;
+    last_attempt_at: string;
+    status: string;
+  }
+  const [adminPublishers, setAdminPublishers] = useState<AdminPublisher[]>([]);
+  const [adminTxns, setAdminTxns] = useState<AdminTransaction[]>([]);
+  const [adminWebhooks, setAdminWebhooks] = useState<AdminFailedWebhook[]>([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminLoaded, setAdminLoaded] = useState(false);
+  const [adminSearch, setAdminSearch] = useState("");
+  const [adminTxPage, setAdminTxPage] = useState(0);
+  const [adminTxHasMore, setAdminTxHasMore] = useState(false);
+  const [copiedLicenseKey, setCopiedLicenseKey] = useState<string | null>(null);
+
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
     if (!token) throw new Error("Not authenticated");
@@ -241,6 +313,16 @@ export default function Settings() {
       "Content-Type": "application/json",
     };
   }, [getAccessToken]);
+
+  const postAction = useCallback(async (action: string, extra?: Record<string, unknown>) => {
+    const headers = await apiHeaders();
+    const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ action, ...extra }),
+    });
+    return res.json();
+  }, [apiHeaders]);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -388,6 +470,147 @@ export default function Settings() {
     }
   }, [activeTab, teamLoaded, isLoadingTeam, fetchTeam]);
 
+  // Billing tab: load stripe status & plan
+  const fetchBillingData = useCallback(async () => {
+    try {
+      const headers = await apiHeaders();
+      const profileRes = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, { headers });
+      const profileResult = await profileRes.json();
+      if (profileResult.success && profileResult.data) {
+        const d = profileResult.data;
+        if (d.stripe_connect) setStripeStatus(d.stripe_connect);
+        if (d.plan) setPublisherPlan(d.plan);
+        if (d.stripe_customer_id) setStripeCustomerId(d.stripe_customer_id);
+      }
+      const stripeResult = await postAction("stripe_status");
+      if (stripeResult.success && stripeResult.data) {
+        setStripeStatus(stripeResult.data);
+      }
+    } catch (err) {
+      console.warn("[Settings/Billing] Load failed:", err);
+    } finally {
+      setIsStripeLoading(false);
+    }
+  }, [apiHeaders, postAction]);
+
+  useEffect(() => {
+    if (activeTab === "billing") fetchBillingData();
+  }, [activeTab, fetchBillingData]);
+
+  // Admin tab: load publishers, transactions, webhooks
+  const fetchAdminData = useCallback(async () => {
+    if (!isAdmin) return;
+    setAdminLoading(true);
+    try {
+      const token = await getAccessToken();
+      const headers = { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` };
+      const [pubRes, txRes, whRes] = await Promise.all([
+        fetch(`${EXT_SUPABASE_URL}/admin?action=publishers`, { headers }),
+        fetch(`${EXT_SUPABASE_URL}/admin?action=transactions&limit=50&offset=${adminTxPage * 50}`, { headers }),
+        fetch(`${EXT_SUPABASE_URL}/admin?action=failed_webhooks`, { headers }),
+      ]);
+      const [pubJson, txJson, whJson] = await Promise.all([pubRes.json(), txRes.json(), whRes.json()]);
+      setAdminPublishers(pubJson.data?.publishers ?? []);
+      const txRows = txJson.data?.transactions ?? [];
+      setAdminTxns(txRows);
+      setAdminTxHasMore(txRows.length === 50);
+      setAdminWebhooks(whJson.data?.failed_webhooks ?? []);
+    } catch {
+      // silently fail
+    } finally {
+      setAdminLoading(false);
+      setAdminLoaded(true);
+    }
+  }, [isAdmin, getAccessToken, adminTxPage]);
+
+  useEffect(() => {
+    if (activeTab === "admin" && isAdmin && !adminLoaded) fetchAdminData();
+  }, [activeTab, isAdmin, adminLoaded, fetchAdminData]);
+
+  // Billing handlers
+  const handleConnectStripe = async () => {
+    setIsStripeConnecting(true);
+    try {
+      const result = await postAction("connect_stripe");
+      if (result.success && result.data?.onboarding_url) {
+        window.location.href = result.data.onboarding_url;
+      } else {
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to start Stripe onboarding");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Stripe Connect Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+      setIsStripeConnecting(false);
+    }
+  };
+
+  const handleOpenStripeDashboard = async () => {
+    const newWindow = window.open("", "_blank");
+    try {
+      const result = await postAction("stripe_dashboard");
+      if (result.success && result.data?.dashboard_url) {
+        if (newWindow) newWindow.location.href = result.data.dashboard_url;
+      } else {
+        if (newWindow) newWindow.close();
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to open dashboard");
+      }
+    } catch (err: unknown) {
+      if (newWindow) newWindow.close();
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    }
+  };
+
+  const handleUpgrade = async (plan: "pro" | "enterprise") => {
+    setIsUpgrading(plan);
+    try {
+      const result = await postAction("create_subscription", { plan, embedded: true, billing });
+      if (result.success && result.data?.client_secret) {
+        const stripePromise = loadStripe(result.data.publishable_key);
+        setCheckoutStripePromise(stripePromise);
+        setCheckoutClientSecret(result.data.client_secret);
+      } else {
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to start checkout");
+      }
+    } catch (err: unknown) {
+      toast({ title: "Upgrade Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsUpgrading(null);
+    }
+  };
+
+  const handleCloseCheckout = () => {
+    setCheckoutClientSecret(null);
+    setCheckoutStripePromise(null);
+  };
+
+  const handleBillingPortal = async () => {
+    setIsBillingPortalLoading(true);
+    const newWindow = window.open("", "_blank");
+    try {
+      const result = await postAction("billing_portal");
+      if (result.success && result.data?.url) {
+        if (newWindow) newWindow.location.href = result.data.url;
+      } else {
+        if (newWindow) newWindow.close();
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to open billing portal");
+      }
+    } catch (err: unknown) {
+      if (newWindow) newWindow.close();
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsBillingPortalLoading(false);
+    }
+  };
+
+  const isStripeFullyConnected = stripeStatus?.connected && stripeStatus?.onboarding_complete;
+  const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
+
+  // Plan data
+  const PLANS = [
+    { key: "free", name: "Free", price: "$0", period: "/month", description: "For publishers getting started", features: [{ text: "Up to 500 articles" }, { text: "Widget embedding" }, { text: "Basic analytics" }, { text: "Email support" }], highlighted: false },
+    { key: "pro", name: "Pro", price: "$29", period: "/month", description: "For growing independent publishers", features: [{ text: "Unlimited articles" }, { text: "8% platform fee (vs 15% free)" }, { text: "Custom webhooks" }, { text: "Team members (up to 5)" }, { text: "Priority support" }, { text: "Advanced analytics" }], highlighted: true },
+    { key: "enterprise", name: "Enterprise", price: "$99", period: "/month", description: "For media organisations & large catalogs", features: [{ text: "Everything in Pro" }, { text: "5% platform fee (vs 15% free)" }, { text: "Unlimited team members" }, { text: "Custom integrations" }, { text: "Dedicated support" }, { text: "SLA guarantee" }], highlighted: false },
+  ];
+  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = { pro: { price: "$23", total: "$276/year" }, enterprise: { price: "$79", total: "$948/year" } };
 
   if (!user) return null;
 
@@ -548,9 +771,11 @@ export default function Settings() {
                 <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
                   {[
                     { value: "profile", label: "Profile" },
-                    { value: "monetisation", label: "Monetisation" },
-                    { value: "api-keys", label: "API Keys" },
+                    { value: "pricing", label: "Pricing" },
                     { value: "team", label: "Team" },
+                    { value: "api-keys", label: "API Keys" },
+                    { value: "billing", label: "Billing" },
+                    ...(isAdmin ? [{ value: "admin", label: "Admin" }] : []),
                   ].map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -669,7 +894,7 @@ export default function Settings() {
                               <span className="text-sm text-[#6B7280]">{summary}</span>
                             </div>
                             <button
-                              onClick={() => navigate("/payments")}
+                              onClick={() => setActiveTab("billing")}
                               className="text-sm font-medium text-[#4A26ED] hover:underline"
                             >
                               Manage Plan →
@@ -794,16 +1019,16 @@ export default function Settings() {
                   )}
                 </TabsContent>
 
-                {/* TAB: Monetisation */}
-                <TabsContent value="monetisation" className="mt-6" forceMount={activeTab === "monetisation" ? true : undefined}>
-                  {activeTab === "monetisation" && (
+                {/* TAB: Pricing */}
+                <TabsContent value="pricing" className="mt-6" forceMount={activeTab === "pricing" ? true : undefined}>
+                  {activeTab === "pricing" && (
                     <motion.div key="monetisation" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                       {/* Stripe payouts nudge */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
                         <p className="text-sm text-amber-600 mb-4">
-                          Stripe not connected — buyers cannot pay you yet.{' '}
-                          <button onClick={() => navigate('/payments?tab=stripe')} className="underline font-medium">
-                            Set up payouts →
+                          Stripe payouts not set up —{' '}
+                          <button onClick={() => setActiveTab('billing')} className="underline font-medium">
+                            configure in Settings → Billing
                           </button>
                         </p>
                       )}
@@ -866,41 +1091,7 @@ export default function Settings() {
                         </Button>
                       </div>
 
-                      {/* Widget Preview */}
-                      <div className="border-t border-slate-100 pt-6">
-                        <h3 className="text-sm font-semibold text-[#040042] mb-3">Widget preview</h3>
-                        <div className="flex gap-3 flex-wrap">
-                          {defaultHumanPrice && parseFloat(defaultHumanPrice) > 0 ? (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-semibold text-[#040042]">Permission <span className="text-[#4A26ED]">${defaultHumanPrice}</span></p>
-                              <p className="text-xs text-slate-500 mt-0.5">Instant license</p>
-                            </div>
-                          ) : (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-medium text-slate-500">Request permission →</p>
-                            </div>
-                          )}
-                          {defaultSyndicationPrice && parseFloat(defaultSyndicationPrice) > 0 ? (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-semibold text-[#040042]">Syndication <span className="text-[#4A26ED]">${defaultSyndicationPrice}+</span></p>
-                              <p className="text-xs text-slate-500 mt-0.5">Full rights</p>
-                            </div>
-                          ) : (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-medium text-slate-500">Request syndication →</p>
-                            </div>
-                          )}
-                          {defaultAiPrice && parseFloat(defaultAiPrice) > 0 && (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 min-w-[160px]">
-                              <p className="text-sm font-semibold text-[#040042]">AI Training <span className="text-[#4A26ED]">${defaultAiPrice}</span></p>
-                              <p className="text-xs text-slate-500 mt-0.5">Dataset license</p>
-                            </div>
-                          )}
-                        </div>
-                        {(!defaultHumanPrice || parseFloat(defaultHumanPrice) === 0) && (!defaultSyndicationPrice || parseFloat(defaultSyndicationPrice) === 0) && (
-                          <p className="text-xs text-slate-400 mt-2 italic">If rates are blank, widget shows "Request pricing →"</p>
-                        )}
-                      </div>
+
                     </motion.div>
                   )}
                 </TabsContent>
@@ -1131,6 +1322,296 @@ export default function Settings() {
                     </motion.div>
                   )}
                 </TabsContent>
+                {/* TAB: Billing */}
+                <TabsContent value="billing" className="mt-6" forceMount={activeTab === "billing" ? true : undefined}>
+                  {activeTab === "billing" && (
+                    <motion.div key="billing" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      <p className="text-sm text-[#6B7280]">Opedd Plan controls what you pay us. Payout Setup controls how we pay you.</p>
+
+                      {/* Subscription Plan */}
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="font-bold text-[#040042] text-lg">Subscription Plan</h2>
+                            <p className="text-[#6B7280] text-sm mt-0.5">
+                              Current plan: <span className="font-semibold text-[#040042] capitalize">{publisherPlan}</span>
+                            </p>
+                          </div>
+                          {stripeCustomerId && (
+                            <Button variant="outline" size="sm" onClick={handleBillingPortal} disabled={isBillingPortalLoading} className="h-9 px-4 text-sm font-medium border-[#E5E7EB] text-[#040042] hover:bg-[#F9FAFB] rounded-lg">
+                              {isBillingPortalLoading ? <Loader2 size={14} className="animate-spin mr-2" /> : <CreditCard size={14} className="mr-2" />}
+                              Manage Billing
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Billing toggle */}
+                        <div className="flex items-center justify-center">
+                          <div className="inline-flex items-center gap-1 bg-[#F3F4F6] rounded-full p-1">
+                            <button onClick={() => setBilling("monthly")} className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${billing === "monthly" ? "bg-white text-[#040042] shadow-sm" : "text-[#6B7280] hover:text-[#040042]"}`}>Monthly</button>
+                            <button onClick={() => setBilling("annually")} className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all flex items-center gap-2 ${billing === "annually" ? "bg-white text-[#040042] shadow-sm" : "text-[#6B7280] hover:text-[#040042]"}`}>
+                              Annual <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">-20%</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Plan Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {PLANS.map((plan) => {
+                            const isActive = publisherPlan === plan.key;
+                            const isLoadingThis = isUpgrading === plan.key;
+                            const anyUpgrading = isUpgrading !== null;
+                            return (
+                              <div key={plan.key} className={`relative rounded-xl border p-6 flex flex-col gap-4 transition-all ${isActive ? "border-[#4A26ED] bg-[#4A26ED]/[0.03] shadow-sm" : plan.highlighted ? "border-[#E5E7EB] bg-white shadow-sm" : "border-[#E5E7EB] bg-white"}`}>
+                                {isActive && <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Badge className="bg-[#4A26ED] text-white text-xs font-semibold px-3 py-0.5 rounded-full border-0">Current plan</Badge></div>}
+                                {plan.highlighted && !isActive && <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Badge className="bg-[#040042] text-white text-xs font-semibold px-3 py-0.5 rounded-full border-0">Most popular</Badge></div>}
+                                <div>
+                                  <p className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide mb-1">{plan.name}</p>
+                                  <div className="flex items-end gap-1 mb-1">
+                                    <span className="text-3xl font-bold text-[#040042]">{billing === "annually" && ANNUAL_PRICES[plan.key] ? ANNUAL_PRICES[plan.key].price : plan.price}</span>
+                                    <span className="text-sm text-[#6B7280] mb-1">/month</span>
+                                  </div>
+                                  {billing === "annually" && ANNUAL_PRICES[plan.key] ? <p className="text-xs text-emerald-600 font-medium">Billed as {ANNUAL_PRICES[plan.key].total}</p> : <p className="text-xs text-[#6B7280]">{plan.description}</p>}
+                                </div>
+                                <ul className="space-y-2 flex-1">
+                                  {plan.features.map((f, i) => <li key={i} className="flex items-center gap-2 text-sm text-[#374151]"><Check size={14} className={isActive ? "text-[#4A26ED]" : "text-emerald-500"} />{f.text}</li>)}
+                                </ul>
+                                {isActive ? (
+                                  <div className="h-10 flex items-center justify-center rounded-lg border border-[#4A26ED]/30 bg-[#4A26ED]/5"><CheckCircle2 size={14} className="text-[#4A26ED] mr-2" /><span className="text-sm font-medium text-[#4A26ED]">Active</span></div>
+                                ) : plan.key === "free" ? (
+                                  <div className="h-10 flex items-center justify-center rounded-lg border border-[#E5E7EB] bg-[#F9FAFB]"><span className="text-sm text-[#9CA3AF]">Downgrade</span></div>
+                                ) : (
+                                  <Button onClick={() => handleUpgrade(plan.key as "pro" | "enterprise")} disabled={anyUpgrading} className={`w-full h-10 text-sm font-semibold rounded-lg ${plan.highlighted ? "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white" : "bg-[#040042] hover:bg-[#0A0066] text-white"}`}>
+                                    {isLoadingThis ? <Loader2 size={14} className="animate-spin mr-2" /> : null}{isLoadingThis ? "Redirecting..." : `Upgrade to ${plan.name}`}
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-[#9CA3AF] text-center">{billing === "annually" ? "Billed annually. Save 20% vs monthly. Cancel anytime from the billing portal. Prices in USD." : "Billed monthly. Switch to annual to save 20%. Cancel anytime from the billing portal. Prices in USD."}</p>
+                      </div>
+
+                      {/* Stripe Connect / Payout Setup */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="flex items-start justify-between mb-6">
+                          <div>
+                            <h2 className="font-bold text-[#040042] text-lg">Payout Setup</h2>
+                            <p className="text-[#6B7280] text-sm mt-0.5">Receive payouts directly to your bank via Stripe</p>
+                          </div>
+                          {isStripeLoading ? <Loader2 size={18} className="animate-spin text-[#6B7280]" /> : (
+                            <Badge variant="outline" className={`text-xs font-semibold px-3 py-1 rounded-full border ${isStripeFullyConnected ? "bg-emerald-50 text-emerald-700 border-emerald-200" : isStripePartial ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-white text-[#6B7280] border-[#E5E7EB]"}`}>
+                              {isStripeFullyConnected ? "Connected" : isStripePartial ? "Setup Incomplete" : "Not Connected"}
+                            </Badge>
+                          )}
+                        </div>
+                        {isStripePartial && (
+                          <div className="mb-4 rounded-lg border border-[#4A26ED]/20 bg-[#EEF0FF] p-4 flex items-center gap-3">
+                            <AlertTriangle size={18} className="text-[#4A26ED] flex-shrink-0" />
+                            <p className="flex-1 text-sm text-[#040042]">Your Stripe account is connected but onboarding is incomplete. You won't receive payouts until you finish setup.</p>
+                            <Button size="sm" onClick={handleConnectStripe} disabled={isStripeConnecting} className="flex-shrink-0 h-8 px-3 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-xs font-semibold rounded-lg">
+                              {isStripeConnecting ? <Loader2 size={12} className="animate-spin" /> : "Complete Setup"}
+                            </Button>
+                          </div>
+                        )}
+                        {isStripeFullyConnected ? (
+                          <div className="space-y-4">
+                            {!stripeStatus?.payouts_enabled && (
+                              <div className="rounded-lg border border-[#4A26ED]/20 bg-[#EEF0FF] p-4 flex items-center gap-3">
+                                <AlertTriangle size={18} className="text-[#4A26ED] flex-shrink-0" />
+                                <p className="flex-1 text-sm text-[#040042]">Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments.</p>
+                                <Button size="sm" onClick={handleOpenStripeDashboard} className="flex-shrink-0 h-8 px-3 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-xs font-semibold rounded-lg">Complete verification</Button>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 flex items-center gap-3">
+                                {stripeStatus?.charges_enabled ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-red-400" />}
+                                <div><p className="text-sm font-medium text-[#040042]">Charges</p><p className="text-xs text-[#6B7280]">{stripeStatus?.charges_enabled ? "Enabled" : "Disabled"}</p></div>
+                              </div>
+                              <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 flex items-center gap-3">
+                                {stripeStatus?.payouts_enabled ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-red-400" />}
+                                <div><p className="text-sm font-medium text-[#040042]">Payouts</p><p className="text-xs text-[#6B7280]">{stripeStatus?.payouts_enabled ? "Enabled" : "Disabled"}</p></div>
+                              </div>
+                            </div>
+                            <Button onClick={handleOpenStripeDashboard} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium text-sm">
+                              <ExternalLink size={16} className="mr-2" />Open Stripe Dashboard
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="bg-white border border-[#E5E7EB] rounded-xl p-4">
+                              <div className="flex items-start gap-3">
+                                <Shield size={18} className="text-[#6B7280] mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="font-medium text-[#040042] text-sm">Secure Payment Processing</p>
+                                  <p className="text-xs text-[#6B7280] mt-1">Connect your Stripe account to receive payouts from content licensing. Your financial data is encrypted and never stored on our servers.</p>
+                                </div>
+                              </div>
+                            </div>
+                            <Button onClick={handleConnectStripe} disabled={isStripeConnecting} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium text-sm">
+                              {isStripeConnecting ? <><Loader2 size={16} className="mr-2 animate-spin" />Connecting...</> : <><Lock size={16} className="mr-2" />{isStripePartial ? "Complete Stripe Setup" : "Connect Stripe Account"}</>}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Wallet placeholder */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
+                        <Wallet size={40} className="mx-auto text-[#D1D5DB] mb-4" />
+                        <h3 className="text-base font-semibold text-[#111] mb-1">Wallet Connect</h3>
+                        <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-4">Coming soon — accept crypto payments directly from your audience.</p>
+                        <Button disabled className="bg-[#4A26ED]/20 text-[#4A26ED]/50 rounded-lg cursor-not-allowed">Connect Wallet</Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </TabsContent>
+
+                {/* TAB: Admin (admin only) */}
+                {isAdmin && (
+                  <TabsContent value="admin" className="mt-6" forceMount={activeTab === "admin" ? true : undefined}>
+                    {activeTab === "admin" && (
+                      <motion.div key="admin" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-8">
+                        {adminLoading ? (
+                          <div className="flex items-center justify-center py-16"><Loader2 size={24} className="animate-spin text-[#4A26ED]" /></div>
+                        ) : (
+                          <>
+                            {/* Publishers */}
+                            <div className="space-y-4">
+                              <h2 className="font-bold text-[#040042] text-lg">Publishers</h2>
+                              <div className="relative max-w-xs">
+                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                                <Input placeholder="Search publishers…" value={adminSearch} onChange={e => setAdminSearch(e.target.value)} className="pl-10 h-10 border-[#E5E7EB]" />
+                              </div>
+                              <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-sm">
+                                    <thead>
+                                      <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Name</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Website</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Plan</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Articles</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Revenue</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Stripe</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Joined</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {adminPublishers.filter(p => p.display_name?.toLowerCase().includes(adminSearch.toLowerCase())).length === 0 ? (
+                                        <tr><td colSpan={7} className="py-12 text-center text-[#9CA3AF]">No publishers found.</td></tr>
+                                      ) : adminPublishers.filter(p => p.display_name?.toLowerCase().includes(adminSearch.toLowerCase())).map(p => (
+                                        <tr key={p.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
+                                          <td className="py-3 px-4 font-medium text-[#111827]">{p.display_name || "—"}</td>
+                                          <td className="py-3 px-4 text-[#6B7280] truncate max-w-[180px]">{p.website_url || "—"}</td>
+                                          <td className="py-3 px-4"><span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${p.plan === "pro" ? "bg-violet-500/10 text-violet-400" : p.plan === "enterprise" ? "bg-[#040042] text-white border border-white/20" : "bg-white/10 text-[#6B7280]"}`}>{p.plan}</span></td>
+                                          <td className="py-3 px-4 text-[#111827]">{p.article_count}</td>
+                                          <td className="py-3 px-4 text-[#111827] font-medium">${p.total_revenue.toFixed(2)}</td>
+                                          <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-[#D1D5DB]">✗</span>}</td>
+                                          <td className="py-3 px-4 text-[#6B7280]">{new Date(p.created_at).toLocaleDateString()}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Transactions */}
+                            <div className="space-y-4">
+                              <h2 className="font-bold text-[#040042] text-lg">Transactions</h2>
+                              <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-sm">
+                                    <thead>
+                                      <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Date</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Buyer</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Amount</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Type</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">License Key</th>
+                                        <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Status</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {adminTxns.length === 0 ? (
+                                        <tr><td colSpan={6} className="py-12 text-center text-[#9CA3AF]">No transactions found.</td></tr>
+                                      ) : adminTxns.map(tx => {
+                                        const [local, domain] = tx.buyer_email.split("@");
+                                        const masked = local?.slice(0, 2) + "•••@" + (domain || "");
+                                        const truncKey = tx.license_key.length <= 12 ? tx.license_key : tx.license_key.slice(0, 8) + "…" + tx.license_key.slice(-4);
+                                        return (
+                                          <tr key={tx.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
+                                            <td className="py-3 px-4 text-[#6B7280]">{new Date(tx.created_at).toLocaleDateString()}</td>
+                                            <td className="py-3 px-4 text-[#6B7280]">{masked}</td>
+                                            <td className="py-3 px-4 font-medium text-[#111827]">${tx.amount.toFixed(2)}</td>
+                                            <td className="py-3 px-4"><span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${tx.license_type.toLowerCase() === "ai" ? "bg-violet-500/10 text-violet-400" : "bg-sky-500/10 text-sky-400"}`}>{tx.license_type}</span></td>
+                                            <td className="py-3 px-4">
+                                              <span className="inline-flex items-center gap-1.5">
+                                                <code className="text-xs font-mono text-[#6B7280]">{truncKey}</code>
+                                                <button onClick={() => { navigator.clipboard.writeText(tx.license_key); setCopiedLicenseKey(tx.license_key); setTimeout(() => setCopiedLicenseKey(null), 1500); }} className="text-[#9CA3AF] hover:text-[#040042] transition-colors">
+                                                  {copiedLicenseKey === tx.license_key ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                                                </button>
+                                              </span>
+                                            </td>
+                                            <td className="py-3 px-4"><span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${tx.status === "completed" ? "bg-emerald-500/10 text-emerald-400" : tx.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"}`}>{tx.status}</span></td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <button onClick={() => { setAdminTxPage(p => Math.max(0, p - 1)); setAdminLoaded(false); }} disabled={adminTxPage === 0} className={`text-sm flex items-center gap-1 transition-colors ${adminTxPage === 0 ? "text-[#D1D5DB] cursor-default" : "text-[#040042] hover:underline"}`}><ChevronLeft size={14} /> Previous</button>
+                                <span className="text-xs text-[#9CA3AF]">Page {adminTxPage + 1}</span>
+                                <button onClick={() => { setAdminTxPage(p => p + 1); setAdminLoaded(false); }} disabled={!adminTxHasMore} className={`text-sm flex items-center gap-1 transition-colors ${!adminTxHasMore ? "text-[#D1D5DB] cursor-default" : "text-[#040042] hover:underline"}`}>Next <ChevronRight size={14} /></button>
+                              </div>
+                            </div>
+
+                            {/* Failed Webhooks */}
+                            <div className="space-y-4">
+                              <h2 className="font-bold text-[#040042] text-lg">Failed Webhooks</h2>
+                              {adminWebhooks.length === 0 ? (
+                                <div className="py-12 text-center">
+                                  <p className="text-lg mb-1">🎉</p>
+                                  <p className="text-sm font-medium text-[#6B7280]">No failed webhooks</p>
+                                  <p className="text-xs text-[#9CA3AF] mt-1">All webhook deliveries are healthy.</p>
+                                </div>
+                              ) : (
+                                <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                      <thead>
+                                        <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                                          <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Publisher</th>
+                                          <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Event Type</th>
+                                          <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Attempts</th>
+                                          <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Last Try</th>
+                                          <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Status</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {adminWebhooks.map(wh => (
+                                          <tr key={wh.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
+                                            <td className="py-3 px-4 font-medium text-[#111827]">{wh.publisher_name}</td>
+                                            <td className="py-3 px-4 text-[#6B7280]">{wh.event_type}</td>
+                                            <td className="py-3 px-4 text-[#111827]">{wh.attempts}</td>
+                                            <td className="py-3 px-4 text-[#6B7280]">{new Date(wh.last_attempt_at).toLocaleString()}</td>
+                                            <td className="py-3 px-4"><span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${wh.status === "completed" ? "bg-emerald-500/10 text-emerald-400" : wh.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"}`}>{wh.status}</span></td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </motion.div>
+                    )}
+                  </TabsContent>
+                )}
 
               </AnimatePresence>
             </Tabs>
@@ -1247,6 +1728,19 @@ export default function Settings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Embedded Stripe Checkout Modal */}
+      {checkoutClientSecret && checkoutStripePromise && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <button onClick={handleCloseCheckout} className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] hover:border-[#040042] transition-colors"><X size={16} /></button>
+            <div className="p-2">
+              <EmbeddedCheckoutProvider stripe={checkoutStripePromise} options={{ clientSecret: checkoutClientSecret }}>
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
