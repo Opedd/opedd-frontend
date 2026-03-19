@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon } from "lucide-react";
+import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon } from "lucide-react";
 
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
@@ -19,7 +19,6 @@ import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -284,64 +283,24 @@ export default function Dashboard() {
           </div>
         )}
 
-        <Card className="p-5 shadow-sm">
-          {licensingHref ? (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              {/* Left: icon + text */}
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <div className="w-9 h-9 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
-                  <ExternalLink size={18} className="text-[#4A26ED]" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#111827]">Your Public Licensing Page</p>
-                  <p className="text-xs text-[#6B7280] mt-0.5">Share this link with buyers, media desks, and AI companies.</p>
-                </div>
-              </div>
-              {/* Center: URL pill */}
-              <div className="flex-1 min-w-0 sm:max-w-[280px]">
-                <span className="block bg-[#F3F4F6] rounded-lg px-3 py-2 font-mono text-xs text-[#6B7280] truncate">
-                  {licensingUrl}
-                </span>
-              </div>
-              {/* Right: action buttons */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleCopyUrl}
-                  className="h-8 px-3 text-xs font-medium gap-1.5"
-                >
-                  {urlCopied ? <Check size={13} /> : <Copy size={13} />}
-                  {urlCopied ? "Copied!" : "Copy Link"}
-                </Button>
-                <Button
-                  size="sm"
-                  asChild
-                  className="h-8 px-3 text-xs font-medium bg-[#4A26ED] hover:bg-[#3B1ED1] text-white gap-1.5"
-                >
-                  <a href={licensingHref} target="_blank" rel="noreferrer">
-                    <ExternalLink size={13} />
-                    Preview
-                  </a>
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
-                <ExternalLink size={18} className="text-[#9CA3AF]" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#111827]">Your Public Licensing Page</p>
-                <p className="text-xs text-[#6B7280] mt-0.5">
-                  Set your website URL in{" "}
-                  <Link to="/settings" className="text-[#4A26ED] hover:underline font-medium">Settings</Link>
-                  {" "}to activate your page.
-                </p>
-              </div>
-            </div>
-          )}
-        </Card>
+        {licensingHref ? (
+          <div className="flex items-center gap-3 text-sm text-[#6B7280] mt-4">
+            <LinkIcon className="w-4 h-4 shrink-0" />
+            <span className="font-mono text-[#374151] truncate">{licensingUrl}</span>
+            <button onClick={handleCopyUrl} className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium">
+              {urlCopied ? "Copied!" : "Copy"}
+            </button>
+            <a href={licensingHref} target="_blank" rel="noreferrer" className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium">
+              Preview ↗
+            </a>
+          </div>
+        ) : (
+          <p className="text-sm text-[#6B7280] mt-4">
+            Set your website URL in{" "}
+            <Link to="/settings" className="text-[#4A26ED] hover:underline font-medium">Settings</Link>
+            {" "}to activate your licensing page.
+          </p>
+        )}
 
         {/* Import Progress Banner */}
         <ImportProgressBanner onComplete={fetchMetrics} />

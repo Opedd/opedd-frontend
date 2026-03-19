@@ -10,7 +10,7 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Wallet, TrendingUp, FileCheck, Sparkles, User, Shield,
+  User, Shield, Sparkles, FileCheck,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
   AlertTriangle, Ban, ScrollText, Receipt,
 } from "lucide-react";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -225,17 +225,7 @@ export default function Ledger() {
           </Button>
         </motion.div>
 
-        <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-4" variants={itemVariants}>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <TrendingUp size={18} className="text-[#4A26ED] mb-3" />
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <FileCheck size={18} className="text-[#4A26ED] mb-3" />
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1">{metrics.totalTransactions}</p>
-          </div>
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" variants={itemVariants}>
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <User size={18} className="text-[#D1009A] mb-3" />
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Human Licenses</p>
@@ -259,13 +249,6 @@ export default function Ledger() {
 
         {!fetchError && (
           <motion.div variants={itemVariants}>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-[#F3F4F6] rounded-lg p-1 mb-6">
-                <TabsTrigger value="licenses" className="rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">Active Licenses</TabsTrigger>
-                <TabsTrigger value="inquiries" className="rounded-md text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">Inquiries</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="licenses">
                 {transactions.length === 0 ? (
                   <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
                     <FileCheck size={40} className="mx-auto text-[#D1D5DB] mb-4" />
@@ -384,25 +367,6 @@ export default function Ledger() {
                     </Table>
                   </div>
                 )}
-              </TabsContent>
-
-              <TabsContent value="inquiries">
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
-                  <Wallet size={40} className="mx-auto text-[#D1D5DB] mb-4" />
-                  <h3 className="text-base font-semibold text-[#111827] mb-1">No inquiries yet</h3>
-                  <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-5">
-                    When buyers contact you directly about licensing, their inquiries will appear here.
-                  </p>
-                  <Button
-                    onClick={() => navigate("/licensing")}
-                    className="bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-medium px-5 py-2 rounded-lg"
-                  >
-                    Share your licensing page
-                  </Button>
-                </div>
-              </TabsContent>
-
-            </Tabs>
           </motion.div>
         )}
       </motion.div>

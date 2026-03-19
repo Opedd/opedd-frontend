@@ -22,7 +22,7 @@ import {
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PricingRulesTab } from "@/components/dashboard/PricingRulesTab";
+
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -65,7 +65,7 @@ export default function Content() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "pricing-rules" ? tab : "articles";
+    return tab === "archive-license" ? tab : "articles";
   });
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
@@ -329,7 +329,6 @@ export default function Content() {
               {[
                 { value: "articles", label: "Articles" },
                 { value: "archive-license", label: "Archive License" },
-                { value: "pricing-rules", label: "Pricing Rules" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.value}
@@ -540,9 +539,6 @@ export default function Content() {
             </div>
           </TabsContent>
 
-          <TabsContent value="pricing-rules" className="mt-6">
-            <PricingRulesTab />
-          </TabsContent>
         </Tabs>
       </div>
 
