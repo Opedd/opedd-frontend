@@ -225,17 +225,7 @@ export default function Ledger() {
           </Button>
         </motion.div>
 
-        <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-4" variants={itemVariants}>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <TrendingUp size={18} className="text-[#4A26ED] mb-3" />
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1 tracking-tight">${metrics.totalRevenue.toFixed(2)}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <FileCheck size={18} className="text-[#4A26ED] mb-3" />
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1">{metrics.totalTransactions}</p>
-          </div>
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" variants={itemVariants}>
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <User size={18} className="text-[#D1009A] mb-3" />
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Human Licenses</p>
