@@ -64,7 +64,7 @@
     <li><strong>Price:</strong> Publisher sets human license price and AI license price per article, or in bulk.</li>
     <li><strong>License:</strong> Buyers purchase via hosted checkout, REST API, or AI agent (MCP protocol).</li>
     <li><strong>Proof:</strong> License key issued, transaction recorded on Base blockchain.</li>
-    <li><strong>Payout:</strong> Publisher receives payment instantly via Stripe Connect (90% of transaction).</li>
+    <li><strong>Payout:</strong> Publisher receives payment instantly via Stripe Connect.</li>
   </ol>
 
   <h2>License Types</h2>
@@ -104,14 +104,39 @@
   <h2>Pricing</h2>
 
   <p>
-    Opedd is free to start. The platform charges a 10% fee on each transaction via
-    Stripe Connect. Publishers keep 90% of every license sale. There are no upfront
-    costs and no minimum commitments.
+    Opedd is free to start — no credit card required. The platform fee varies by plan:
   </p>
 
+  <table>
+    <tr>
+      <th>Plan</th>
+      <th>Monthly Price</th>
+      <th>Platform Fee</th>
+      <th>Articles</th>
+    </tr>
+    <tr>
+      <td>Free</td>
+      <td>$0</td>
+      <td>15% per transaction</td>
+      <td>Up to 500</td>
+    </tr>
+    <tr>
+      <td>Pro</td>
+      <td>$29/month</td>
+      <td>8% per transaction</td>
+      <td>Unlimited</td>
+    </tr>
+    <tr>
+      <td>Enterprise</td>
+      <td>$99/month</td>
+      <td>5% per transaction</td>
+      <td>Unlimited</td>
+    </tr>
+  </table>
+
   <p>
-    Publisher subscriptions (Pro at $79/month, Enterprise at $249/month) are available
-    for advanced features including team management, priority support, and higher API limits.
+    There are no upfront costs and no minimum commitments. Publishers can upgrade or
+    downgrade at any time from their dashboard at <a href="https://opedd.com/payments">opedd.com/payments</a>.
   </p>
 
   <h2>Technical Infrastructure</h2>
@@ -120,7 +145,7 @@
     <li><strong>Widget:</strong> Single JavaScript embed, works on any CMS. Auto-registers articles on first page load.</li>
     <li><strong>REST API:</strong> Full programmatic access with X-API-Key authentication. Endpoints for article lookup, license issuance, verification, and usage.</li>
     <li><strong>MCP Server:</strong> AI agents (Claude, Cursor, Windsurf) can discover, purchase, and verify licenses autonomously mid-conversation via <code>npx opedd-mcp</code>.</li>
-    <li><strong>Blockchain:</strong> Every license registered on Base (Ethereum L2) via the OpeddRegistry smart contract. Contract address: <code>0xf2cb1347de16c362eb67549dc1521fc8ab2f8d6d</code> (Base Sepolia).</li>
+    <li><strong>Blockchain:</strong> Every license registered on Base mainnet (Ethereum L2) via the OpeddRegistry smart contract (<code>0x0ca09c63cd768490dad1734594c0ee3bfd3cce55</code>).</li>
     <li><strong>AI Defense Policy:</strong> Publishers can generate a custom <code>robots.txt</code> and <code>ai.txt</code> that blocks unlicensed AI crawlers while allowing licensed access.</li>
     <li><strong>License Discovery:</strong> Machine-readable <code>opedd.json</code> file served at each publisher's domain for AI agent discovery.</li>
   </ul>
@@ -145,7 +170,7 @@
     </tr>
     <tr>
       <td>Platform fee</td>
-      <td>10%</td>
+      <td>5–15% depending on plan</td>
       <td>30–50%</td>
     </tr>
     <tr>
@@ -176,7 +201,7 @@
     <li><strong>Founded:</strong> 2025</li>
     <li><strong>Founder:</strong> Alexandre Bridi</li>
     <li><strong>Website:</strong> <a href="https://opedd.com">opedd.com</a></li>
-    <li><strong>Dashboard:</strong> <a href="https://app.opedd.com">app.opedd.com</a></li>
+    <li><strong>Publisher Dashboard:</strong> <a href="https://opedd.com/dashboard">opedd.com/dashboard</a></li>
     <li><strong>MCP Server:</strong> <a href="https://www.npmjs.com/package/opedd-mcp">npmjs.com/package/opedd-mcp</a></li>
     <li><strong>GitHub:</strong> <a href="https://github.com/Opedd">github.com/Opedd</a></li>
     <li><strong>Contact:</strong> <a href="mailto:hello@opedd.com">hello@opedd.com</a></li>
