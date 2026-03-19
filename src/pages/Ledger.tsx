@@ -49,6 +49,8 @@ interface Transaction {
   tokenVolume?: number;
   validFrom?: string;
   validUntil?: string;
+  blockchainTxHash?: string | null;
+  blockchainStatus?: string | null;
 }
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
@@ -114,11 +116,13 @@ export default function Ledger() {
             description: isArchive ? "Archive License" : isAI ? "AI Training License" : "Human Republication License",
             amount: Number(tx.amount), date: new Date(tx.created_at).toISOString().split("T")[0],
             status: mapStatus(tx.status),
-            assetTitle: isArchive ? (tx.publisher_name || "Archive License") : (tx.article_title || "Unknown Asset"),
+            assetTitle: isArchive ? (tx.publisher_name || "Archive License") : (tx.article_title || tx.asset_title || "Unknown Asset"),
             assetId: tx.article_id, licenseeEmail: tx.buyer_email, licenseKey: tx.license_key,
             buyerName: tx.buyer_name, buyerOrganization: tx.buyer_organization,
             intendedUse: tx.intended_use, validFrom: tx.valid_from, validUntil: tx.valid_until,
             licenseTerms: isArchive ? "Site-wide archive license." : isAI ? "Non-exclusive license for AI model training." : "Single-use republication license.",
+            blockchainTxHash: tx.blockchain_tx_hash || null,
+            blockchainStatus: tx.blockchain_status || null,
           };
         });
         setTransactions(mapped);

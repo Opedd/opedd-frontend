@@ -39,6 +39,8 @@ interface Transaction {
   tokenVolume?: number;
   validFrom?: string;
   validUntil?: string;
+  blockchainTxHash?: string | null;
+  blockchainStatus?: string | null;
 }
 
 interface TransactionReceiptDrawerProps {
@@ -53,7 +55,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange }: Tr
 
   if (!transaction) return null;
 
-  const handleCopyHash = () => { if (transaction.storyProtocolHash) { navigator.clipboard.writeText(transaction.storyProtocolHash); setCopiedHash(true); setTimeout(() => setCopiedHash(false), 2000); } };
+  const handleCopyHash = () => { if (transaction.blockchainTxHash) { navigator.clipboard.writeText(transaction.blockchainTxHash); setCopiedHash(true); setTimeout(() => setCopiedHash(false), 2000); } };
   const handleCopyLicenseKey = () => { if (transaction.licenseKey) { navigator.clipboard.writeText(transaction.licenseKey); setCopiedKey(true); setTimeout(() => setCopiedKey(false), 2000); } };
   const handleDownloadCertificate = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
   const handleDownloadInvoice = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
@@ -204,15 +206,24 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange }: Tr
           {/* Opedd Protocol */}
           <div className="bg-gradient-to-br from-[#040042] to-[#1a1a5c] rounded-xl p-5 text-white">
             <div className="flex items-center gap-2 mb-4"><Shield size={18} className="text-[#4A26ED]" /><p className="font-semibold">Opedd Protocol Record</p></div>
-            {transaction.storyProtocolHash ? (
+            {transaction.blockchainTxHash ? (
               <div>
                 <p className="text-xs text-white/60 uppercase tracking-wider font-medium mb-2">Transaction Hash</p>
                 <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
-                  <code className="text-emerald-400 text-sm font-mono flex-1 truncate">{transaction.storyProtocolHash}</code>
+                  <code className="text-emerald-400 text-sm font-mono flex-1 truncate">{transaction.blockchainTxHash}</code>
                   <button onClick={handleCopyHash} className="text-white/70 hover:text-white transition-colors">{copiedHash ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}</button>
                 </div>
+                {transaction.blockchainStatus === "confirmed" && (
+                  <p className="text-xs text-emerald-400 mt-2">Confirmed on Base mainnet</p>
+                )}
               </div>
-            ) : <p className="text-white/60 text-sm">No blockchain record for this transaction type.</p>}
+            ) : transaction.blockchainStatus === "pending" || transaction.blockchainStatus === "submitted" ? (
+              <p className="text-white/60 text-sm">On-chain registration in progress — hash will appear shortly.</p>
+            ) : transaction.blockchainStatus === "failed" ? (
+              <p className="text-amber-400 text-sm">On-chain registration failed. The license is still valid — contact support if needed.</p>
+            ) : (
+              <p className="text-white/60 text-sm">No blockchain record for this transaction type.</p>
+            )}
           </div>
 
           {transaction.licenseTerms && (
