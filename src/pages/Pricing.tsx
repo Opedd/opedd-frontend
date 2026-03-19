@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL } from "@/lib/constants";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus, X } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import {
   Accordion,
   AccordionContent,
@@ -20,6 +22,8 @@ export default function Pricing() {
   const navigate = useNavigate();
   const ctaLink = user ? "/dashboard" : "/signup";
   const [upgrading, setUpgrading] = useState(false);
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+  const [checkoutStripePromise, setCheckoutStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
 
   const handleUpgrade = async (plan: "pro" | "enterprise") => {
     if (!user) {
@@ -35,12 +39,13 @@ export default function Pricing() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ action: "create_subscription", plan }),
+        body: JSON.stringify({ action: "create_subscription", plan, billing, embedded: true }),
       });
       const data = await res.json();
-      const checkoutUrl = data?.data?.checkout_url;
-      if (checkoutUrl) {
-        window.location.href = checkoutUrl;
+      if (data?.data?.client_secret) {
+        const stripePromise = loadStripe(data.data.publishable_key);
+        setCheckoutStripePromise(stripePromise);
+        setCheckoutClientSecret(data.data.client_secret);
       } else {
         alert("Could not start checkout. Please try again.");
       }
@@ -163,13 +168,14 @@ export default function Pricing() {
             <span className="self-start text-xs font-semibold px-2.5 py-1 rounded-full text-white mb-5" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
               5% platform fee
             </span>
-            <a
-              href="mailto:hello@opedd.com"
-              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 block text-center"
+            <button
+              onClick={() => handleUpgrade("enterprise")}
+              disabled={upgrading}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 block text-center disabled:opacity-50"
               style={{ backgroundColor: "white", color: "#040042" }}
             >
-              Contact Sales
-            </a>
+              {upgrading ? "Loading…" : "Get Enterprise"}
+            </button>
             <FeatureList features={enterpriseFeatures} variant="dark" />
           </div>
         </div>
@@ -264,6 +270,24 @@ export default function Pricing() {
           </p>
         </div>
       </section>
+
+      {checkoutClientSecret && checkoutStripePromise && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => { setCheckoutClientSecret(null); setCheckoutStripePromise(null); }}
+              className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] transition-colors"
+            >
+              <X size={16} />
+            </button>
+            <div className="p-2">
+              <EmbeddedCheckoutProvider stripe={checkoutStripePromise} options={{ clientSecret: checkoutClientSecret }}>
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

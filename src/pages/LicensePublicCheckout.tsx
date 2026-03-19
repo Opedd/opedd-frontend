@@ -16,6 +16,7 @@ interface AssetRow {
   ai_price: number | null;
   verification_status: string | null;
   licensing_enabled: boolean | null;
+  publisher_id: string | null;
 }
 
 type LicenseType = "editorial" | "ai_inference" | "ai_training" | "corporate";
@@ -72,12 +73,14 @@ export default function LicensePublicCheckout() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [freeSuccess, setFreeSuccess] = useState<{ license_key: string } | null>(null);
+  const [contactForPricing, setContactForPricing] = useState(false);
+  const [contactSent, setContactSent] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     (async () => {
       try {
-        const url = `${EXT_SUPABASE_REST}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled&id=eq.${id}&limit=1`;
+        const url = `${EXT_SUPABASE_REST}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled,publisher_id&id=eq.${id}&limit=1`;
         const res = await fetch(url, {
           headers: { apikey: EXT_ANON_KEY, Accept: "application/json" },
         });
@@ -87,6 +90,18 @@ export default function LicensePublicCheckout() {
           setNotFound(true);
         } else {
           setAsset(row);
+          if (row.publisher_id) {
+            try {
+              const pubRes = await fetch(
+                `${EXT_SUPABASE_REST}/rest/v1/publishers?select=contact_for_pricing&id=eq.${row.publisher_id}&limit=1`,
+                { headers: { apikey: EXT_ANON_KEY, Accept: "application/json" } }
+              );
+              const pubRows = await pubRes.json();
+              if (Array.isArray(pubRows) && pubRows[0]) {
+                setContactForPricing(!!pubRows[0].contact_for_pricing);
+              }
+            } catch { /* ignore */ }
+          }
         }
       } catch {
         setNotFound(true);
@@ -298,6 +313,22 @@ export default function LicensePublicCheckout() {
                   </button>
                 </div>
                 <p className="text-xs text-[#9CA3AF]">Save this key — it's your proof of license.</p>
+              </div>
+            ) : contactForPricing && isPaid ? (
+              <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5 text-center space-y-3">
+                <p className="text-sm font-semibold text-[#111827]">Quote-based pricing</p>
+                <p className="text-xs text-[#6B7280]">The publisher handles licensing inquiries directly. Fill in your details above and click below to send a request.</p>
+                {contactSent ? (
+                  <p className="text-sm font-semibold text-emerald-600">Request sent! The publisher will be in touch.</p>
+                ) : (
+                  <Button
+                    onClick={() => { if (email) setContactSent(true); }}
+                    disabled={!email}
+                    className="w-full h-11 text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                  >
+                    Send License Request
+                  </Button>
+                )}
               </div>
             ) : (
               <Button

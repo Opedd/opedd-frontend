@@ -653,26 +653,11 @@ export default function Settings() {
                         const limits = plan === "enterprise"
                           ? { sources: "Unlimited", articles: "Unlimited", fee: "5%", support: "Dedicated support + SLA" }
                           : plan === "pro"
-                          ? { sources: "10", articles: "Unlimited", fee: "7%", support: "Priority support" }
-                          : { sources: "1", articles: "100", fee: "12%", support: "Community support" };
+                          ? { sources: "10", articles: "Unlimited", fee: "8%", support: "Priority support" }
+                          : { sources: "1", articles: "500", fee: "15%", support: "Community support" };
 
-                        const handleUpgrade = async (targetPlan: string) => {
-                          try {
-                            const headers = await apiHeaders();
-                            const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                              method: "POST",
-                              headers,
-                              body: JSON.stringify({ action: "create_subscription", plan: targetPlan }),
-                            });
-                            const result = await res.json();
-                            if (result.success && result.data?.url) {
-                              window.location.href = result.data.url;
-                            } else {
-                              toast({ title: "Upgrade failed", description: result.error?.message || "Please try again", variant: "destructive" });
-                            }
-                          } catch {
-                            toast({ title: "Upgrade failed", description: "Something went wrong", variant: "destructive" });
-                          }
+                        const handleUpgrade = () => {
+                          window.location.href = "/payments";
                         };
 
                         const handleManageBilling = async () => {

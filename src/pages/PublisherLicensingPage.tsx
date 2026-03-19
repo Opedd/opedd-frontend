@@ -276,6 +276,32 @@ export default function PublisherLicensingPage() {
 
       setPublisher(pub);
       document.title = `License content from ${pub.name} — Opedd`;
+
+      // Set OG meta tags for social sharing
+      const setMeta = (property: string, content: string) => {
+        let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+        if (!el) { el = document.createElement("meta"); el.setAttribute("property", property); document.head.appendChild(el); }
+        el.setAttribute("content", content);
+      };
+      const setMetaName = (name: string, content: string) => {
+        let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+        if (!el) { el = document.createElement("meta"); el.setAttribute("name", name); document.head.appendChild(el); }
+        el.setAttribute("content", content);
+      };
+      const ogTitle = `License content from ${pub.name}`;
+      const ogDesc = pub.description || `Browse and license ${pub.article_count} articles from ${pub.name} — powered by Opedd.`;
+      setMeta("og:title", ogTitle);
+      setMeta("og:description", ogDesc);
+      setMeta("og:url", window.location.href);
+      setMeta("og:type", "website");
+      setMeta("og:site_name", "Opedd");
+      if (pub.logo_url) setMeta("og:image", pub.logo_url);
+      setMetaName("description", ogDesc);
+      setMetaName("twitter:card", "summary");
+      setMetaName("twitter:title", ogTitle);
+      setMetaName("twitter:description", ogDesc);
+      if (pub.logo_url) setMetaName("twitter:image", pub.logo_url);
+
       setPageState("loaded");
 
       const arts = await fetchArticles();
