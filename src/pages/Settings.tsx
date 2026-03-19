@@ -192,8 +192,10 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "monetisation" || tab === "api-keys" || tab === "team" ? tab : "profile";
+    const validTabs = ["pricing", "api-keys", "team", "billing", "admin"];
+    return validTabs.includes(tab || "") ? tab! : "profile";
   });
+  const isAdmin = user?.email === ADMIN_EMAIL;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cancel subscription state
