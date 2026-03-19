@@ -532,7 +532,7 @@ export default function Content() {
               </p>
               <Button
                 onClick={() => setArchiveLicenseOpen(true)}
-                className="bg-[#040042] hover:bg-[#040042]/90 text-white rounded-lg h-10 px-5 font-semibold text-sm gap-2"
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
               >
                 <Handshake size={16} />
                 Issue Archive License
