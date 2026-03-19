@@ -92,6 +92,11 @@ const PLANS: Plan[] = [
   },
 ];
 
+const ANNUAL_PRICES: Record<string, { price: string; total: string }> = {
+  pro:        { price: "$23", total: "$276/year" },
+  enterprise: { price: "$79", total: "$948/year" },
+};
+
 export default function Payments() {
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
@@ -107,6 +112,7 @@ export default function Payments() {
   const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
   const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
   const [isBillingPortalLoading, setIsBillingPortalLoading] = useState(false);
+  const [billing, setBilling] = useState<"monthly" | "annually">("monthly");
 
   // Embedded checkout state
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
@@ -202,7 +208,7 @@ export default function Payments() {
   const handleUpgrade = async (plan: "pro" | "enterprise") => {
     setIsUpgrading(plan);
     try {
-      const result = await postAction("create_subscription", { plan, embedded: true });
+      const result = await postAction("create_subscription", { plan, embedded: true, billing });
       if (result.success && result.data?.client_secret) {
         const stripePromise = loadStripe(result.data.publishable_key);
         setCheckoutStripePromise(stripePromise);
@@ -295,6 +301,33 @@ export default function Payments() {
                 )}
               </div>
 
+              {/* Billing toggle */}
+              <div className="flex items-center justify-center">
+                <div className="inline-flex items-center gap-1 bg-[#F3F4F6] rounded-full p-1">
+                  <button
+                    onClick={() => setBilling("monthly")}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
+                      billing === "monthly"
+                        ? "bg-white text-[#040042] shadow-sm"
+                        : "text-[#6B7280] hover:text-[#040042]"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBilling("annually")}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all flex items-center gap-2 ${
+                      billing === "annually"
+                        ? "bg-white text-[#040042] shadow-sm"
+                        : "text-[#6B7280] hover:text-[#040042]"
+                    }`}
+                  >
+                    Annual
+                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">-20%</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Plan Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {PLANS.map((plan) => {
@@ -334,10 +367,18 @@ export default function Payments() {
                       <div>
                         <p className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide mb-1">{plan.name}</p>
                         <div className="flex items-end gap-1 mb-1">
-                          <span className="text-3xl font-bold text-[#040042]">{plan.price}</span>
-                          <span className="text-sm text-[#6B7280] mb-1">{plan.period}</span>
+                          <span className="text-3xl font-bold text-[#040042]">
+                            {billing === "annually" && ANNUAL_PRICES[plan.key]
+                              ? ANNUAL_PRICES[plan.key].price
+                              : plan.price}
+                          </span>
+                          <span className="text-sm text-[#6B7280] mb-1">/month</span>
                         </div>
-                        <p className="text-xs text-[#6B7280]">{plan.description}</p>
+                        {billing === "annually" && ANNUAL_PRICES[plan.key] ? (
+                          <p className="text-xs text-emerald-600 font-medium">Billed as {ANNUAL_PRICES[plan.key].total}</p>
+                        ) : (
+                          <p className="text-xs text-[#6B7280]">{plan.description}</p>
+                        )}
                       </div>
 
                       <ul className="space-y-2 flex-1">
@@ -381,7 +422,9 @@ export default function Payments() {
 
               {/* Billing note */}
               <p className="text-xs text-[#9CA3AF] text-center">
-                All plans billed monthly. Cancel anytime from the billing portal. Prices in USD.
+                {billing === "annually"
+                  ? "Billed annually. Save 20% vs monthly. Cancel anytime from the billing portal. Prices in USD."
+                  : "Billed monthly. Switch to annual to save 20%. Cancel anytime from the billing portal. Prices in USD."}
               </p>
             </div>
           </TabsContent>
