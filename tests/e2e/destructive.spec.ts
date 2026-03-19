@@ -146,7 +146,7 @@ async function loginAndGoto(page: Page, path: string) {
     },
     { email: userEmail, token: accessToken, uid: userId }
   );
-  await page.goto(path, { waitUntil: "networkidle" });
+  await page.goto(path, { waitUntil: "load" });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -270,7 +270,7 @@ test("12 · Navigation: navigating away mid-import doesn't crash or duplicate", 
 
   if (!hasSetupFlow) {
     // Publisher already has active publication — navigate to onboarding directly
-    await page.goto("/onboarding", { waitUntil: "networkidle" });
+    await page.goto("/onboarding", { waitUntil: "load" });
   }
 
   // Enter a domain and trigger feed detection
@@ -287,13 +287,13 @@ test("12 · Navigation: navigating away mid-import doesn't crash or duplicate", 
 
     // IMMEDIATELY navigate away while import-sitemap is still in-flight
     await page.waitForTimeout(200); // let the request start
-    await page.goto("/settings", { waitUntil: "networkidle" });
+    await page.goto("/settings", { waitUntil: "load" });
 
     // Verify settings page loaded without a crash
     await expect(page.getByText(/profile|settings|account/i).first()).toBeVisible({ timeout: 8_000 });
 
     // Navigate back to dashboard
-    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    await page.goto("/dashboard", { waitUntil: "load" });
 
     // Must NOT show an unhandled error
     await expect(page.getByText(/something went wrong|unhandled error|runtime error/i)).not.toBeVisible();
@@ -352,7 +352,7 @@ test("13 · Mobile: onboarding UI is fully visible and usable on 390×844", asyn
       { email: userEmail, token: accessToken, uid: userId }
     );
 
-    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    await page.goto("/dashboard", { waitUntil: "load" });
 
     const viewportWidth = page.viewportSize()?.width ?? 390;
     const viewportHeight = page.viewportSize()?.height ?? 844;
@@ -368,7 +368,7 @@ test("13 · Mobile: onboarding UI is fully visible and usable on 390×844", asyn
         expect(skipBox.x + skipBox.width, "Skip button is off right edge").toBeLessThanOrEqual(viewportWidth + 1);
       }
       await skipBtn.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
     }
 
     // Find the primary CTA on whatever screen is showing
@@ -408,7 +408,7 @@ test("13 · Mobile: onboarding UI is fully visible and usable on 390×844", asyn
     }
 
     // Navigate to /settings and verify the layout doesn't break on mobile
-    await page.goto("/settings", { waitUntil: "networkidle" });
+    await page.goto("/settings", { waitUntil: "load" });
     // On mobile the sidebar is hidden behind hamburger — check main content area instead
     await expect(page.getByText("Publisher Profile")).toBeVisible({ timeout: 8_000 });
 
@@ -497,7 +497,7 @@ test("14 · Error state: Supabase 500 shows a recoverable error, not a blank scr
     });
   });
 
-  await page.goto("/insights", { waitUntil: "networkidle" });
+  await page.goto("/insights", { waitUntil: "load" });
   await page.waitForTimeout(1_500);
 
   // Insights page with 500 error must NOT be blank
@@ -519,7 +519,7 @@ test("14 · Error state: Supabase 500 shows a recoverable error, not a blank scr
     });
   });
 
-  await page.goto("/content", { waitUntil: "networkidle" });
+  await page.goto("/content", { waitUntil: "load" });
   await page.waitForTimeout(1_500);
 
   // Must not be blank

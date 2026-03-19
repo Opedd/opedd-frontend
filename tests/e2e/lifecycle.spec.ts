@@ -87,7 +87,7 @@ async function loginAndGoto(page: Page, path: string) {
     },
     { email: userEmail, token: accessToken, uid: userId }
   );
-  await page.goto(path, { waitUntil: "networkidle" });
+  await page.goto(path, { waitUntil: "load" });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ test("1 · Sign-up: new user can submit the registration form", async ({ page })
   let secondUserId = "";
 
   try {
-    await page.goto("/signup", { waitUntil: "networkidle" });
+    await page.goto("/signup", { waitUntil: "load" });
 
     // Fill registration form
     await page.getByLabel(/first name/i).fill("E2E");
@@ -146,7 +146,7 @@ test("1 · Sign-up: new user can submit the registration form", async ({ page })
 
 test("2 · Auth guard: /dashboard redirects unauthenticated users to /login", async ({ page }) => {
   // Navigate without injecting a session
-  await page.goto("/dashboard", { waitUntil: "networkidle" });
+  await page.goto("/dashboard", { waitUntil: "load" });
 
   // ProtectedRoute should redirect to /login
   await expect(page).toHaveURL(/\/login/, { timeout: 8_000 });
@@ -282,7 +282,7 @@ test("6 · Lifecycle: onboarding junk does not reappear on refresh for a complet
 
 test("7 · Access control: /l/:id shows 'not available' for unlicensed content", async ({ page }) => {
   // Navigate to a non-existent license ID
-  await page.goto("/l/00000000-0000-0000-0000-000000000000", { waitUntil: "networkidle" });
+  await page.goto("/l/00000000-0000-0000-0000-000000000000", { waitUntil: "load" });
 
   // Should show not-available state, not an unhandled error
   await expect(
