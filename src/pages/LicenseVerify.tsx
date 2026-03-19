@@ -4,6 +4,7 @@ import { Shield, Check, Copy, Loader2, ExternalLink, AlertTriangle, Search, Down
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
@@ -46,6 +47,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 export default function LicenseVerify() {
   const { key } = useParams<{ key: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [data, setData] = useState<LicenseData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -87,7 +89,7 @@ export default function LicenseVerify() {
       if (!res.ok || !result.success) throw new Error(result.error || "Registration failed");
       setWebhookSecret(result.data.webhook_secret);
     } catch (err: any) {
-      alert(err?.message || "Could not register webhook. Check the URL and try again.");
+      toast({ variant: "destructive", title: "Webhook registration failed", description: err?.message || "Could not register webhook. Check the URL and try again." });
     } finally { setWebhookLoading(false); }
   };
 

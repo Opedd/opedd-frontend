@@ -195,11 +195,15 @@ export default function Content() {
 
   const handleSaveRates = async () => {
     if (!selectedAsset) return;
+    const newHuman = rateHuman !== "" ? parseFloat(rateHuman) : undefined;
+    const newAi = rateAi !== "" ? parseFloat(rateAi) : undefined;
+    if ((newHuman !== undefined && newHuman < 0) || (newAi !== undefined && newAi < 0)) {
+      toast({ variant: "destructive", title: "Invalid price", description: "Prices cannot be negative." });
+      return;
+    }
     setSavingRates(true);
     try {
       const token = await getAccessToken();
-      const newHuman = rateHuman !== "" ? parseFloat(rateHuman) : undefined;
-      const newAi = rateAi !== "" ? parseFloat(rateAi) : undefined;
 
       // API expects: { articleIds: [...], humanPrice, aiPrice }
       const payload: Record<string, unknown> = { articleIds: [selectedAsset.id] };

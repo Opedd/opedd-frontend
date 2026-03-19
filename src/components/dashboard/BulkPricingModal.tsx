@@ -27,6 +27,12 @@ export function BulkPricingModal({ open, onOpenChange, selectedIds, onSuccess }:
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
+    const parsedHuman = humanPrice !== "" ? parseFloat(humanPrice) : undefined;
+    const parsedAi = aiPrice !== "" ? parseFloat(aiPrice) : undefined;
+    if ((parsedHuman !== undefined && parsedHuman < 0) || (parsedAi !== undefined && parsedAi < 0)) {
+      toast({ variant: "destructive", title: "Invalid price", description: "Prices cannot be negative." });
+      return;
+    }
     setIsSaving(true);
     try {
       const body: {
@@ -38,8 +44,8 @@ export function BulkPricingModal({ open, onOpenChange, selectedIds, onSuccess }:
         articleIds: selectedIds,
         licensingEnabled: listOnMarketplace,
       };
-      if (humanPrice !== "") body.humanPrice = parseFloat(humanPrice) || 0;
-      if (aiPrice !== "") body.aiPrice = parseFloat(aiPrice) || 0;
+      if (parsedHuman !== undefined && !isNaN(parsedHuman)) body.humanPrice = parsedHuman;
+      if (parsedAi !== undefined && !isNaN(parsedAi)) body.aiPrice = parsedAi;
 
       await licenses.updatePrices(body);
 
