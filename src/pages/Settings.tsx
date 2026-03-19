@@ -257,6 +257,7 @@ export default function Settings() {
         setBio(d.description || "");
         setWebsiteUrl(d.website_url || "");
         setContactEmail(d.contact_email || "");
+        setContactForPricing(!!(d as any).contact_for_pricing);
         setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "25.00");
         setDefaultSyndicationPrice((d as any).default_syndication_price != null ? String((d as any).default_syndication_price) : "500.00");
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "");
@@ -401,6 +402,7 @@ export default function Settings() {
           website_url: websiteUrl,
           description: bio,
           contact_email: contactEmail || null,
+          contact_for_pricing: contactForPricing,
         }),
       });
       const result = await res.json();
