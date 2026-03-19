@@ -40,6 +40,16 @@ import {
   X,
   Info,
   MessageSquare,
+  CreditCard,
+  Wallet,
+  Lock,
+  ExternalLink,
+  CheckCircle2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  Activity,
 } from "lucide-react";
 import {
   Tooltip,
@@ -67,6 +77,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+
+const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
 
 interface StripeConnect {
