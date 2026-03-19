@@ -45,8 +45,8 @@ export default function Login() {
   const renderLoginForm = () => (
     <>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-[#040042]">Welcome Back</h2>
-        <p className="text-[#040042]/60 mt-1">Sign in to your publisher account</p>
+        <h2 className="text-2xl font-bold text-[#111827]">Welcome back</h2>
+        <p className="text-[#6B7280] mt-1">Sign in to your publisher account</p>
       </div>
 
       {/* Google OAuth */}
