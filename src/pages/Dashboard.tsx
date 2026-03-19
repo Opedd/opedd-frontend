@@ -159,7 +159,27 @@ export default function Dashboard() {
   useEffect(() => { checkPublications(); }, [checkPublications]);
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
   useEffect(() => { checkReferral(); }, [checkReferral]);
-  
+
+  // Fetch admin stats
+  const fetchAdminStats = useCallback(async () => {
+    if (!isAdmin) return;
+    setAdminStatsLoading(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=stats`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      const json = await res.json();
+      setAdminStats(json.data ?? null);
+    } catch {
+      setAdminStats(null);
+    } finally {
+      setAdminStatsLoading(false);
+    }
+  }, [isAdmin, getAccessToken]);
+
+  useEffect(() => { fetchAdminStats(); }, [fetchAdminStats]);
 
   if (!user) return null;
   if (hasActivePublication === null || !referralChecked) return <PageLoader />;
