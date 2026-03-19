@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import opeddLogo from "@/assets/opedd-logo-inverse.png";
+import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 export default function LicenseByUrl() {
@@ -41,24 +41,24 @@ export default function LicenseByUrl() {
   }, [url, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#040042] flex flex-col items-center justify-center px-6">
-      <img src={opeddLogo} alt="Opedd" className="h-8 mb-10" />
+    <div className="min-h-screen bg-[#F7F8FA] flex flex-col items-center justify-center px-6">
+      <img src={opeddLogoColor} alt="Opedd" className="h-8 mb-10" />
       {loading ? (
-        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#4A26ED]" />
       ) : error ? (
         <div className="text-center space-y-4 max-w-md">
-          <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 px-4 py-1.5 text-sm font-medium">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#FEF2F2] text-[#DC2626] px-4 py-1.5 text-sm font-medium">
             <AlertTriangle className="h-4 w-4" />
             Not Found
           </div>
-          <p className="text-white/50 text-sm">{error}</p>
-          <Button onClick={() => navigate("/")} variant="outline" className="border-white/20 text-white hover:bg-white/10">
+          <p className="text-[#6B7280] text-sm">{error}</p>
+          <Button onClick={() => navigate("/")} variant="outline">
             Return Home
           </Button>
         </div>
       ) : null}
-      <p className="absolute bottom-6 text-xs text-white/20">
-        Powered by <span className="text-white/40 font-medium">Opedd Protocol</span>
+      <p className="absolute bottom-6 text-xs text-[#9CA3AF]">
+        Powered by <span className="text-[#6B7280] font-medium">Opedd Protocol</span>
       </p>
     </div>
   );
