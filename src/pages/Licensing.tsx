@@ -530,7 +530,7 @@ export default function Licensing() {
   const showSetupBanner = !profileLoading && (!pricingDone || !contentDone);
 
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Licensing">
       <div className="max-w-3xl mx-auto space-y-8 pb-12">
         <h1 className="text-2xl font-bold text-gray-900">Licensing</h1>
 

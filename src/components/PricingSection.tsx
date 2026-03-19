@@ -149,7 +149,7 @@ const PricingSection = () => {
               </ul>
 
               <Button
-                variant={tier.popular ? "oxford" : "ghost-oxford"}
+                variant={tier.popular ? "default" : "outline"}
                 className="w-full"
                 size="lg"
               >
