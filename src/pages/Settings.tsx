@@ -1019,9 +1019,9 @@ export default function Settings() {
                   )}
                 </TabsContent>
 
-                {/* TAB: Monetisation */}
-                <TabsContent value="monetisation" className="mt-6" forceMount={activeTab === "monetisation" ? true : undefined}>
-                  {activeTab === "monetisation" && (
+                {/* TAB: Pricing */}
+                <TabsContent value="pricing" className="mt-6" forceMount={activeTab === "pricing" ? true : undefined}>
+                  {activeTab === "pricing" && (
                     <motion.div key="monetisation" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                       {/* Stripe payouts nudge */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
