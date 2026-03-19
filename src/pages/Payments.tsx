@@ -104,7 +104,7 @@ export default function Payments() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "stripe" || tab === "wallet" ? tab : "plan";
+    return tab === "stripe" ? tab : "plan";
   });
 
   // Stripe state
