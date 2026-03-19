@@ -698,6 +698,19 @@ export default function Licensing() {
           )}
         </section>
 
+        {/* SECTION 3 — Category Pricing (collapsible) */}
+        <section className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <p className="text-sm text-gray-500">Override default prices per content category (optional).</p>
+          <Collapsible>
+            <CollapsibleTrigger className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-900 hover:text-gray-700 transition-colors">
+              <ChevronDown size={15} className="transition-transform [[data-state=open]>&]:rotate-180" />
+              Category Pricing
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4">
+              <PricingRulesTab />
+            </CollapsibleContent>
+          </Collapsible>
+        </section>
 
       </div>
     </DashboardLayout>

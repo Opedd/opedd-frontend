@@ -553,19 +553,6 @@ export default function Payments() {
             </div>
           </TabsContent>
 
-          {/* Wallet Tab */}
-          <TabsContent value="wallet" className="mt-6">
-            <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
-              <Wallet size={40} className="mx-auto text-[#D1D5DB] mb-4" />
-              <h3 className="text-base font-semibold text-[#111] mb-1">Wallet Connect</h3>
-              <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-4">
-                Coming soon — accept crypto payments directly from your audience.
-              </p>
-              <Button disabled className="bg-[#4A26ED]/20 text-[#4A26ED]/50 rounded-lg cursor-not-allowed">
-                Connect Wallet
-              </Button>
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
 

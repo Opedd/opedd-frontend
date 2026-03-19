@@ -539,9 +539,6 @@ export default function Content() {
             </div>
           </TabsContent>
 
-          <TabsContent value="pricing-rules" className="mt-6">
-            <PricingRulesTab />
-          </TabsContent>
         </Tabs>
       </div>
 
