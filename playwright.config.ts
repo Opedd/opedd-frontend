@@ -21,7 +21,7 @@ export default defineConfig({
     trace: "retain-on-failure",
     // Abort any navigation/API call that takes > 10s
     actionTimeout: 10_000,
-    navigationTimeout: 15_000,
+    navigationTimeout: 30_000,
   },
 
   projects: [

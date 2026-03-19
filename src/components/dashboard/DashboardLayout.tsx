@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useCallback } from "react";
 import opeddLogo from "@/assets/opedd-logo.png";
 import { cn } from "@/lib/utils";
@@ -92,22 +93,18 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
 
   const fetchPlan = useCallback(async () => {
     try {
-      const token = await getAccessToken();
-      if (!token) return;
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
-      });
-      const result = await res.json();
-      if (result.success && result.data) {
-        const plan = (result.data.publisher || result.data)?.plan;
-        if (plan && (plan === "free" || plan === "pro" || plan === "enterprise")) {
-          setPublisherPlan(plan);
-        }
+      if (!user) return;
+      const { data } = await (supabase.from as any)("publishers")
+        .select("plan")
+        .eq("user_id", user.id)
+        .single();
+      if (data?.plan && ["free", "pro", "enterprise"].includes(data.plan)) {
+        setPublisherPlan(data.plan);
       }
     } catch (err) {
       console.warn("[DashboardLayout] Plan fetch failed:", err);
     }
-  }, [getAccessToken]);
+  }, [user]);
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
   useEffect(() => { fetchPlan(); }, [fetchPlan]);
