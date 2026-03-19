@@ -17,7 +17,7 @@ const mainNavItems = [
 
 const integrationNavItems = [
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Payments", path: "/payments", icon: CreditCard },
+  { title: "Billing", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { PageLoader } from "@/components/ui/PageLoader";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -67,7 +67,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { WidgetEmbedCard } from "@/components/dashboard/WidgetEmbedCard";
+
 
 interface StripeConnect {
   connected: boolean;
@@ -175,7 +175,11 @@ export default function Settings() {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("profile");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab === "monetisation" || tab === "api-keys" || tab === "team" ? tab : "profile";
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cancel subscription state
@@ -641,7 +645,7 @@ export default function Settings() {
                         </div>
                       )}
 
-                      {/* Your Plan Card */}
+                      {/* Your Plan — compact banner */}
                       {profile && (() => {
                         const plan = profile.plan || "free";
                         const badgeStyles = plan === "enterprise"
@@ -650,104 +654,26 @@ export default function Settings() {
                           ? "bg-[#EDE9FE] text-[#5B21B6]"
                           : "bg-[#F3F4F6] text-[#6B7280]";
                         const badgeLabel = plan === "enterprise" ? "Enterprise" : plan === "pro" ? "Pro" : "Free";
-                        const limits = plan === "enterprise"
-                          ? { sources: "Unlimited", articles: "Unlimited", fee: "5%", support: "Dedicated support + SLA" }
+                        const summary = plan === "enterprise"
+                          ? "Unlimited articles · 5% fee"
                           : plan === "pro"
-                          ? { sources: "10", articles: "Unlimited", fee: "8%", support: "Priority support" }
-                          : { sources: "1", articles: "500", fee: "15%", support: "Community support" };
-
-                        const handleUpgrade = () => {
-                          window.location.href = "/payments";
-                        };
-
-                        const handleManageBilling = async () => {
-                          try {
-                            const headers = await apiHeaders();
-                            const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                              method: "POST",
-                              headers,
-                              body: JSON.stringify({ action: "create_billing_portal" }),
-                            });
-                            const result = await res.json();
-                            if (result.success && result.data?.url) {
-                              window.open(result.data.url, "_blank");
-                            } else {
-                              toast({ title: "Could not open billing", description: result.error?.message || "Please try again", variant: "destructive" });
-                            }
-                          } catch {
-                            toast({ title: "Could not open billing", description: "Something went wrong", variant: "destructive" });
-                          }
-                        };
+                          ? "Unlimited articles · 8% fee"
+                          : "500 articles · 15% fee";
 
                         return (
-                          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                            <div className="flex items-center gap-3 mb-4">
-                              <h2 className="font-bold text-[#040042]">Your Plan</h2>
+                          <div className="bg-white rounded-xl border border-[#E5E7EB] px-5 py-3.5 shadow-sm flex items-center justify-between">
+                            <div className="flex items-center gap-3">
                               <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide ${badgeStyles}`}>
                                 {badgeLabel}
                               </span>
+                              <span className="text-sm text-[#6B7280]">{summary}</span>
                             </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                              <div className="bg-[#F9FAFB] rounded-lg p-3">
-                                <p className="text-xs text-[#6B7280] mb-0.5">Content sources</p>
-                                <p className="text-sm font-bold text-[#111827]">{limits.sources}</p>
-                              </div>
-                              <div className="bg-[#F9FAFB] rounded-lg p-3">
-                                <p className="text-xs text-[#6B7280] mb-0.5">Articles</p>
-                                <p className="text-sm font-bold text-[#111827]">{limits.articles}</p>
-                              </div>
-                              <div className="bg-[#F9FAFB] rounded-lg p-3">
-                                <p className="text-xs text-[#6B7280] mb-0.5">Platform fee</p>
-                                <p className="text-sm font-bold text-[#111827]">{limits.fee}</p>
-                              </div>
-                              <div className="bg-[#F9FAFB] rounded-lg p-3">
-                                <p className="text-xs text-[#6B7280] mb-0.5">Support</p>
-                                <p className="text-sm font-bold text-[#111827] truncate">{limits.support}</p>
-                              </div>
-                            </div>
-
-                            {(profile as any).cancel_at_period_end && (profile as any).current_period_end && (
-                              <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 mb-4">
-                                <Clock size={16} className="text-amber-600 flex-shrink-0" />
-                                <p className="text-sm text-amber-800">
-                                  Your plan is active until{" "}
-                                  <strong>{new Date((profile as any).current_period_end).toLocaleDateString()}</strong>.
-                                  After that it will revert to Free.
-                                </p>
-                              </div>
-                            )}
-
-                            <div className="flex items-center gap-3">
-                              {plan === "free" && (
-                                <Button onClick={() => handleUpgrade("pro")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
-                                  Upgrade to Pro →
-                                </Button>
-                              )}
-                              {plan === "pro" && (
-                                <>
-                                  <Button onClick={() => handleUpgrade("enterprise")} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold text-sm">
-                                    Upgrade to Enterprise →
-                                  </Button>
-                                  <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
-                                    Manage billing
-                                  </Button>
-                                  <button onClick={() => setCancelSubOpen(true)} className="text-sm text-[#6B7280] hover:text-red-600 hover:underline transition-colors">
-                                    Cancel subscription
-                                  </button>
-                                </>
-                              )}
-                              {plan === "enterprise" && (
-                                <>
-                                  <Button onClick={handleManageBilling} variant="outline" className="font-semibold text-sm">
-                                    Manage billing
-                                  </Button>
-                                  <button onClick={() => setCancelSubOpen(true)} className="text-sm text-[#6B7280] hover:text-red-600 hover:underline transition-colors">
-                                    Cancel subscription
-                                  </button>
-                                </>
-                              )}
-                            </div>
+                            <button
+                              onClick={() => navigate("/payments")}
+                              className="text-sm font-medium text-[#4A26ED] hover:underline"
+                            >
+                              Manage Plan →
+                            </button>
                           </div>
                         );
                       })()}
@@ -872,41 +798,14 @@ export default function Settings() {
                 <TabsContent value="monetisation" className="mt-6" forceMount={activeTab === "monetisation" ? true : undefined}>
                   {activeTab === "monetisation" && (
                     <motion.div key="monetisation" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-                      {/* Stripe payouts warning */}
+                      {/* Stripe payouts nudge */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
-                         <div className="flex items-start gap-3 rounded-xl border border-[#4A26ED]/20 bg-[#EEF0FF] px-5 py-4">
-                          <AlertTriangle size={18} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-[#040042]">
-                              Payouts not enabled. Complete your Stripe Connect setup to receive payments. Without this, all revenue is held and cannot be disbursed.
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white flex-shrink-0"
-                            onClick={async () => {
-                              try {
-                                const headers = await apiHeaders();
-                                // Always use connect_stripe when onboarding is incomplete (stripe_dashboard fails on incomplete accounts)
-                                const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                                  method: "POST",
-                                  headers,
-                                  body: JSON.stringify({ action: "connect_stripe" }),
-                                });
-                                const result = await res.json();
-                                if (result.success && result.data?.onboarding_url) {
-                                  window.location.href = result.data.onboarding_url;
-                                } else {
-                                  toast({ title: "Could not open Stripe", description: "Please try again", variant: "destructive" });
-                                }
-                              } catch {
-                                toast({ title: "Error", description: "Something went wrong", variant: "destructive" });
-                              }
-                            }}
-                          >
-                            Complete Setup
-                          </Button>
-                        </div>
+                        <p className="text-sm text-amber-600 mb-4">
+                          Stripe not connected — buyers cannot pay you yet.{' '}
+                          <button onClick={() => navigate('/payments?tab=stripe')} className="underline font-medium">
+                            Set up payouts →
+                          </button>
+                        </p>
                       )}
                       {/* Info note */}
                       <div className="bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-xl px-4 py-3">
@@ -1159,8 +1058,7 @@ export default function Settings() {
                         <p className="text-xs text-slate-400 mt-3">Use this in your widget embed snippet, WordPress plugin, and AI defense policy URL</p>
                       </div>
 
-                      {/* Widget Embed Code */}
-                      <WidgetEmbedCard publisherId={publisherId} />
+                      {/* Widget Embed Code — moved to Distribution/Widget tab */}
 
                       {/* API Key */}
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">

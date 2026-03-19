@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -100,7 +101,11 @@ const ANNUAL_PRICES: Record<string, { price: string; total: string }> = {
 export default function Payments() {
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("plan");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab === "stripe" || tab === "wallet" ? tab : "plan";
+  });
 
   // Stripe state
   const [stripeStatus, setStripeStatus] = useState<StripeConnect | null>(null);
@@ -251,14 +256,15 @@ export default function Payments() {
   const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
 
   return (
-    <DashboardLayout title="Payments">
+    <DashboardLayout title="Billing">
       <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
+        <p className="text-sm text-[#6B7280] mb-4">Opedd Plan controls what you pay us. Payout Setup controls how we pay you.</p>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="border-b border-[#E5E7EB]">
             <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
               {[
-                { value: "plan", label: "Plan" },
-                { value: "stripe", label: "Stripe Connect" },
+                { value: "plan", label: "Opedd Plan" },
+                { value: "stripe", label: "Payout Setup" },
                 { value: "wallet", label: "Wallet" },
               ].map((tab) => (
                 <TabsTrigger

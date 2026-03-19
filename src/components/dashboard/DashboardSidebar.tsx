@@ -14,7 +14,7 @@ const navItems = [
   { title: "Buyers", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Payments", path: "/payments", icon: CreditCard },
+  { title: "Billing", path: "/payments", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
