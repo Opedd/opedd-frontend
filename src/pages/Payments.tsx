@@ -101,7 +101,11 @@ const ANNUAL_PRICES: Record<string, { price: string; total: string }> = {
 export default function Payments() {
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("plan");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab === "stripe" || tab === "wallet" ? tab : "plan";
+  });
 
   // Stripe state
   const [stripeStatus, setStripeStatus] = useState<StripeConnect | null>(null);
