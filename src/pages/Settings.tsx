@@ -196,7 +196,7 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    const validTabs = ["pricing", "api-keys", "team", "billing", "admin"];
+    const validTabs = ["pricing", "api-keys", "team", "admin"];
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const isAdmin = user?.email === ADMIN_EMAIL;
@@ -850,7 +850,6 @@ export default function Settings() {
                     { value: "team", label: "Team" },
                     { value: "api-keys", label: "API Keys" },
                     { value: "content", label: "Content" },
-                    { value: "billing", label: "Billing" },
                     ...(isAdmin ? [{ value: "admin", label: "Admin" }] : []),
                   ].map((tab) => (
                     <TabsTrigger
@@ -1558,26 +1557,6 @@ Authorization: Bearer bk_live_xxxxxxxxxxxx
                             Tokens are scoped to a specific license. Archive license tokens grant access to all articles from your publication. Per-article license tokens are restricted to that single article.
                           </p>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </TabsContent>
-
-                {/* TAB: Billing — redirects to /payments */}
-                <TabsContent value="billing" className="mt-6" forceMount={activeTab === "billing" ? true : undefined}>
-                  {activeTab === "billing" && (
-                    <motion.div key="billing" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit">
-                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-10 shadow-sm text-center space-y-4">
-                        <CreditCard size={32} className="mx-auto text-[#4A26ED]" />
-                        <div>
-                          <h2 className="font-bold text-[#040042] text-lg">Payments & Billing</h2>
-                          <p className="text-sm text-[#6B7280] mt-1 max-w-xs mx-auto">Manage your Opedd plan, connect Stripe payouts, and view held funds — all in one place.</p>
-                        </div>
-                        <Link to="/payments">
-                          <Button className="h-10 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-sm font-semibold rounded-lg">
-                            Go to Payments <ExternalLink size={14} className="ml-2" />
-                          </Button>
-                        </Link>
                       </div>
                     </motion.div>
                   )}
