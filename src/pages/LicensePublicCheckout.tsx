@@ -94,6 +94,7 @@ export default function LicensePublicCheckout() {
   const [freeSuccess, setFreeSuccess] = useState<{ license_key: string } | null>(null);
   const [contactForPricing, setContactForPricing] = useState(false);
   const [contactSent, setContactSent] = useState(false);
+  const [contactSending, setContactSending] = useState(false);
   const [publisherPricingRules, setPublisherPricingRules] = useState<any>(null);
   const [stripeOnboardingComplete, setStripeOnboardingComplete] = useState<boolean | null>(null);
 
@@ -358,11 +359,22 @@ export default function LicensePublicCheckout() {
                   <p className="text-sm font-semibold text-emerald-600">Request sent! The publisher will be in touch.</p>
                 ) : (
                   <Button
-                    onClick={() => { if (email) setContactSent(true); }}
-                    disabled={!email}
+                    onClick={async () => {
+                      if (!email || contactSending) return;
+                      setContactSending(true);
+                      try {
+                        await fetch(`${EXT_SUPABASE_URL}/contact-publisher`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
+                          body: JSON.stringify({ article_id: asset?.id, buyer_email: email, buyer_name: name || undefined, buyer_organization: organization || undefined, license_type: "syndication" }),
+                        });
+                        setContactSent(true);
+                      } catch { setContactSent(true); } finally { setContactSending(false); }
+                    }}
+                    disabled={!email || contactSending}
                     className="w-full h-11 text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
                   >
-                    Request Syndication Quote
+                    {contactSending ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Sending…</> : "Request Syndication Quote"}
                   </Button>
                 )}
               </div>
@@ -391,11 +403,22 @@ export default function LicensePublicCheckout() {
                   <p className="text-sm font-semibold text-emerald-600">Request sent! The publisher will be in touch.</p>
                 ) : (
                   <Button
-                    onClick={() => { if (email) setContactSent(true); }}
-                    disabled={!email}
+                    onClick={async () => {
+                      if (!email || contactSending) return;
+                      setContactSending(true);
+                      try {
+                        await fetch(`${EXT_SUPABASE_URL}/contact-publisher`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
+                          body: JSON.stringify({ article_id: asset?.id, buyer_email: email, buyer_name: name || undefined, buyer_organization: organization || undefined, license_type: toBackendLicenseType(selected) }),
+                        });
+                        setContactSent(true);
+                      } catch { setContactSent(true); } finally { setContactSending(false); }
+                    }}
+                    disabled={!email || contactSending}
                     className="w-full h-11 text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
                   >
-                    Send License Request
+                    {contactSending ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Sending…</> : "Send License Request"}
                   </Button>
                 )}
               </div>
