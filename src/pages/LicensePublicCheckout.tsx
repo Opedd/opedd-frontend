@@ -53,7 +53,7 @@ function getPrice(type: LicenseType, asset: AssetRow, pricingRules?: any): numbe
 }
 
 function getLicenseLabel(type: LicenseType): string {
-  return LICENSE_TYPE_OPTIONS.find((o) => o.value === type)?.label ?? type;
+  return BASE_LICENSE_TYPE_OPTIONS.find((o) => o.value === type)?.label ?? type;
 }
 
 function toBackendLicenseType(type: LicenseType): string {

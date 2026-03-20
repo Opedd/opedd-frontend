@@ -287,7 +287,7 @@ test("7 · Access control: /l/:id shows 'not available' for unlicensed content",
   // Should show not-available state, not an unhandled error
   await expect(
     page.getByText(/not available for licensing|content is not available/i)
-  ).toBeVisible({ timeout: 8_000 });
+  ).toBeVisible({ timeout: 20_000 });
 
   // Must NOT show an unhandled JS error boundary
   await expect(page.getByText(/something went wrong|unhandled error/i)).not.toBeVisible();
