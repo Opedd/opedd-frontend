@@ -424,19 +424,27 @@ export default function LicensePublicCheckout() {
                 )}
               </div>
             ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={!canSubmit}
-                className="w-full h-11 text-sm font-semibold"
-              >
-                {submitting ? (
-                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />{isPaid ? "Redirecting to payment…" : "Processing…"}</>
-                ) : isPaid ? (
-                  `Pay $${selectedPrice.toFixed(2)} · Secure License`
-                ) : (
-                  "Secure Free License"
+              <div className="relative group">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit}
+                  className="w-full h-11 text-sm font-semibold"
+                >
+                  {submitting ? (
+                    <><Loader2 className="h-4 w-4 animate-spin mr-2" />{isPaid ? "Redirecting to payment…" : "Processing…"}</>
+                  ) : isPaid ? (
+                    `Pay $${selectedPrice.toFixed(2)} · Secure License`
+                  ) : (
+                    "Secure Free License"
+                  )}
+                </Button>
+                {!canSubmit && !submitting && !freeSuccess && (
+                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    {!email ? "Enter your email to continue" : "Complete all required fields"}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                  </div>
                 )}
-              </Button>
+              </div>
             )}
           </div>
 

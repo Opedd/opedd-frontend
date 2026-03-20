@@ -154,7 +154,7 @@ export function PublicationGate({
             ) : (
               <Button
                 size="sm"
-                onClick={() => navigate("/content")}
+                onClick={() => navigate("/connectors")}
                 className="h-8 px-3 text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg"
               >
                 <Plus size={13} className="mr-1.5" />

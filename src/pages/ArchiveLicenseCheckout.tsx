@@ -254,17 +254,25 @@ export default function ArchiveLicenseCheckout() {
 
             {error && <p className="text-[#EF4444] text-sm px-1">{error}</p>}
 
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="w-full h-11 text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
-            >
-              {submitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin mr-2" />Redirecting to payment…</>
-              ) : (
-                `Pay $${archivePrice!.toFixed(2)}/year · Secure License`
+            <div className="relative group">
+              <Button
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                className="w-full h-11 text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+              >
+                {submitting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />Redirecting to payment…</>
+                ) : (
+                  `Pay $${archivePrice!.toFixed(2)}/year · Secure License`
+                )}
+              </Button>
+              {!canSubmit && !submitting && (
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  {!email ? "Enter your email" : !name.trim() ? "Enter your name" : "Complete all required fields"}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                </div>
               )}
-            </Button>
+            </div>
           </div>
 
           <div className="flex items-center justify-center gap-4 mt-10">
