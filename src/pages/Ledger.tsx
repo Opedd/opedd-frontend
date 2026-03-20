@@ -182,10 +182,10 @@ export default function Ledger() {
     setIsRevoking(true);
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/revoke-license`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ action: "revoke_license", license_key: revokeTarget.licenseKey, reason: revokeReason || undefined }),
+        body: JSON.stringify({ transaction_id: revokeTarget.id }),
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error?.message || "Failed to revoke");
