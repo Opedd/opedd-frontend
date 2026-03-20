@@ -209,7 +209,7 @@ export default function LicensePublicCheckout() {
     return (
       <div className="min-h-screen bg-[#F7F8FA] flex flex-col items-center justify-center gap-4 px-4">
         <img src={opeddLogoColor} alt="Opedd" className="h-7 opacity-60" />
-        <p className="text-[#6B7280] text-sm">This content is not available for licensing.</p>
+        <p className="text-[#6B7280] text-sm">This article was not found or is no longer available for licensing.</p>
       </div>
     );
   }
