@@ -514,6 +514,7 @@ export default function PublisherLicensingPage() {
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || "Checkout failed");
+      if (!result.data?.checkout_url) throw new Error("Invalid checkout response");
       window.location.href = result.data.checkout_url;
     } catch (err: unknown) {
       setArchiveError(err instanceof Error ? err.message : "Something went wrong");

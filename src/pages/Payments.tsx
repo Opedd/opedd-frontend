@@ -62,7 +62,7 @@ const PLANS: Plan[] = [
   {
     key: "pro",
     name: "Pro",
-    price: "$29",
+    price: "$79",
     period: "/month",
     description: "For growing independent publishers",
     features: [
@@ -78,7 +78,7 @@ const PLANS: Plan[] = [
   {
     key: "enterprise",
     name: "Enterprise",
-    price: "$99",
+    price: "$249",
     period: "/month",
     description: "For media organisations & large catalogs",
     features: [
@@ -94,8 +94,8 @@ const PLANS: Plan[] = [
 ];
 
 const ANNUAL_PRICES: Record<string, { price: string; total: string }> = {
-  pro:        { price: "$23", total: "$276/year" },
-  enterprise: { price: "$79", total: "$948/year" },
+  pro:        { price: "$63", total: "$756/year" },
+  enterprise: { price: "$199", total: "$2,388/year" },
 };
 
 export default function Payments() {

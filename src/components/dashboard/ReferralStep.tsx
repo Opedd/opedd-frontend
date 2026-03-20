@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -58,9 +58,21 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
     saveReferral(value);
   };
 
+  const handleSkip = () => {
+    localStorage.setItem("opedd_referral_done", "1");
+    onComplete();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 w-full max-w-md mx-4 space-y-6">
+      <div className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 w-full max-w-md mx-4 space-y-6">
+        <button
+          onClick={handleSkip}
+          className="absolute top-4 right-4 w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
+          aria-label="Skip"
+        >
+          <X size={16} className="text-slate-400" />
+        </button>
         <div>
           <div className="w-12 h-12 bg-[#4A26ED]/10 rounded-xl flex items-center justify-center mb-4">
             <MessageSquare size={24} className="text-[#4A26ED]" />

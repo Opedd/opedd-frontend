@@ -197,8 +197,8 @@ export default function Pricing() {
               <tr className="border-b text-left" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                 <th className="pb-3 pr-4 font-medium text-white/50">Monthly licensing revenue</th>
                 <th className="pb-3 px-4 font-medium text-white/50">Free (15% fee)</th>
-                <th className="pb-3 px-4 font-medium text-white/50">Pro ($29 + 8%)</th>
-                <th className="pb-3 pl-4 font-medium text-white/50">Enterprise ($99 + 5%)</th>
+                <th className="pb-3 px-4 font-medium text-white/50">Pro ($79 + 8%)</th>
+                <th className="pb-3 pl-4 font-medium text-white/50">Enterprise ($249 + 5%)</th>
               </tr>
             </thead>
             <tbody>

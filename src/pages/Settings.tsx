@@ -200,7 +200,6 @@ export default function Settings() {
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const isAdmin = user?.email === ADMIN_EMAIL;
-  const isGated = !profile?.publication_verified && !isAdmin;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cancel subscription state
@@ -214,6 +213,8 @@ export default function Settings() {
 
   // Profile state
   const [profile, setProfile] = useState<PublisherProfile | null>(null);
+  // isGated must come AFTER profile is declared (avoids TDZ error)
+  const isGated = !profile?.publication_verified && !isAdmin;
   const [publisherName, setPublisherName] = useState("");
   const [bio, setBio] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -657,10 +658,10 @@ export default function Settings() {
   // Plan data
   const PLANS = [
     { key: "free", name: "Free", price: "$0", period: "/month", description: "For publishers getting started", features: [{ text: "Up to 500 articles" }, { text: "Widget embedding" }, { text: "Basic analytics" }, { text: "Email support" }], highlighted: false },
-    { key: "pro", name: "Pro", price: "$29", period: "/month", description: "For growing independent publishers", features: [{ text: "Unlimited articles" }, { text: "8% platform fee (vs 15% free)" }, { text: "Custom webhooks" }, { text: "Team members (up to 5)" }, { text: "Priority support" }, { text: "Advanced analytics" }], highlighted: true },
-    { key: "enterprise", name: "Enterprise", price: "$99", period: "/month", description: "For media organisations & large catalogs", features: [{ text: "Everything in Pro" }, { text: "5% platform fee (vs 15% free)" }, { text: "Unlimited team members" }, { text: "Custom integrations" }, { text: "Dedicated support" }, { text: "SLA guarantee" }], highlighted: false },
+    { key: "pro", name: "Pro", price: "$79", period: "/month", description: "For growing independent publishers", features: [{ text: "Unlimited articles" }, { text: "8% platform fee (vs 15% free)" }, { text: "Custom webhooks" }, { text: "Team members (up to 5)" }, { text: "Priority support" }, { text: "Advanced analytics" }], highlighted: true },
+    { key: "enterprise", name: "Enterprise", price: "$249", period: "/month", description: "For media organisations & large catalogs", features: [{ text: "Everything in Pro" }, { text: "5% platform fee (vs 15% free)" }, { text: "Unlimited team members" }, { text: "Custom integrations" }, { text: "Dedicated support" }, { text: "SLA guarantee" }], highlighted: false },
   ];
-  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = { pro: { price: "$23", total: "$276/year" }, enterprise: { price: "$79", total: "$948/year" } };
+  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = { pro: { price: "$63", total: "$756/year" }, enterprise: { price: "$199", total: "$2,388/year" } };
 
   if (!user) return null;
 
