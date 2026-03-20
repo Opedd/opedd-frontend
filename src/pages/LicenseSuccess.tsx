@@ -130,7 +130,11 @@ export default function LicenseSuccess() {
     finally { setResending(false); }
   };
 
-  const licenseTypeLabel = data?.license_type === "ai" ? "AI Training License" : "Human Republication License";
+  const licenseTypeLabel =
+    data?.license_type === "ai" ? "AI Training License" :
+    data?.license_type === "ai_inference" ? "AI Inference / RAG License" :
+    data?.license_type === "archive" ? "Archive License" :
+    "Editorial License";
 
   if (!sessionId && !loading) {
     return (

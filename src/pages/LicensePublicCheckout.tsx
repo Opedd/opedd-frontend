@@ -35,12 +35,15 @@ function parseLicenseType(raw: string | null): LicenseType {
   return "editorial";
 }
 
-function getPrice(type: LicenseType, asset: AssetRow): number {
+function getPrice(type: LicenseType, asset: AssetRow, pricingRules?: any): number {
   switch (type) {
     case "editorial":    return asset.human_price ?? 0;
     case "ai_inference": return asset.ai_price ?? 0;
     case "ai_training":  return asset.ai_price ?? 0;
-    case "corporate":    return (asset.human_price ?? 0) * 5;
+    case "corporate": {
+      const rulePrice = pricingRules?.license_types?.corporate?.price_per_article;
+      return (rulePrice != null && rulePrice > 0) ? rulePrice : (asset.human_price ?? 0) * 5;
+    }
   }
 }
 
@@ -85,6 +88,8 @@ export default function LicensePublicCheckout() {
   const [freeSuccess, setFreeSuccess] = useState<{ license_key: string } | null>(null);
   const [contactForPricing, setContactForPricing] = useState(false);
   const [contactSent, setContactSent] = useState(false);
+  const [publisherPricingRules, setPublisherPricingRules] = useState<any>(null);
+  const [stripeOnboardingComplete, setStripeOnboardingComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -105,12 +110,14 @@ export default function LicensePublicCheckout() {
           if (row.publisher_id) {
             try {
               const pubRes = await fetch(
-                `${EXT_SUPABASE_REST}/rest/v1/publishers?select=contact_for_pricing&id=eq.${row.publisher_id}&limit=1`,
+                `${EXT_SUPABASE_REST}/rest/v1/publishers?select=contact_for_pricing,pricing_rules,stripe_onboarding_complete&id=eq.${row.publisher_id}&limit=1`,
                 { headers: { apikey: EXT_ANON_KEY, Accept: "application/json" } }
               );
               const pubRows = await pubRes.json();
               if (Array.isArray(pubRows) && pubRows[0]) {
                 setContactForPricing(!!pubRows[0].contact_for_pricing);
+                setPublisherPricingRules(pubRows[0].pricing_rules ?? null);
+                setStripeOnboardingComplete(!!pubRows[0].stripe_onboarding_complete);
               }
             } catch { /* ignore */ }
           }
@@ -127,7 +134,7 @@ export default function LicensePublicCheckout() {
     setError(null);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) { setError("Please enter a valid email address."); return; }
-    const price = getPrice(selected, asset);
+    const price = getPrice(selected, asset, publisherPricingRules);
     const isFree = price === 0;
     setSubmitting(true);
     try {
@@ -158,7 +165,7 @@ export default function LicensePublicCheckout() {
   };
 
   const isVerified = asset?.verification_status === "verified";
-  const selectedPrice = asset ? getPrice(selected, asset) : 0;
+  const selectedPrice = asset ? getPrice(selected, asset, publisherPricingRules) : 0;
   const selectedLabel = getLicenseLabel(selected);
   const isPaid = selectedPrice > 0;
   const canSubmit = !!email && !submitting && !freeSuccess;
@@ -318,6 +325,15 @@ export default function LicensePublicCheckout() {
             </div>
 
             {error && <p className="text-[#EF4444] text-sm px-1">{error}</p>}
+
+            {stripeOnboardingComplete === false && isPaid && (
+              <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 flex items-start gap-2.5">
+                <Shield className="h-4 w-4 text-[#4A26ED] mt-0.5 shrink-0" />
+                <p className="text-xs text-[#6B7280] leading-relaxed">
+                  Your license is guaranteed by Opedd. Funds are securely held until the publisher activates payouts.
+                </p>
+              </div>
+            )}
 
             {freeSuccess ? (
               <div className="rounded-xl border-2 border-[#10B981]/30 bg-[#ECFDF5] p-6 text-center space-y-3">

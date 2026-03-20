@@ -146,7 +146,7 @@ export default function Onboarding() {
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ pricing_rules: pricingRules }),
+        body: JSON.stringify({ pricing_rules: pricingRules, setup_complete: true }),
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || "Failed to save");
