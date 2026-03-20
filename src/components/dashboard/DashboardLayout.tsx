@@ -387,20 +387,40 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
         </header>
 
         {/* Trial banner — shown to free plan publishers during their trial window */}
-        {publisherPlan === "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 && (
-          <div className="shrink-0 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] px-4 py-2.5 flex items-center justify-between gap-4">
-            <p className="text-white text-xs font-medium">
-              <span className="font-bold">{trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left on your free trial</span>
-              {" "}— import unlimited articles and explore all features. Upgrade before your trial ends to keep full access.
-            </p>
-            <NavLink
-              to="/payments"
-              className="shrink-0 bg-white text-[#4A26ED] text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/90 transition-colors whitespace-nowrap"
-            >
-              Upgrade now
-            </NavLink>
-          </div>
-        )}
+        {publisherPlan === "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 && !sessionStorage.getItem("opedd_trial_dismissed") && (() => {
+          const urgent = trialDaysRemaining <= 7;
+          return (
+            <div className={cn(
+              "shrink-0 px-4 py-2.5 flex items-center justify-between gap-4 border-b",
+              urgent
+                ? "bg-[#FEF3C7] border-[#FDE68A]"
+                : "bg-[#EEF0FD] border-[#E0E2F0]"
+            )}>
+              <p className={cn("text-xs font-medium flex-1", urgent ? "text-[#92400E]" : "text-[#4A26ED]")}>
+                <span className="font-bold">{trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left on your free trial</span>
+                {" "}— import unlimited articles and explore all features.{urgent ? " Upgrade now to keep full access." : ""}
+              </p>
+              <NavLink
+                to="/payments"
+                className={cn(
+                  "shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap border",
+                  urgent
+                    ? "border-[#D97706] text-[#92400E] hover:bg-[#FDE68A]"
+                    : "border-[#4A26ED]/20 text-[#4A26ED] hover:bg-[#4A26ED]/5"
+                )}
+              >
+                Upgrade now
+              </NavLink>
+              <button
+                onClick={() => { sessionStorage.setItem("opedd_trial_dismissed", "1"); setTrialDaysRemaining(null); }}
+                className={cn("shrink-0 p-1 rounded-md transition-colors", urgent ? "text-[#92400E]/50 hover:text-[#92400E] hover:bg-[#FDE68A]" : "text-[#4A26ED]/40 hover:text-[#4A26ED] hover:bg-[#4A26ED]/5")}
+                aria-label="Dismiss trial banner"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          );
+        })()}
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">

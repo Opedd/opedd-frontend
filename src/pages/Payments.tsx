@@ -454,15 +454,15 @@ export default function Payments() {
 
               {/* Held funds banner — only shown when not connected and funds exist */}
               {!isStripeFullyConnected && heldAmount !== null && heldAmount > 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                    <Wallet size={18} className="text-amber-600" />
+                <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-5 flex items-start gap-4 shadow-sm">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#FEF3C7] flex items-center justify-center">
+                    <Wallet size={18} className="text-[#D97706]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-amber-900 text-sm">
+                    <p className="font-semibold text-[#92400E] text-sm">
                       ${heldAmount.toFixed(2)} held — pending payout setup
                     </p>
-                    <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
+                    <p className="text-[#B45309] text-xs mt-0.5 leading-relaxed">
                       Revenue from your completed licenses is being held by Opedd until you connect a Stripe account. Connect below to release your funds.
                     </p>
                   </div>
@@ -470,7 +470,7 @@ export default function Payments() {
                     size="sm"
                     onClick={handleConnectStripe}
                     disabled={isStripeConnecting}
-                    className="flex-shrink-0 h-8 px-3 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg"
+                    className="flex-shrink-0 h-8 px-3.5 bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-semibold rounded-lg"
                   >
                     {isStripeConnecting ? <Loader2 size={12} className="animate-spin" /> : "Connect & Release"}
                   </Button>
