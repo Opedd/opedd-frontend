@@ -201,7 +201,7 @@ export default function Dashboard() {
       title="Dashboard"
       headerActions={<></>}
     >
-      <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
+      <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
         {/* Onboarding Checklist */}
         <OnboardingChecklist
           contentImported={contentImported}

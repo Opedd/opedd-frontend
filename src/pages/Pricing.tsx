@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+import { useToast } from "@/hooks/use-toast";
 import {
   Accordion,
   AccordionContent,
@@ -20,6 +21,7 @@ export default function Pricing() {
   const [billing, setBilling] = useState<Billing>("monthly");
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const ctaLink = user ? "/dashboard" : "/signup";
   const [upgrading, setUpgrading] = useState(false);
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
@@ -47,10 +49,10 @@ export default function Pricing() {
         setCheckoutStripePromise(stripePromise);
         setCheckoutClientSecret(data.data.client_secret);
       } else {
-        alert("Could not start checkout. Please try again.");
+        toast({ title: "Checkout error", description: "Could not start checkout. Please try again.", variant: "destructive" });
       }
     } catch {
-      alert("Network error. Please try again.");
+      toast({ title: "Network error", description: "Please check your connection and try again.", variant: "destructive" });
     } finally {
       setUpgrading(false);
     }
@@ -66,7 +68,7 @@ export default function Pricing() {
           Simple, transparent pricing
         </span>
         <h1 className="text-5xl font-bold mb-4" style={{ color: "#040042" }}>
-          License your content.
+          License your content.{" "}
           <br className="hidden sm:block" />
           Keep more of what you earn.
         </h1>

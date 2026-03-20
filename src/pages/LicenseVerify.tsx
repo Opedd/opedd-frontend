@@ -110,7 +110,7 @@ export default function LicenseVerify() {
         <div className="px-6 py-5 bg-white border-b border-[#E5E7EB]">
           <img src={opeddLogoColor} alt="Opedd" className="h-7" />
         </div>
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex-1 flex items-start justify-center px-4 pt-20 pb-12">
           <div className="w-full max-w-md text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#EEF0FD] text-[#4A26ED] px-4 py-1.5 text-sm font-medium mb-6">
               <Shield className="h-4 w-4" />

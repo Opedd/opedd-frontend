@@ -5,6 +5,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import ForgotPasswordFlow from "@/components/auth/ForgotPasswordFlow";
@@ -15,6 +16,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("login");
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -52,18 +54,25 @@ export default function Login() {
       {/* Google OAuth */}
       <button
         type="button"
+        disabled={isGoogleLoading}
         onClick={async () => {
+          setIsGoogleLoading(true);
           const { error } = await lovable.auth.signInWithOAuth("google", {
             redirect_uri: window.location.origin + "/auth/callback",
           });
           if (error) {
             toast({ title: "Google Sign-In Failed", description: error.message, variant: "destructive" });
+            setIsGoogleLoading(false);
           }
         }}
-        className="w-full h-11 bg-white border border-[#E5E7EB] rounded-lg font-medium text-[#111827] flex items-center justify-center gap-3 hover:bg-[#F9FAFB] transition-all"
+        className="w-full h-11 bg-white border border-[#E5E7EB] rounded-lg font-medium text-[#111827] flex items-center justify-center gap-3 hover:bg-[#F9FAFB] transition-all disabled:opacity-60"
       >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/><path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332Z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.166 6.656 3.58 9 3.58Z" fill="#EA4335"/></svg>
-        Continue with Google
+        {isGoogleLoading ? (
+          <Loader2 size={18} className="animate-spin text-[#6B7280]" />
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/><path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332Z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.166 6.656 3.58 9 3.58Z" fill="#EA4335"/></svg>
+        )}
+        {isGoogleLoading ? "Redirecting..." : "Continue with Google"}
       </button>
 
       {/* Divider */}
@@ -114,8 +123,9 @@ export default function Login() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all"
+          className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all flex items-center justify-center gap-2"
         >
+          {isLoading && <Loader2 size={16} className="animate-spin" />}
           {isLoading ? "Signing in..." : "Sign in"}
         </button>
       </form>
@@ -154,16 +164,16 @@ export default function Login() {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-white overflow-y-auto">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden mb-8 flex justify-center">
+          <div className="lg:hidden mb-6 flex justify-center">
             <Link to="/">
               <img src={opeddLogoColor} alt="Opedd" className="h-10" />
             </Link>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#E5E7EB]">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-[#E5E7EB]">
             {viewMode === "login" && renderLoginForm()}
             {viewMode === "forgot-password" && (
               <ForgotPasswordFlow onBackToLogin={() => setViewMode("login")} />
