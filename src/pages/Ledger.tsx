@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Shield, Sparkles, FileCheck,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
-  AlertTriangle, Ban, ScrollText, Receipt,
+  AlertTriangle, Ban, ScrollText, Receipt, RotateCcw, Lock,
 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -51,6 +51,7 @@ interface Transaction {
   validUntil?: string;
   blockchainTxHash?: string | null;
   blockchainStatus?: string | null;
+  paymentHeld?: boolean;
 }
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
@@ -88,6 +89,8 @@ export default function Ledger() {
   const [revokeTarget, setRevokeTarget] = useState<Transaction | null>(null);
   const [revokeReason, setRevokeReason] = useState("");
   const [isRevoking, setIsRevoking] = useState(false);
+  const [refundTarget, setRefundTarget] = useState<Transaction | null>(null);
+  const [isRefunding, setIsRefunding] = useState(false);
 
   const fetchTransactions = useCallback(async () => {
     if (!user) return;
@@ -123,6 +126,7 @@ export default function Ledger() {
             licenseTerms: isArchive ? "Site-wide archive license." : isAI ? "Non-exclusive license for AI model training." : "Single-use republication license.",
             blockchainTxHash: tx.blockchain_tx_hash || null,
             blockchainStatus: tx.blockchain_status || null,
+            paymentHeld: tx.payment_held || false,
           };
         });
         setTransactions(mapped);
@@ -171,6 +175,28 @@ export default function Ledger() {
       setIsRevoking(false);
       setRevokeTarget(null);
       setRevokeReason("");
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!refundTarget?.licenseKey) return;
+    setIsRefunding(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/refund-license`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ license_key: refundTarget.licenseKey }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error?.message || result.error || "Failed to refund");
+      setTransactions(prev => prev.map(tx => tx.id === refundTarget.id ? { ...tx, status: "revoked" as const } : tx));
+      toast({ title: "Refund issued", description: `$${refundTarget.amount.toFixed(2)} refunded. Buyer notified by email.` });
+    } catch (err: any) {
+      toast({ title: "Refund failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsRefunding(false);
+      setRefundTarget(null);
     }
   };
 
@@ -246,6 +272,25 @@ export default function Ledger() {
             {isExporting ? <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</> : <><Download size={16} className="mr-2" />Export CSV</>}
           </Button>
         </motion.div>
+
+        {/* Held payments banner */}
+        {(() => {
+          const held = transactions.filter(t => t.paymentHeld && t.status === "settled");
+          const heldTotal = held.reduce((s, t) => s + t.amount, 0);
+          if (held.length === 0) return null;
+          return (
+            <motion.div variants={itemVariants} className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+              <Lock size={18} className="text-amber-600 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-800">
+                  {held.length} payment{held.length !== 1 ? "s" : ""} (${heldTotal.toFixed(2)} total) are held in escrow
+                </p>
+                <p className="text-xs text-amber-700 mt-0.5">Complete your Stripe Connect setup to receive payouts for these licenses.</p>
+              </div>
+              <a href="/settings?tab=profile" className="shrink-0 text-xs font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-900">Complete Setup →</a>
+            </motion.div>
+          );
+        })()}
 
         <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" variants={itemVariants}>
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
@@ -345,7 +390,16 @@ export default function Ledger() {
                               <TableCell><span className="text-[#6B7280] text-sm">{tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}</span></TableCell>
                               <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-[#6B7280]"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
                               <TableCell><span className="text-[#6B7280] text-sm">{tx.date}</span></TableCell>
-                              <TableCell>{getStatusBadge(tx.status)}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1.5">
+                                  {getStatusBadge(tx.status)}
+                                  {tx.paymentHeld && tx.status === "settled" && (
+                                    <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium text-[10px] px-1.5 py-0">
+                                      <Lock size={9} className="mr-0.5" />Held
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
                                   {tx.status === "settled" && tx.licenseKey && (
@@ -370,6 +424,15 @@ export default function Ledger() {
                                       >
                                         <Receipt size={14} />
                                       </a>
+                                      {!tx.paymentHeld && (
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setRefundTarget(tx); }}
+                                          className="p-1.5 rounded-md text-[#9CA3AF] hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                                          title="Issue refund"
+                                        >
+                                          <RotateCcw size={14} />
+                                        </button>
+                                      )}
                                       <button
                                         onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
                                         className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
@@ -424,6 +487,28 @@ export default function Ledger() {
             </Button>
             <Button onClick={handleRevoke} disabled={isRevoking} className="bg-[#DC2626] hover:bg-red-700 text-white">
               {isRevoking ? <><Loader2 size={16} className="mr-2 animate-spin" />Revoking...</> : "Yes, Revoke"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Refund confirmation dialog */}
+      <Dialog open={!!refundTarget} onOpenChange={(open) => { if (!open) setRefundTarget(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#111827]">
+              <RotateCcw size={20} className="text-amber-600" />
+              Issue a refund?
+            </DialogTitle>
+            <DialogDescription className="text-[#6B7280]">
+              This will refund <strong className="text-[#111827]">${refundTarget?.amount.toFixed(2)}</strong> to the buyer and revoke license{" "}
+              <code className="font-mono text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded">{refundTarget?.licenseKey}</code>.
+              The buyer will be notified by email. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setRefundTarget(null)} disabled={isRefunding}>Cancel</Button>
+            <Button onClick={handleRefund} disabled={isRefunding} className="bg-amber-600 hover:bg-amber-700 text-white">
+              {isRefunding ? <><Loader2 size={16} className="mr-2 animate-spin" />Refunding...</> : "Yes, Refund"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ShieldCheck, Loader2, Mail, ArrowRight, Copy, Check, FileText, ExternalLink, Download, Key, ChevronDown, ChevronUp, Trash2, Plus } from "lucide-react";
+import { ShieldCheck, Loader2, Mail, ArrowRight, Copy, Check, FileText, ExternalLink, Download, Key, ChevronDown, ChevronUp, Trash2, Plus, Webhook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -173,6 +173,95 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
   );
 }
 
+interface ArchiveWebhookProps {
+  licenseKey: string;
+}
+
+function ArchiveWebhook({ licenseKey }: ArchiveWebhookProps) {
+  const [open, setOpen] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [secret, setSecret] = useState<string | null>(null);
+  const [copiedSecret, setCopiedSecret] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleRegister = async () => {
+    if (!webhookUrl.trim()) return;
+    setSaving(true); setError(null);
+    try {
+      const res = await fetch(`${EXT_SUPABASE_URL}/register-buyer-webhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
+        body: JSON.stringify({ license_key: licenseKey, webhook_url: webhookUrl.trim() }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setSecret(result.data.webhook_secret);
+        setWebhookUrl("");
+      } else {
+        setError(result.error || "Failed to register webhook");
+      }
+    } catch { setError("Network error"); }
+    finally { setSaving(false); }
+  };
+
+  const handleCopySecret = () => {
+    if (!secret) return;
+    navigator.clipboard.writeText(secret);
+    setCopiedSecret(true);
+    setTimeout(() => setCopiedSecret(false), 2000);
+  };
+
+  return (
+    <div className="mt-2 border-t border-[#E5E7EB] pt-2">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
+      >
+        <Webhook size={12} />
+        Content Webhook
+        {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3">
+          {secret ? (
+            <div className="bg-[#ECFDF5] border border-[#10B981]/20 rounded-lg p-3 space-y-2">
+              <p className="text-xs font-semibold text-[#059669]">Webhook registered. Copy your signing secret — it won't be shown again.</p>
+              <div className="flex items-center gap-2">
+                <code className="text-[10px] font-mono text-[#059669] bg-white border border-[#10B981]/20 rounded px-2 py-1 flex-1 truncate">
+                  {secret}
+                </code>
+                <button onClick={handleCopySecret} className="shrink-0 text-[#10B981] hover:text-[#059669]">
+                  {copiedSecret ? <Check size={13} /> : <Copy size={13} />}
+                </button>
+              </div>
+              <p className="text-[10px] text-[#6B7280]">Verify incoming requests using the <code className="font-mono">X-Opedd-Signature</code> header with HMAC-SHA256.</p>
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-[#6B7280]">Receive a webhook when new content is published under your archive license.</p>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="https://yourserver.com/webhook"
+                  value={webhookUrl}
+                  onChange={(e) => setWebhookUrl(e.target.value)}
+                  className="h-7 text-xs"
+                  onKeyDown={(e) => e.key === "Enter" && !saving && handleRegister()}
+                />
+                <Button size="sm" onClick={handleRegister} disabled={saving || !webhookUrl.trim()} className="h-7 px-2 text-xs shrink-0">
+                  {saving ? <Loader2 size={11} className="animate-spin" /> : "Save"}
+                </Button>
+              </div>
+            </>
+          )}
+          {error && <p className="text-xs text-[#EF4444]">{error}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface BuyerLicense {
   license_key: string;
   license_type: string;
@@ -338,6 +427,9 @@ export default function Licenses() {
                         </a>
                       </div>
                       <LicenseApiKeys email={email} licenseKey={lic.license_key} />
+                      {lic.license_type === "archive" && (
+                        <ArchiveWebhook licenseKey={lic.license_key} />
+                      )}
                     </div>
                   ))}
                 </div>
