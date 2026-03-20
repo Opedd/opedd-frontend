@@ -114,7 +114,7 @@ export default function NotificationsPage() {
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ notification_id: notificationId }),
+        body: JSON.stringify({ notification_ids: [notificationId] }),
       });
     } catch {
       // Revert on error
@@ -137,7 +137,7 @@ export default function NotificationsPage() {
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ action: "mark_all_read" }),
+        body: JSON.stringify({ mark_all_read: true }),
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error?.message || "Failed");
