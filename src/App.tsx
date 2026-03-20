@@ -77,7 +77,7 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/licenses" element={<Licenses />} />
-              <Route path="/my-licenses" element={<MyLicenses />} />
+              <Route path="/my-licenses" element={<Navigate to="/licenses" replace />} />
               
               <Route path="/for-ai-agents" element={<ForAiAgents />} />
               <Route path="/status" element={<Status />} />
