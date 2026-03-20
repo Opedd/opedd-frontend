@@ -73,6 +73,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const [bellOpen, setBellOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [publisherPlan, setPublisherPlan] = useState<PlanType | null>(null);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -94,17 +95,25 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const fetchPlan = useCallback(async () => {
     try {
       if (!user) return;
-      const { data } = await (supabase.from as any)("publishers")
-        .select("plan")
-        .eq("user_id", user.id)
-        .single();
-      if (data?.plan && ["free", "pro", "enterprise"].includes(data.plan)) {
-        setPublisherPlan(data.plan);
+      const token = await getAccessToken();
+      if (!token) return;
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const plan = result.data.plan;
+        if (plan && ["free", "pro", "enterprise"].includes(plan)) {
+          setPublisherPlan(plan);
+        }
+        if (result.data.trial_active && typeof result.data.trial_days_remaining === "number") {
+          setTrialDaysRemaining(result.data.trial_days_remaining);
+        }
       }
     } catch (err) {
       console.warn("[DashboardLayout] Plan fetch failed:", err);
     }
-  }, [user]);
+  }, [user, getAccessToken]);
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
   useEffect(() => { fetchPlan(); }, [fetchPlan]);
@@ -376,6 +385,22 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             </DropdownMenu>
           </div>
         </header>
+
+        {/* Trial banner — shown to free plan publishers during their trial window */}
+        {publisherPlan === "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 && (
+          <div className="shrink-0 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] px-4 py-2.5 flex items-center justify-between gap-4">
+            <p className="text-white text-xs font-medium">
+              <span className="font-bold">{trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left on your free trial</span>
+              {" "}— import unlimited articles and explore all features. Upgrade before your trial ends to keep full access.
+            </p>
+            <NavLink
+              to="/payments"
+              className="shrink-0 bg-white text-[#4A26ED] text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/90 transition-colors whitespace-nowrap"
+            >
+              Upgrade now
+            </NavLink>
+          </div>
+        )}
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
