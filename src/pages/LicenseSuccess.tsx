@@ -134,6 +134,7 @@ export default function LicenseSuccess() {
     data?.license_type === "ai" ? "AI Training License" :
     data?.license_type === "ai_inference" ? "AI Inference / RAG License" :
     data?.license_type === "archive" ? "Archive License" :
+    data?.license_type === "syndication" ? "Syndication License" :
     "Editorial License";
 
   if (!sessionId && !loading) {

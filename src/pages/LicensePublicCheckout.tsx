@@ -19,16 +19,17 @@ interface AssetRow {
   publisher_id: string | null;
 }
 
-type LicenseType = "editorial" | "ai_inference" | "ai_training" | "corporate";
+type LicenseType = "editorial" | "ai_inference" | "ai_training" | "corporate" | "syndication";
 
-const LICENSE_TYPE_OPTIONS: { value: LicenseType; label: string }[] = [
+const BASE_LICENSE_TYPE_OPTIONS: { value: LicenseType; label: string }[] = [
   { value: "editorial",    label: "Editorial License" },
   { value: "ai_inference", label: "AI / RAG License" },
   { value: "ai_training",  label: "AI Training License" },
   { value: "corporate",    label: "Corporate License" },
+  { value: "syndication",  label: "Syndication License" },
 ];
 
-const VALID_LICENSE_TYPES = new Set<string>(LICENSE_TYPE_OPTIONS.map((o) => o.value));
+const VALID_LICENSE_TYPES = new Set<string>(BASE_LICENSE_TYPE_OPTIONS.map((o) => o.value));
 
 function parseLicenseType(raw: string | null): LicenseType {
   if (raw && VALID_LICENSE_TYPES.has(raw)) return raw as LicenseType;
@@ -44,6 +45,10 @@ function getPrice(type: LicenseType, asset: AssetRow, pricingRules?: any): numbe
       const rulePrice = pricingRules?.license_types?.corporate?.price_per_article;
       return (rulePrice != null && rulePrice > 0) ? rulePrice : (asset.human_price ?? 0) * 5;
     }
+    case "syndication": {
+      const synPrice = pricingRules?.license_types?.syndication?.price_per_article;
+      return synPrice != null ? Number(synPrice) : 0;
+    }
   }
 }
 
@@ -57,6 +62,7 @@ function toBackendLicenseType(type: LicenseType): string {
     case "corporate":    return "human";
     case "ai_training":  return "ai";
     case "ai_inference": return "ai_inference";
+    case "syndication":  return "syndication";
   }
 }
 
@@ -169,6 +175,15 @@ export default function LicensePublicCheckout() {
   const selectedLabel = getLicenseLabel(selected);
   const isPaid = selectedPrice > 0;
   const canSubmit = !!email && !submitting && !freeSuccess;
+  const syndicationRules = publisherPricingRules?.license_types?.syndication;
+  const syndicationEnabled = !!syndicationRules?.enabled;
+  const syndicationQuoteOnly = !!syndicationRules?.quote_only;
+  const isQuoteOnly = selected === "syndication" && syndicationQuoteOnly;
+
+  // Build dynamic options list — only show syndication if enabled by publisher
+  const licenseTypeOptions = BASE_LICENSE_TYPE_OPTIONS.filter(
+    (o) => o.value !== "syndication" || syndicationEnabled
+  );
 
   if (loading) {
     return (
@@ -311,7 +326,7 @@ export default function LicensePublicCheckout() {
                   onChange={(e) => setSelected(e.target.value as LicenseType)}
                   className="w-full h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20 focus:border-[#4A26ED]"
                 >
-                  {LICENSE_TYPE_OPTIONS.map((opt) => (
+                  {licenseTypeOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
@@ -335,7 +350,23 @@ export default function LicensePublicCheckout() {
               </div>
             )}
 
-            {freeSuccess ? (
+            {isQuoteOnly ? (
+              <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] p-5 text-center space-y-3">
+                <p className="text-sm font-semibold text-[#111827]">Custom quote required</p>
+                <p className="text-xs text-[#6B7280]">This publisher handles syndication pricing on a case-by-case basis. Contact them directly to request a custom quote.</p>
+                {contactSent ? (
+                  <p className="text-sm font-semibold text-emerald-600">Request sent! The publisher will be in touch.</p>
+                ) : (
+                  <Button
+                    onClick={() => { if (email) setContactSent(true); }}
+                    disabled={!email}
+                    className="w-full h-11 text-sm font-semibold bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                  >
+                    Request Syndication Quote
+                  </Button>
+                )}
+              </div>
+            ) : freeSuccess ? (
               <div className="rounded-xl border-2 border-[#10B981]/30 bg-[#ECFDF5] p-6 text-center space-y-3">
                 <CheckCircle className="h-8 w-8 text-[#10B981] mx-auto" />
                 <p className="text-sm font-semibold text-[#111827]">License Issued!</p>
