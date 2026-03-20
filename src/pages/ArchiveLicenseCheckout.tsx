@@ -266,12 +266,15 @@ export default function ArchiveLicenseCheckout() {
                   `Pay $${archivePrice!.toFixed(2)}/year · Secure License`
                 )}
               </Button>
-              {!canSubmit && !submitting && (
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  {!email ? "Enter your email" : !name.trim() ? "Enter your name" : "Complete all required fields"}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                </div>
-              )}
+                {!canSubmit && !submitting && (
+                  <div
+                    role="tooltip"
+                    className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#111827] text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 ease-out pointer-events-none z-10 shadow-lg"
+                  >
+                    {!email ? "Enter your email" : !name.trim() ? "Enter your name" : "Complete all required fields"}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#111827]" />
+                  </div>
+                )}
             </div>
           </div>
 

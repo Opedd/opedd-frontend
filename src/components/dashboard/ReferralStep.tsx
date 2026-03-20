@@ -68,10 +68,10 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
       <div className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 w-full max-w-md mx-4 space-y-6">
         <button
           onClick={handleSkip}
-          className="absolute top-4 right-4 w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-lg border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] flex items-center justify-center transition-colors active:scale-95"
           aria-label="Skip"
         >
-          <X size={16} className="text-slate-400" />
+          <X size={16} className="text-[#6B7280]" />
         </button>
         <div>
           <div className="w-12 h-12 bg-[#4A26ED]/10 rounded-xl flex items-center justify-center mb-4">
