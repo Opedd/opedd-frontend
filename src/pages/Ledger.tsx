@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { decodeText } from "@/lib/utils";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,8 +12,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Shield, Sparkles, FileCheck,
   ArrowUpRight, Download, Loader2, Filter, Eye, Archive,
-  AlertTriangle, Ban, ScrollText, Receipt, RotateCcw, Lock,
+  AlertTriangle, Ban, ScrollText, Receipt, RotateCcw, Lock, X,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -92,22 +93,35 @@ export default function Ledger() {
   const [refundTarget, setRefundTarget] = useState<Transaction | null>(null);
   const [isRefunding, setIsRefunding] = useState(false);
 
-  const fetchTransactions = useCallback(async () => {
+  // Pagination + search state
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const LIMIT = 50;
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchTransactions = useCallback(async (fetchOffset = 0, append = false) => {
     if (!user) return;
-    setIsLoading(true);
+    if (!append) setIsLoading(true);
     setFetchError(false);
     try {
       const token = await getAccessToken();
       if (!token) { setTransactions([]); setIsLoading(false); return; }
-      const params = new URLSearchParams({ limit: "50", offset: "0" });
+      const params = new URLSearchParams({ limit: String(LIMIT), offset: String(fetchOffset) });
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (typeFilter !== "all") params.set("type", typeFilter);
+      if (searchEmail.trim()) params.set("search_email", searchEmail.trim());
+      if (dateFrom) params.set("date_from", dateFrom);
+      if (dateTo) params.set("date_to", dateTo);
       const res = await fetch(`${EXT_SUPABASE_URL}/get-transactions?${params.toString()}`, {
         headers: { apikey: EXT_ANON_KEY, Accept: "application/json", Authorization: `Bearer ${token}` },
       });
       const result = await res.json();
       if (!res.ok || !result.success) {
-        setTransactions([]); setApiMetrics(null);
+        if (!append) { setTransactions([]); setApiMetrics(null); }
+        setHasMore(false);
       } else {
         const txList = result.data?.transactions || [];
         const mapped: Transaction[] = txList.map((tx: any) => {
@@ -129,17 +143,25 @@ export default function Ledger() {
             paymentHeld: tx.payment_held || false,
           };
         });
-        setTransactions(mapped);
-        setApiMetrics(result.data?.metrics || null);
+        if (append) {
+          setTransactions(prev => [...prev, ...mapped]);
+        } else {
+          setTransactions(mapped);
+          setApiMetrics(result.data?.metrics || null);
+        }
+        setHasMore(txList.length === LIMIT);
       }
     } catch (err) {
       console.error("Fetch error:", err);
       setFetchError(true);
-      setTransactions([]); setApiMetrics(null);
+      if (!append) { setTransactions([]); setApiMetrics(null); }
     } finally { setIsLoading(false); }
-  }, [user, statusFilter, typeFilter, getAccessToken]);
+  }, [user, statusFilter, typeFilter, searchEmail, dateFrom, dateTo, getAccessToken]);
 
-  useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
+  useEffect(() => {
+    setOffset(0);
+    fetchTransactions(0, false);
+  }, [fetchTransactions]);
 
   const metrics = useMemo(() => {
     if (apiMetrics) {
@@ -310,7 +332,7 @@ export default function Ledger() {
           <div className="bg-white rounded-xl border border-[#DC2626]/30 p-6 flex items-center gap-3">
             <AlertTriangle size={20} className="text-[#DC2626] flex-shrink-0" />
             <p className="text-sm font-medium text-[#DC2626] flex-1">Failed to load transactions.</p>
-            <button onClick={fetchTransactions} className="text-sm font-semibold text-[#4A26ED] hover:underline">Try again</button>
+            <button onClick={() => { setOffset(0); fetchTransactions(0, false); }} className="text-sm font-semibold text-[#4A26ED] hover:underline">Try again</button>
           </div>
         )}
 
@@ -341,9 +363,9 @@ export default function Ledger() {
                           <span className="text-xs font-medium text-[#6B7280]">Verified by Opedd Protocol</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <div className="flex items-center gap-1.5 text-[#9CA3AF]"><Filter size={14} /><span className="text-xs font-medium uppercase tracking-wider">Filters</span></div>
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setOffset(0); }}>
                           <SelectTrigger className="w-[140px] h-9 text-sm border-[#E5E7EB] rounded-lg"><SelectValue placeholder="Status" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
@@ -353,7 +375,7 @@ export default function Ledger() {
                             <SelectItem value="revoked">Revoked</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Select value={typeFilter} onValueChange={setTypeFilter}>
+                        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setOffset(0); }}>
                           <SelectTrigger className="w-[140px] h-9 text-sm border-[#E5E7EB] rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Types</SelectItem>
@@ -361,6 +383,52 @@ export default function Ledger() {
                             <SelectItem value="ai">AI Training</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                      {/* Search by email + date range */}
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        <Input
+                          type="email"
+                          placeholder="Search by buyer email…"
+                          value={searchEmail}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSearchEmail(val);
+                            if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                            searchDebounceRef.current = setTimeout(() => {
+                              setOffset(0);
+                            }, 400);
+                          }}
+                          className="h-9 text-sm border-[#E5E7EB] rounded-lg w-[220px]"
+                        />
+                        <Input
+                          type="date"
+                          value={dateFrom}
+                          onChange={(e) => { setDateFrom(e.target.value); setOffset(0); }}
+                          className="h-9 text-sm border-[#E5E7EB] rounded-lg w-[150px]"
+                          title="From date"
+                        />
+                        <Input
+                          type="date"
+                          value={dateTo}
+                          onChange={(e) => { setDateTo(e.target.value); setOffset(0); }}
+                          className="h-9 text-sm border-[#E5E7EB] rounded-lg w-[150px]"
+                          title="To date"
+                        />
+                        {(searchEmail || dateFrom || dateTo) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSearchEmail("");
+                              setDateFrom("");
+                              setDateTo("");
+                              setOffset(0);
+                            }}
+                            className="h-9 px-3 text-xs text-[#6B7280] border-[#E5E7EB]"
+                          >
+                            <X size={13} className="mr-1" />Clear filters
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -450,6 +518,22 @@ export default function Ledger() {
                         </AnimatePresence>
                       </TableBody>
                     </Table>
+                    {hasMore && transactions.length > 0 && (
+                      <div className="flex justify-center p-4 border-t border-[#E5E7EB]">
+                        <Button
+                          variant="outline"
+                          disabled={isLoading}
+                          onClick={() => {
+                            const newOffset = offset + LIMIT;
+                            setOffset(newOffset);
+                            fetchTransactions(newOffset, true);
+                          }}
+                          className="border-[#E5E7EB] text-[#6B7280] hover:text-[#111827]"
+                        >
+                          {isLoading ? <><Loader2 size={14} className="mr-2 animate-spin" />Loading...</> : "Load more"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
           </motion.div>
@@ -457,7 +541,7 @@ export default function Ledger() {
       </motion.div>
 
       <TransactionReceiptDrawer open={drawerOpen} onOpenChange={setDrawerOpen} transaction={selectedTransaction} onRetryBlockchain={handleRetryBlockchain} />
-      <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => { setShowArchiveModal(false); fetchTransactions(); }} />
+      <IssueArchiveLicenseModal open={showArchiveModal} onOpenChange={setShowArchiveModal} onSuccess={() => { setShowArchiveModal(false); setOffset(0); fetchTransactions(0, false); }} />
 
       {/* Revoke confirmation dialog */}
       <Dialog open={!!revokeTarget} onOpenChange={(open) => { if (!open) { setRevokeTarget(null); setRevokeReason(""); } }}>

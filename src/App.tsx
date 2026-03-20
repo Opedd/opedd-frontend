@@ -37,6 +37,8 @@ import ForAiAgents from "./pages/ForAiAgents";
 import Admin from "./pages/Admin";
 import Status from "./pages/Status";
 import MyLicenses from "./pages/MyLicenses";
+import ArchiveLicenseCheckout from "./pages/ArchiveLicenseCheckout";
+import NotificationsPage from "./pages/NotificationsPage";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +81,8 @@ const App = () => (
               <Route path="/licenses" element={<Licenses />} />
               <Route path="/my-licenses" element={<Navigate to="/licenses" replace />} />
               
+              <Route path="/archive/:publisher_id" element={<ArchiveLicenseCheckout />} />
+              <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
               <Route path="/for-ai-agents" element={<ForAiAgents />} />
               <Route path="/status" element={<Status />} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
