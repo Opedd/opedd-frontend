@@ -17,6 +17,7 @@ import {
   Info,
   Code2,
   Download,
+  RotateCcw,
 } from "lucide-react";
 import {
   Tooltip,
@@ -120,6 +121,7 @@ export default function Connectors() {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [showDeliveries, setShowDeliveries] = useState(false);
   const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
+  const [retryingDeliveryId, setRetryingDeliveryId] = useState<string | null>(null);
   const [publisherId, setPublisherId] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
@@ -237,6 +239,32 @@ export default function Connectors() {
       console.warn("[Connectors] Deliveries fetch failed:", err);
     } finally {
       setIsLoadingDeliveries(false);
+    }
+  };
+
+  const handleRetryDelivery = async (deliveryId: string) => {
+    setRetryingDeliveryId(deliveryId);
+    try {
+      const result = await postAction("retry_webhook", { delivery_id: deliveryId });
+      if (result.success !== false && !result.error) {
+        toast({ title: "Webhook retried", description: "The delivery has been queued for retry." });
+        // Refresh deliveries list
+        handleViewDeliveries();
+      } else {
+        throw new Error(
+          typeof result.error === "string"
+            ? result.error
+            : result.error?.message || "Retry failed"
+        );
+      }
+    } catch (err: unknown) {
+      toast({
+        title: "Retry failed",
+        description: err instanceof Error ? err.message : "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setRetryingDeliveryId(null);
     }
   };
 
@@ -374,7 +402,7 @@ export default function Connectors() {
                           <div className="text-center py-8 text-sm text-slate-400">No deliveries yet</div>
                         ) : (
                           <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                            <div className="grid grid-cols-[1fr_80px_60px_140px_60px] gap-2 px-4 py-2 text-[10px] uppercase tracking-wide text-slate-400 font-medium border-b border-slate-100">
+                            <div className="grid grid-cols-[1fr_80px_60px_140px_36px] gap-2 px-4 py-2 text-[10px] uppercase tracking-wide text-slate-400 font-medium border-b border-slate-100">
                               <span>Event</span>
                               <span>Status</span>
                               <span>Attempts</span>
@@ -382,14 +410,29 @@ export default function Connectors() {
                               <span></span>
                             </div>
                             {webhookDeliveries.map((d, i) => (
-                              <div key={d.id || i} className="grid grid-cols-[1fr_80px_60px_140px_60px] gap-2 items-center px-4 py-2.5 text-xs">
+                              <div key={d.id || i} className="grid grid-cols-[1fr_80px_60px_140px_36px] gap-2 items-center px-4 py-2.5 text-xs">
                                 <code className="text-[#040042] font-mono truncate">{d.event_type}</code>
                                 <Badge variant="outline" className={`text-[10px] w-fit ${d.status === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
                                   {d.status === "success" ? "Success" : "Failed"}
                                 </Badge>
                                 <span className="text-slate-500">{d.attempts ?? "—"}/{d.max_attempts ?? 3}</span>
                                 <span className="text-slate-400">{new Date(d.timestamp).toLocaleString()}</span>
-                                <div />
+                                <div className="flex items-center justify-end">
+                                  {d.status === "failed" && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      disabled={retryingDeliveryId === d.id}
+                                      onClick={() => handleRetryDelivery(d.id)}
+                                      className="h-7 w-7 p-0 text-slate-400 hover:text-[#4A26ED] hover:bg-[#4A26ED]/10"
+                                      title="Retry delivery"
+                                    >
+                                      {retryingDeliveryId === d.id
+                                        ? <Loader2 size={12} className="animate-spin" />
+                                        : <RotateCcw size={12} />}
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             ))}
                           </div>

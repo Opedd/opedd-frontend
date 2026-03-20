@@ -221,6 +221,12 @@ export default function Settings() {
   const [defaultHumanPrice, setDefaultHumanPrice] = useState("5.00");
   const [defaultSyndicationPrice, setDefaultSyndicationPrice] = useState("500.00");
   const [defaultAiPrice, setDefaultAiPrice] = useState("");
+  const [publisherPricingRules, setPublisherPricingRules] = useState<Record<string, any> | null>(null);
+
+  // Bulk pricing state
+  const [articleCount, setArticleCount] = useState<number | null>(null);
+  const [isBulkPricing, setIsBulkPricing] = useState(false);
+  const [bulkPricingOpen, setBulkPricingOpen] = useState(false);
 
   // Developer state
   const [publisherIdCopied, setPublisherIdCopied] = useState(false);
@@ -350,9 +356,13 @@ export default function Settings() {
         setContactEmail(d.contact_email || "");
         setContactForPricing(!!(d as any).contact_for_pricing);
         setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "25.00");
-        setDefaultSyndicationPrice((d as any).default_syndication_price != null ? String((d as any).default_syndication_price) : "500.00");
+        // Load syndication price from pricing_rules, fall back to legacy flat field
+        const syndicationPrice = d.pricing_rules?.license_types?.syndication?.price_per_article
+          ?? (d as any).default_syndication_price
+          ?? 500;
+        setDefaultSyndicationPrice(String(syndicationPrice));
+        setPublisherPricingRules(d.pricing_rules ?? null);
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "");
-        setLogoPreview(d.logo_url || null);
         setLogoPreview(d.logo_url || null);
       }
     } catch (err) {
@@ -468,6 +478,19 @@ export default function Settings() {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  useEffect(() => {
+    if (activeTab === "pricing" && articleCount === null && profile?.api_key) {
+      fetch(`${EXT_SUPABASE_URL}/api?action=articles&limit=1`, {
+        headers: { "X-API-Key": profile.api_key },
+      })
+        .then((r) => r.json())
+        .then((json) => {
+          if (typeof json.total === "number") setArticleCount(json.total);
+        })
+        .catch(() => {});
+    }
+  }, [activeTab, articleCount, profile?.api_key]);
 
   useEffect(() => {
     if (activeTab === "team" && !teamLoaded && !isLoadingTeam) {
@@ -645,13 +668,25 @@ export default function Settings() {
     setIsSaving(true);
     try {
       const headers = await apiHeaders();
+      const syndicationVal = parseFloat(defaultSyndicationPrice) || 0;
+      const mergedRules = {
+        ...publisherPricingRules,
+        license_types: {
+          ...(publisherPricingRules?.license_types ?? {}),
+          syndication: {
+            ...(publisherPricingRules?.license_types?.syndication ?? {}),
+            enabled: syndicationVal > 0,
+            price_per_article: syndicationVal,
+          },
+        },
+      };
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({
           name: publisherName,
           default_human_price: parseFloat(defaultHumanPrice) || 0,
-          default_syndication_price: parseFloat(defaultSyndicationPrice) || 0,
+          pricing_rules: mergedRules,
           default_ai_price: defaultAiPrice ? parseFloat(defaultAiPrice) : null,
           website_url: websiteUrl,
           description: bio,
@@ -661,7 +696,12 @@ export default function Settings() {
       });
       const result = await res.json();
       if (result.success) {
-        if (result.data) setProfile(result.data);
+        if (result.data) {
+          setProfile(result.data);
+          if (result.data.pricing_rules !== undefined) {
+            setPublisherPricingRules(result.data.pricing_rules ?? null);
+          }
+        }
         setSaveBanner("success");
         setTimeout(() => setSaveBanner(null), 3000);
       } else {
@@ -1105,6 +1145,9 @@ export default function Settings() {
                             <Input type="number" min="0" step="0.01" value={defaultSyndicationPrice} onChange={(e) => setDefaultSyndicationPrice(e.target.value)} className="bg-white border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                           </div>
                           <p className="text-xs text-slate-500 italic">Full republication, retranslation, corporate distribution. Typical range: $300 – $2,000</p>
+                          <p className="text-xs text-[#4A26ED]/80 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-lg px-3 py-2">
+                            Publishers with syndication pricing enabled will show a &ldquo;Syndication License&rdquo; option on their article checkout pages.
+                          </p>
                         </div>
 
                         <div className="border-t border-slate-100" />
@@ -1125,6 +1168,71 @@ export default function Settings() {
                         <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">
                           {isSaving ? <><Loader2 size={16} className="animate-spin mr-2" />Saving...</> : "Save rates"}
                         </Button>
+                      </div>
+
+                      {/* Bulk Price Update */}
+                      <div className="bg-white rounded-xl border border-amber-200 p-6 shadow-sm space-y-3">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h2 className="font-bold text-[#040042]">Apply default prices to all articles</h2>
+                            <p className="text-sm text-[#6B7280] mt-1">
+                              Override all per-article prices with your current default prices.
+                              {articleCount !== null ? ` This affects ${articleCount} article${articleCount !== 1 ? "s" : ""}.` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <AlertDialog open={bulkPricingOpen} onOpenChange={setBulkPricingOpen}>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              disabled={isBulkPricing}
+                              className="border-amber-300 text-amber-700 hover:bg-amber-50 hover:border-amber-400 font-semibold"
+                            >
+                              {isBulkPricing ? <><Loader2 size={14} className="animate-spin mr-2" />Applying...</> : "Apply to all articles"}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-white">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
+                                <AlertTriangle size={20} className="text-amber-500" />Apply default prices to all articles?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-slate-600">
+                                This will update pricing for {articleCount !== null ? `all ${articleCount} article${articleCount !== 1 ? "s" : ""}` : "all your articles"}. This cannot be undone. Continue?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-amber-500 hover:bg-amber-600 text-white rounded-lg"
+                                onClick={async () => {
+                                  setBulkPricingOpen(false);
+                                  setIsBulkPricing(true);
+                                  try {
+                                    const headers = await apiHeaders();
+                                    const res = await fetch(`${EXT_SUPABASE_URL}/update-license-prices`, {
+                                      method: "POST",
+                                      headers,
+                                      body: JSON.stringify({ action: "apply_defaults" }),
+                                    });
+                                    const result = await res.json();
+                                    if (res.ok && result.success !== false) {
+                                      toast({ title: "Prices updated", description: "All article prices have been set to your defaults." });
+                                    } else {
+                                      throw new Error(result.error?.message || result.error || "Failed to apply defaults");
+                                    }
+                                  } catch (err: unknown) {
+                                    toast({ title: "Update failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+                                  } finally {
+                                    setIsBulkPricing(false);
+                                  }
+                                }}
+                              >
+                                Yes, apply to all
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                       </>}
 
