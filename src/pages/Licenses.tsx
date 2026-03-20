@@ -1,11 +1,177 @@
 import React, { useState } from "react";
-import { ShieldCheck, Loader2, Mail, ArrowRight, Copy, Check, FileText, ExternalLink, Download } from "lucide-react";
+import { ShieldCheck, Loader2, Mail, ArrowRight, Copy, Check, FileText, ExternalLink, Download, Key, ChevronDown, ChevronUp, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { Link } from "react-router-dom";
+
+interface BuyerToken {
+  id: string;
+  name: string;
+  token_preview: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+}
+
+interface LicenseApiKeysProps {
+  email: string;
+  licenseKey: string;
+}
+
+function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
+  const [open, setOpen] = useState(false);
+  const [tokens, setTokens] = useState<BuyerToken[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [justCreated, setJustCreated] = useState<string | null>(null);
+  const [copiedToken, setCopiedToken] = useState(false);
+  const [revoking, setRevoking] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const call = async (action: string, extra: Record<string, string> = {}) => {
+    const res = await fetch(`${EXT_SUPABASE_URL}/buyer-portal`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
+      body: JSON.stringify({ action, email, license_key: licenseKey, ...extra }),
+    });
+    return res.json();
+  };
+
+  const loadTokens = async () => {
+    setLoading(true); setError(null);
+    try {
+      const result = await call("list_tokens");
+      if (result.success) setTokens(result.data.tokens || []);
+      else setError(result.error || "Failed to load tokens");
+    } catch { setError("Network error"); }
+    finally { setLoading(false); }
+  };
+
+  const handleOpen = () => {
+    if (!open) loadTokens();
+    setOpen((v) => !v);
+    setJustCreated(null);
+  };
+
+  const handleCreate = async () => {
+    setCreating(true); setError(null);
+    try {
+      const result = await call("create_token", { name: newName.trim() || "API Key" });
+      if (result.success) {
+        setJustCreated(result.data.token);
+        setNewName("");
+        await loadTokens();
+      } else {
+        setError(result.error || "Failed to create token");
+      }
+    } catch { setError("Network error"); }
+    finally { setCreating(false); }
+  };
+
+  const handleRevoke = async (tokenId: string) => {
+    setRevoking(tokenId); setError(null);
+    try {
+      const result = await call("revoke_token", { token_id: tokenId });
+      if (result.success) await loadTokens();
+      else setError(result.error || "Failed to revoke");
+    } catch { setError("Network error"); }
+    finally { setRevoking(null); }
+  };
+
+  const handleCopyToken = () => {
+    if (!justCreated) return;
+    navigator.clipboard.writeText(justCreated);
+    setCopiedToken(true);
+    setTimeout(() => setCopiedToken(false), 2000);
+  };
+
+  const activeTokens = tokens.filter((t) => !t.revoked_at);
+
+  return (
+    <div className="mt-2 border-t border-[#E5E7EB] pt-2">
+      <button
+        onClick={handleOpen}
+        className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
+      >
+        <Key size={12} />
+        API Keys {activeTokens.length > 0 && `(${activeTokens.length})`}
+        {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3">
+          {/* Just-created token — show once */}
+          {justCreated && (
+            <div className="bg-[#ECFDF5] border border-[#10B981]/20 rounded-lg p-3 space-y-2">
+              <p className="text-xs font-semibold text-[#059669]">Token created — copy it now. You won't see it again.</p>
+              <div className="flex items-center gap-2">
+                <code className="text-xs font-mono text-[#059669] bg-white border border-[#10B981]/20 rounded px-2 py-1 flex-1 truncate">
+                  {justCreated}
+                </code>
+                <button onClick={handleCopyToken} className="shrink-0 text-[#10B981] hover:text-[#059669]">
+                  {copiedToken ? <Check size={13} /> : <Copy size={13} />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Token list */}
+          {loading ? (
+            <div className="flex items-center gap-2 text-xs text-[#9CA3AF]">
+              <Loader2 size={12} className="animate-spin" /> Loading…
+            </div>
+          ) : activeTokens.length === 0 ? (
+            <p className="text-xs text-[#9CA3AF]">No active API keys.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {activeTokens.map((t) => (
+                <div key={t.id} className="flex items-center gap-2 bg-[#F7F8FA] rounded-lg px-3 py-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-[#111827] truncate">{t.name}</p>
+                    <code className="text-[10px] font-mono text-[#9CA3AF]">{t.token_preview}</code>
+                  </div>
+                  <span className="text-[10px] text-[#9CA3AF] shrink-0">
+                    {t.last_used_at ? `Used ${new Date(t.last_used_at).toLocaleDateString()}` : "Never used"}
+                  </span>
+                  <button
+                    onClick={() => handleRevoke(t.id)}
+                    disabled={revoking === t.id}
+                    className="shrink-0 text-[#9CA3AF] hover:text-[#EF4444] transition-colors disabled:opacity-50"
+                    title="Revoke"
+                  >
+                    {revoking === t.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Create new token */}
+          {activeTokens.length < 5 && (
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Key name (optional)"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="h-7 text-xs"
+                onKeyDown={(e) => e.key === "Enter" && !creating && handleCreate()}
+              />
+              <Button size="sm" onClick={handleCreate} disabled={creating} className="h-7 px-2 text-xs shrink-0">
+                {creating ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+              </Button>
+            </div>
+          )}
+
+          {error && <p className="text-xs text-[#EF4444]">{error}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface BuyerLicense {
   license_key: string;
@@ -171,6 +337,7 @@ export default function Licenses() {
                           <Download size={12} /> Certificate
                         </a>
                       </div>
+                      <LicenseApiKeys email={email} licenseKey={lic.license_key} />
                     </div>
                   ))}
                 </div>
