@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, ExternalLink, Terminal, Search, ShoppingCart, ShieldCheck, Cpu } from "lucide-react";
+import {
+  ArrowRight, ExternalLink, Terminal, Search, ShoppingCart, ShieldCheck,
+  Cpu, Globe, BookOpen, Webhook, Layers, Link2,
+} from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -15,51 +18,119 @@ const fadeUp = {
 const ENDPOINTS = [
   {
     icon: Search,
+    badge: "GET",
     name: "License Discovery",
     path: "/.well-known/opedd.json",
-    description: "Agents discover licensing terms by fetching the publisher's opedd.json manifest — a machine-readable file declaring available content, prices, and license types.",
+    description: "Agents discover a publisher's full content catalog — pricing, license types, available articles, and agent instructions — from a single machine-readable manifest.",
   },
   {
     icon: ShoppingCart,
+    badge: "POST",
     name: "Agent Purchase",
-    path: "POST /functions/v1/agent-purchase",
-    description: "Autonomous license acquisition. Agents submit buyer metadata, select a license type, and receive a license key in a single API call — no human checkout flow required.",
+    path: "/agent-purchase",
+    description: "Autonomous license acquisition with no pre-auth. Pay via Stripe payment method or USDC on Base. Returns a license key immediately — no human checkout flow.",
   },
   {
     icon: ShieldCheck,
+    badge: "GET",
     name: "Verify License",
-    path: "GET /functions/v1/verify-license?key={key}",
-    description: "Cryptographic proof of license validity. Returns the license holder, covered content, license type, and expiration status. Used for compliance auditing.",
+    path: "/verify-license?key={key}",
+    description: "Cryptographic proof of license validity with on-chain verification via Base mainnet. Returns holder, covered content, license type, expiry, and blockchain proof.",
+  },
+  {
+    icon: Globe,
+    badge: "GET",
+    name: "Registry of Proof",
+    path: "/registry?license_key={key}",
+    description: "Query the immutable on-chain license registry by key, article, publisher, or browse the global feed. Every issued license is registered on the Base blockchain.",
+  },
+  {
+    icon: BookOpen,
+    badge: "X-API-Key",
+    name: "Publisher API",
+    path: "/api",
+    description: "Server-to-server API for programmatic catalog access. List articles, purchase licenses in bulk, verify keys, and query usage — all authenticated with your API key.",
+  },
+  {
+    icon: Webhook,
+    badge: "POST",
+    name: "Buyer Webhooks",
+    path: "/register-buyer-webhook",
+    description: "Archive license holders register a webhook to receive content.published events when new articles are added — enabling live, push-based content delivery pipelines.",
   },
 ];
 
-const DISCOVER_CODE = `// 1. Discover licensing terms from any publisher
+const LICENSE_TYPES = [
+  { key: "human", label: "Human", color: "text-blue-600 bg-blue-50 border-blue-100", desc: "Editorial republication rights. Journalists, researchers, analysts." },
+  { key: "ai_inference", label: "AI Inference", color: "text-violet-600 bg-violet-50 border-violet-100", desc: "RAG pipelines, retrieval-augmented generation, real-time AI context." },
+  { key: "ai", label: "AI Training", color: "text-purple-600 bg-purple-50 border-purple-100", desc: "Model fine-tuning and pre-training datasets. One-time bulk license." },
+  { key: "archive", label: "Archive", color: "text-emerald-600 bg-emerald-50 border-emerald-100", desc: "Full catalog access for a publisher. Time-bounded (valid_from → valid_until)." },
+];
+
+const AGENT_CODE = `// 1. Discover the publisher's catalog
 const manifest = await fetch(
   "https://publisher.com/.well-known/opedd.json"
 ).then(r => r.json());
 
-// 2. Select an article and purchase a license
-const result = await fetch(
+// manifest.articles[0] → { id, title, human_price, ai_price, ... }
+
+// 2. Purchase a license (Stripe payment method)
+const license = await fetch(
   "https://api.opedd.com/agent-purchase",
   {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": OPEDD_ANON_KEY,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       article_id: manifest.articles[0].id,
-      license_type: "ai",
-      buyer_email: "agent@yourcompany.com",
-      buyer_name: "Training Pipeline v3",
+      license_type: "ai_inference",   // human | ai_inference | ai | archive
+      buyer_email: "pipeline@yourco.com",
+      buyer_name: "RAG Pipeline v2",
       organization: "YourCo AI Labs",
-      intended_use: "ai_training",
+      intended_use: "ai_training",    // personal | editorial | commercial
+                                      // ai_training | corporate
+      payment: {
+        method: "stripe_pm",
+        payment_method_id: "pm_xxxxxxxxxxxx",
+      },
+      // Or pay with USDC on Base:
+      // payment: { method: "usdc", tx_hash: "0x...", chain: "base" }
     }),
   }
 ).then(r => r.json());
 
-console.log(result.license_key);
-// → "OPEDD-A7X9-K3M2"`;
+console.log(license.data.license_key);
+// → "OPEDD-A7X9-K3M2-BASE" (registered on-chain on Base mainnet)
+
+// 3. Verify at any time
+const proof = await fetch(
+  \`https://api.opedd.com/verify-license?key=\${license.data.license_key}\`
+).then(r => r.json());
+
+console.log(proof.data.blockchain_status);
+// → "confirmed" — immutable proof on Base`;
+
+const PUBLISHER_API_CODE = `// Server-to-server: list your articles
+const articles = await fetch(
+  "https://api.opedd.com/api?action=articles&limit=50",
+  {
+    headers: { "X-API-Key": "op_your_api_key_here" },
+  }
+).then(r => r.json());
+
+// Batch purchase for a content pipeline
+const batch = await fetch("https://api.opedd.com/api", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "op_your_api_key_here",
+  },
+  body: JSON.stringify({
+    action: "batch_purchase",
+    article_ids: ["id-1", "id-2", "id-3"],
+    license_type: "ai_inference",
+    buyer_email: "pipeline@yourco.com",
+  }),
+}).then(r => r.json());`;
 
 const MCP_CONFIG = `{
   "mcpServers": {
@@ -67,11 +138,21 @@ const MCP_CONFIG = `{
       "command": "npx",
       "args": ["opedd-mcp"],
       "env": {
-        "OPEDD_API_KEY": "your-api-key"
+        "OPEDD_BUYER_EMAIL": "you@yourco.com",
+        "OPEDD_PAYMENT_METHOD_ID": "pm_xxxxxxxxxxxx",
+        "OPEDD_API_KEY": "op_your_api_key"
       }
     }
   }
 }`;
+
+const MCP_TOOLS = [
+  { name: "lookup_content", desc: "Search Opedd's catalog by topic, publisher, or URL" },
+  { name: "purchase_license", desc: "Acquire a license key for any article in one call" },
+  { name: "verify_license", desc: "Check validity and on-chain proof of any license key" },
+  { name: "browse_registry", desc: "Query the global immutable license registry" },
+  { name: "list_publisher_content", desc: "List all articles from a specific publisher" },
+];
 
 export default function ForAiAgents() {
   return (
@@ -94,9 +175,9 @@ export default function ForAiAgents() {
               Built for AI agents
             </motion.h1>
             <motion.p variants={fadeUp} custom={2} className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
-              Three endpoints. One API call to discover, purchase, and verify content licenses — designed for autonomous AI systems that need licensed data at scale.
+              Discover, purchase, and verify content licenses programmatically — with on-chain proof on Base, USDC payments, and a native MCP server for Claude and Cursor.
             </motion.p>
-            <motion.div variants={fadeUp} custom={3} className="flex items-center justify-center gap-4 pt-4">
+            <motion.div variants={fadeUp} custom={3} className="flex items-center justify-center gap-4 pt-4 flex-wrap">
               <a
                 href="https://docs.opedd.com"
                 target="_blank"
@@ -114,7 +195,42 @@ export default function ForAiAgents() {
                 <ArrowRight size={15} />
               </a>
             </motion.div>
+
+            {/* On-chain callout */}
+            <motion.div variants={fadeUp} custom={4} className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 mt-4">
+              <Link2 size={16} className="text-[#A78BFA] shrink-0" />
+              <span className="text-sm text-white/60">Every license issued is registered on-chain — <span className="text-white/80 font-medium">Base mainnet · OpeddRegistry.sol</span></span>
+            </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* License Types */}
+      <section className="py-16 border-b border-[#E5E7EB]">
+        <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-10">
+            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-[#4A26ED] mb-3">License Types</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="text-2xl md:text-3xl font-bold text-[#111827] tracking-tight">Four license types, one API</motion.h2>
+          </motion.div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {LICENSE_TYPES.map((lt, i) => (
+              <motion.div
+                key={lt.key}
+                variants={fadeUp}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm"
+              >
+                <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border mb-3 ${lt.color}`}>
+                  {lt.label}
+                </div>
+                <p className="text-sm text-[#6B7280] leading-relaxed">{lt.desc}</p>
+                <code className={`text-[11px] font-mono mt-3 block ${lt.color.split(" ")[0]}`}>{lt.key}</code>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -123,8 +239,8 @@ export default function ForAiAgents() {
         <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
             <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-[#4A26ED] mb-3">Core Endpoints</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-[#111827] tracking-tight">Three primitives, infinite workflows</motion.h2>
-            <motion.p variants={fadeUp} custom={2} className="text-[#6B7280] mt-3 max-w-xl mx-auto">Every content licensing operation your agent needs — discovery, acquisition, and verification — maps to a single REST call.</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-[#111827] tracking-tight">Purpose-built for autonomous workflows</motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="text-[#6B7280] mt-3 max-w-xl mx-auto">Every content licensing operation your agent needs — discovery, acquisition, verification, and proof — maps to a clean REST call.</motion.p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -138,10 +254,13 @@ export default function ForAiAgents() {
                 viewport={{ once: true }}
                 className="bg-white rounded-2xl border border-[#E5E7EB] p-7 shadow-sm hover:shadow-md hover:border-[#4A26ED]/20 transition-all group"
               >
-                <div className="w-11 h-11 rounded-xl bg-[#4A26ED]/5 flex items-center justify-center mb-5 group-hover:bg-[#4A26ED]/10 transition-colors">
-                  <ep.icon size={20} className="text-[#4A26ED]" />
+                <div className="flex items-start justify-between mb-5">
+                  <div className="w-11 h-11 rounded-xl bg-[#4A26ED]/5 flex items-center justify-center group-hover:bg-[#4A26ED]/10 transition-colors">
+                    <ep.icon size={20} className="text-[#4A26ED]" />
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#6B7280] uppercase tracking-wide">{ep.badge}</span>
                 </div>
-                <h3 className="text-lg font-bold text-[#111827] mb-1">{ep.name}</h3>
+                <h3 className="text-base font-bold text-[#111827] mb-1">{ep.name}</h3>
                 <code className="text-xs font-mono text-[#4A26ED]/70 bg-[#4A26ED]/5 px-2 py-0.5 rounded">{ep.path}</code>
                 <p className="text-sm text-[#6B7280] mt-3 leading-relaxed">{ep.description}</p>
               </motion.div>
@@ -150,13 +269,13 @@ export default function ForAiAgents() {
         </div>
       </section>
 
-      {/* Code Example */}
+      {/* Code Example — Agent Purchase */}
       <section className="py-20 lg:py-28 bg-[#040042]">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-12">
             <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-[#A78BFA] mb-3">Quick Start</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-white tracking-tight">Discover and license in one call</motion.h2>
-            <motion.p variants={fadeUp} custom={2} className="text-white/40 mt-3 max-w-xl mx-auto">Your agent discovers a publisher's content catalog, picks an article, and acquires a license — all programmatically.</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-white tracking-tight">Discover, license, and verify in three calls</motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="text-white/40 mt-3 max-w-xl mx-auto">Your agent discovers a publisher's catalog, acquires a license with Stripe or USDC, and gets cryptographic on-chain proof — all programmatically.</motion.p>
           </motion.div>
 
           <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true }}>
@@ -170,17 +289,67 @@ export default function ForAiAgents() {
                 <span className="text-white/30 text-xs font-mono ml-3">agent.ts</span>
               </div>
               <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                <code className="text-white/80 font-mono whitespace-pre">{DISCOVER_CODE}</code>
+                <code className="text-white/80 font-mono whitespace-pre">{AGENT_CODE}</code>
               </pre>
             </div>
           </motion.div>
         </div>
       </section>
 
+      {/* Publisher API */}
+      <section className="py-20 lg:py-28 bg-[#F9FAFB] border-y border-[#E5E7EB]">
+        <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
+          <div className="grid md:grid-cols-2 gap-12 items-start">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-5">
+              <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-full px-3.5 py-1 text-xs font-semibold text-[#4A26ED] uppercase tracking-wider">
+                <Layers size={13} />
+                Publisher API
+              </motion.div>
+              <motion.h2 variants={fadeUp} custom={1} className="text-3xl font-bold text-[#111827] tracking-tight">
+                Server-to-server integration
+              </motion.h2>
+              <motion.p variants={fadeUp} custom={2} className="text-[#6B7280] leading-relaxed">
+                Authenticate with your <code className="text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded font-mono border border-[#E5E7EB]">X-API-Key</code> header to access your full catalog, run batch purchases, verify keys at scale, and query usage — all server-to-server. Your API key is in Settings → API Keys.
+              </motion.p>
+              <motion.div variants={fadeUp} custom={3} className="space-y-2">
+                {[
+                  { action: "articles", desc: "List and search your article catalog" },
+                  { action: "purchase", desc: "Single-article license purchase" },
+                  { action: "batch_purchase", desc: "Bulk license acquisition" },
+                  { action: "verify", desc: "Verify any license key" },
+                  { action: "usage", desc: "Query license usage and analytics" },
+                ].map((item) => (
+                  <div key={item.action} className="flex items-center gap-3">
+                    <code className="text-xs font-mono text-[#4A26ED] bg-[#4A26ED]/5 px-2 py-0.5 rounded border border-[#4A26ED]/10 shrink-0">{item.action}</code>
+                    <span className="text-sm text-[#6B7280]">{item.desc}</span>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+
+            <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <div className="bg-[#0D0D2B] rounded-2xl border border-[#1E1E3A] overflow-hidden shadow-lg">
+                <div className="flex items-center gap-2 px-5 py-3 border-b border-white/5">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                  </div>
+                  <span className="text-white/30 text-xs font-mono ml-3">publisher-api.ts</span>
+                </div>
+                <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
+                  <code className="text-white/80 font-mono whitespace-pre">{PUBLISHER_API_CODE}</code>
+                </pre>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* MCP Server */}
       <section className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-12 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-5">
               <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-full px-3.5 py-1 text-xs font-semibold text-[#4A26ED] uppercase tracking-wider">
                 <Terminal size={13} />
@@ -190,12 +359,21 @@ export default function ForAiAgents() {
                 Native tool for Claude, Cursor & any MCP client
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} className="text-[#6B7280] leading-relaxed">
-                Install the Opedd MCP server and your AI assistant gains direct access to content licensing — discovering articles, purchasing licenses, and verifying proofs without leaving the conversation.
+                Install the Opedd MCP server and your AI assistant gains direct access to content licensing — discovering articles, purchasing licenses, verifying proofs, and browsing the on-chain registry without leaving the conversation.
               </motion.p>
               <motion.div variants={fadeUp} custom={3} className="flex items-center gap-2">
                 <div className="bg-[#F3F4F6] rounded-lg px-4 py-2.5 font-mono text-sm text-[#111827] border border-[#E5E7EB]">
                   npx opedd-mcp
                 </div>
+              </motion.div>
+              <motion.div variants={fadeUp} custom={4} className="space-y-2 pt-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#9CA3AF] mb-3">5 tools included</p>
+                {MCP_TOOLS.map((tool) => (
+                  <div key={tool.name} className="flex items-start gap-3">
+                    <code className="text-[11px] font-mono text-[#4A26ED] bg-[#4A26ED]/5 px-2 py-0.5 rounded border border-[#4A26ED]/10 shrink-0 mt-0.5">{tool.name}</code>
+                    <span className="text-sm text-[#6B7280]">{tool.desc}</span>
+                  </div>
+                ))}
               </motion.div>
             </motion.div>
 
@@ -218,13 +396,49 @@ export default function ForAiAgents() {
         </div>
       </section>
 
+      {/* On-chain Registry */}
+      <section className="py-16 bg-gradient-to-r from-[#040042] to-[#1a0066]">
+        <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1 space-y-3">
+              <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3.5 py-1 text-xs font-semibold text-[#A78BFA] uppercase tracking-wider">
+                <Link2 size={13} />
+                On-Chain Registry
+              </div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">Every license lives on Base mainnet</h2>
+              <p className="text-white/50 leading-relaxed text-sm">
+                Every license Opedd issues — human, AI, archive — is registered on the <span className="text-white/80">OpeddRegistry smart contract</span> deployed on Base. Verify any license key on-chain, independently of Opedd's infrastructure.
+              </p>
+              <div className="flex items-center gap-3 pt-1">
+                <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
+                  0x0ca09c63cd768490dad1734594c0ee3bfd3cce55
+                </code>
+              </div>
+            </div>
+            <div className="shrink-0 grid grid-cols-2 gap-3 text-center">
+              {[
+                { label: "Network", value: "Base" },
+                { label: "Status", value: "Live" },
+                { label: "Payment", value: "Stripe + USDC" },
+                { label: "Proof", value: "On-chain" },
+              ].map((item) => (
+                <div key={item.label} className="bg-white/5 border border-white/10 rounded-xl px-5 py-3">
+                  <div className="text-xs text-white/40 mb-1">{item.label}</div>
+                  <div className="text-sm font-bold text-white">{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-20 lg:py-28 bg-[#F9FAFB] border-t border-[#E5E7EB]">
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-6">
             <motion.h2 variants={fadeUp} custom={0} className="text-3xl font-bold text-[#111827] tracking-tight">Start licensing content today</motion.h2>
-            <motion.p variants={fadeUp} custom={1} className="text-[#6B7280]">Read the full API reference, explore endpoints, and integrate Opedd into your AI pipeline.</motion.p>
-            <motion.div variants={fadeUp} custom={2} className="flex items-center justify-center gap-4 pt-2">
+            <motion.p variants={fadeUp} custom={1} className="text-[#6B7280]">Read the full API reference, explore all endpoints, and integrate Opedd into your AI pipeline in minutes.</motion.p>
+            <motion.div variants={fadeUp} custom={2} className="flex items-center justify-center gap-4 pt-2 flex-wrap">
               <a
                 href="https://docs.opedd.com"
                 target="_blank"
