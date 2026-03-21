@@ -222,6 +222,8 @@ export default function Settings() {
   const [defaultHumanPrice, setDefaultHumanPrice] = useState("5.00");
   const [defaultSyndicationPrice, setDefaultSyndicationPrice] = useState("500.00");
   const [defaultAiPrice, setDefaultAiPrice] = useState("");
+  const [aiAnnualPrice, setAiAnnualPrice] = useState("");
+  const [publisherCategory, setPublisherCategory] = useState("");
   const [publisherPricingRules, setPublisherPricingRules] = useState<Record<string, any> | null>(null);
 
   // Bulk pricing state
@@ -364,6 +366,8 @@ export default function Settings() {
         setDefaultSyndicationPrice(String(syndicationPrice));
         setPublisherPricingRules(d.pricing_rules ?? null);
         setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "");
+        setAiAnnualPrice((d as any).ai_annual_price != null ? String((d as any).ai_annual_price) : "");
+        setPublisherCategory((d as any).category || "");
         setLogoPreview(d.logo_url || null);
       }
     } catch (err) {
@@ -658,10 +662,10 @@ export default function Settings() {
   // Plan data
   const PLANS = [
     { key: "free", name: "Free", price: "$0", period: "/month", description: "For publishers getting started", features: [{ text: "Up to 500 articles" }, { text: "Widget embedding" }, { text: "Basic analytics" }, { text: "Email support" }], highlighted: false },
-    { key: "pro", name: "Pro", price: "$79", period: "/month", description: "For growing independent publishers", features: [{ text: "Unlimited articles" }, { text: "8% platform fee (vs 15% free)" }, { text: "Custom webhooks" }, { text: "Team members (up to 5)" }, { text: "Priority support" }, { text: "Advanced analytics" }], highlighted: true },
-    { key: "enterprise", name: "Enterprise", price: "$249", period: "/month", description: "For media organisations & large catalogs", features: [{ text: "Everything in Pro" }, { text: "5% platform fee (vs 15% free)" }, { text: "Unlimited team members" }, { text: "Custom integrations" }, { text: "Dedicated support" }, { text: "SLA guarantee" }], highlighted: false },
+    { key: "pro", name: "Pro", price: "$49", period: "/month", description: "For growing independent publishers", features: [{ text: "Unlimited articles" }, { text: "9% platform fee (vs 15% free)" }, { text: "Custom webhooks" }, { text: "Team members (up to 5)" }, { text: "Priority support" }, { text: "Advanced analytics" }], highlighted: true },
+    { key: "enterprise", name: "Enterprise", price: "$199", period: "/month", description: "For media organisations & large catalogs", features: [{ text: "Everything in Pro" }, { text: "5% platform fee (vs 15% free)" }, { text: "Unlimited team members" }, { text: "Custom integrations" }, { text: "Dedicated support" }, { text: "SLA guarantee" }], highlighted: false },
   ];
-  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = { pro: { price: "$63", total: "$756/year" }, enterprise: { price: "$199", total: "$2,388/year" } };
+  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = { pro: { price: "$39", total: "$470/year" }, enterprise: { price: "$159", total: "$1,910/year" } };
 
   if (!user) return null;
 
@@ -689,6 +693,8 @@ export default function Settings() {
           default_human_price: parseFloat(defaultHumanPrice) || 0,
           pricing_rules: mergedRules,
           default_ai_price: defaultAiPrice ? parseFloat(defaultAiPrice) : null,
+          ai_annual_price: aiAnnualPrice ? parseFloat(aiAnnualPrice) : null,
+          category: publisherCategory || null,
           website_url: websiteUrl,
           description: bio,
           contact_email: contactEmail || null,
@@ -1029,6 +1035,28 @@ export default function Settings() {
                             <p className="text-xs text-slate-400">Displayed on your public licensing page</p>
                           </div>
                           <div className="space-y-2">
+                            <Label className="text-[#040042] font-bold text-sm">Publication Category</Label>
+                            <select
+                              value={publisherCategory}
+                              onChange={(e) => setPublisherCategory(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg h-10 px-3 text-sm text-[#040042] focus:outline-none focus:border-[#4A26ED] focus:ring-1 focus:ring-[#4A26ED]/20"
+                            >
+                              <option value="">Select a category…</option>
+                              <option value="News & Politics">News &amp; Politics</option>
+                              <option value="Technology">Technology</option>
+                              <option value="Finance & Business">Finance &amp; Business</option>
+                              <option value="Science & Research">Science &amp; Research</option>
+                              <option value="Culture & Arts">Culture &amp; Arts</option>
+                              <option value="Health & Medicine">Health &amp; Medicine</option>
+                              <option value="Law & Policy">Law &amp; Policy</option>
+                              <option value="Sports">Sports</option>
+                              <option value="Opinion & Commentary">Opinion &amp; Commentary</option>
+                              <option value="Academic & Education">Academic &amp; Education</option>
+                              <option value="Other">Other</option>
+                            </select>
+                            <p className="text-xs text-slate-400">Used by AI systems to discover and license your content</p>
+                          </div>
+                          <div className="space-y-2">
                             <Label className="text-sm font-medium text-[#6B7280]">Licensing Contact Email</Label>
                             <div className="relative">
                               <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1163,6 +1191,18 @@ export default function Settings() {
                             <Input type="number" min="0" step="0.01" value={defaultAiPrice} onChange={(e) => setDefaultAiPrice(e.target.value)} placeholder="0.00" className="bg-white border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                           </div>
                           <p className="text-xs text-slate-500 italic">For AI dataset licensing. Leave blank to disable.</p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div className="flex items-baseline justify-between">
+                            <Label className="text-[#040042] font-bold text-sm">AI annual catalog rate</Label>
+                            <span className="text-xs text-slate-400">per year (optional)</span>
+                          </div>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                            <Input type="number" min="0" step="1" value={aiAnnualPrice} onChange={(e) => setAiAnnualPrice(e.target.value)} placeholder="0" className="bg-white border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                          </div>
+                          <p className="text-xs text-slate-500 italic">Annual flat rate for AI systems licensing your full catalog. Used for enterprise licensing.</p>
                         </div>
 
                         <Button onClick={handleSave} disabled={isSaving} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-xl font-semibold disabled:opacity-50 transition-all active:scale-[0.98]">

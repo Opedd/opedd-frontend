@@ -28,6 +28,8 @@ interface VerifyOwnershipModalProps {
     id: string;
     name: string;
     platform: string | null;
+    url?: string | null;
+    feed_url?: string | null;
     verification_token?: string | null;
   } | null;
   registrationMode?: boolean;
@@ -43,6 +45,21 @@ const generateVerificationCode = () => {
 
 type Step = 1 | 2;
 type VerifyResult = "idle" | "loading" | "success" | "failed";
+
+// Hosted platforms where publishers cannot add DNS TXT records
+const HOSTED_DOMAINS = ["substack.com", "beehiiv.com", "ghost.io", "medium.com", "wordpress.com"];
+
+function isHostedPlatform(platform: string | null, siteUrl?: string | null): boolean {
+  const p = (platform || "").toLowerCase();
+  if (p === "substack" || p === "beehiiv") return true;
+  if (siteUrl) {
+    try {
+      const hostname = new URL(siteUrl).hostname.toLowerCase();
+      return HOSTED_DOMAINS.some(d => hostname === d || hostname.endsWith(`.${d}`));
+    } catch { /* ignore */ }
+  }
+  return false;
+}
 
 const getPlatformInstructions = (platform: string | null): string => {
   switch ((platform || "").toLowerCase()) {
@@ -86,8 +103,16 @@ export function VerifyOwnershipModal({
   if (!source) return null;
 
   const displayToken = token || source.verification_token || "—";
+  const siteUrl = source.url || source.feed_url || null;
+  const hosted = isHostedPlatform(source.platform, siteUrl);
   const platformLower = (source.platform || "").toLowerCase();
   const showMetaOption = platformLower !== "substack" && platformLower !== "beehiiv";
+
+  // Derive domain for DNS TXT instructions
+  let domainForDns = "";
+  try {
+    if (siteUrl) domainForDns = new URL(siteUrl).hostname;
+  } catch { /* ignore */ }
 
   const handleCopy = async (text: string) => {
     try {
@@ -132,7 +157,11 @@ export function VerifyOwnershipModal({
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ source_id: source.id }),
+        body: JSON.stringify({
+          source_id: source.id,
+          // Non-hosted platforms: DNS TXT is the default (backend also auto-detects)
+          ...(hosted ? {} : { method: "dns_txt" }),
+        }),
       });
       const result = await res.json();
 
@@ -214,47 +243,102 @@ export function VerifyOwnershipModal({
       {/* Divider */}
       <div className="border-t border-slate-200" />
 
-      {/* Platform instructions */}
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
-        <p className="text-sm text-[#040042] leading-relaxed">
-          {getPlatformInstructions(source.platform)}
-        </p>
-      </div>
-
-      {/* Options */}
-      <div className="space-y-3">
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
-          <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
-            <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-semibold">Option A</Badge>
-            <span className="text-xs font-semibold text-[#040042]">Visible — About / Bio</span>
+      {/* Platform instructions or DNS instructions */}
+      {hosted ? (
+        <>
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+            <p className="text-sm text-[#040042] leading-relaxed">
+              {getPlatformInstructions(source.platform)}
+            </p>
           </div>
-          <div className="p-3">
-            <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
-              <code className="text-xs text-emerald-400 font-mono truncate">Verify with Opedd: {displayToken}</code>
-              <button onClick={() => handleCopy(`Verify with Opedd: ${displayToken}`)} className="text-white/60 hover:text-white flex-shrink-0">
-                {copied ? <Check size={12} /> : <Copy size={12} />}
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {showMetaOption && (
-          <div className="rounded-xl border border-slate-200 overflow-hidden">
-            <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
-              <Badge variant="outline" className="text-[10px] px-2 py-0 bg-teal-50 text-teal-700 border-teal-200 font-semibold">Option B</Badge>
-              <span className="text-xs font-semibold text-[#040042]">Hidden — Meta Tag</span>
+          {/* Options */}
+          <div className="space-y-3">
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+                <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-semibold">Option A</Badge>
+                <span className="text-xs font-semibold text-[#040042]">Visible — About / Bio</span>
+              </div>
+              <div className="p-3">
+                <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                  <code className="text-xs text-emerald-400 font-mono truncate">Verify with Opedd: {displayToken}</code>
+                  <button onClick={() => handleCopy(`Verify with Opedd: ${displayToken}`)} className="text-white/60 hover:text-white flex-shrink-0">
+                    {copied ? <Check size={12} /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="p-3">
-              <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
-                <code className="text-xs text-emerald-400 font-mono truncate">{`<meta name="opedd-verification" content="${displayToken}" />`}</code>
-                <button onClick={() => handleCopy(`<meta name="opedd-verification" content="${displayToken}" />`)} className="text-white/60 hover:text-white flex-shrink-0">
-                  {copied ? <Check size={12} /> : <Copy size={12} />}
-                </button>
+
+            {showMetaOption && (
+              <div className="rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+                  <Badge variant="outline" className="text-[10px] px-2 py-0 bg-teal-50 text-teal-700 border-teal-200 font-semibold">Option B</Badge>
+                  <span className="text-xs font-semibold text-[#040042]">Hidden — Meta Tag</span>
+                </div>
+                <div className="p-3">
+                  <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                    <code className="text-xs text-emerald-400 font-mono truncate">{`<meta name="opedd-verification" content="${displayToken}" />`}</code>
+                    <button onClick={() => handleCopy(`<meta name="opedd-verification" content="${displayToken}" />`)} className="text-white/60 hover:text-white flex-shrink-0">
+                      {copied ? <Check size={12} /> : <Copy size={12} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* DNS TXT verification for custom domains */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
+            <p className="text-sm font-semibold text-[#040042]">Add a DNS TXT record to your domain</p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Log in to your domain registrar (GoDaddy, Cloudflare, Namecheap, etc.) and add the following TXT record. DNS changes typically propagate within 5 minutes.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+                <span className="text-xs font-semibold text-[#040042]">Record Type</span>
+              </div>
+              <div className="p-3">
+                <div className="bg-[#040042] rounded-lg p-3">
+                  <code className="text-xs text-emerald-400 font-mono">TXT</code>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+                <span className="text-xs font-semibold text-[#040042]">Host / Name</span>
+              </div>
+              <div className="p-3">
+                <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                  <code className="text-xs text-emerald-400 font-mono">{domainForDns || "@"}</code>
+                  <button onClick={() => handleCopy(domainForDns || "@")} className="text-white/60 hover:text-white flex-shrink-0">
+                    {copied ? <Check size={12} /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-slate-50 px-4 py-2.5 flex items-center gap-2 border-b border-slate-200">
+                <span className="text-xs font-semibold text-[#040042]">Value</span>
+              </div>
+              <div className="p-3">
+                <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                  <code className="text-xs text-emerald-400 font-mono tracking-wider">{displayToken}</code>
+                  <button onClick={() => handleCopy(displayToken)} className="text-white/60 hover:text-white flex-shrink-0">
+                    {copied ? <Check size={12} /> : <Copy size={12} />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 
