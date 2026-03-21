@@ -1057,6 +1057,14 @@ export default function Settings() {
                             <p className="text-xs text-slate-400">Used by AI systems to discover and license your content</p>
                           </div>
                           <div className="space-y-2">
+                            <Label className="text-[#040042] font-bold text-sm">Annual Catalog Price (USD)</Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                              <Input type="number" min="0" step="1" value={aiAnnualPrice} onChange={(e) => setAiAnnualPrice(e.target.value)} placeholder="0" className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                            </div>
+                            <p className="text-xs text-slate-400">Flat annual rate for enterprise AI catalog licensing. Leave blank to auto-calculate from per-article AI price.</p>
+                          </div>
+                          <div className="space-y-2">
                             <Label className="text-sm font-medium text-[#6B7280]">Licensing Contact Email</Label>
                             <div className="relative">
                               <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
