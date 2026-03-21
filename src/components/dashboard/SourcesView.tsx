@@ -78,6 +78,7 @@ interface SourcesViewProps {
 export function SourcesView({ onAddSource }: SourcesViewProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { platform: platformApiHook } = useAuthenticatedApi();
   const [sources, setSources] = useState<Source[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -88,6 +89,13 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
   const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
   const [publisherLogoUrl, setPublisherLogoUrl] = useState<string | null>(null);
   const [publisherId, setPublisherId] = useState<string | null>(null);
+
+  // URL input + platform detection
+  const [connectUrl, setConnectUrl] = useState("");
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [copiedEmailId, setCopiedEmailId] = useState<string | null>(null);
 
   const fetchSources = async () => {
     if (!user) return;
