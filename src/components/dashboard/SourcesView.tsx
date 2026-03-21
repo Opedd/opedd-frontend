@@ -375,6 +375,9 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   return (
     <div className="space-y-4">
+      {/* URL Input Bar */}
+      {urlInputBar}
+
       {/* Summary Bar */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-[#040042]/50">
