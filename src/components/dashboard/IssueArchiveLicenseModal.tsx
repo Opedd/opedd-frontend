@@ -231,7 +231,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               {isUpgrading ? (
                 <><Loader2 size={16} className="mr-2 animate-spin" />Preparing checkout...</>
               ) : (
-                <><Zap size={16} className="mr-2" />Upgrade to Pro — $79/mo</>
+                <><Zap size={16} className="mr-2" />Upgrade to Pro — $49/mo</>
               )}
             </Button>
             <button onClick={handleClose} className="text-sm text-slate-400 hover:text-slate-600 w-full">

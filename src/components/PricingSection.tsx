@@ -25,9 +25,9 @@ const tiers = [
   {
     name: "Pro",
     icon: Crown,
-    price: "$79",
+    price: "$49",
     period: "/month",
-    description: "Advanced AI licensing with full ownership tracking for serious publishers",
+    description: "Advanced AI licensing with full ownership tracking for serious creators",
     features: [
       { name: "Unlimited articles", included: true },
       { name: "Human licensing & content reuse", included: true },
@@ -44,9 +44,9 @@ const tiers = [
   {
     name: "Enterprise",
     icon: Building2,
-    price: "$249",
+    price: "$199",
     period: "/month",
-    description: "For media companies and large publishers",
+    description: "For media teams and large publications",
     features: [
       { name: "Unlimited articles", included: true },
       { name: "Human licensing & reuse", included: true },
