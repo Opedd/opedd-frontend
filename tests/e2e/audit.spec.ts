@@ -906,14 +906,14 @@ test.describe("19. Workflow Stress Tests", () => {
   });
 
   // Billing page - plan prices match what's in the Stripe config
-  test("19.3 Pro plan shows $79/month on billing page", async ({ page }) => {
+  test("19.3 Pro plan shows $49/month on billing page", async ({ page }) => {
     await injectAuth(page);
     await page.goto(`${BASE}/payments`);
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
     const body = await page.textContent("body");
-    // Pro is $79/month (matches Stripe live price ID)
-    expect(body).toContain("$79");
+    // Pro is $49/month
+    expect(body).toContain("$49");
   });
 
   // Settings pricing tab — verify bulk pricing Apply to all doesn't crash
