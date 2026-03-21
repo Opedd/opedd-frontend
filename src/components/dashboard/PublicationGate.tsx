@@ -4,7 +4,7 @@ import { AlertTriangle, ShieldCheck, Plus, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
 
 export interface PendingSource {
   id: string;
@@ -33,8 +33,6 @@ interface PublicationGateProps {
   /** The content to render when gate is open */
   children: React.ReactNode;
 }
-
-const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
 export function PublicationGate({
   isVerified,

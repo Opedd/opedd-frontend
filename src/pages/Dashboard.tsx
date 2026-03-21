@@ -5,7 +5,8 @@ import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTria
 
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
+import { deriveSlug } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
@@ -41,7 +42,6 @@ export default function Dashboard() {
   const [stripeConnected, setStripeConnected] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
 
-  const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
   const isAdmin = user?.email === ADMIN_EMAIL;
 
   // Admin stats state
@@ -86,16 +86,6 @@ export default function Dashboard() {
       setHasActivePublication(false);
     }
   }, [user]);
-
-  function deriveSlug(websiteUrl: string | null): string {
-    if (!websiteUrl) return "";
-    const domain = websiteUrl
-      .replace(/^https?:\/\//, "")
-      .replace(/^www\./, "")
-      .split("/")[0]
-      .split(":")[0];
-    return domain.split(".")[0].toLowerCase();
-  }
 
   const fetchMetrics = useCallback(async () => {
     if (!user) return;

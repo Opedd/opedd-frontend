@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { deriveSlug } from "@/lib/utils";
 import { PublicationGate } from "@/components/dashboard/PublicationGate";
 
 // --- Interfaces ---
@@ -78,16 +79,6 @@ interface Transaction {
 }
 
 // --- Helpers ---
-
-function deriveSlug(websiteUrl: string | null): string {
-  if (!websiteUrl) return "";
-  const domain = websiteUrl
-    .replace(/^https?:\/\//, "")
-    .replace(/^www\./, "")
-    .split("/")[0]
-    .split(":")[0];
-  return domain.split(".")[0].toLowerCase();
-}
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "—";

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { deriveSlug } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Webhook,
@@ -43,12 +44,6 @@ import { useToast } from "@/hooks/use-toast";
 import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
 import { WidgetEmbedCard } from "@/components/dashboard/WidgetEmbedCard";
 import { PublicationGate } from "@/components/dashboard/PublicationGate";
-
-function deriveSlug(websiteUrl: string | null): string {
-  if (!websiteUrl) return "";
-  const domain = websiteUrl.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].split(":")[0];
-  return domain.split(".")[0].toLowerCase();
-}
 
 function deriveDomain(websiteUrl: string | null): string {
   if (!websiteUrl) return "";

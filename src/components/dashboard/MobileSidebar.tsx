@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import opeddLogo from "@/assets/opedd-logo.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { ADMIN_EMAIL } from "@/lib/constants";
 
-const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: Library },

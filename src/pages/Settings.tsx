@@ -12,7 +12,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
 import {
   User,
   Globe,
@@ -80,9 +80,6 @@ import { useToast } from "@/hooks/use-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { PublicationGate, LockedTabContent } from "@/components/dashboard/PublicationGate";
-
-const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
-
 
 interface StripeConnect {
   connected: boolean;

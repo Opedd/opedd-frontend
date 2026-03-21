@@ -4,8 +4,7 @@ import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard,
 import opeddLogo from "@/assets/opedd-logo.png";
 import { MobileSidebar } from "./MobileSidebar";
 import { useAuth } from "@/contexts/AuthContext";
-
-const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
+import { ADMIN_EMAIL } from "@/lib/constants";
 
 const navItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },

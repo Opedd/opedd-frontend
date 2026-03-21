@@ -2,15 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
 import {
   Users, DollarSign, Activity, AlertTriangle, Search, Copy, Check,
   ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-
-const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
 // --------------- Types ---------------
 

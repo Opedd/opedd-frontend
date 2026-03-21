@@ -15,14 +15,12 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useCallback } from "react";
 import opeddLogo from "@/assets/opedd-logo.png";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-
-const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
 
 type PlanType = "free" | "pro" | "enterprise";
 const planBadgeStyles: Record<PlanType, { classes: string; label: string }> = {
