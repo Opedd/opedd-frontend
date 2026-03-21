@@ -62,12 +62,12 @@ const PLANS: Plan[] = [
   {
     key: "pro",
     name: "Pro",
-    price: "$79",
+    price: "$49",
     period: "/month",
-    description: "For growing independent publishers",
+    description: "For serious writers & newsletters",
     features: [
       { text: "Unlimited articles" },
-      { text: "8% platform fee (vs 15% free)" },
+      { text: "9% platform fee (vs 15% free)" },
       { text: "Custom webhooks" },
       { text: "Team members (up to 5)" },
       { text: "Priority support" },
@@ -78,9 +78,9 @@ const PLANS: Plan[] = [
   {
     key: "enterprise",
     name: "Enterprise",
-    price: "$249",
+    price: "$199",
     period: "/month",
-    description: "For media organisations & large catalogs",
+    description: "For media teams & publications",
     features: [
       { text: "Everything in Pro" },
       { text: "5% platform fee (vs 15% free)" },
@@ -94,8 +94,8 @@ const PLANS: Plan[] = [
 ];
 
 const ANNUAL_PRICES: Record<string, { price: string; total: string }> = {
-  pro:        { price: "$63", total: "$756/year" },
-  enterprise: { price: "$199", total: "$2,388/year" },
+  pro:        { price: "$39", total: "$470/year" },
+  enterprise: { price: "$159", total: "$1,910/year" },
 };
 
 export default function Payments() {
