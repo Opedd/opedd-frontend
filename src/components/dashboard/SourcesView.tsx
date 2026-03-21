@@ -696,6 +696,17 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Platform Connect Modal */}
+      {detectionResult && (
+        <PlatformConnectModal
+          open={showConnectModal}
+          onOpenChange={setShowConnectModal}
+          detection={detectionResult}
+          url={connectUrl.trim().startsWith("http") ? connectUrl.trim() : `https://${connectUrl.trim()}`}
+          onComplete={() => { setConnectUrl(""); setDetectionResult(null); fetchSources(); }}
+        />
+      )}
     </div>
   );
 }
