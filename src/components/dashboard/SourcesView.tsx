@@ -3,6 +3,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
+import { copyToClipboard } from "@/lib/clipboard";
+import type { DetectionResult } from "@/lib/api";
 import {
   Rss,
   Trash2,
@@ -13,6 +16,11 @@ import {
   Globe,
   ShieldCheck,
   DollarSign,
+  Search,
+  Copy,
+  Check,
+  Mail,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +41,7 @@ import {
 } from "@/components/ui/dialog";
 import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
 import { SourcePricingModal } from "@/components/dashboard/SourcePricingModal";
+import { PlatformConnectModal } from "@/components/dashboard/PlatformConnectModal";
 
 // Platform logos
 import substackLogo from "@/assets/platforms/substack.svg";
