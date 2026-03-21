@@ -255,27 +255,103 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     }
   }, [sources]);
 
+  // Detect platform from URL
+  const handleDetectPlatform = async () => {
+    const trimmed = connectUrl.trim();
+    if (!trimmed) return;
+    // Basic URL normalization
+    let normalizedUrl = trimmed;
+    if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = "https://" + normalizedUrl;
+    setIsDetecting(true);
+    try {
+      const result = await platformApiHook.detect(normalizedUrl);
+      setDetectionResult(result);
+      setShowConnectModal(true);
+    } catch (err: any) {
+      toast({
+        title: "Detection failed",
+        description: err?.message || "Could not detect platform for this URL.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
+  // Helper to copy inbound email on source cards
+  const handleCopyEmail = async (email: string, sourceId: string) => {
+    const ok = await copyToClipboard(email);
+    if (ok) {
+      setCopiedEmailId(sourceId);
+      setTimeout(() => setCopiedEmailId(null), 2000);
+    }
+  };
+
+  // URL input bar — shown always at top
+  const urlInputBar = (
+    <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-sm">
+      <form
+        onSubmit={(e) => { e.preventDefault(); handleDetectPlatform(); }}
+        className="flex items-center gap-3"
+      >
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="https://yourpublication.com or substack URL…"
+            value={connectUrl}
+            onChange={(e) => setConnectUrl(e.target.value)}
+            className="pl-9 h-11"
+          />
+        </div>
+        <Button
+          type="submit"
+          disabled={isDetecting || !connectUrl.trim()}
+          className="h-11 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold shrink-0"
+        >
+          {isDetecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+          Connect
+        </Button>
+      </form>
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-[#4A26ED]" />
+      <div className="space-y-4">
+        {urlInputBar}
+        <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-12 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-[#4A26ED]" />
+        </div>
       </div>
     );
   }
 
   if (sources.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-[#E8F2FB] p-12 text-center space-y-4">
-        <div className="mx-auto w-16 h-16 rounded-2xl bg-[#4A26ED]/10 flex items-center justify-center">
-          <Rss size={28} className="text-[#4A26ED]" />
+      <div className="space-y-4">
+        {urlInputBar}
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-12 text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-[#4A26ED]/10 flex items-center justify-center">
+            <Rss size={28} className="text-[#4A26ED]" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-[#040042]">No Content Sources</h3>
+            <p className="text-sm text-[#040042]/60 mt-1 max-w-sm mx-auto">
+              Enter your publication URL above to connect and start importing content.
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-bold text-[#040042]">No Content Sources</h3>
-          <p className="text-sm text-[#040042]/60 mt-1 max-w-sm mx-auto">
-            Register a feed or sitemap to start syncing articles into your library automatically.
-          </p>
-        </div>
-        <p className="text-xs text-[#040042]/40 mt-1">Use the <strong>"Register Content"</strong> button above to get started.</p>
+
+        {/* Platform Connect Modal */}
+        {detectionResult && (
+          <PlatformConnectModal
+            open={showConnectModal}
+            onOpenChange={setShowConnectModal}
+            detection={detectionResult}
+            url={connectUrl.trim().startsWith("http") ? connectUrl.trim() : `https://${connectUrl.trim()}`}
+            onComplete={() => { setConnectUrl(""); setDetectionResult(null); fetchSources(); }}
+          />
+        )}
       </div>
     );
   }
