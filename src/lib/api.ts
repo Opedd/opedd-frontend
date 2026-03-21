@@ -207,4 +207,71 @@ export const contentSourcesApi = {
     apiFetch<T>(`${API.contentSources}/${sourceId}/sync`, { method: 'POST' }, token),
 };
 
+// Platform Connect API (direct Edge Function)
+export interface DetectionResult {
+  platform: "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
+  confidence: "high" | "medium" | "low";
+  name: string;
+  feeds?: { url: string; type: string }[];
+  article_count?: number;
+}
+
+export interface ConnectResult {
+  source_id: string;
+  job_id?: string;
+  inbound_email?: string;
+  status: string;
+}
+
+export interface ArchiveJob {
+  id: string;
+  status: "pending" | "running" | "complete" | "failed";
+  processed_count: number;
+  total_count: number;
+  error?: string;
+}
+
+export interface SourceStatus {
+  id: string;
+  name: string;
+  platform: string;
+  sync_status: string;
+  sync_method: string;
+  article_count: number;
+}
+
+export interface PlatformStatusResult {
+  job: ArchiveJob | null;
+  source: SourceStatus;
+  inbound_email: string;
+}
+
+export const platformApi = {
+  detect: (url: string, token?: string | null) =>
+    edgeFetch<DetectionResult>(
+      `${EDGE_FUNCTION_BASE}/detect-platform?url=${encodeURIComponent(url)}`,
+      { method: "GET" },
+      token
+    ),
+
+  connect: (payload: {
+    url?: string;
+    source_id?: string;
+    platform: string;
+    credentials?: Record<string, string>;
+  }, token?: string | null) =>
+    edgeFetch<ConnectResult>(
+      `${EDGE_FUNCTION_BASE}/platform-connect`,
+      { method: "POST", body: JSON.stringify(payload) },
+      token
+    ),
+
+  status: (sourceId: string, token?: string | null) =>
+    edgeFetch<PlatformStatusResult>(
+      `${EDGE_FUNCTION_BASE}/platform-connect?source_id=${encodeURIComponent(sourceId)}`,
+      { method: "GET" },
+      token
+    ),
+};
+
 export default api;

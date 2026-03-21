@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon } from "lucide-react";
+import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail } from "lucide-react";
 
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
@@ -41,6 +41,8 @@ export default function Dashboard() {
   const [pricingConfigured, setPricingConfigured] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
+  const [inboundEmail, setInboundEmail] = useState<string | null>(null);
+  const [inboundCopied, setInboundCopied] = useState(false);
 
   const isAdmin = user?.email === ADMIN_EMAIL;
 
@@ -130,6 +132,7 @@ export default function Dashboard() {
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setSetupComplete(!!profile?.setup_complete);
+      if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
       if (!skipReferralCheck) {
         const hasReferral = !!profile?.referral_source;
         if (hasReferral) localStorage.setItem("opedd_referral_done", "1");
@@ -297,6 +300,27 @@ export default function Dashboard() {
             <Link to="/settings" className="text-[#4A26ED] hover:underline font-medium">Settings</Link>
             {" "}to activate your licensing page.
           </p>
+        )}
+
+        {/* Inbound Email */}
+        {inboundEmail && (
+          <div className="flex items-center gap-3 text-sm text-[#6B7280]">
+            <Mail className="w-4 h-4 shrink-0" />
+            <span className="text-xs text-[#6B7280]">Inbound email:</span>
+            <code className="font-mono text-[#374151] text-xs truncate">{inboundEmail}</code>
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(inboundEmail);
+                  setInboundCopied(true);
+                  setTimeout(() => setInboundCopied(false), 2000);
+                } catch {}
+              }}
+              className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium"
+            >
+              {inboundCopied ? "Copied!" : "Copy"}
+            </button>
+          </div>
         )}
 
         {/* Import Progress Banner */}

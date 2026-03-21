@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { contentSourcesApi, licensesApi, api } from "@/lib/api";
+import { contentSourcesApi, licensesApi, api, platformApi } from "@/lib/api";
+import type { DetectionResult, ConnectResult, PlatformStatusResult } from "@/lib/api";
 
 /**
  * Hook that provides authenticated API methods.
@@ -117,9 +118,37 @@ export function useAuthenticatedApi() {
     delete: apiDelete,
   }), [apiGet, apiPost, apiPut, apiDelete]);
 
+  // Platform API with auto-injected token
+  const platDetect = useCallback(async (url: string) => {
+    const token = await getAccessToken();
+    return platformApi.detect(url, token);
+  }, [getAccessToken]);
+
+  const platConnect = useCallback(async (payload: {
+    url?: string;
+    source_id?: string;
+    platform: string;
+    credentials?: Record<string, string>;
+  }) => {
+    const token = await getAccessToken();
+    return platformApi.connect(payload, token);
+  }, [getAccessToken]);
+
+  const platStatus = useCallback(async (sourceId: string) => {
+    const token = await getAccessToken();
+    return platformApi.status(sourceId, token);
+  }, [getAccessToken]);
+
+  const platform = useMemo(() => ({
+    detect: platDetect,
+    connect: platConnect,
+    status: platStatus,
+  }), [platDetect, platConnect, platStatus]);
+
   return {
     contentSources,
     licenses,
     api: authenticatedApi,
+    platform,
   };
 }
