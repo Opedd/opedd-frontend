@@ -84,6 +84,7 @@ const App = () => (
               
               <Route path="/archive/:publisher_id" element={<ArchiveLicenseCheckout />} />
               <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+              <Route path="/enterprise" element={<Enterprise />} />
               <Route path="/for-ai-agents" element={<ForAiAgents />} />
               <Route path="/status" element={<Status />} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
