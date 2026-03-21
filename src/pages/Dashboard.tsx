@@ -132,6 +132,7 @@ export default function Dashboard() {
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setSetupComplete(!!profile?.setup_complete);
+      if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
       if (!skipReferralCheck) {
         const hasReferral = !!profile?.referral_source;
         if (hasReferral) localStorage.setItem("opedd_referral_done", "1");
