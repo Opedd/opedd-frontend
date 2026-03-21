@@ -302,6 +302,27 @@ export default function Dashboard() {
           </p>
         )}
 
+        {/* Inbound Email */}
+        {inboundEmail && (
+          <div className="flex items-center gap-3 text-sm text-[#6B7280]">
+            <Mail className="w-4 h-4 shrink-0" />
+            <span className="text-xs text-[#6B7280]">Inbound email:</span>
+            <code className="font-mono text-[#374151] text-xs truncate">{inboundEmail}</code>
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(inboundEmail);
+                  setInboundCopied(true);
+                  setTimeout(() => setInboundCopied(false), 2000);
+                } catch {}
+              }}
+              className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium"
+            >
+              {inboundCopied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        )}
+
         {/* Import Progress Banner */}
         <ImportProgressBanner onComplete={fetchMetrics} />
 
