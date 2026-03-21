@@ -216,11 +216,19 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Licensed Works</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
+            {isLoading ? (
+              <div className="h-8 w-16 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
+            )}
           </div>
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1">${totalRevenue.toFixed(2)}</p>
+            {isLoading ? (
+              <div className="h-8 w-20 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-[#111827] mt-1">${totalRevenue.toFixed(2)}</p>
+            )}
           </div>
         </div>
 

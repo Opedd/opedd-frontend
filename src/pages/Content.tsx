@@ -389,8 +389,17 @@ export default function Content() {
         {!fetchError && (
           <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm overflow-x-auto">
             {isLoading ? (
-              <div className="py-20 flex items-center justify-center">
-                <Loader2 size={28} className="animate-spin text-[#040042]" />
+              <div className="divide-y divide-[#F3F4F6]">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 px-4 py-3">
+                    <div className="w-4 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
+                    <div className="flex-1 h-4 bg-[#F3F4F6] rounded animate-pulse" style={{ maxWidth: `${55 + (i % 3) * 15}%` }} />
+                    <div className="w-24 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
+                    <div className="w-20 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
+                    <div className="w-16 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
+                    <div className="w-16 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
+                  </div>
+                ))}
               </div>
             ) : assets.length === 0 ? (
               <div className="py-20 text-center">

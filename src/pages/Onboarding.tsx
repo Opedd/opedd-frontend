@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -62,12 +62,13 @@ export default function Onboarding() {
   const [dnsCheckStatus, setDnsCheckStatus] = useState<"idle" | "checking" | "pending" | "verified">("idle");
   const [sourceId, setSourceId] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [checkingSetup, setCheckingSetup] = useState(true);
   const domainSlug = domain
     ? domain.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].split(":")[0].split(".")[0].toLowerCase()
     : null;
   const licensingUrl = domainSlug ? `https://opedd.com/p/${domainSlug}` : null;
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       try {
         const token = await getAccessToken();
@@ -76,8 +77,12 @@ export default function Onboarding() {
         });
         const json = await res.json();
         if (json.success && json.data?.id) setPublisherId(json.data.id);
-        if (json.success && json.data?.setup_complete) navigate("/dashboard", { replace: true });
+        if (json.success && json.data?.setup_complete) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
       } catch { /* non-critical */ }
+      setCheckingSetup(false);
     })();
   }, [getAccessToken]);
 
@@ -161,6 +166,14 @@ export default function Onboarding() {
   const steps: Step[] = ["domain", "feeds", "verify", "licensing", "done"];
   const stepLabels = ["Your site", "Content", "Verify", "Licensing", "Done"];
   const stepIndex = steps.indexOf(step);
+
+  if (checkingSetup) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+        <Loader2 size={28} className="animate-spin text-[#4A26ED]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col">

@@ -72,8 +72,15 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const [unreadCount, setUnreadCount] = useState(0);
   const [bellOpen, setBellOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [publisherPlan, setPublisherPlan] = useState<PlanType | null>(null);
-  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
+  const [publisherPlan, setPublisherPlan] = useState<PlanType | null>(
+    () => (sessionStorage.getItem("opedd_plan") as PlanType | null)
+  );
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(
+    () => {
+      const cached = sessionStorage.getItem("opedd_trial_days");
+      return cached !== null ? Number(cached) : null;
+    }
+  );
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -104,10 +111,14 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
       if (result.success && result.data) {
         const plan = result.data.plan;
         if (plan && ["free", "pro", "enterprise"].includes(plan)) {
-          setPublisherPlan(plan);
+          setPublisherPlan(plan as PlanType);
+          sessionStorage.setItem("opedd_plan", plan);
         }
         if (result.data.trial_active && typeof result.data.trial_days_remaining === "number") {
           setTrialDaysRemaining(result.data.trial_days_remaining);
+          sessionStorage.setItem("opedd_trial_days", String(result.data.trial_days_remaining));
+        } else {
+          sessionStorage.removeItem("opedd_trial_days");
         }
       }
     } catch (err) {
@@ -217,10 +228,12 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-medium text-[#111827] truncate">{displayName}</p>
-                  {publisherPlan && (
-                    <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide", planBadgeStyles[publisherPlan].classes)}>
+                  {publisherPlan ? (
+                    <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0", planBadgeStyles[publisherPlan].classes)}>
                       {planBadgeStyles[publisherPlan].label}
                     </span>
+                  ) : (
+                    <span className="w-8 h-4 bg-[#F3F4F6] rounded-full animate-pulse shrink-0" />
                   )}
                 </div>
                 <p className="text-xs text-[#9CA3AF] truncate">{user?.email}</p>
@@ -233,7 +246,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-[#E5E7EB]" />
-            <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => logout()}>
+            <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); sessionStorage.removeItem("opedd_trial_days"); sessionStorage.removeItem("opedd_trial_dismissed"); logout(); }}>
               <LogOut className="mr-2 h-4 w-4" />Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -378,7 +391,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                   <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-[#E5E7EB]" />
-                <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => logout()}>
+                <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); sessionStorage.removeItem("opedd_trial_days"); sessionStorage.removeItem("opedd_trial_dismissed"); logout(); }}>
                   <LogOut className="mr-2 h-4 w-4" />Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
