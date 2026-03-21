@@ -19,7 +19,7 @@ import {
 
 interface Transaction {
   id: string;
-  type: "ai_ingestion" | "human_license" | "archive_license" | "payout";
+  type: "ai_ingestion" | "human_license" | "archive_license" | "enterprise_license" | "payout";
   description: string;
   amount: number;
   date: string;

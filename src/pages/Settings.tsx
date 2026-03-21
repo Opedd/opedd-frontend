@@ -1042,19 +1042,27 @@ export default function Settings() {
                               className="w-full bg-slate-50 border border-slate-200 rounded-lg h-10 px-3 text-sm text-[#040042] focus:outline-none focus:border-[#4A26ED] focus:ring-1 focus:ring-[#4A26ED]/20"
                             >
                               <option value="">Select a category…</option>
-                              <option value="News & Politics">News &amp; Politics</option>
-                              <option value="Technology">Technology</option>
-                              <option value="Finance & Business">Finance &amp; Business</option>
+                              <option value="News & Journalism">News &amp; Journalism</option>
+                              <option value="Business & Finance">Business &amp; Finance</option>
                               <option value="Science & Research">Science &amp; Research</option>
-                              <option value="Culture & Arts">Culture &amp; Arts</option>
-                              <option value="Health & Medicine">Health &amp; Medicine</option>
+                              <option value="Technology">Technology</option>
                               <option value="Law & Policy">Law &amp; Policy</option>
+                              <option value="Health & Medicine">Health &amp; Medicine</option>
+                              <option value="Arts & Culture">Arts &amp; Culture</option>
+                              <option value="Education">Education</option>
                               <option value="Sports">Sports</option>
-                              <option value="Opinion & Commentary">Opinion &amp; Commentary</option>
-                              <option value="Academic & Education">Academic &amp; Education</option>
+                              <option value="Entertainment">Entertainment</option>
                               <option value="Other">Other</option>
                             </select>
                             <p className="text-xs text-slate-400">Used by AI systems to discover and license your content</p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[#040042] font-bold text-sm">Annual Catalog Price (USD)</Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                              <Input type="number" min="0" step="1" value={aiAnnualPrice} onChange={(e) => setAiAnnualPrice(e.target.value)} placeholder="0" className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
+                            </div>
+                            <p className="text-xs text-slate-400">Flat annual rate for enterprise AI catalog licensing. Leave blank to auto-calculate from per-article AI price.</p>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-[#6B7280]">Licensing Contact Email</Label>
