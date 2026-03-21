@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { contentSourcesApi, licensesApi, api } from "@/lib/api";
+import { contentSourcesApi, licensesApi, api, platformApi } from "@/lib/api";
+import type { DetectionResult, ConnectResult, PlatformStatusResult } from "@/lib/api";
 
 /**
  * Hook that provides authenticated API methods.
