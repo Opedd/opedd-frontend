@@ -38,6 +38,7 @@ import Admin from "./pages/Admin";
 import Status from "./pages/Status";
 import MyLicenses from "./pages/MyLicenses";
 import ArchiveLicenseCheckout from "./pages/ArchiveLicenseCheckout";
+import Enterprise from "./pages/Enterprise";
 import NotificationsPage from "./pages/NotificationsPage";
 
 const queryClient = new QueryClient();
