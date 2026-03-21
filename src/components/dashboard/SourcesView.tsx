@@ -13,7 +13,6 @@ import {
   Globe,
   ShieldCheck,
   DollarSign,
-  AlertTriangle, // kept for potential future use
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

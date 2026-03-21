@@ -348,7 +348,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   // Generate distribution links
   const directPayLink = registeredAssetId
-    ? `https://opedd.io/pay/${registeredAssetId}`
+    ? `https://opedd.com/l/${registeredAssetId}`
     : "";
   const widgetCode = publisherProfileId
     ? `<script src="https://api.opedd.com/widget" data-publisher-id="${publisherProfileId}"></script>`

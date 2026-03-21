@@ -221,7 +221,7 @@ export function DashboardHeader() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="cursor-pointer text-[#040042] hover:text-[#040042] text-sm py-2.5">
-              <a href="https://docs.opedd.io" target="_blank" rel="noopener noreferrer" className="flex items-center">
+              <a href="https://docs.opedd.com" target="_blank" rel="noopener noreferrer" className="flex items-center">
                 <ExternalLink className="mr-2 h-4 w-4" />
                 <span>Documentation</span>
               </a>

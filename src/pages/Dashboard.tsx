@@ -10,7 +10,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
-import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { ReferralStep } from "@/components/dashboard/ReferralStep";
 import { useToast } from "@/hooks/use-toast";
