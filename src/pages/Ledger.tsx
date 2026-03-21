@@ -31,7 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface Transaction {
   id: string;
-  type: "ai_ingestion" | "human_license" | "archive_license" | "payout";
+  type: "ai_ingestion" | "human_license" | "archive_license" | "enterprise_license" | "payout";
   description: string;
   amount: number;
   date: string;
@@ -127,17 +127,19 @@ export default function Ledger() {
         const mapped: Transaction[] = txList.map((tx: any) => {
           const isAI = tx.license_type === "ai" || tx.license_type === "ai_inference" || tx.license_type === "ai_training";
           const isArchive = tx.license_type === "archive";
+          const isEnterprise = tx.license_type === "enterprise";
+          const txType = isEnterprise ? "enterprise_license" : isArchive ? "archive_license" : isAI ? "ai_ingestion" : "human_license";
           return {
             id: tx.id,
-            type: isArchive ? "archive_license" : isAI ? "ai_ingestion" : "human_license",
-            description: isArchive ? "Archive License" : isAI ? "AI Training License" : "Human Republication License",
+            type: txType,
+            description: isEnterprise ? "Enterprise License" : isArchive ? "Archive License" : isAI ? "AI Training License" : "Human Republication License",
             amount: Number(tx.amount), date: new Date(tx.created_at).toISOString().split("T")[0],
             status: mapStatus(tx.status),
-            assetTitle: isArchive ? (tx.publisher_name || "Archive License") : (tx.article_title || tx.asset_title || "Unknown Asset"),
+            assetTitle: tx.asset_title || (isArchive ? "Archive License" : isEnterprise ? "Enterprise License" : "Unknown Asset"),
             assetId: tx.article_id, licenseeEmail: tx.buyer_email, licenseKey: tx.license_key,
             buyerName: tx.buyer_name, buyerOrganization: tx.buyer_organization,
             intendedUse: tx.intended_use, validFrom: tx.valid_from, validUntil: tx.valid_until,
-            licenseTerms: isArchive ? "Site-wide archive license." : isAI ? "Non-exclusive license for AI model training." : "Single-use republication license.",
+            licenseTerms: isEnterprise ? "Annual enterprise catalog license — auto-renewing." : isArchive ? "Site-wide archive license." : isAI ? "Non-exclusive license for AI model training." : "Single-use republication license.",
             blockchainTxHash: tx.blockchain_tx_hash || null,
             blockchainStatus: tx.blockchain_status || null,
             paymentHeld: tx.payment_held || false,
@@ -167,10 +169,20 @@ export default function Ledger() {
     if (apiMetrics) {
       const total = apiMetrics.total_revenue ?? 0;
       const count = apiMetrics.total_transactions ?? 0;
-      return { totalRevenue: total, totalTransactions: count, humanLicenses: apiMetrics.human_licenses ?? 0, aiLicenses: apiMetrics.ai_licenses ?? 0 };
+      return {
+        totalRevenue: total, totalTransactions: count,
+        humanLicenses: apiMetrics.human_licenses ?? 0,
+        aiLicenses: apiMetrics.ai_licenses ?? 0,
+        enterpriseLicenses: transactions.filter(t => t.type === "enterprise_license").length,
+      };
     }
     const totalRevenue = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-    return { totalRevenue, totalTransactions: transactions.length, humanLicenses: transactions.filter(t => t.type === "human_license").length, aiLicenses: transactions.filter(t => t.type === "ai_ingestion").length };
+    return {
+      totalRevenue, totalTransactions: transactions.length,
+      humanLicenses: transactions.filter(t => t.type === "human_license").length,
+      aiLicenses: transactions.filter(t => t.type === "ai_ingestion").length,
+      enterpriseLicenses: transactions.filter(t => t.type === "enterprise_license").length,
+    };
   }, [apiMetrics, transactions]);
 
   if (!user) return null;
@@ -257,6 +269,7 @@ export default function Ledger() {
       case "ai_ingestion": return <div className="w-9 h-9 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center"><Sparkles size={18} className="text-[#4A26ED]" /></div>;
       case "human_license": return <div className="w-9 h-9 rounded-lg bg-[#D1009A]/10 flex items-center justify-center"><User size={18} className="text-[#D1009A]" /></div>;
       case "archive_license": return <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center"><Archive size={18} className="text-amber-600" /></div>;
+      case "enterprise_license": return <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center"><Shield size={18} className="text-emerald-600" /></div>;
       default: return <div className="w-9 h-9 rounded-lg bg-[#F3F4F6] flex items-center justify-center"><ArrowUpRight size={18} className="text-[#6B7280]" /></div>;
     }
   };
@@ -266,6 +279,7 @@ export default function Ledger() {
       case "ai_ingestion": return <Badge className="bg-[#4A26ED]/10 text-[#4A26ED] border border-[#4A26ED]/20 hover:bg-[#4A26ED]/10 font-medium"><Sparkles size={12} className="mr-1" />AI</Badge>;
       case "human_license": return <Badge className="bg-[#D1009A]/10 text-[#D1009A] border border-[#D1009A]/20 hover:bg-[#D1009A]/10 font-medium"><User size={12} className="mr-1" />Human</Badge>;
       case "archive_license": return <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium"><Archive size={12} className="mr-1" />Archive</Badge>;
+      case "enterprise_license": return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium"><Shield size={12} className="mr-1" />Enterprise</Badge>;
       default: return <Badge className="bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F3F4F6] font-medium">Payout</Badge>;
     }
   };
@@ -314,7 +328,7 @@ export default function Ledger() {
           );
         })()}
 
-        <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" variants={itemVariants}>
+        <motion.div className={`grid grid-cols-1 gap-4 ${metrics.enterpriseLicenses > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`} variants={itemVariants}>
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
             <User size={18} className="text-[#D1009A] mb-3" />
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Human Licenses</p>
@@ -325,6 +339,13 @@ export default function Ledger() {
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">AI Licenses</p>
             <p className="text-2xl font-bold text-[#111827] mt-1">{metrics.aiLicenses}</p>
           </div>
+          {metrics.enterpriseLicenses > 0 && (
+            <div className="bg-white rounded-xl border border-emerald-200 p-6 shadow-sm">
+              <Shield size={18} className="text-emerald-600 mb-3" />
+              <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Enterprise Deals</p>
+              <p className="text-2xl font-bold text-[#111827] mt-1">{metrics.enterpriseLicenses}</p>
+            </div>
+          )}
         </motion.div>
 
         {/* Error state */}
