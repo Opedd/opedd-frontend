@@ -612,6 +612,18 @@ export function PlatformConnectModal({
     return (
       <div className="space-y-5">
         {renderStepper()}
+
+        {/* Why we verify — reassurance block */}
+        <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5">
+          <ShieldCheck size={16} className="text-[#4A26ED] shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-[#040042]">Why we verify ownership</p>
+            <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+              When a buyer licenses your content, they need proof that the license comes from the actual publisher — not someone who copied your articles. This one-time verification is what makes your licenses legally credible and worth more.
+            </p>
+          </div>
+        </div>
+
         <div className="text-center">
           <Shield size={28} className="text-[#4A26ED] mx-auto mb-2" />
           <h3 className="text-base font-bold text-[#040042]">Verify Ownership</h3>
