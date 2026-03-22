@@ -98,7 +98,7 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/licenses" element={<Licenses />} />
-                <Route path="/my-licenses" element={<Navigate to="/licenses" replace />} />
+                <Route path="/my-licenses" element={<MyLicenses />} />
                 <Route path="/archive/:publisher_id" element={<ArchiveLicenseCheckout />} />
                 <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                 <Route path="/enterprise" element={<Enterprise />} />
