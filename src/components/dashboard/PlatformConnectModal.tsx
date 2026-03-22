@@ -533,12 +533,24 @@ export function PlatformConnectModal({
             <h3 className="text-sm font-bold text-[#040042]">Import your archive</h3>
 
             {platform === "substack" && (
-              <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-xl p-4 flex items-start gap-3">
-                <AlertTriangle size={16} className="text-[#D97706] mt-0.5 shrink-0" />
-                <div className="text-sm text-[#92400E] leading-relaxed">
-                  Substack doesn't have a public API. To import your existing archive: export your data from <strong>Substack Settings → Account → Export data</strong>, then upload the ZIP file here.
+              <>
+                <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5 mb-4">
+                  <Info size={16} className="text-[#6B7280] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#040042]">Your content stays on Substack — this is just a copy</p>
+                    <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+                      Exporting your data doesn't affect your publication, your subscribers, or your Substack account in any way. Think of it like making a backup. Your readers won't notice anything. We use this file to index your archive for licensing — we don't store your Substack login or have any access to your account.
+                    </p>
+                  </div>
                 </div>
-              </div>
+
+                <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-xl p-4 flex items-start gap-3">
+                  <AlertTriangle size={16} className="text-[#D97706] mt-0.5 shrink-0" />
+                  <div className="text-sm text-[#92400E] leading-relaxed">
+                    Substack doesn't have a public API. To import your existing archive: export your data from <strong>Substack Settings → Account → Export data</strong>, then upload the ZIP file here.
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[#4A26ED]/30 transition-colors cursor-pointer">
@@ -548,6 +560,12 @@ export function PlatformConnectModal({
               </p>
               <p className="text-xs text-slate-400 mt-1">ZIP files accepted</p>
             </div>
+
+            {platform === "substack" && (
+              <p className="text-xs text-[#6B7280] leading-relaxed">
+                This is a one-time action. Future posts sync automatically via your inbound email — no repeat exports needed.
+              </p>
+            )}
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
