@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { copyToClipboard } from "@/lib/clipboard";
 import type { DetectionResult } from "@/lib/api";
+import { SubstackImportCard } from "@/components/dashboard/SubstackImportCard";
+import { WordPressPluginCard } from "@/components/dashboard/WordPressPluginCard";
 import {
   Rss,
   Trash2,
