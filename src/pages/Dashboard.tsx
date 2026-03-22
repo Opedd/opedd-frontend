@@ -41,6 +41,8 @@ export default function Dashboard() {
   const [pricingConfigured, setPricingConfigured] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
+  const [aiLicensingConfigured, setAiLicensingConfigured] = useState(false);
+  const [aiLicenseTypes, setAiLicenseTypes] = useState<{ rag: boolean; training: boolean; inference: boolean } | null>(null);
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
 
@@ -132,6 +134,8 @@ export default function Dashboard() {
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setSetupComplete(!!profile?.setup_complete);
+      setAiLicensingConfigured(!!profile?.ai_license_types);
+      setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
       if (!skipReferralCheck) {
         const hasReferral = !!profile?.referral_source;
@@ -197,11 +201,14 @@ export default function Dashboard() {
         {/* Onboarding Checklist */}
         <OnboardingChecklist
           contentImported={contentImported}
+          aiLicensingConfigured={aiLicensingConfigured}
           pricingConfigured={pricingConfigured}
           stripeConnected={stripeConnected}
           setupComplete={setupComplete}
           publisherSlug={publisherSlug}
+          initialAiLicenseTypes={aiLicenseTypes}
           onRegisterContent={() => setAddPubDrawerOpen(true)}
+          onAiLicensingComplete={() => setAiLicensingConfigured(true)}
         />
 
         {/* Compact Metrics */}
