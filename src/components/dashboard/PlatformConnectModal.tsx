@@ -798,13 +798,16 @@ export function PlatformConnectModal({
         {/* Email ingestion — shown for all platforms */}
         <div className="space-y-3">
           <div className="border-t border-slate-200 pt-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Mail size={16} className="text-[#4A26ED]" />
-              <p className="text-sm font-semibold text-[#040042]">Email Ingestion</p>
+            {/* Reassurance block */}
+            <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5 mb-4">
+              <Mail size={16} className="text-[#4A26ED] shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-[#040042]">Add it as a free subscriber — it won't affect your metrics</p>
+                <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+                  This works exactly like Readwise, Matter, and other newsletter tools your readers already use. Add it as a comp (free) subscription — it doesn't count toward your paid subscriber total, doesn't trigger billing, and you can remove it from your list at any time.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-              Add this email as a free subscriber to your newsletter. Every new post will be delivered to Opedd automatically.
-            </p>
           </div>
 
           <div className="bg-[#EEF0FD] border border-[#D5D9F2] rounded-xl p-4">
@@ -818,6 +821,10 @@ export function PlatformConnectModal({
               </button>
             </div>
           </div>
+
+          <p className="text-xs text-[#6B7280] leading-relaxed">
+            Every new post you publish — including paid ones — will be delivered to Opedd automatically. No re-exports, no manual uploads, no ongoing setup.
+          </p>
 
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
             <p className="text-xs text-slate-500 leading-relaxed">
