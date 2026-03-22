@@ -193,7 +193,7 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    const validTabs = ["pricing", "api-keys", "team", "admin"];
+    const validTabs = ["pricing", "api-keys", "team", "ai-licensing", "admin"];
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const isAdmin = user?.email === ADMIN_EMAIL;
@@ -246,6 +246,10 @@ export default function Settings() {
   const [saveBanner, setSaveBanner] = useState<"success" | "error" | null>(null);
   const [apiKeyWarning, setApiKeyWarning] = useState(false);
   const [contactForPricing, setContactForPricing] = useState(false);
+
+  // AI Licensing toggles
+  const [aiLicenseTypes, setAiLicenseTypes] = useState({ rag: true, training: true, inference: true });
+  const [isSavingAiLicensing, setIsSavingAiLicensing] = useState(false);
 
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
@@ -366,6 +370,13 @@ export default function Settings() {
         setAiAnnualPrice((d as any).ai_annual_price != null ? String((d as any).ai_annual_price) : "");
         setPublisherCategory((d as any).category || "");
         setLogoPreview(d.logo_url || null);
+        if ((d as any).ai_license_types) {
+          setAiLicenseTypes({
+            rag: (d as any).ai_license_types.rag ?? true,
+            training: (d as any).ai_license_types.training ?? true,
+            inference: (d as any).ai_license_types.inference ?? true,
+          });
+        }
       }
     } catch (err) {
       console.warn("[Settings] Failed to fetch profile:", err);
@@ -850,6 +861,7 @@ export default function Settings() {
                   {[
                     { value: "profile", label: "Profile" },
                     { value: "pricing", label: "Pricing" },
+                    { value: "ai-licensing", label: "AI Licensing" },
                     { value: "team", label: "Team" },
                     { value: "api-keys", label: "API Keys" },
                     { value: "content", label: "Content" },
@@ -1515,6 +1527,79 @@ export default function Settings() {
                     </motion.div>
                   )}
                 </TabsContent>
+                {/* TAB: AI Licensing */}
+                <TabsContent value="ai-licensing" className="mt-6" forceMount={activeTab === "ai-licensing" ? true : undefined}>
+                  {activeTab === "ai-licensing" && (
+                    <motion.div key="ai-licensing" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {isGated ? <LockedTabContent /> : <>
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
+                        <div>
+                          <h2 className="font-bold text-[#040042] text-lg">AI Licensing</h2>
+                          <p className="text-sm text-[#6B7280] leading-relaxed mt-1 max-w-2xl">
+                            Control which AI use cases your content can be licensed for. Enterprise AI labs (like AI research teams and LLM companies) purchase bulk licenses directly from Opedd — you receive your share automatically each month.
+                          </p>
+                        </div>
+
+                        {/* Toggle rows */}
+                        <div className="space-y-5">
+                          {([
+                            { key: "rag" as const, label: "RAG / Retrieval", sublabel: "Allow AI systems to retrieve and cite your articles in real-time responses. This is the most common and highest-volume AI use case." },
+                            { key: "training" as const, label: "Model Training", sublabel: "Allow your content to be used in training or fine-tuning AI language models." },
+                            { key: "inference" as const, label: "Inference / Summarization", sublabel: "Allow AI products to summarize or transform your articles for end-user responses." },
+                          ]).map((toggle) => (
+                            <div key={toggle.key} className="flex items-start justify-between gap-4 py-3 border-b border-[#F3F4F6] last:border-0">
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-[#040042]">{toggle.label}</p>
+                                <p className="text-sm text-[#6B7280] mt-0.5 leading-relaxed">{toggle.sublabel}</p>
+                              </div>
+                              <Switch
+                                checked={aiLicenseTypes[toggle.key]}
+                                onCheckedChange={(checked) => setAiLicenseTypes(prev => ({ ...prev, [toggle.key]: checked }))}
+                                className="mt-1 shrink-0"
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Save button */}
+                        <div className="flex items-center justify-between pt-2">
+                          <p className="text-xs text-[#9CA3AF] max-w-md leading-relaxed">
+                            Turning off a type means your content will be excluded from that licensing tier going forward. Active licenses already issued to AI labs are not affected until they expire.
+                          </p>
+                          <Button
+                            onClick={async () => {
+                              setIsSavingAiLicensing(true);
+                              try {
+                                const headers = await apiHeaders();
+                                const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                                  method: "PATCH",
+                                  headers,
+                                  body: JSON.stringify({ ai_license_types: aiLicenseTypes }),
+                                });
+                                const result = await res.json();
+                                if (result.success) {
+                                  toast({ title: "AI licensing preferences saved." });
+                                } else {
+                                  throw new Error(result.error?.message || "Save failed");
+                                }
+                              } catch (err: unknown) {
+                                toast({ title: "Save failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+                              } finally {
+                                setIsSavingAiLicensing(false);
+                              }
+                            }}
+                            disabled={isSavingAiLicensing}
+                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg px-5"
+                          >
+                            {isSavingAiLicensing ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Preferences"}
+                          </Button>
+                        </div>
+                      </div>
+                      </>}
+                    </motion.div>
+                  )}
+                </TabsContent>
+
                 {/* TAB: Content Delivery */}
                 <TabsContent value="content" className="mt-6" forceMount={activeTab === "content" ? true : undefined}>
                   {activeTab === "content" && (
