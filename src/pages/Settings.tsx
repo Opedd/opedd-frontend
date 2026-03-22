@@ -250,6 +250,7 @@ export default function Settings() {
   // AI Licensing toggles
   const [aiLicenseTypes, setAiLicenseTypes] = useState({ rag: true, training: true, inference: true });
   const [isSavingAiLicensing, setIsSavingAiLicensing] = useState(false);
+  const [enterpriseRevenue, setEnterpriseRevenue] = useState<{ total_usd: number; payouts: Array<{ month: string; amount_usd: number; license_id?: string; buyer_org?: string }> } | null>(null);
 
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
