@@ -359,6 +359,9 @@ export function PlatformConnectModal({
                   {archiveJob?.processed_count || 0} / {archiveJob?.total_count || "?"} articles processed
                 </p>
               </div>
+              <p className="text-xs text-[#6B7280] leading-relaxed">
+                Importing your archive — this can take a few minutes for large publications. You can close this window and come back; the import will continue in the background.
+              </p>
             </div>
           )}
 
