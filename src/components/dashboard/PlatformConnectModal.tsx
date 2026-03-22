@@ -444,8 +444,15 @@ export function PlatformConnectModal({
                 />
               </div>
             </div>
+            <p className="text-xs text-[#6B7280] leading-relaxed flex items-start gap-1.5">
+              <Lock size={12} className="shrink-0 mt-0.5" />
+              Read-only access — we can only read your posts, never publish, edit, or send anything on your behalf. You can revoke this key from your Beehiiv dashboard at any time.
+            </p>
             <p className="text-xs text-slate-400 leading-relaxed">
               Find these in Beehiiv Settings → API. Your Publication ID is in the URL of your dashboard.
+            </p>
+            <p className="text-xs text-[#6B7280] leading-relaxed">
+              We import your archive once, then use webhooks for real-time sync. Your API key is stored encrypted and never shared.
             </p>
             <Button
               onClick={handleConnect}
