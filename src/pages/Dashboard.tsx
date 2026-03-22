@@ -201,11 +201,14 @@ export default function Dashboard() {
         {/* Onboarding Checklist */}
         <OnboardingChecklist
           contentImported={contentImported}
+          aiLicensingConfigured={aiLicensingConfigured}
           pricingConfigured={pricingConfigured}
           stripeConnected={stripeConnected}
           setupComplete={setupComplete}
           publisherSlug={publisherSlug}
+          initialAiLicenseTypes={aiLicenseTypes}
           onRegisterContent={() => setAddPubDrawerOpen(true)}
+          onAiLicensingComplete={() => setAiLicensingConfigured(true)}
         />
 
         {/* Compact Metrics */}
