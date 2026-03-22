@@ -26,10 +26,12 @@ import {
   AlertTriangle,
   ChevronRight,
   Shield,
+  ShieldCheck,
   Mail,
   Rss,
   Info,
   CheckCircle,
+  Lock,
   RefreshCw,
 } from "lucide-react";
 import type { DetectionResult, ConnectResult, PlatformStatusResult } from "@/lib/api";
@@ -306,16 +308,21 @@ export function PlatformConnectModal({
 
   // Platform badge
   const renderPlatformBadge = () => (
-    <div className="flex items-center gap-3 mb-2">
-      {platformLogos[platform] && (
-        <img src={platformLogos[platform]} alt={platform} className="w-8 h-8" />
-      )}
-      <div>
-        <p className="text-sm font-bold text-[#040042]">{platformNames[platform] || "Custom"}</p>
-        {detection.confidence === "low" && (
-          <p className="text-xs text-amber-600">Platform auto-detected with low confidence</p>
+    <div className="space-y-2 mb-1">
+      <div className="flex items-center gap-3">
+        {platformLogos[platform] && (
+          <img src={platformLogos[platform]} alt={platform} className="w-8 h-8" />
         )}
+        <div>
+          <p className="text-sm font-bold text-[#040042]">{platformNames[platform] || "Custom"}</p>
+          {detection.confidence === "low" && (
+            <p className="text-xs text-amber-600">Platform auto-detected with low confidence</p>
+          )}
+        </div>
       </div>
+      <p className="text-sm text-[#6B7280]">
+        Your content stays yours. We're building a licensing layer on top of your publication — not claiming ownership of anything.
+      </p>
     </div>
   );
 
@@ -352,6 +359,9 @@ export function PlatformConnectModal({
                   {archiveJob?.processed_count || 0} / {archiveJob?.total_count || "?"} articles processed
                 </p>
               </div>
+              <p className="text-xs text-[#6B7280] leading-relaxed">
+                Importing your archive — this can take a few minutes for large publications. You can close this window and come back; the import will continue in the background.
+              </p>
             </div>
           )}
 
@@ -360,7 +370,9 @@ export function PlatformConnectModal({
               <CheckCircle size={18} className="text-emerald-600 mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-emerald-800">Archive imported</p>
-                <p className="text-xs text-emerald-600 mt-0.5">{archiveJob?.processed_count || 0} articles imported successfully.</p>
+                <p className="text-xs text-emerald-600 mt-0.5">
+                  {archiveJob?.processed_count || 0} articles imported. They're now available for licensing in your Catalog.
+                </p>
               </div>
             </div>
           )}
@@ -432,8 +444,15 @@ export function PlatformConnectModal({
                 />
               </div>
             </div>
+            <p className="text-xs text-[#6B7280] leading-relaxed flex items-start gap-1.5">
+              <Lock size={12} className="shrink-0 mt-0.5" />
+              Read-only access — we can only read your posts, never publish, edit, or send anything on your behalf. You can revoke this key from your Beehiiv dashboard at any time.
+            </p>
             <p className="text-xs text-slate-400 leading-relaxed">
               Find these in Beehiiv Settings → API. Your Publication ID is in the URL of your dashboard.
+            </p>
+            <p className="text-xs text-[#6B7280] leading-relaxed">
+              We import your archive once, then use webhooks for real-time sync. Your API key is stored encrypted and never shared.
             </p>
             <Button
               onClick={handleConnect}
@@ -468,8 +487,15 @@ export function PlatformConnectModal({
                 />
               </div>
             </div>
+            <p className="text-xs text-[#6B7280] leading-relaxed flex items-start gap-1.5">
+              <Lock size={12} className="shrink-0 mt-0.5" />
+              Read-only access — we can only read your posts, never publish, edit, or send anything on your behalf. You can revoke this key from your Ghost dashboard at any time.
+            </p>
             <p className="text-xs text-slate-400 leading-relaxed">
               In Ghost Admin → Settings → Integrations → Add Custom Integration → copy Content API Key.
+            </p>
+            <p className="text-xs text-[#6B7280] leading-relaxed">
+              We import your archive once, then use webhooks for real-time sync. Your API key is stored encrypted and never shared.
             </p>
             <Button
               onClick={handleConnect}
@@ -507,12 +533,24 @@ export function PlatformConnectModal({
             <h3 className="text-sm font-bold text-[#040042]">Import your archive</h3>
 
             {platform === "substack" && (
-              <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-xl p-4 flex items-start gap-3">
-                <AlertTriangle size={16} className="text-[#D97706] mt-0.5 shrink-0" />
-                <div className="text-sm text-[#92400E] leading-relaxed">
-                  Substack doesn't have a public API. To import your existing archive: export your data from <strong>Substack Settings → Account → Export data</strong>, then upload the ZIP file here.
+              <>
+                <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5 mb-4">
+                  <Info size={16} className="text-[#6B7280] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#040042]">Your content stays on Substack — this is just a copy</p>
+                    <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+                      Exporting your data doesn't affect your publication, your subscribers, or your Substack account in any way. Think of it like making a backup. Your readers won't notice anything. We use this file to index your archive for licensing — we don't store your Substack login or have any access to your account.
+                    </p>
+                  </div>
                 </div>
-              </div>
+
+                <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-xl p-4 flex items-start gap-3">
+                  <AlertTriangle size={16} className="text-[#D97706] mt-0.5 shrink-0" />
+                  <div className="text-sm text-[#92400E] leading-relaxed">
+                    Substack doesn't have a public API. To import your existing archive: export your data from <strong>Substack Settings → Account → Export data</strong>, then upload the ZIP file here.
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[#4A26ED]/30 transition-colors cursor-pointer">
@@ -522,6 +560,12 @@ export function PlatformConnectModal({
               </p>
               <p className="text-xs text-slate-400 mt-1">ZIP files accepted</p>
             </div>
+
+            {platform === "substack" && (
+              <p className="text-xs text-[#6B7280] leading-relaxed">
+                This is a one-time action. Future posts sync automatically via your inbound email — no repeat exports needed.
+              </p>
+            )}
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -568,6 +612,18 @@ export function PlatformConnectModal({
     return (
       <div className="space-y-5">
         {renderStepper()}
+
+        {/* Why we verify — reassurance block */}
+        <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5">
+          <ShieldCheck size={16} className="text-[#4A26ED] shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-[#040042]">Why we verify ownership</p>
+            <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+              When a buyer licenses your content, they need proof that the license comes from the actual publisher — not someone who copied your articles. This one-time verification is what makes your licenses legally credible and worth more.
+            </p>
+          </div>
+        </div>
+
         <div className="text-center">
           <Shield size={28} className="text-[#4A26ED] mx-auto mb-2" />
           <h3 className="text-base font-bold text-[#040042]">Verify Ownership</h3>
@@ -702,7 +758,7 @@ export function PlatformConnectModal({
             <div>
               <p className="text-sm font-semibold text-emerald-800">Webhook registered</p>
               <p className="text-xs text-emerald-600 mt-0.5">
-                New posts will sync to Opedd automatically within seconds of publishing.
+                Live sync active — new posts will appear in your Catalog within seconds of publishing.
               </p>
             </div>
           </div>
@@ -742,13 +798,16 @@ export function PlatformConnectModal({
         {/* Email ingestion — shown for all platforms */}
         <div className="space-y-3">
           <div className="border-t border-slate-200 pt-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Mail size={16} className="text-[#4A26ED]" />
-              <p className="text-sm font-semibold text-[#040042]">Email Ingestion</p>
+            {/* Reassurance block */}
+            <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5 mb-4">
+              <Mail size={16} className="text-[#4A26ED] shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-[#040042]">Add it as a free subscriber — it won't affect your metrics</p>
+                <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+                  This works exactly like Readwise, Matter, and other newsletter tools your readers already use. Add it as a comp (free) subscription — it doesn't count toward your paid subscriber total, doesn't trigger billing, and you can remove it from your list at any time.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-              Add this email as a free subscriber to your newsletter. Every new post will be delivered to Opedd automatically.
-            </p>
           </div>
 
           <div className="bg-[#EEF0FD] border border-[#D5D9F2] rounded-xl p-4">
@@ -762,6 +821,10 @@ export function PlatformConnectModal({
               </button>
             </div>
           </div>
+
+          <p className="text-xs text-[#6B7280] leading-relaxed">
+            Every new post you publish — including paid ones — will be delivered to Opedd automatically. No re-exports, no manual uploads, no ongoing setup.
+          </p>
 
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
             <p className="text-xs text-slate-500 leading-relaxed">
