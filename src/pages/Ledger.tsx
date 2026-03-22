@@ -494,46 +494,64 @@ export default function Ledger() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
+                                  <TooltipProvider delayDuration={200}>
                                   {tx.status === "settled" && tx.licenseKey && (
                                     <>
-                                      <a
-                                        href={`${EXT_SUPABASE_URL}/certificate?key=${tx.licenseKey}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
-                                        title="Download certificate"
-                                      >
-                                        <ScrollText size={14} />
-                                      </a>
-                                      <a
-                                        href={`${EXT_SUPABASE_URL}/invoice?key=${tx.licenseKey}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
-                                        title="Download invoice"
-                                      >
-                                        <Receipt size={14} />
-                                      </a>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <a
+                                            href={`${EXT_SUPABASE_URL}/certificate?key=${tx.licenseKey}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
+                                          >
+                                            <ScrollText size={14} />
+                                          </a>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Download Certificate</TooltipContent>
+                                      </Tooltip>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <a
+                                            href={`${EXT_SUPABASE_URL}/invoice?key=${tx.licenseKey}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
+                                          >
+                                            <Receipt size={14} />
+                                          </a>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Download Invoice</TooltipContent>
+                                      </Tooltip>
                                       {!tx.paymentHeld && (
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); setRefundTarget(tx); }}
-                                          className="p-1.5 rounded-md text-[#9CA3AF] hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                                          title="Issue refund"
-                                        >
-                                          <RotateCcw size={14} />
-                                        </button>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); setRefundTarget(tx); }}
+                                              className="p-1.5 rounded-md text-[#9CA3AF] hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                                            >
+                                              <RotateCcw size={14} />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>Issue Refund</TooltipContent>
+                                        </Tooltip>
                                       )}
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
-                                        className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
-                                        title="Revoke license"
-                                      >
-                                        <Ban size={14} />
-                                      </button>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
+                                            className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
+                                          >
+                                            <Ban size={14} />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Revoke License</TooltipContent>
+                                      </Tooltip>
                                     </>
                                   )}
+                                  </TooltipProvider>
                                   <Eye size={14} className="text-[#9CA3AF] group-hover:text-[#4A26ED] transition-colors" />
                                 </div>
                               </TableCell>
