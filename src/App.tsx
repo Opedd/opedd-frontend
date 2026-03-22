@@ -40,6 +40,7 @@ const LicenseSuccess = lazy(() => import("./pages/LicenseSuccess"));
 const PublisherLicensingPage = lazy(() => import("./pages/PublisherLicensingPage"));
 const ArchiveLicenseCheckout = lazy(() => import("./pages/ArchiveLicenseCheckout"));
 const Licenses = lazy(() => import("./pages/Licenses"));
+const MyLicenses = lazy(() => import("./pages/MyLicenses"));
 
 // Lazy-loaded: infrequent dashboard routes
 const Connectors = lazy(() => import("./pages/Connectors"));
