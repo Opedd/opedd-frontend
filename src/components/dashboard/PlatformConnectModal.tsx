@@ -370,7 +370,9 @@ export function PlatformConnectModal({
               <CheckCircle size={18} className="text-emerald-600 mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-emerald-800">Archive imported</p>
-                <p className="text-xs text-emerald-600 mt-0.5">{archiveJob?.processed_count || 0} articles imported successfully.</p>
+                <p className="text-xs text-emerald-600 mt-0.5">
+                  {archiveJob?.processed_count || 0} articles imported. They're now available for licensing in your Catalog.
+                </p>
               </div>
             </div>
           )}
