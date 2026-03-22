@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { copyToClipboard } from "@/lib/clipboard";
 import type { DetectionResult } from "@/lib/api";
+import { SubstackImportCard } from "@/components/dashboard/SubstackImportCard";
+import { WordPressPluginCard } from "@/components/dashboard/WordPressPluginCard";
 import {
   Rss,
   Trash2,
@@ -615,6 +617,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
             </div>
           );
         })}
+      </div>
+
+      {/* Import & Plugin Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SubstackImportCard onImportComplete={fetchSources} />
+        <WordPressPluginCard />
       </div>
 
       {/* Verify Ownership Modal */}
