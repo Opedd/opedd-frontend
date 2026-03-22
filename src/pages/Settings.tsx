@@ -861,6 +861,7 @@ export default function Settings() {
                   {[
                     { value: "profile", label: "Profile" },
                     { value: "pricing", label: "Pricing" },
+                    { value: "ai-licensing", label: "AI Licensing" },
                     { value: "team", label: "Team" },
                     { value: "api-keys", label: "API Keys" },
                     { value: "content", label: "Content" },
