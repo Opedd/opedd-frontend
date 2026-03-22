@@ -247,6 +247,10 @@ export default function Settings() {
   const [apiKeyWarning, setApiKeyWarning] = useState(false);
   const [contactForPricing, setContactForPricing] = useState(false);
 
+  // AI Licensing toggles
+  const [aiLicenseTypes, setAiLicenseTypes] = useState({ rag: true, training: true, inference: true });
+  const [isSavingAiLicensing, setIsSavingAiLicensing] = useState(false);
+
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
   const [teamInvitations, setTeamInvitations] = useState<Array<{ id: string; email: string; role: string; created_at: string; expires_at: string }>>([]);
