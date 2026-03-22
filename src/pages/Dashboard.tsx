@@ -134,6 +134,8 @@ export default function Dashboard() {
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setSetupComplete(!!profile?.setup_complete);
+      setAiLicensingConfigured(!!profile?.ai_license_types);
+      setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
       if (!skipReferralCheck) {
         const hasReferral = !!profile?.referral_source;
