@@ -41,6 +41,8 @@ export default function Dashboard() {
   const [pricingConfigured, setPricingConfigured] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
+  const [aiLicensingConfigured, setAiLicensingConfigured] = useState(false);
+  const [aiLicenseTypes, setAiLicenseTypes] = useState<{ rag: boolean; training: boolean; inference: boolean } | null>(null);
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
 
