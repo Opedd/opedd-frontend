@@ -758,7 +758,7 @@ export function PlatformConnectModal({
             <div>
               <p className="text-sm font-semibold text-emerald-800">Webhook registered</p>
               <p className="text-xs text-emerald-600 mt-0.5">
-                New posts will sync to Opedd automatically within seconds of publishing.
+                Live sync active — new posts will appear in your Catalog within seconds of publishing.
               </p>
             </div>
           </div>
