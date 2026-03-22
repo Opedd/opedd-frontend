@@ -370,6 +370,13 @@ export default function Settings() {
         setAiAnnualPrice((d as any).ai_annual_price != null ? String((d as any).ai_annual_price) : "");
         setPublisherCategory((d as any).category || "");
         setLogoPreview(d.logo_url || null);
+        if ((d as any).ai_license_types) {
+          setAiLicenseTypes({
+            rag: (d as any).ai_license_types.rag ?? true,
+            training: (d as any).ai_license_types.training ?? true,
+            inference: (d as any).ai_license_types.inference ?? true,
+          });
+        }
       }
     } catch (err) {
       console.warn("[Settings] Failed to fetch profile:", err);
