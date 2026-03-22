@@ -193,7 +193,7 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    const validTabs = ["pricing", "api-keys", "team", "admin"];
+    const validTabs = ["pricing", "api-keys", "team", "ai-licensing", "admin"];
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const isAdmin = user?.email === ADMIN_EMAIL;
