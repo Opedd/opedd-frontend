@@ -308,16 +308,21 @@ export function PlatformConnectModal({
 
   // Platform badge
   const renderPlatformBadge = () => (
-    <div className="flex items-center gap-3 mb-2">
-      {platformLogos[platform] && (
-        <img src={platformLogos[platform]} alt={platform} className="w-8 h-8" />
-      )}
-      <div>
-        <p className="text-sm font-bold text-[#040042]">{platformNames[platform] || "Custom"}</p>
-        {detection.confidence === "low" && (
-          <p className="text-xs text-amber-600">Platform auto-detected with low confidence</p>
+    <div className="space-y-2 mb-1">
+      <div className="flex items-center gap-3">
+        {platformLogos[platform] && (
+          <img src={platformLogos[platform]} alt={platform} className="w-8 h-8" />
         )}
+        <div>
+          <p className="text-sm font-bold text-[#040042]">{platformNames[platform] || "Custom"}</p>
+          {detection.confidence === "low" && (
+            <p className="text-xs text-amber-600">Platform auto-detected with low confidence</p>
+          )}
+        </div>
       </div>
+      <p className="text-sm text-[#6B7280]">
+        Your content stays yours. We're building a licensing layer on top of your publication — not claiming ownership of anything.
+      </p>
     </div>
   );
 
