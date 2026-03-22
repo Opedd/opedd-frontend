@@ -619,6 +619,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         })}
       </div>
 
+      {/* Import & Plugin Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SubstackImportCard onImportComplete={fetchSources} />
+        <WordPressPluginCard />
+      </div>
+
       {/* Verify Ownership Modal */}
       <VerifyOwnershipModal
         open={!!verifyModalSource}
