@@ -26,10 +26,12 @@ import {
   AlertTriangle,
   ChevronRight,
   Shield,
+  ShieldCheck,
   Mail,
   Rss,
   Info,
   CheckCircle,
+  Lock,
   RefreshCw,
 } from "lucide-react";
 import type { DetectionResult, ConnectResult, PlatformStatusResult } from "@/lib/api";
