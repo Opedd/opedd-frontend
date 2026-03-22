@@ -377,8 +377,11 @@ export default function Settings() {
             training: (d as any).ai_license_types.training ?? true,
             inference: (d as any).ai_license_types.inference ?? true,
           });
-        }
-      }
+         }
+         if ((d as any).enterprise_revenue) {
+           setEnterpriseRevenue((d as any).enterprise_revenue);
+         }
+       }
     } catch (err) {
       console.warn("[Settings] Failed to fetch profile:", err);
     } finally {
