@@ -1600,6 +1600,61 @@ export default function Settings() {
                         </div>
                       </div>
                       </>}
+
+                      {/* Enterprise Revenue Section */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Shield size={18} className="text-emerald-600" />
+                          <h2 className="font-bold text-[#040042]">Enterprise Revenue</h2>
+                        </div>
+                        <p className="text-sm text-[#6B7280] mb-5 leading-relaxed max-w-lg">
+                          Revenue from enterprise AI catalog licenses purchased by AI labs and research teams.
+                        </p>
+
+                        {enterpriseRevenue && enterpriseRevenue.total_usd > 0 ? (
+                          <>
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-5">
+                              <p className="text-xs text-emerald-600 font-medium uppercase tracking-wider">Total Enterprise Revenue</p>
+                              <p className="text-2xl font-bold text-emerald-700 mt-1">
+                                ${enterpriseRevenue.total_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </p>
+                            </div>
+
+                            {enterpriseRevenue.payouts.length > 0 ? (
+                              <div className="border border-[#E5E7EB] rounded-lg overflow-hidden">
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                                      <th className="text-left text-[#6B7280] text-xs font-semibold uppercase tracking-wider px-4 py-2.5">Month</th>
+                                      <th className="text-left text-[#6B7280] text-xs font-semibold uppercase tracking-wider px-4 py-2.5">Amount</th>
+                                      <th className="text-left text-[#6B7280] text-xs font-semibold uppercase tracking-wider px-4 py-2.5">Licensee</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {enterpriseRevenue.payouts.slice(0, 12).map((p, i) => {
+                                      const monthDate = new Date(p.month + "-01");
+                                      const monthLabel = monthDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+                                      return (
+                                        <tr key={i} className="border-b border-[#F3F4F6] last:border-0">
+                                          <td className="px-4 py-3 text-[#374151]">{monthLabel}</td>
+                                          <td className="px-4 py-3 font-medium text-emerald-600 tabular-nums">
+                                            ${p.amount_usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                          </td>
+                                          <td className="px-4 py-3 text-[#6B7280]">{p.buyer_org || "Enterprise License"}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            ) : null}
+                          </>
+                        ) : (
+                          <div className="bg-[#F9FAFB] rounded-lg p-4 text-sm text-[#6B7280] leading-relaxed">
+                            No enterprise revenue yet. Your content will appear in the enterprise catalog once AI labs purchase licenses.
+                          </div>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </TabsContent>
