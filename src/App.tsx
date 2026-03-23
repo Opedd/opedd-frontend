@@ -105,6 +105,7 @@ const App = () => (
                 <Route path="/enterprise" element={<Enterprise />} />
                 <Route path="/for-ai-agents" element={<ForAiAgents />} />
                 <Route path="/status" element={<Status />} />
+                <Route path="/publishers" element={<Publishers />} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
