@@ -48,6 +48,7 @@ interface TransactionReceiptDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRetryBlockchain?: (transactionId: string) => Promise<void>;
+  onTransactionUpdate?: (id: string, updates: Partial<Transaction>) => void;
 }
 
 export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRetryBlockchain }: TransactionReceiptDrawerProps) {
