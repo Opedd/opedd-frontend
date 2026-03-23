@@ -134,6 +134,11 @@ export default function Dashboard() {
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setSetupComplete(!!profile?.setup_complete);
+      // Redirect to setup wizard if setup not complete
+      if (!profile?.setup_complete) {
+        navigate("/setup", { replace: true });
+        return;
+      }
       setAiLicensingConfigured(!!profile?.ai_license_types);
       setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
