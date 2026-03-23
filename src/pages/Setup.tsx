@@ -591,15 +591,23 @@ export default function Setup() {
               <p className="text-sm text-red-600 font-medium">{step1Error}</p>
             )}
 
-            {platform && (
-              <Button onClick={handleStep1Continue} disabled={step1Loading} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">
+            {platform && !csvImportResult && (
+              <Button
+                onClick={handleStep1Continue}
+                disabled={step1Loading || (platform === "substack" && substackMode === "csv" && !substackFile)}
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11"
+              >
                 {step1Loading ? (
                   <>
                     <Loader2 size={16} className="mr-2 animate-spin" />
-                    {platform === "ghost" ? "Connecting to Ghost..." : "Importing..."}
+                    {platform === "ghost" ? "Connecting to Ghost..." : platform === "substack" && substackMode === "csv" ? "Importing…" : "Importing..."}
                   </>
                 ) : (
-                  <>Continue <ChevronRight size={16} className="ml-1" /></>
+                  platform === "substack" && substackMode === "csv" ? (
+                    <>Upload and Import <ChevronRight size={16} className="ml-1" /></>
+                  ) : (
+                    <>Continue <ChevronRight size={16} className="ml-1" /></>
+                  )
                 )}
               </Button>
             )}
