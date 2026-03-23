@@ -339,6 +339,7 @@ export default function Content() {
             <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
               {[
                 { value: "articles", label: "Articles" },
+                { value: "substack", label: "Substack Import" },
                 { value: "archive-license", label: "Archive License" },
               ].map((tab) => (
                 <TabsTrigger
