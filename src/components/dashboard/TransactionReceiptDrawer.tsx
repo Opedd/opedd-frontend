@@ -5,7 +5,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { EXT_SUPABASE_URL } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
 import {
   Sparkles, User, FileText, ExternalLink, Copy, CheckCircle2,
   Link2, Shield, Bot, Cpu, Hash, Download, Building2, Briefcase,
@@ -48,12 +49,15 @@ interface TransactionReceiptDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRetryBlockchain?: (transactionId: string) => Promise<void>;
+  onTransactionUpdate?: (id: string, updates: Partial<Transaction>) => void;
 }
 
-export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRetryBlockchain }: TransactionReceiptDrawerProps) {
+export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRetryBlockchain, onTransactionUpdate }: TransactionReceiptDrawerProps) {
   const [copiedHash, setCopiedHash] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+  const { toast } = useToast();
 
   if (!transaction) return null;
 
@@ -63,8 +67,37 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
   const handleDownloadCertificate = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
   const handleDownloadInvoice = () => { if (transaction.licenseKey) window.open(`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(transaction.licenseKey)}`, "_blank"); };
 
+  const handleRefund = async () => {
+    if (!transaction.licenseKey) return;
+    setRefunding(true);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/refund-license`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ license_key: transaction.licenseKey }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Refund failed" }));
+        throw new Error(err.error || "Refund failed");
+      }
+      toast({ title: "Refund issued", description: `$${transaction.amount.toFixed(2)} refunded to ${transaction.licenseeEmail || "buyer"}.` });
+      onTransactionUpdate?.(transaction.id, { status: "refunded" as any });
+    } catch (e: any) {
+      toast({ title: "Refund failed", description: e.message, variant: "destructive" });
+    } finally {
+      setRefunding(false);
+    }
+  };
+
   const isExpired = transaction.validUntil && new Date(transaction.validUntil) < new Date();
   const canRevoke = transaction.status === "settled" && transaction.licenseKey;
+  const canRefund = transaction.status === "settled" && transaction.licenseKey && transaction.type !== "enterprise_license";
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -254,6 +287,38 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                 <FileText size={16} />Download Invoice PDF
               </Button>
             </div>
+          )}
+
+          {/* Refund */}
+          {canRefund && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full h-11 gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
+                  <RefreshCw size={16} />Refund Buyer
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2 text-[#111827]">
+                    <RefreshCw size={20} className="text-amber-600" />Refund this license?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-[#6B7280]">
+                    Refund ${transaction.amount.toFixed(2)} to {transaction.licenseeEmail || "the buyer"}? This will revoke the license. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-lg border-[#E5E7EB]">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleRefund}
+                    disabled={refunding}
+                    className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg gap-2"
+                  >
+                    {refunding && <Loader2 size={14} className="animate-spin" />}
+                    {refunding ? "Processing…" : "Yes, Refund"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
 
           {/* Revoke License */}
