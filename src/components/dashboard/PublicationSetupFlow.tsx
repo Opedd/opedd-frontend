@@ -43,7 +43,7 @@ interface DetectFeedsResult {
   estimated_article_count: number;
 }
 
-type FlowStep = "url_input" | "detection_result" | "post_import" | "api_path";
+type FlowStep = "url_input" | "detection_result" | "ghost_api_key" | "post_import" | "api_path";
 
 interface PublicationSetupFlowProps {
   onComplete: (completionState?: { pricingDone: boolean; widgetDone: boolean }) => void;
@@ -71,6 +71,9 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
 
   // Manual fallback URL for Case C
   const [manualFeedUrl, setManualFeedUrl] = useState("");
+  const [ghostAdminKey, setGhostAdminKey] = useState("");
+  const [ghostImporting, setGhostImporting] = useState(false);
+  const [ghostImportError, setGhostImportError] = useState("");
 
   // Fetch publisher profile (API key + ID)
   useEffect(() => {
@@ -378,6 +381,54 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     }
   };
 
+  // ─── Ghost Admin API import ───
+  const handleGhostImport = async () => {
+    if (!ghostAdminKey.trim() || !user) return;
+    setGhostImporting(true);
+    setGhostImportError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+
+      const ghostUrl = url.trim().replace(/\/+$/, "");
+      const res = await fetch(`${EXT_SUPABASE_URL}/import-ghost`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ghost_url: ghostUrl,
+          admin_api_key: ghostAdminKey.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          setGhostImportError("Authentication failed. Please check your Admin API Key.");
+          return;
+        }
+        if (res.status === 502) {
+          setGhostImportError("Could not reach your Ghost blog. Please check the URL.");
+          return;
+        }
+        const errData = await res.json().catch(() => ({}));
+        setGhostImportError(errData.error || errData.message || "Import failed. Please try again.");
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+      const imported = data.data?.imported ?? data.imported ?? 0;
+      toast({ title: "Ghost import complete", description: `${imported} posts imported with full content.` });
+      setStep("post_import");
+    } catch (err: any) {
+      setGhostImportError(err?.message || "Import failed. Please try again.");
+    } finally {
+      setGhostImporting(false);
+    }
+  };
+
   const webhookUrl = `${EXT_SUPABASE_URL}/api`;
   const detectedCase = getCase();
   const isRssFlow = detectedCase === "rss" || (detection?.platform === "substack") || (detection?.platform === "beehiiv");
@@ -515,25 +566,38 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
                   <><strong>{detection.estimated_article_count.toLocaleString()}</strong> articles</>
                 ) : (
                   "articles"
-                )} in your sitemap. We'll import your full archive now, then show you how to sync new posts.
+                )} in your sitemap.{" "}
+                {detection.platform === "ghost"
+                  ? "Connect your Ghost Admin API to import full article content, including members-only posts."
+                  : "We'll import your full archive now, then show you how to sync new posts."}
               </p>
 
-              <button
-                onClick={handleImportSitemap}
-                disabled={isConnecting}
-                className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
-              >
-                {isConnecting ? (
-                  <Loader2 size={16} className="animate-spin flex-shrink-0" />
-                ) : (
-                  <>
-                    <span>
-                      Import {detection.estimated_article_count > 0 ? `${detection.estimated_article_count.toLocaleString()} articles` : "articles"}
-                    </span>
-                    <ArrowRight size={16} className="flex-shrink-0" />
-                  </>
-                )}
-              </button>
+              {detection.platform === "ghost" ? (
+                <button
+                  onClick={() => setStep("ghost_api_key")}
+                  className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center transition-all hover:shadow-lg"
+                >
+                  <span>Connect Ghost Admin API</span>
+                  <ArrowRight size={16} className="flex-shrink-0" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleImportSitemap}
+                  disabled={isConnecting}
+                  className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
+                >
+                  {isConnecting ? (
+                    <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                  ) : (
+                    <>
+                      <span>
+                        Import {detection.estimated_article_count > 0 ? `${detection.estimated_article_count.toLocaleString()} articles` : "articles"}
+                      </span>
+                      <ArrowRight size={16} className="flex-shrink-0" />
+                    </>
+                  )}
+                </button>
+              )}
             </>
           )}
 
@@ -592,6 +656,82 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
             className="text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
           >
             <ArrowLeft size={14} /> Try a different URL
+          </button>
+        </div>
+      )}
+
+      {/* ════════ Ghost Admin API Key Step ════════ */}
+      {step === "ghost_api_key" && detection && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+          <div className="flex items-center gap-2">
+            <img src={ghostLogo} alt="Ghost" className="w-5 h-5" />
+            <h3 className="text-lg font-bold text-[#040042]">Connect your Ghost Admin API</h3>
+          </div>
+
+          <p className="text-sm text-slate-600 leading-relaxed">
+            This gives us read access to your full post archive, including members-only content. We never write to your Ghost account.
+          </p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-slate-500 block mb-1.5">Ghost blog URL</label>
+              <Input
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                placeholder="https://yourblog.ghost.io"
+                className="h-10 font-mono text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500 block mb-1.5">Admin API Key</label>
+              <Input
+                value={ghostAdminKey}
+                onChange={e => { setGhostAdminKey(e.target.value); setGhostImportError(""); }}
+                placeholder="key_id:hex_secret"
+                className="h-10 font-mono text-sm"
+              />
+              <a
+                href="https://ghost.org/integrations/custom-integrations/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#4A26ED] hover:underline mt-1.5 inline-flex items-center gap-1"
+              >
+                Where do I find this?
+                <ExternalLink size={10} />
+              </a>
+            </div>
+          </div>
+
+          {ghostImportError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-start gap-2">
+              <AlertCircle size={14} className="text-red-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-red-700">{ghostImportError}</p>
+            </div>
+          )}
+
+          <button
+            onClick={handleGhostImport}
+            disabled={ghostImporting || !ghostAdminKey.trim()}
+            className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
+          >
+            {ghostImporting ? (
+              <>
+                <Loader2 size={16} className="animate-spin flex-shrink-0" />
+                <span>Connecting to Ghost…</span>
+              </>
+            ) : (
+              <>
+                <span>Import from Ghost</span>
+                <ArrowRight size={16} className="flex-shrink-0" />
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => { setStep("detection_result"); setGhostImportError(""); }}
+            className="text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
+          >
+            <ArrowLeft size={14} /> Back
           </button>
         </div>
       )}

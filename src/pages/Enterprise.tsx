@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -119,7 +120,7 @@ export default function Enterprise() {
       ].join("\n");
 
       const res = await fetch(
-        "https://dmmvaiupksamhgefdxev.supabase.co/functions/v1/contact-publisher",
+        `${EXT_SUPABASE_URL}/functions/v1/contact-publisher`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
