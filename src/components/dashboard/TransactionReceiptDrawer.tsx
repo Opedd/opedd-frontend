@@ -5,7 +5,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { EXT_SUPABASE_URL } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
 import {
   Sparkles, User, FileText, ExternalLink, Copy, CheckCircle2,
   Link2, Shield, Bot, Cpu, Hash, Download, Building2, Briefcase,
