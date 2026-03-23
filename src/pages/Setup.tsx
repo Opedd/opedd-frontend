@@ -88,6 +88,7 @@ export default function Setup() {
   // Copy states
   const [emailCopied, setEmailCopied] = useState(false);
   const [snippetCopied, setSnippetCopied] = useState(false);
+  const [webhookCopied, setWebhookCopied] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
