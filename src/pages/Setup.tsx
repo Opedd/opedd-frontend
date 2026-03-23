@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Copy, Check, Globe, ChevronRight, ChevronDown, Mail, ExternalLink, Wallet, Info, CheckCircle2, Upload, FileText } from "lucide-react";
+import { Loader2, Copy, Check, Globe, ChevronRight, ChevronDown, Mail, ExternalLink, Wallet, Info, CheckCircle2, Upload, FileText, AlertTriangle, Radio } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { EXT_SUPABASE_REST } from "@/lib/constants";
 import { copyToClipboard } from "@/lib/clipboard";
@@ -68,6 +69,21 @@ export default function Setup() {
   const [csvImportResult, setCsvImportResult] = useState<{ imported: number; skipped: number } | null>(null);
   const [step1Loading, setStep1Loading] = useState(false);
   const [step1Error, setStep1Error] = useState("");
+
+  // Feed detection
+  type DetectedFeed = { url: string; type: "sitemap" | "rss" };
+  const [detectingFeeds, setDetectingFeeds] = useState(false);
+  const [detectedFeeds, setDetectedFeeds] = useState<DetectedFeed[]>([]);
+  const [feedDetectionDone, setFeedDetectionDone] = useState(false);
+  const [selectedFeedUrl, setSelectedFeedUrl] = useState<string>("");
+
+  // Derive the URL to detect feeds for
+  const feedDetectInput =
+    platform === "beehiiv" ? beehiivUrl :
+    platform === "substack" && substackMode === "sitemap" ? substackUrl :
+    platform === "custom" ? sitemapUrl : "";
+
+  const debouncedFeedUrl = useDebounce(feedDetectInput, 600);
 
   // Step 2
   const [importDone, setImportDone] = useState(false);
@@ -136,6 +152,56 @@ export default function Setup() {
 
   // Cleanup poll
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  // Feed detection effect
+  useEffect(() => {
+    if (!debouncedFeedUrl || debouncedFeedUrl.length < 8) {
+      setDetectedFeeds([]);
+      setFeedDetectionDone(false);
+      setSelectedFeedUrl("");
+      return;
+    }
+    let domain = debouncedFeedUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+    if (!domain) return;
+
+    let cancelled = false;
+    setDetectingFeeds(true);
+    setDetectedFeeds([]);
+    setFeedDetectionDone(false);
+    setSelectedFeedUrl("");
+
+    (async () => {
+      try {
+        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain)}`, {
+          headers: { apikey: EXT_ANON_KEY },
+        });
+        if (cancelled) return;
+        const json = await res.json();
+        const feeds: DetectedFeed[] = [];
+        if (json.sitemaps?.length) {
+          json.sitemaps.forEach((s: string) => feeds.push({ url: s, type: "sitemap" }));
+        }
+        if (json.feeds?.length) {
+          json.feeds.forEach((f: string) => feeds.push({ url: f, type: "rss" }));
+        }
+        if (!cancelled) {
+          setDetectedFeeds(feeds);
+          setFeedDetectionDone(true);
+          if (feeds.length > 0) {
+            setSelectedFeedUrl(feeds[0].url);
+            if (platform === "custom") setSitemapUrl(feeds[0].url);
+          }
+        }
+      } catch {
+        if (!cancelled) setFeedDetectionDone(true);
+      } finally {
+        if (!cancelled) setDetectingFeeds(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [debouncedFeedUrl, platform]);
+
 
   const authHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -208,11 +274,14 @@ export default function Setup() {
         }
       } else {
         // beehiiv / substack (sitemap mode) / custom → import-sitemap
-        let url = sitemapUrl;
-        if (platform === "beehiiv" && beehiivUrl) {
-          url = beehiivUrl.replace(/\/$/, "") + "/sitemap.xml";
-        } else if (platform === "substack" && substackUrl) {
-          url = substackUrl.replace(/\/$/, "") + "/sitemap.xml";
+        // Prefer detected/selected feed URL, fall back to constructed URL
+        let url = selectedFeedUrl || sitemapUrl;
+        if (!selectedFeedUrl) {
+          if (platform === "beehiiv" && beehiivUrl) {
+            url = beehiivUrl.replace(/\/$/, "") + "/sitemap.xml";
+          } else if (platform === "substack" && substackUrl) {
+            url = substackUrl.replace(/\/$/, "") + "/sitemap.xml";
+          }
         }
         if (!url) { setStep1Error("Please enter a URL."); return; }
 
@@ -334,6 +403,46 @@ export default function Setup() {
       prev.includes(c) ? prev.filter(x => x !== c) : prev.length < 5 ? [...prev, c] : prev
     );
   };
+
+  const renderFeedDetection = () => (
+    <>
+      {detectingFeeds && (
+        <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+          <Loader2 size={14} className="animate-spin text-[#4A26ED]" />
+          Detecting your content source…
+        </div>
+      )}
+      {!detectingFeeds && feedDetectionDone && detectedFeeds.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-[#040042]">Detected feeds:</p>
+          {detectedFeeds.map((feed) => (
+            <label key={feed.url} className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors ${selectedFeedUrl === feed.url ? "border-[#4A26ED] bg-[#4A26ED]/5" : "border-[#E5E7EB] hover:border-[#D1D5DB]"}`}>
+              <input
+                type="radio"
+                name="detected-feed"
+                checked={selectedFeedUrl === feed.url}
+                onChange={() => {
+                  setSelectedFeedUrl(feed.url);
+                  if (platform === "custom") setSitemapUrl(feed.url);
+                }}
+                className="accent-[#4A26ED]"
+              />
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-medium text-[#040042]">{feed.type === "sitemap" ? "Sitemap" : "RSS Feed"}</span>
+                <span className="text-xs text-[#6B7280] ml-1.5 truncate block">{feed.url}</span>
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
+      {!detectingFeeds && feedDetectionDone && detectedFeeds.length === 0 && feedDetectInput.length >= 8 && (
+        <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          <AlertTriangle size={14} />
+          No sitemap detected — you can enter a URL manually.
+        </div>
+      )}
+    </>
+  );
 
   if (!user || loading) return <PageLoader />;
 
@@ -485,6 +594,7 @@ export default function Setup() {
                   <label className="text-sm font-medium text-[#040042]">Beehiiv publication URL</label>
                   <Input placeholder="https://yourblog.beehiiv.com" value={beehiivUrl} onChange={e => setBeehiivUrl(e.target.value)} className="mt-1" />
                 </div>
+                {renderFeedDetection()}
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                   <p className="text-sm text-amber-900 font-medium">For paywalled content</p>
                   <p className="text-xs text-amber-800 mt-1">Subscribe <code className="bg-amber-100 px-1 rounded font-mono text-xs">newsletter@inbound.opedd.com</code> to your paid subscriber list in Beehiiv → Subscribers → Add Subscriber. Future paid issues will be delivered automatically.</p>
@@ -609,6 +719,7 @@ export default function Setup() {
                       <label className="text-sm font-medium text-[#040042]">Substack URL</label>
                       <Input placeholder="https://yourname.substack.com" value={substackUrl} onChange={e => setSubstackUrl(e.target.value)} className="mt-1" />
                     </div>
+                    {renderFeedDetection()}
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                       <p className="text-sm text-amber-900 font-medium">For paywalled content</p>
                       <p className="text-xs text-amber-800 mt-1">In Substack → Settings → Email, add <code className="bg-amber-100 px-1 rounded font-mono text-xs">newsletter@inbound.opedd.com</code> as a comp subscription. Future paid issues will be delivered automatically.</p>
@@ -629,6 +740,7 @@ export default function Setup() {
                   <Input placeholder="https://yoursite.com/sitemap.xml" value={sitemapUrl} onChange={e => setSitemapUrl(e.target.value)} className="mt-1" />
                   <p className="text-xs text-[#6B7280] mt-1">We'll import all article URLs from your sitemap.</p>
                 </div>
+                {renderFeedDetection()}
               </div>
             )}
 
