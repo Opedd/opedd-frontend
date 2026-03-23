@@ -70,6 +70,21 @@ export default function Setup() {
   const [step1Loading, setStep1Loading] = useState(false);
   const [step1Error, setStep1Error] = useState("");
 
+  // Feed detection
+  type DetectedFeed = { url: string; type: "sitemap" | "rss" };
+  const [detectingFeeds, setDetectingFeeds] = useState(false);
+  const [detectedFeeds, setDetectedFeeds] = useState<DetectedFeed[]>([]);
+  const [feedDetectionDone, setFeedDetectionDone] = useState(false);
+  const [selectedFeedUrl, setSelectedFeedUrl] = useState<string>("");
+
+  // Derive the URL to detect feeds for
+  const feedDetectInput =
+    platform === "beehiiv" ? beehiivUrl :
+    platform === "substack" && substackMode === "sitemap" ? substackUrl :
+    platform === "custom" ? sitemapUrl : "";
+
+  const debouncedFeedUrl = useDebounce(feedDetectInput, 600);
+
   // Step 2
   const [importDone, setImportDone] = useState(false);
   const [articleCount, setArticleCount] = useState(0);
