@@ -43,7 +43,7 @@ interface DetectFeedsResult {
   estimated_article_count: number;
 }
 
-type FlowStep = "url_input" | "detection_result" | "post_import" | "api_path";
+type FlowStep = "url_input" | "detection_result" | "ghost_api_key" | "post_import" | "api_path";
 
 interface PublicationSetupFlowProps {
   onComplete: (completionState?: { pricingDone: boolean; widgetDone: boolean }) => void;
