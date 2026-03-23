@@ -61,6 +61,10 @@ export default function Setup() {
   const [substackUrl, setSubstackUrl] = useState("");
   const [sitemapUrl, setSitemapUrl] = useState("");
   const [wpConfirmed, setWpConfirmed] = useState(false);
+  const [substackMode, setSubstackMode] = useState<"csv" | "sitemap">("csv");
+  const [substackFile, setSubstackFile] = useState<File | null>(null);
+  const [substackDragging, setSubstackDragging] = useState(false);
+  const [csvImportResult, setCsvImportResult] = useState<{ imported: number; skipped: number } | null>(null);
   const [step1Loading, setStep1Loading] = useState(false);
   const [step1Error, setStep1Error] = useState("");
 
