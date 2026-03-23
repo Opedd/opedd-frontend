@@ -153,7 +153,56 @@ export default function Setup() {
   // Cleanup poll
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  const authHeaders = useCallback(async () => {
+  // Feed detection effect
+  useEffect(() => {
+    if (!debouncedFeedUrl || debouncedFeedUrl.length < 8) {
+      setDetectedFeeds([]);
+      setFeedDetectionDone(false);
+      setSelectedFeedUrl("");
+      return;
+    }
+    let domain = debouncedFeedUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+    if (!domain) return;
+
+    let cancelled = false;
+    setDetectingFeeds(true);
+    setDetectedFeeds([]);
+    setFeedDetectionDone(false);
+    setSelectedFeedUrl("");
+
+    (async () => {
+      try {
+        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain)}`, {
+          headers: { apikey: EXT_ANON_KEY },
+        });
+        if (cancelled) return;
+        const json = await res.json();
+        const feeds: DetectedFeed[] = [];
+        if (json.sitemaps?.length) {
+          json.sitemaps.forEach((s: string) => feeds.push({ url: s, type: "sitemap" }));
+        }
+        if (json.feeds?.length) {
+          json.feeds.forEach((f: string) => feeds.push({ url: f, type: "rss" }));
+        }
+        if (!cancelled) {
+          setDetectedFeeds(feeds);
+          setFeedDetectionDone(true);
+          if (feeds.length > 0) {
+            setSelectedFeedUrl(feeds[0].url);
+            if (platform === "custom") setSitemapUrl(feeds[0].url);
+          }
+        }
+      } catch {
+        if (!cancelled) setFeedDetectionDone(true);
+      } finally {
+        if (!cancelled) setDetectingFeeds(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [debouncedFeedUrl, platform]);
+
+
     const token = await getAccessToken();
     return {
       "Content-Type": "application/json",
