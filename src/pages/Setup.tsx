@@ -720,6 +720,7 @@ export default function Setup() {
                       <Input placeholder="https://yourname.substack.com" value={substackUrl} onChange={e => setSubstackUrl(e.target.value)} className="mt-1" />
                     </div>
                     {renderFeedDetection()}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                       <p className="text-sm text-amber-900 font-medium">For paywalled content</p>
                       <p className="text-xs text-amber-800 mt-1">In Substack → Settings → Email, add <code className="bg-amber-100 px-1 rounded font-mono text-xs">newsletter@inbound.opedd.com</code> as a comp subscription. Future paid issues will be delivered automatically.</p>
                       <Button size="sm" variant="ghost" className="text-xs mt-2 text-amber-700" onClick={handleCopyEmail}>
