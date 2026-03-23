@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Search, FileText, Loader2, Link2, MoreHorizontal, Check,
   Globe, Calendar, User, ExternalLink, Copy, X, AlertTriangle,
-  ArrowUpDown, Download, Handshake,
+  ArrowUpDown, Download, Handshake, Upload,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -99,6 +99,13 @@ export default function Content() {
 
   // Archive license modal
   const [archiveLicenseOpen, setArchiveLicenseOpen] = useState(false);
+
+  // Substack import state
+  const [substackFile, setSubstackFile] = useState<File | null>(null);
+  const [substackLicensing, setSubstackLicensing] = useState(true);
+  const [substackHumanPrice, setSubstackHumanPrice] = useState("");
+  const [substackAiPrice, setSubstackAiPrice] = useState("");
+  const [substackImporting, setSubstackImporting] = useState(false);
 
   // Pricing edit inside drawer
   const [editingRates, setEditingRates] = useState(false);
@@ -332,6 +339,7 @@ export default function Content() {
             <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
               {[
                 { value: "articles", label: "Articles" },
+                { value: "substack", label: "Substack Import" },
                 { value: "archive-license", label: "Archive License" },
               ].map((tab) => (
                 <TabsTrigger
@@ -527,6 +535,135 @@ export default function Content() {
           </div>
         )}
           </TabsContent>
+
+          {/* Substack Import Tab */}
+          <TabsContent value="substack" className="mt-6">
+            <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-5">
+              <div className="flex items-center gap-3">
+                <img src={substackLogo} alt="Substack" className="w-10 h-10 rounded-xl" />
+                <div>
+                  <h2 className="text-base font-bold text-[#111827]">Import from Substack</h2>
+                  <p className="text-sm text-[#6B7280] mt-0.5">Upload your Substack <code className="text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded font-mono">posts.csv</code> to import your article catalog.</p>
+                </div>
+              </div>
+
+              <div className="bg-[#F9FAFB] rounded-lg p-4 text-sm text-[#6B7280] space-y-1">
+                <p className="font-medium text-[#111827] text-xs uppercase tracking-wider mb-2">How to get your CSV</p>
+                <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <li>Go to <span className="font-medium text-[#111827]">substack.com → Settings → Export data</span></li>
+                  <li>Download the ZIP file</li>
+                  <li>Open the ZIP and find <code className="bg-white px-1 py-0.5 rounded text-xs font-mono border border-[#E5E7EB]">posts.csv</code></li>
+                  <li>Upload it below</li>
+                </ol>
+              </div>
+
+              {/* File dropzone */}
+              <label
+                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                  substackFile ? "border-[#4A26ED] bg-[#4A26ED]/5" : "border-[#E5E7EB] hover:border-[#4A26ED]/40 bg-[#F9FAFB]"
+                }`}
+              >
+                <Upload size={20} className={substackFile ? "text-[#4A26ED]" : "text-[#9CA3AF]"} />
+                <p className="mt-2 text-sm font-medium text-[#6B7280]">
+                  {substackFile ? substackFile.name : "Choose posts.csv"}
+                </p>
+                {substackFile && (
+                  <p className="text-xs text-[#9CA3AF] mt-0.5">{(substackFile.size / 1024).toFixed(0)} KB</p>
+                )}
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => setSubstackFile(e.target.files?.[0] || null)}
+                />
+              </label>
+
+              {/* Options */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <Checkbox
+                    checked={substackLicensing}
+                    onCheckedChange={(v) => setSubstackLicensing(!!v)}
+                  />
+                  <span className="text-sm text-[#111827]">Enable licensing on all imported posts</span>
+                </label>
+
+                {substackLicensing && (
+                  <div className="grid grid-cols-2 gap-3 pl-7">
+                    <div>
+                      <label className="text-xs text-[#6B7280] mb-1 block">Human price ($)</label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="e.g. 5.00"
+                        value={substackHumanPrice}
+                        onChange={(e) => setSubstackHumanPrice(e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[#6B7280] mb-1 block">AI price ($)</label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="e.g. 10.00"
+                        value={substackAiPrice}
+                        onChange={(e) => setSubstackAiPrice(e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                disabled={!substackFile || substackImporting}
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
+                onClick={async () => {
+                  if (!substackFile) return;
+                  setSubstackImporting(true);
+                  try {
+                    const csvContent = await substackFile.text();
+                    const token = await getAccessToken();
+                    const body: Record<string, unknown> = {
+                      csv_content: csvContent,
+                      licensing_enabled: substackLicensing,
+                    };
+                    if (substackHumanPrice) body.human_price = parseFloat(substackHumanPrice);
+                    if (substackAiPrice) body.ai_price = parseFloat(substackAiPrice);
+
+                    const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/substack-upload`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        apikey: EXT_ANON_KEY,
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify(body),
+                    });
+                    const json = await res.json();
+                    if (!res.ok) throw new Error(json.error || "Import failed");
+                    toast({
+                      title: "Import complete",
+                      description: `${json.imported ?? 0} articles imported, ${json.skipped ?? 0} skipped.`,
+                    });
+                    setSubstackFile(null);
+                    fetchAssets();
+                  } catch (err: any) {
+                    toast({ title: "Import failed", description: err.message, variant: "destructive" });
+                  } finally {
+                    setSubstackImporting(false);
+                  }
+                }}
+              >
+                {substackImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                {substackImporting ? "Importing…" : "Import"}
+              </Button>
+            </div>
+          </TabsContent>
+
 
           <TabsContent value="archive-license" className="mt-6">
             <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-4">
