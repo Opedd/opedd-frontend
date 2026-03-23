@@ -120,7 +120,7 @@ export default function Enterprise() {
       ].join("\n");
 
       const res = await fetch(
-        "https://dmmvaiupksamhgefdxev.supabase.co/functions/v1/contact-publisher",
+        `${EXT_SUPABASE_URL}/functions/v1/contact-publisher`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
