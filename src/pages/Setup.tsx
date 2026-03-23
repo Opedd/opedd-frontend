@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Copy, Check, Globe, ChevronRight, Mail, ExternalLink, Wallet, Info, CheckCircle2, Upload, FileText } from "lucide-react";
+import { Loader2, Copy, Check, Globe, ChevronRight, ChevronDown, Mail, ExternalLink, Wallet, Info, CheckCircle2, Upload, FileText } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { EXT_SUPABASE_REST } from "@/lib/constants";
 import { copyToClipboard } from "@/lib/clipboard";
 
@@ -87,6 +88,7 @@ export default function Setup() {
   // Copy states
   const [emailCopied, setEmailCopied] = useState(false);
   const [snippetCopied, setSnippetCopied] = useState(false);
+  const [webhookCopied, setWebhookCopied] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -407,6 +409,49 @@ export default function Setup() {
                   </a>
                 </div>
                 <p className="text-xs text-[#6B7280]">This gives us read access to your full post archive, including members-only content. We never write to your Ghost account.</p>
+
+                {/* Ghost webhook callout */}
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full text-left mt-2 group">
+                    <div className="flex items-center gap-2 flex-1">
+                      <img src={ghostLogo} alt="Ghost" className="w-4 h-4" />
+                      <span className="text-sm font-medium text-[#040042]">Live sync via Ghost webhook</span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-[#D1D5DB] text-[#6B7280]">Optional</Badge>
+                    </div>
+                    <ChevronDown size={14} className="text-[#9CA3AF] transition-transform group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 space-y-3">
+                    <p className="text-xs text-[#6B7280]">
+                      To receive new articles instantly when you publish, add a webhook in your Ghost Admin panel:
+                    </p>
+                    <ol className="text-xs text-[#6B7280] space-y-1 list-decimal list-inside">
+                      <li>Go to Ghost Admin → Settings → Integrations → Add custom integration</li>
+                      <li>Name it <span className="font-medium text-[#040042]">"Opedd"</span></li>
+                      <li>Under Webhooks, add: <span className="font-medium text-[#040042]">Event = Post published</span></li>
+                      <li>Paste the URL below and save</li>
+                    </ol>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs font-mono text-[#040042] truncate">
+                        https://djdzcciayennqchjgybx.supabase.co/functions/v1/platform-webhook
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0 text-xs gap-1"
+                        onClick={async () => {
+                          const ok = await copyToClipboard("https://djdzcciayennqchjgybx.supabase.co/functions/v1/platform-webhook");
+                          if (ok) { setWebhookCopied(true); setTimeout(() => setWebhookCopied(false), 2000); }
+                        }}
+                      >
+                        {webhookCopied ? <Check size={12} /> : <Copy size={12} />}
+                        {webhookCopied ? "Copied" : "Copy"}
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-[#9CA3AF]">
+                      Without this, articles sync via our scheduled feed (up to 15 min delay).
+                    </p>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             )}
 
