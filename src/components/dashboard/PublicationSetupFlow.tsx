@@ -381,6 +381,54 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
     }
   };
 
+  // ─── Ghost Admin API import ───
+  const handleGhostImport = async () => {
+    if (!ghostAdminKey.trim() || !user) return;
+    setGhostImporting(true);
+    setGhostImportError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+
+      const ghostUrl = url.trim().replace(/\/+$/, "");
+      const res = await fetch(`${EXT_SUPABASE_URL}/import-ghost`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ghost_url: ghostUrl,
+          admin_api_key: ghostAdminKey.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          setGhostImportError("Authentication failed. Please check your Admin API Key.");
+          return;
+        }
+        if (res.status === 502) {
+          setGhostImportError("Could not reach your Ghost blog. Please check the URL.");
+          return;
+        }
+        const errData = await res.json().catch(() => ({}));
+        setGhostImportError(errData.error || errData.message || "Import failed. Please try again.");
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+      const imported = data.data?.imported ?? data.imported ?? 0;
+      toast({ title: "Ghost import complete", description: `${imported} posts imported with full content.` });
+      setStep("post_import");
+    } catch (err: any) {
+      setGhostImportError(err?.message || "Import failed. Please try again.");
+    } finally {
+      setGhostImporting(false);
+    }
+  };
+
   const webhookUrl = `${EXT_SUPABASE_URL}/api`;
   const detectedCase = getCase();
   const isRssFlow = detectedCase === "rss" || (detection?.platform === "substack") || (detection?.platform === "beehiiv");
