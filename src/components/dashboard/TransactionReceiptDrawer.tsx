@@ -289,6 +289,38 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
             </div>
           )}
 
+          {/* Refund */}
+          {canRefund && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full h-11 gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
+                  <RefreshCw size={16} />Refund Buyer
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2 text-[#111827]">
+                    <RefreshCw size={20} className="text-amber-600" />Refund this license?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-[#6B7280]">
+                    Refund ${transaction.amount.toFixed(2)} to {transaction.licenseeEmail || "the buyer"}? This will revoke the license. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-lg border-[#E5E7EB]">Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleRefund}
+                    disabled={refunding}
+                    className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg gap-2"
+                  >
+                    {refunding && <Loader2 size={14} className="animate-spin" />}
+                    {refunding ? "Processing…" : "Yes, Refund"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
           {/* Revoke License */}
           {canRevoke && (
             <AlertDialog>
