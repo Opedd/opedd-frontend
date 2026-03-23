@@ -159,6 +159,34 @@ export default function Setup() {
       return;
     }
 
+    // Substack CSV upload mode
+    if (platform === "substack" && substackMode === "csv") {
+      if (!substackFile) { setStep1Error("Please select a posts.csv file."); return; }
+      if (substackFile.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
+      if (!substackFile.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
+      setStep1Loading(true);
+      try {
+        const token = await getAccessToken();
+        const formData = new FormData();
+        formData.append("file", substackFile);
+        const res = await fetch(`${EXT_SUPABASE_REST}/functions/v1/substack-upload`, {
+          method: "POST",
+          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.error || json?.message || "Upload failed");
+        setCsvImportResult({ imported: json.imported ?? 0, skipped: json.skipped ?? 0 });
+        // Auto-advance after 2 seconds
+        setTimeout(() => { setStep(2); startImportPoll(); }, 2000);
+      } catch (err: any) {
+        setStep1Error(err?.message || "Upload failed — please try again.");
+      } finally {
+        setStep1Loading(false);
+      }
+      return;
+    }
+
     setStep1Loading(true);
     try {
       const headers = await authHeaders();
@@ -177,7 +205,7 @@ export default function Setup() {
           return;
         }
       } else {
-        // beehiiv / substack / custom → import-sitemap
+        // beehiiv / substack (sitemap mode) / custom → import-sitemap
         let url = sitemapUrl;
         if (platform === "beehiiv" && beehiivUrl) {
           url = beehiivUrl.replace(/\/$/, "") + "/sitemap.xml";
