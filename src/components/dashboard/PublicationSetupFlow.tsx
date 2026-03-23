@@ -71,6 +71,9 @@ export function PublicationSetupFlow({ onComplete }: PublicationSetupFlowProps) 
 
   // Manual fallback URL for Case C
   const [manualFeedUrl, setManualFeedUrl] = useState("");
+  const [ghostAdminKey, setGhostAdminKey] = useState("");
+  const [ghostImporting, setGhostImporting] = useState(false);
+  const [ghostImportError, setGhostImportError] = useState("");
 
   // Fetch publisher profile (API key + ID)
   useEffect(() => {
