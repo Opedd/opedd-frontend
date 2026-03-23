@@ -595,6 +595,7 @@ export default function Setup() {
                   <Input placeholder="https://yourblog.beehiiv.com" value={beehiivUrl} onChange={e => setBeehiivUrl(e.target.value)} className="mt-1" />
                 </div>
                 {renderFeedDetection()}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                   <p className="text-sm text-amber-900 font-medium">For paywalled content</p>
                   <p className="text-xs text-amber-800 mt-1">Subscribe <code className="bg-amber-100 px-1 rounded font-mono text-xs">newsletter@inbound.opedd.com</code> to your paid subscriber list in Beehiiv → Subscribers → Add Subscriber. Future paid issues will be delivered automatically.</p>
                   <Button size="sm" variant="ghost" className="text-xs mt-2 text-amber-700" onClick={handleCopyEmail}>
