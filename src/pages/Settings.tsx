@@ -1655,6 +1655,36 @@ export default function Settings() {
                           </div>
                         )}
                       </div>
+
+                      {/* Newsletter Forwarding */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Mail size={18} className="text-[#4A26ED]" />
+                          <h2 className="font-bold text-[#040042]">Newsletter forwarding</h2>
+                        </div>
+                        <p className="text-sm text-[#6B7280] mb-4 leading-relaxed max-w-lg">
+                          Forward your Substack, Beehiiv, or Ghost newsletters to:
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-4 py-2.5 text-sm font-mono text-[#040042] select-all">
+                            newsletter@inbound.opedd.com
+                          </code>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const { copyToClipboard } = await import("@/lib/clipboard");
+                              const ok = await copyToClipboard("newsletter@inbound.opedd.com");
+                              if (ok) toast({ title: "Copied!", description: "Email address copied to clipboard." });
+                            }}
+                          >
+                            <Copy size={14} /> Copy
+                          </Button>
+                        </div>
+                        <p className="text-xs text-[#6B7280] mt-3 leading-relaxed">
+                          New issues will be automatically imported and delivered to your licensed AI subscribers. Make sure your publication is registered as a content source first.
+                        </p>
+                      </div>
                     </motion.div>
                   )}
                 </TabsContent>
