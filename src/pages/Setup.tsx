@@ -738,6 +738,7 @@ export default function Setup() {
                   <Input placeholder="https://yoursite.com/sitemap.xml" value={sitemapUrl} onChange={e => setSitemapUrl(e.target.value)} className="mt-1" />
                   <p className="text-xs text-[#6B7280] mt-1">We'll import all article URLs from your sitemap.</p>
                 </div>
+                {renderFeedDetection()}
               </div>
             )}
 
