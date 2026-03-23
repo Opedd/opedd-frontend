@@ -31,6 +31,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const ForAiAgents = lazy(() => import("./pages/ForAiAgents"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
 const Status = lazy(() => import("./pages/Status"));
+const Publishers = lazy(() => import("./pages/Publishers"));
 
 // Lazy-loaded: buyer-facing public pages
 const LicensePublicCheckout = lazy(() => import("./pages/LicensePublicCheckout"));
@@ -104,6 +105,7 @@ const App = () => (
                 <Route path="/enterprise" element={<Enterprise />} />
                 <Route path="/for-ai-agents" element={<ForAiAgents />} />
                 <Route path="/status" element={<Status />} />
+                <Route path="/publishers" element={<Publishers />} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

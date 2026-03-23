@@ -23,6 +23,7 @@ const Header = () => {
     { label: "Why Opedd", href: "#why-opedd" },
     { label: "Pricing", href: "/pricing", isRoute: true },
     { label: "Enterprise", href: "/enterprise", isRoute: true },
+    { label: "Publishers", href: "/publishers", isRoute: true },
     { label: "Docs", href: "https://docs.opedd.com", isExternal: true },
   ];
 
