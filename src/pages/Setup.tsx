@@ -404,6 +404,46 @@ export default function Setup() {
     );
   };
 
+  const renderFeedDetection = () => (
+    <>
+      {detectingFeeds && (
+        <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+          <Loader2 size={14} className="animate-spin text-[#4A26ED]" />
+          Detecting your content source…
+        </div>
+      )}
+      {!detectingFeeds && feedDetectionDone && detectedFeeds.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-[#040042]">Detected feeds:</p>
+          {detectedFeeds.map((feed) => (
+            <label key={feed.url} className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors ${selectedFeedUrl === feed.url ? "border-[#4A26ED] bg-[#4A26ED]/5" : "border-[#E5E7EB] hover:border-[#D1D5DB]"}`}>
+              <input
+                type="radio"
+                name="detected-feed"
+                checked={selectedFeedUrl === feed.url}
+                onChange={() => {
+                  setSelectedFeedUrl(feed.url);
+                  if (platform === "custom") setSitemapUrl(feed.url);
+                }}
+                className="accent-[#4A26ED]"
+              />
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-medium text-[#040042]">{feed.type === "sitemap" ? "Sitemap" : "RSS Feed"}</span>
+                <span className="text-xs text-[#6B7280] ml-1.5 truncate block">{feed.url}</span>
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
+      {!detectingFeeds && feedDetectionDone && detectedFeeds.length === 0 && feedDetectInput.length >= 8 && (
+        <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          <AlertTriangle size={14} />
+          No sitemap detected — you can enter a URL manually.
+        </div>
+      )}
+    </>
+  );
+
   if (!user || loading) return <PageLoader />;
 
   return (
