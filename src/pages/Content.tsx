@@ -100,6 +100,13 @@ export default function Content() {
   // Archive license modal
   const [archiveLicenseOpen, setArchiveLicenseOpen] = useState(false);
 
+  // Substack import state
+  const [substackFile, setSubstackFile] = useState<File | null>(null);
+  const [substackLicensing, setSubstackLicensing] = useState(true);
+  const [substackHumanPrice, setSubstackHumanPrice] = useState("");
+  const [substackAiPrice, setSubstackAiPrice] = useState("");
+  const [substackImporting, setSubstackImporting] = useState(false);
+
   // Pricing edit inside drawer
   const [editingRates, setEditingRates] = useState(false);
   const [rateHuman, setRateHuman] = useState("");
