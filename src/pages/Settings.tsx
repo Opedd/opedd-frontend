@@ -252,6 +252,18 @@ export default function Settings() {
   const [isSavingAiLicensing, setIsSavingAiLicensing] = useState(false);
   const [enterpriseRevenue, setEnterpriseRevenue] = useState<{ total_usd: number; payouts: Array<{ month: string; amount_usd: number; license_id?: string; buyer_org?: string }> } | null>(null);
 
+  // Content Taxonomy
+  const CATEGORIES = [
+    "Finance & Markets", "Technology", "Politics & Policy", "Business",
+    "Media & Journalism", "Science", "Health & Medicine", "Law & Regulation",
+    "Energy & Climate", "Defence & Security", "Culture & Society", "Sports",
+    "Travel", "Food & Lifestyle", "Education", "Real Estate",
+    "Crypto & Web3", "AI & Machine Learning",
+  ];
+  const [publisherCategories, setPublisherCategories] = useState<string[]>([]);
+  const [expertiseSummary, setExpertiseSummary] = useState("");
+  const [isSavingTaxonomy, setIsSavingTaxonomy] = useState(false);
+
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
   const [teamInvitations, setTeamInvitations] = useState<Array<{ id: string; email: string; role: string; created_at: string; expires_at: string }>>([]);
@@ -380,6 +392,12 @@ export default function Settings() {
          }
          if ((d as any).enterprise_revenue) {
            setEnterpriseRevenue((d as any).enterprise_revenue);
+         }
+         if ((d as any).categories) {
+           setPublisherCategories((d as any).categories);
+         }
+         if ((d as any).expertise_summary) {
+           setExpertiseSummary((d as any).expertise_summary);
          }
        }
     } catch (err) {
@@ -1684,6 +1702,71 @@ export default function Settings() {
                         <p className="text-xs text-[#6B7280] mt-3 leading-relaxed">
                           New issues will be automatically imported and delivered to your licensed AI subscribers. Make sure your publication is registered as a content source first.
                         </p>
+                      </div>
+
+                      {/* Content Taxonomy */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+                        <div>
+                          <h2 className="font-bold text-[#040042] text-lg">Content Taxonomy</h2>
+                          <p className="text-sm text-[#6B7280] leading-relaxed mt-1 max-w-2xl">Used by enterprise buyers to discover your content by industry vertical.</p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {CATEGORIES.map(c => (
+                            <button
+                              key={c}
+                              onClick={() => setPublisherCategories(prev =>
+                                prev.includes(c) ? prev.filter(x => x !== c) : prev.length < 5 ? [...prev, c] : prev
+                              )}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all
+                                ${publisherCategories.includes(c)
+                                  ? "bg-[#4A26ED] text-white border-[#4A26ED]"
+                                  : "bg-white text-[#374151] border-[#E5E7EB] hover:border-[#D1D5DB]"}`}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                        {publisherCategories.length >= 5 && <p className="text-xs text-[#6B7280]">Maximum 5 categories selected.</p>}
+
+                        <div>
+                          <label className="text-sm font-medium text-[#040042]">One-sentence expertise summary</label>
+                          <Input
+                            placeholder="e.g. Covering US-China geopolitics and Asian markets since 2003."
+                            value={expertiseSummary}
+                            onChange={e => { if (e.target.value.length <= 200) setExpertiseSummary(e.target.value); }}
+                            className="mt-1"
+                          />
+                          <p className="text-xs text-[#9CA3AF] mt-1">{expertiseSummary.length}/200</p>
+                        </div>
+
+                        <Button
+                          onClick={async () => {
+                            setIsSavingTaxonomy(true);
+                            try {
+                              const headers = await apiHeaders();
+                              const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                                method: "PATCH",
+                                headers,
+                                body: JSON.stringify({ categories: publisherCategories, expertise_summary: expertiseSummary }),
+                              });
+                              const result = await res.json();
+                              if (result.success) {
+                                toast({ title: "Content taxonomy saved." });
+                              } else {
+                                throw new Error(result.error?.message || "Save failed");
+                              }
+                            } catch (err: unknown) {
+                              toast({ title: "Save failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+                            } finally {
+                              setIsSavingTaxonomy(false);
+                            }
+                          }}
+                          disabled={isSavingTaxonomy}
+                          className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg px-5"
+                        >
+                          {isSavingTaxonomy ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Taxonomy"}
+                        </Button>
                       </div>
                     </motion.div>
                   )}

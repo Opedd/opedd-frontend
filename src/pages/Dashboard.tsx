@@ -134,6 +134,11 @@ export default function Dashboard() {
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setSetupComplete(!!profile?.setup_complete);
+      // Redirect to setup wizard if setup not complete
+      if (!profile?.setup_complete) {
+        navigate("/setup", { replace: true });
+        return;
+      }
       setAiLicensingConfigured(!!profile?.ai_license_types);
       setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
@@ -198,6 +203,41 @@ export default function Dashboard() {
       headerActions={<></>}
     >
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
+        {/* Pending Earnings Card */}
+        {!stripeConnected && (
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm" style={{ borderImage: "linear-gradient(135deg, #F59E0B, #D97706) 1" }}>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-lg font-bold text-[#040042] flex items-center gap-2">
+                  💰 Pending Earnings: ${totalRevenue.toFixed(2)}
+                </p>
+                <p className="text-sm text-[#6B7280] mt-1">
+                  {totalRevenue > 0
+                    ? "Your earnings are accumulating. Connect your bank to start receiving payouts."
+                    : "Once you make your first sale, your earnings will appear here."}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const token = await getAccessToken();
+                    const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ action: "connect_stripe" }),
+                    });
+                    const json = await res.json();
+                    if (json.url) window.location.href = json.url;
+                  } catch { /* ignore */ }
+                }}
+                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white shrink-0"
+              >
+                Connect Stripe →
+              </Button>
+            </div>
+          </div>
+        )}
         {/* Onboarding Checklist */}
         <OnboardingChecklist
           contentImported={contentImported}
