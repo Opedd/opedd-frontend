@@ -52,7 +52,7 @@ interface TransactionReceiptDrawerProps {
   onTransactionUpdate?: (id: string, updates: Partial<Transaction>) => void;
 }
 
-export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRetryBlockchain }: TransactionReceiptDrawerProps) {
+export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRetryBlockchain, onTransactionUpdate }: TransactionReceiptDrawerProps) {
   const [copiedHash, setCopiedHash] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [retrying, setRetrying] = useState(false);
