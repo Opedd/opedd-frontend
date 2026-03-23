@@ -252,6 +252,18 @@ export default function Settings() {
   const [isSavingAiLicensing, setIsSavingAiLicensing] = useState(false);
   const [enterpriseRevenue, setEnterpriseRevenue] = useState<{ total_usd: number; payouts: Array<{ month: string; amount_usd: number; license_id?: string; buyer_org?: string }> } | null>(null);
 
+  // Content Taxonomy
+  const CATEGORIES = [
+    "Finance & Markets", "Technology", "Politics & Policy", "Business",
+    "Media & Journalism", "Science", "Health & Medicine", "Law & Regulation",
+    "Energy & Climate", "Defence & Security", "Culture & Society", "Sports",
+    "Travel", "Food & Lifestyle", "Education", "Real Estate",
+    "Crypto & Web3", "AI & Machine Learning",
+  ];
+  const [publisherCategories, setPublisherCategories] = useState<string[]>([]);
+  const [expertiseSummary, setExpertiseSummary] = useState("");
+  const [isSavingTaxonomy, setIsSavingTaxonomy] = useState(false);
+
   // Team state
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
   const [teamInvitations, setTeamInvitations] = useState<Array<{ id: string; email: string; role: string; created_at: string; expires_at: string }>>([]);
