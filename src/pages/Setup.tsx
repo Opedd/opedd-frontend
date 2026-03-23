@@ -203,6 +203,7 @@ export default function Setup() {
   }, [debouncedFeedUrl, platform]);
 
 
+  const authHeaders = useCallback(async () => {
     const token = await getAccessToken();
     return {
       "Content-Type": "application/json",
