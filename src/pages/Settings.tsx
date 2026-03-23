@@ -393,6 +393,12 @@ export default function Settings() {
          if ((d as any).enterprise_revenue) {
            setEnterpriseRevenue((d as any).enterprise_revenue);
          }
+         if ((d as any).categories) {
+           setPublisherCategories((d as any).categories);
+         }
+         if ((d as any).expertise_summary) {
+           setExpertiseSummary((d as any).expertise_summary);
+         }
        }
     } catch (err) {
       console.warn("[Settings] Failed to fetch profile:", err);
