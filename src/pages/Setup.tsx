@@ -274,11 +274,14 @@ export default function Setup() {
         }
       } else {
         // beehiiv / substack (sitemap mode) / custom → import-sitemap
-        let url = sitemapUrl;
-        if (platform === "beehiiv" && beehiivUrl) {
-          url = beehiivUrl.replace(/\/$/, "") + "/sitemap.xml";
-        } else if (platform === "substack" && substackUrl) {
-          url = substackUrl.replace(/\/$/, "") + "/sitemap.xml";
+        // Prefer detected/selected feed URL, fall back to constructed URL
+        let url = selectedFeedUrl || sitemapUrl;
+        if (!selectedFeedUrl) {
+          if (platform === "beehiiv" && beehiivUrl) {
+            url = beehiivUrl.replace(/\/$/, "") + "/sitemap.xml";
+          } else if (platform === "substack" && substackUrl) {
+            url = substackUrl.replace(/\/$/, "") + "/sitemap.xml";
+          }
         }
         if (!url) { setStep1Error("Please enter a URL."); return; }
 
