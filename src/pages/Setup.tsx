@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Copy, Check, Globe, ChevronRight, Mail, ExternalLink, Wallet, Info, CheckCircle2 } from "lucide-react";
+import { Loader2, Copy, Check, Globe, ChevronRight, Mail, ExternalLink, Wallet, Info, CheckCircle2, Upload, FileText } from "lucide-react";
+import { EXT_SUPABASE_REST } from "@/lib/constants";
 import { copyToClipboard } from "@/lib/clipboard";
 
 import substackLogo from "@/assets/platforms/substack.svg";
