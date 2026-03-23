@@ -665,6 +665,7 @@ export default function Content() {
           </TabsContent>
 
 
+          <TabsContent value="archive-license" className="mt-6">
             <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
