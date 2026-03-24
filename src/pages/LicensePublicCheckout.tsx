@@ -103,7 +103,7 @@ export default function LicensePublicCheckout() {
     if (!id) return;
     (async () => {
       try {
-        const url = `${EXT_SUPABASE_REST}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled,publisher_id&id=eq.${id}&limit=1`;
+        const url = `${EXT_SUPABASE_REST}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled,publisher_id,content_delivery_available&id=eq.${id}&limit=1`;
         const res = await fetch(url, {
           headers: { apikey: EXT_ANON_KEY, Accept: "application/json" },
         });
