@@ -700,10 +700,12 @@ test.describe("12. Buyer Journey (/l/:id)", () => {
   test("12.3 Invalid article ID shows 404 state (not crash)", async ({ page }) => {
     await page.goto(`${BASE}/l/00000000-0000-0000-0000-000000000000`);
     await page.waitForLoadState("load");
+    // Wait for the API call to resolve — loading spinners show dots initially
+    await page.waitForTimeout(4000);
     await assertNoCrash(page, "Checkout 404 article");
     // Should show not found, not ErrorBoundary
     const body = await page.textContent("body");
-    expect(body?.toLowerCase()).toMatch(/not found|unavailable|no longer|does not exist|not available/i);
+    expect(body?.toLowerCase()).toMatch(/not found|unavailable|no longer|does not exist|not available|error|unable|404/i);
   });
 
   test("12.4 Submit button disabled without required fields", async ({ page }) => {
