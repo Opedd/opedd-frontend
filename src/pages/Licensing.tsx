@@ -65,6 +65,7 @@ interface PublisherProfile {
   publication_verified?: boolean;
   pending_sources?: Array<{ id: string; name: string; url: string; verification_status: string; sync_status: string }>;
   email?: string;
+  is_admin?: boolean;
 }
 
 interface Transaction {

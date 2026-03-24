@@ -113,6 +113,7 @@ interface PublisherProfile {
   content_delivery_enabled?: boolean;
   publication_verified?: boolean;
   pending_sources?: Array<{ id: string; name: string; url: string; verification_status: string; sync_status: string }>;
+  is_admin?: boolean;
 }
 
 const tabContentVariants = {
