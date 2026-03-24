@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { Shield, Loader2, ChevronDown, CheckCircle, Copy } from "lucide-react";
+import { Shield, Loader2, ChevronDown, CheckCircle, Copy, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
