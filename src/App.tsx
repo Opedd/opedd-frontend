@@ -48,7 +48,7 @@ const Setup = lazy(() => import("./pages/Setup"));
 const Connectors = lazy(() => import("./pages/Connectors"));
 const Payments = lazy(() => import("./pages/Payments"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
+
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const WidgetPreview = lazy(() => import("./pages/WidgetPreview"));
 const Admin = lazy(() => import("./pages/Admin"));
