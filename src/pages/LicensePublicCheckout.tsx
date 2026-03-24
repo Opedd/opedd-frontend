@@ -17,6 +17,7 @@ interface AssetRow {
   verification_status: string | null;
   licensing_enabled: boolean | null;
   publisher_id: string | null;
+  content_delivery_available?: boolean | null;
 }
 
 type LicenseType = "editorial" | "ai_inference" | "ai_training" | "corporate" | "syndication";
