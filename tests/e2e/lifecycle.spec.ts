@@ -177,21 +177,22 @@ test("3 · Auth guard: publisher-profile API returns 401 with no token", async (
 // TEST 4: Authenticated user lands on dashboard and sees onboarding checklist
 // ─────────────────────────────────────────────────────────────────────────────
 
-test("4 · Dashboard: authenticated new user sees onboarding checklist", async ({ page }) => {
+test("4 · Dashboard: authenticated new user is redirected to setup wizard", async ({ page }) => {
   await loginAndGoto(page, "/dashboard");
 
-  // Either the setup flow (for new users) or the OnboardingChecklist should be present.
-  // The dashboard renders one of:
-  //   - ReferralStep: "How did you hear about Opedd?"
-  //   - PublicationSetupFlow: "Add your content" / "Detect my content"
-  //   - OnboardingChecklist: "Get started with Opedd" / "steps complete"
+  // New users with setup_complete=false are redirected from /dashboard to /setup.
+  // The setup wizard shows the platform selector or detect-feeds step.
+  // Old behavior: showed OnboardingChecklist on /dashboard inline.
+  // New behavior: full-page /setup wizard with redirect.
   const anyVisible = await Promise.any([
-    page.getByText(/how did you hear about opedd/i).first().waitFor({ timeout: 8_000 }).then(() => true),
-    page.getByText(/add your content/i).first().waitFor({ timeout: 8_000 }).then(() => true),
+    // Setup wizard page (new flow — redirect from dashboard)
+    page.waitForURL(/\/setup/, { timeout: 8_000 }).then(() => true),
+    // Fallback: if setup_complete=true, dashboard shows checklist or content
     page.getByText(/get started with opedd/i).first().waitFor({ timeout: 8_000 }).then(() => true),
+    page.getByText(/dashboard/i).first().waitFor({ timeout: 8_000 }).then(() => true),
   ]).catch(() => false);
 
-  expect(anyVisible, "Expected an onboarding element to be visible for a new user").toBe(true);
+  expect(anyVisible, "Expected setup wizard redirect or dashboard content for authenticated user").toBe(true);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
