@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { Shield, Loader2, ChevronDown, CheckCircle, Copy } from "lucide-react";
+import { Shield, Loader2, ChevronDown, CheckCircle, Copy, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ interface AssetRow {
   verification_status: string | null;
   licensing_enabled: boolean | null;
   publisher_id: string | null;
+  content_delivery_available?: boolean | null;
 }
 
 type LicenseType = "editorial" | "ai_inference" | "ai_training" | "corporate" | "syndication";
@@ -102,7 +103,7 @@ export default function LicensePublicCheckout() {
     if (!id) return;
     (async () => {
       try {
-        const url = `${EXT_SUPABASE_REST}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled,publisher_id&id=eq.${id}&limit=1`;
+        const url = `${EXT_SUPABASE_REST}/rest/v1/licenses?select=id,title,description,human_price,ai_price,verification_status,licensing_enabled,publisher_id,content_delivery_available&id=eq.${id}&limit=1`;
         const res = await fetch(url, {
           headers: { apikey: EXT_ANON_KEY, Accept: "application/json" },
         });
@@ -424,6 +425,15 @@ export default function LicensePublicCheckout() {
                 )}
               </div>
             ) : (
+              <div className="space-y-3">
+                {asset?.content_delivery_available === false && (selected === "ai_inference" || selected === "ai_training") && (
+                  <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <AlertTriangle size={16} className="text-amber-600 mt-0.5 shrink-0" />
+                    <p className="text-sm text-amber-800">
+                      Content delivery in progress — your license will be valid immediately, and full content access will be available within 24 hours.
+                    </p>
+                  </div>
+                )}
               <div className="relative group">
                 <Button
                   onClick={handleSubmit}
@@ -447,6 +457,7 @@ export default function LicensePublicCheckout() {
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#111827]" />
                   </div>
                 )}
+              </div>
               </div>
             )}
           </div>
