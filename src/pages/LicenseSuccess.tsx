@@ -275,7 +275,23 @@ export default function LicenseSuccess() {
           )}
         </div>
 
-        {/* Resend */}
+          {/* Buyer Portal CTA for AI/Archive licenses */}
+          {(data?.license_type === "ai" || data?.license_type === "ai_inference" || data?.license_type === "archive") && (
+            <div className="bg-[#EEF0FD] border border-[#C7B8F6] rounded-xl p-5 space-y-2">
+              <h3 className="text-sm font-semibold text-[#111827]">Access Content Programmatically</h3>
+              <p className="text-sm text-[#6B7280]">
+                To retrieve article content via API for AI pipelines or RAG, you need a <code className="font-mono text-xs bg-white/60 px-1 py-0.5 rounded">bk_live_</code> access token. Go to your license dashboard to generate one.
+              </p>
+              <Link
+                to="/licenses"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4A26ED] hover:underline mt-1"
+              >
+                View My Licenses →
+              </Link>
+            </div>
+          )}
+
+          {/* Resend */}
         <div className="text-center">
           {data?.buyer_email && (
             <button
