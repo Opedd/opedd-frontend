@@ -94,7 +94,7 @@ const App = () => (
                 <Route path="/verify/:key" element={<LicenseVerify />} />
                 <Route path="/widget-preview" element={<WidgetPreview />} />
                 <Route path="/setup" element={<ProtectedRoute><Setup /></ProtectedRoute>} />
-                <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                
                 <Route path="/invite/:token" element={<AcceptInvite />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
