@@ -13,6 +13,7 @@ import { Loader2, Copy, Check, Globe, ChevronRight, ChevronDown, Mail, ExternalL
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { EXT_SUPABASE_REST } from "@/lib/constants";
 import { copyToClipboard } from "@/lib/clipboard";
+import { deriveSlug } from "@/lib/utils";
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
@@ -810,8 +811,8 @@ export default function Setup() {
               </div>
             </div>
 
-            <Button onClick={() => setStep(3)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">
-              Continue to widget setup <ChevronRight size={16} className="ml-1" />
+            <Button onClick={() => setStep((platform === "substack" || platform === "beehiiv") ? 4 : 3)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">
+              {(platform === "substack" || platform === "beehiiv") ? "Continue" : "Continue to widget setup"} <ChevronRight size={16} className="ml-1" />
             </Button>
           </>
         )}
@@ -879,6 +880,15 @@ export default function Setup() {
         {/* ===== STEP 4 ===== */}
         {step === 4 && (
           <>
+            {(platform === "substack" || platform === "beehiiv") && (() => {
+              const pubUrl = platform === "substack" ? substackUrl : beehiivUrl;
+              const slug = deriveSlug(pubUrl);
+              return slug ? (
+                <p className="text-sm text-emerald-600 bg-emerald-50 rounded-lg px-4 py-2 mb-4">
+                  Your licensing page is live at <span className="font-mono font-semibold">opedd.com/p/{slug}</span> — share it with buyers.
+                </p>
+              ) : null;
+            })()}
             <div>
               <h1 className="text-2xl font-bold text-[#040042]">Connect your bank to receive payments</h1>
               <p className="text-sm text-[#6B7280] mt-1">You can skip this now and connect later. Any earnings will be held as pending until you connect.</p>
