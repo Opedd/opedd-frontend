@@ -362,22 +362,15 @@ export default function Setup() {
     setFinishLoading(true);
     try {
       const headers = await authHeaders();
-      // Save categories
-      const catRes = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers,
-        body: JSON.stringify({ categories: selectedCategories, expertise_summary: expertiseSummary }),
+        body: JSON.stringify({ categories: selectedCategories, expertise_summary: expertiseSummary, setup_complete: true }),
       });
-      if (!catRes.ok) {
+      if (!res.ok) {
         toast({ title: "Couldn't save — please try again.", variant: "destructive" });
         return;
       }
-      // Mark setup complete
-      await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        method: "PATCH",
-        headers,
-        body: JSON.stringify({ setup_complete: true }),
-      });
       localStorage.removeItem(`opedd_setup_step_${user?.id}`);
       toast({ title: "You're all set", description: "Your archive is live and AI-ready." });
       navigate("/dashboard", { replace: true });
