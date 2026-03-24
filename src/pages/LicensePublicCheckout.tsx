@@ -458,6 +458,7 @@ export default function LicensePublicCheckout() {
                   </div>
                 )}
               </div>
+              </div>
             )}
           </div>
 
