@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import {
   Users, DollarSign, Activity, AlertTriangle, Search, Copy, Check,
   ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown,
@@ -116,12 +116,34 @@ function PlanBadge({ plan }: { plan: string }) {
 // --------------- Main Component ---------------
 
 export default function Admin() {
-  const { user, getAccessToken } = useAuth();
+  const { getAccessToken } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<"overview" | "publishers" | "transactions" | "webhooks">("overview");
+  const [adminChecked, setAdminChecked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Guard
-  if (user?.email !== ADMIN_EMAIL) {
+  // Verify admin status server-side on mount
+  useEffect(() => {
+    getAccessToken().then(async (token) => {
+      if (!token) { setAdminChecked(true); return; }
+      try {
+        const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        setIsAdmin(!!json.data?.is_admin);
+      } catch {
+        setIsAdmin(false);
+      } finally {
+        setAdminChecked(true);
+      }
+    });
+  }, [getAccessToken]);
+
+  if (!adminChecked) {
+    return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center"><Loader2 className="animate-spin text-[#4A26ED]" size={28} /></div>;
+  }
+  if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -122,7 +122,7 @@ export default function Connectors() {
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
   const [publicationVerified, setPublicationVerified] = useState(false);
   const [pendingSources, setPendingSources] = useState<Array<{ id: string; name: string; url: string; verification_status: string; sync_status: string }>>([]);
-  const [publisherEmail, setPublisherEmail] = useState<string | null>(null);
+  const [publisherIsAdmin, setPublisherIsAdmin] = useState(false);
   const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
   const [apiKeyCopied, setApiKeyCopied] = useState(false);
   const [discoveryLinkCopied, setDiscoveryLinkCopied] = useState(false);
@@ -161,7 +161,7 @@ export default function Connectors() {
           if (profileResult.data.website_url) setWebsiteUrl(profileResult.data.website_url);
           setPublicationVerified(!!profileResult.data.publication_verified);
           setPendingSources(profileResult.data.pending_sources || []);
-          setPublisherEmail(profileResult.data.email || null);
+          setPublisherIsAdmin(!!profileResult.data.is_admin);
           if (profileResult.data.webhook) {
             setWebhookStatus(profileResult.data.webhook);
           } else {
@@ -294,7 +294,7 @@ export default function Connectors() {
         isVerified={publicationVerified}
         pendingSources={pendingSources}
         onSourceDeleted={refetchProfile}
-        adminEmail={publisherEmail}
+        isAdmin={publisherIsAdmin}
       >
       <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

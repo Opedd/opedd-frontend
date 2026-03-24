@@ -5,7 +5,7 @@ import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTria
 
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { deriveSlug } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -45,8 +45,7 @@ export default function Dashboard() {
   const [aiLicenseTypes, setAiLicenseTypes] = useState<{ rag: boolean; training: boolean; inference: boolean } | null>(null);
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
-
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Admin stats state
   interface AdminStats {
@@ -142,6 +141,7 @@ export default function Dashboard() {
       setAiLicensingConfigured(!!profile?.ai_license_types);
       setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
+      setIsAdmin(!!profile?.is_admin);
       if (!skipReferralCheck) {
         const hasReferral = !!profile?.referral_source;
         if (hasReferral) localStorage.setItem("opedd_referral_done", "1");

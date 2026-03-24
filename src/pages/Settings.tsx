@@ -12,7 +12,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import {
   User,
   Globe,
@@ -196,7 +196,6 @@ export default function Settings() {
     const validTabs = ["pricing", "api-keys", "team", "ai-licensing", "admin"];
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
-  const isAdmin = user?.email === ADMIN_EMAIL;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cancel subscription state
@@ -210,6 +209,7 @@ export default function Settings() {
 
   // Profile state
   const [profile, setProfile] = useState<PublisherProfile | null>(null);
+  const isAdmin = !!profile?.is_admin;
   // isGated must come AFTER profile is declared (avoids TDZ error)
   const isGated = !profile?.publication_verified && !isAdmin;
   const [publisherName, setPublisherName] = useState("");
@@ -873,7 +873,7 @@ export default function Settings() {
               isVerified={profile?.publication_verified ?? false}
               pendingSources={profile?.pending_sources ?? []}
               onSourceDeleted={() => { setProfile(null); setIsLoading(true); }}
-              adminEmail={profile?.email}
+              isAdmin={isAdmin}
               bannerOnly
             >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -532,7 +532,7 @@ export default function Licensing() {
         isVerified={profile?.publication_verified ?? false}
         pendingSources={profile?.pending_sources ?? []}
         onSourceDeleted={fetchProfile}
-        adminEmail={profile?.email}
+        isAdmin={!!profile?.is_admin}
       >
       <div className="max-w-3xl mx-auto space-y-8 pb-12">
         <h1 className="text-2xl font-bold text-gray-900">Licensing</h1>

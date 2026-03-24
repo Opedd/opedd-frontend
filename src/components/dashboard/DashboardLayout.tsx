@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useCallback } from "react";
 import opeddLogo from "@/assets/opedd-logo.png";
@@ -161,7 +161,6 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
 
   const getInitial = () => user?.email?.charAt(0).toUpperCase() || "U";
   const displayName = user?.email?.split("@")[0] || "Publisher";
-  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";

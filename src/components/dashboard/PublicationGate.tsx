@@ -4,7 +4,7 @@ import { AlertTriangle, ShieldCheck, Plus, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY, ADMIN_EMAIL } from "@/lib/constants";
+import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 
 export interface PendingSource {
   id: string;
@@ -21,8 +21,8 @@ interface PublicationGateProps {
   pendingSources: PendingSource[];
   /** Called after a pending source is deleted so parent can refetch */
   onSourceDeleted?: () => void;
-  /** Admin email — bypasses gate entirely */
-  adminEmail?: string | null;
+  /** Admin flag — bypasses gate entirely */
+  isAdmin?: boolean;
   /**
    * bannerOnly: just show the banner, render children normally (no blur).
    * Use this inside Settings where individual tabs control their own gating.
@@ -38,7 +38,7 @@ export function PublicationGate({
   isVerified,
   pendingSources,
   onSourceDeleted,
-  adminEmail,
+  isAdmin = false,
   bannerOnly = false,
   hasContent = false,
   children,
@@ -49,7 +49,7 @@ export function PublicationGate({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Admin bypass
-  if (adminEmail === ADMIN_EMAIL) return <>{children}</>;
+  if (isAdmin) return <>{children}</>;
 
   // Verified — render normally
   if (isVerified) return <>{children}</>;

@@ -1,6 +1,3 @@
-// Admin access
-export const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
-
 // Shared constants for external Supabase project
 export const EXT_SUPABASE_URL = "https://api.opedd.com";
 // Direct PostgREST access (bypasses api.opedd.com proxy — for /rest/v1/ calls only)

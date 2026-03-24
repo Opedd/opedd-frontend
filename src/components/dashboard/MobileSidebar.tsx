@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import opeddLogo from "@/assets/opedd-logo.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { ADMIN_EMAIL } from "@/lib/constants";
 
 const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -24,7 +23,6 @@ export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user } = useAuth();
-  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const isActive = (path: string) => location.pathname === path;
 
