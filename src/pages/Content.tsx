@@ -411,9 +411,17 @@ export default function Content() {
               </div>
             ) : assets.length === 0 ? (
               <div className="py-20 text-center">
-                <FileText size={36} className="text-[#D1D5DB] mx-auto mb-3" />
-                <p className="text-sm font-medium text-[#6B7280]">No articles yet</p>
-                <p className="text-xs text-[#9CA3AF] mt-1">Register a publication on the Dashboard to start importing articles.</p>
+                <FileText size={40} className="text-[#D1D5DB] mx-auto mb-3" />
+                <p className="text-sm font-bold text-[#111827]">No articles yet</p>
+                <p className="text-xs text-[#9CA3AF] mt-1">Import your content catalog to start licensing it.</p>
+                <div className="flex items-center justify-center gap-3 mt-5">
+                  <Button variant="default" size="sm" onClick={() => navigate("/setup")}>
+                    <Globe size={14} className="mr-1.5" />Import from Sitemap
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => navigate("/connectors")}>
+                    <Link2 size={14} className="mr-1.5" />Connect RSS Feed
+                  </Button>
+                </div>
               </div>
             ) : (
               <table className="w-full min-w-[900px]">
