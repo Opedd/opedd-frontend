@@ -94,11 +94,17 @@ export default function Pricing() {
             >
               Annually
             </button>
-            {billing === "annually" && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
-                Save 20%
-              </span>
-            )}
+            {/* Reserve width so the toggle row never reflows — use visibility not conditional render */}
+            <span
+              className="text-xs font-semibold px-2.5 py-1 rounded-full transition-opacity duration-150"
+              style={{
+                backgroundColor: "#D1FAE5",
+                color: "#065F46",
+                visibility: billing === "annually" ? "visible" : "hidden",
+              }}
+            >
+              Save 20%
+            </span>
           </div>
         </section>
 
@@ -145,9 +151,13 @@ export default function Pricing() {
                 </span>
                 <span className="text-sm" style={{ color: "#6B7280" }}>/month</span>
               </div>
-              {billing === "annually" && (
-                <p className="text-xs mb-1" style={{ color: "#6B7280" }}>Billed $470/year — save $118</p>
-              )}
+              {/* Always reserve line height — invisible when monthly to prevent CTA shift */}
+              <p
+                className="text-xs mb-1 transition-opacity duration-150"
+                style={{ color: "#6B7280", visibility: billing === "annually" ? "visible" : "hidden" }}
+              >
+                Billed $470/year — save $118
+              </p>
               <p className="text-sm mb-4" style={{ color: "#6B7280" }}>For serious writers & newsletters</p>
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
@@ -179,9 +189,13 @@ export default function Pricing() {
                 </span>
                 <span className="text-sm text-white/60">/month</span>
               </div>
-              {billing === "annually" && (
-                <p className="text-xs text-white/60 mb-1">Billed $1,910/year — save $478</p>
-              )}
+              {/* Always reserve line height — invisible when monthly to prevent CTA shift */}
+              <p
+                className="text-xs mb-1 transition-opacity duration-150"
+                style={{ color: "rgba(255,255,255,0.6)", visibility: billing === "annually" ? "visible" : "hidden" }}
+              >
+                Billed $1,910/year — save $478
+              </p>
               <p className="text-sm text-white/60 mb-4">For media teams & publications</p>
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>

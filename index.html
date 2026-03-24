@@ -11,6 +11,28 @@
     <link rel="apple-touch-icon" href="/favicon.png" />
     <link rel="canonical" href="https://opedd.com" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <!--
+      Anti-FOUC: apply saved theme before React hydrates.
+      darkMode: ["class"] in tailwind.config.ts — this script sets the .dark class
+      synchronously so the first paint matches the user's preference.
+      When dark mode UI is built, read from localStorage("opedd-theme") here.
+    -->
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('opedd-theme');
+          if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+
+    <!-- Preconnect to Google Fonts to eliminate FOUC from CSS @import round-trip -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
     <script id="vtag-ai-js" async src="https://r2.leadsy.ai/tag.js" data-pid="GOw9Ep73HHO8Da3P" data-version="062024"></script>
 
     <meta property="og:title" content="Opedd – The Stripe for Content Licensing" />

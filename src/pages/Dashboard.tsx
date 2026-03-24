@@ -276,8 +276,13 @@ export default function Dashboard() {
           <div className="space-y-3">
             <h2 className="text-[15px] font-semibold text-[#111827]">Platform</h2>
             {adminStatsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="w-5 h-5 border-2 border-[#4A26ED] border-t-transparent rounded-full animate-spin" />
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                    <div className="h-3.5 w-20 bg-[#F3F4F6] rounded animate-pulse mb-3" />
+                    <div className="h-8 w-16 bg-[#F3F4F6] rounded animate-pulse" />
+                  </div>
+                ))}
               </div>
             ) : adminStats ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

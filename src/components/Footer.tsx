@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Twitter, Linkedin, Github, Mail } from "lucide-react";
+import { Github, Mail } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const footerLinks = {
@@ -8,19 +8,18 @@ const footerLinks = {
     { label: "How it Works", href: "#how-it-works" },
     { label: "Pricing", href: "/pricing" },
     { label: "For AI Agents", href: "/for-ai-agents" },
-    { label: "API", href: "#" },
+    { label: "API Docs", href: "https://docs.opedd.com", external: true },
   ],
-  Company: [
-    { label: "About", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Press", href: "#" },
+  Publishers: [
+    { label: "Browse Publishers", href: "/publishers" },
+    { label: "Enterprise", href: "/enterprise" },
+    { label: "Documentation", href: "https://docs.opedd.com", external: true },
+    { label: "Status", href: "/status" },
   ],
   Resources: [
-    { label: "Documentation", href: "https://docs.opedd.com" },
     { label: "Get help", href: "mailto:support@opedd.com" },
-    { label: "Community", href: "#" },
-    { label: "Status", href: "/status" },
+    { label: "GitHub", href: "https://github.com/Opedd", external: true },
+    { label: "npm", href: "https://www.npmjs.com/package/opedd-mcp", external: true },
   ],
   Legal: [
     { label: "Privacy", href: "https://legal.opedd.com/privacy", external: true },
@@ -30,10 +29,8 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Github, href: "#", label: "GitHub" },
-  { icon: Mail, href: "#", label: "Email" },
+  { icon: Github, href: "https://github.com/Opedd", label: "GitHub" },
+  { icon: Mail, href: "mailto:hello@opedd.com", label: "Email" },
 ];
 
 const Footer = () => {
@@ -49,7 +46,7 @@ const Footer = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <a href="#" className="flex items-center mb-4">
+              <a href="/" className="flex items-center mb-4">
                 <img src={opeddLogo} alt="Opedd" className="h-10 w-auto" />
               </a>
               <p className="text-sm text-alice-gray/60 mb-6 max-w-xs">

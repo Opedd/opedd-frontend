@@ -1,6 +1,18 @@
 {
   "rewrites": [
+    {
+      "source": "/p/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|TelegramBot|Googlebot|bingbot|YandexBot|DuckDuckBot|Applebot|ChatGPT-User|GPTBot|ClaudeBot|Anthropic|PerplexityBot|Bytespider|PetalBot).*"
+        }
+      ],
+      "destination": "/api/og?slug=:slug"
+    },
+    { "source": "/sitemap.xml", "destination": "https://djdzcciayennqchjgybx.supabase.co/functions/v1/sitemap" },
     { "source": "/llms.txt", "destination": "https://djdzcciayennqchjgybx.supabase.co/functions/v1/llms-txt" },
-    { "source": "/((?!llms.txt).*)", "destination": "/index.html" }
+    { "source": "/((?!llms.txt|sitemap.xml|api/).*)", "destination": "/index.html" }
   ]
 }
