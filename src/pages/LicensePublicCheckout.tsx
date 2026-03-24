@@ -425,6 +425,15 @@ export default function LicensePublicCheckout() {
                 )}
               </div>
             ) : (
+              <div className="space-y-3">
+                {asset?.content_delivery_available === false && (selected === "ai_inference" || selected === "ai_training") && (
+                  <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <AlertTriangle size={16} className="text-amber-600 mt-0.5 shrink-0" />
+                    <p className="text-sm text-amber-800">
+                      Content delivery in progress — your license will be valid immediately, and full content access will be available within 24 hours.
+                    </p>
+                  </div>
+                )}
               <div className="relative group">
                 <Button
                   onClick={handleSubmit}
