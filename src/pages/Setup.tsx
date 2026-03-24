@@ -890,34 +890,23 @@ export default function Setup() {
               ) : null;
             })()}
             <div>
-              <h1 className="text-2xl font-bold text-[#040042]">Connect your bank to receive payments</h1>
-              <p className="text-sm text-[#6B7280] mt-1">You can skip this now and connect later. Any earnings will be held as pending until you connect.</p>
+              <h1 className="text-2xl font-bold text-[#040042]">Get paid for your content</h1>
+              <p className="text-sm text-[#6B7280] mt-1">Connect Stripe to receive payouts, or skip and connect later — nothing is lost.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white rounded-xl border-2 border-[#4A26ED] p-6 space-y-3">
-                <Wallet size={24} className="text-[#4A26ED]" />
-                <p className="font-semibold text-[#040042] text-sm">Connect Stripe now</p>
-                <p className="text-xs text-[#6B7280]">Takes 3–5 minutes. Required to receive payouts.</p>
-                <Button onClick={handleConnectStripe} disabled={stripeLoading} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full">
-                  {stripeLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-                  Connect Stripe →
-                </Button>
-              </div>
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 space-y-3 flex flex-col justify-between">
-                <div>
-                  <p className="font-semibold text-[#040042] text-sm">Skip for now</p>
-                  <p className="text-xs text-[#6B7280] mt-1">Your earnings will appear as Pending Balance in your dashboard.</p>
-                </div>
-                <button onClick={() => setStep(5)} className="text-sm text-[#4A26ED] hover:underline font-medium text-left">
-                  Skip — I'll connect later →
-                </button>
-              </div>
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+              <p className="text-sm text-emerald-700">Your earnings are held safely in escrow until you connect. No money is lost — you can connect Stripe anytime from Settings.</p>
             </div>
 
-            <div className="bg-[#F9FAFB] rounded-lg p-3 flex gap-2">
-              <Info size={16} className="text-[#6B7280] shrink-0 mt-0.5" />
-              <p className="text-xs text-[#6B7280]">💰 Opedd collects all licensing revenue on your behalf. You won't lose a cent by skipping — connect your bank whenever you're ready.</p>
+            <Button onClick={() => setStep(5)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">
+              Continue — I'll connect Stripe when I earn <ChevronRight size={16} className="ml-1" />
+            </Button>
+
+            <div className="text-center">
+              <button onClick={handleConnectStripe} disabled={stripeLoading} className="text-sm text-[#4A26ED] hover:underline font-medium inline-flex items-center gap-1.5">
+                {stripeLoading ? <Loader2 size={14} className="animate-spin" /> : <Wallet size={14} />}
+                Or connect Stripe now (3–5 minutes)
+              </button>
             </div>
           </>
         )}
@@ -961,7 +950,7 @@ export default function Setup() {
 
             <Button onClick={handleFinish} disabled={finishLoading} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">
               {finishLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-              Finish setup →
+              Go live →
             </Button>
           </>
         )}
