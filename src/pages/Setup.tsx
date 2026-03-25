@@ -878,6 +878,69 @@ export default function Setup() {
                   <span className={importDone ? "text-green-700" : "text-[#6B7280]"}>Licensing activated</span>
                 </div>
               </div>
+
+              {/* Platform-specific inbound email / sync callout */}
+              {importDone && platform === "substack" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Receive new premium posts automatically</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a free subscriber in Substack → Settings → Email → Manage.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
+              {importDone && platform === "beehiiv" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Receive new posts automatically</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a subscriber in Beehiiv → Audience → Add Subscriber.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
+              {importDone && platform === "ghost" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Real-time sync</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Ghost supports webhooks for real-time sync — set one up in Ghost Admin → Settings → Integrations for instant content delivery. Alternatively, add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a member.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
+              {importDone && platform === "wordpress" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 size={14} className="text-green-600" />
+                    <span className="text-sm font-medium text-[#040042]">Automatic sync active</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">New posts will sync automatically via the WordPress REST API on a regular schedule. No additional setup needed.</p>
+                </div>
+              )}
+              {importDone && platform === "custom" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Receive new content automatically</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Forward your newsletter to <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> or set up a webhook.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Button onClick={() => setStep((platform === "substack" || platform === "beehiiv") ? 4 : 3)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">

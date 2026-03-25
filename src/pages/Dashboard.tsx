@@ -251,6 +251,11 @@ export default function Dashboard() {
           onAiLicensingComplete={() => setAiLicensingConfigured(true)}
         />
 
+        {/* Verification Pending Banner */}
+        {totalAssets > 0 && !isLoading && (
+          <VerificationPendingBanner />
+        )}
+
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
