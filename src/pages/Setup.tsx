@@ -775,6 +775,8 @@ export default function Setup() {
                 ) : (
                   platform === "substack" && substackMode === "csv" ? (
                     <>Upload and Import <ChevronRight size={16} className="ml-1" /></>
+                  ) : platform === "wordpress" ? (
+                    <>Import Archive <ChevronRight size={16} className="ml-1" /></>
                   ) : (
                     <>Continue <ChevronRight size={16} className="ml-1" /></>
                   )
