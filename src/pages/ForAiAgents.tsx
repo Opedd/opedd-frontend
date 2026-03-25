@@ -28,21 +28,21 @@ const ENDPOINTS = [
     badge: "POST",
     name: "Agent Purchase",
     path: "/agent-purchase",
-    description: "Autonomous license acquisition with no pre-auth. Pay via Stripe payment method or USDC on Base. Returns a license key immediately — no human checkout flow.",
+    description: "Autonomous license acquisition with no pre-auth. Pay via Stripe payment method or USDC on Tempo. Returns a license key immediately — no human checkout flow.",
   },
   {
     icon: ShieldCheck,
     badge: "GET",
     name: "Verify License",
     path: "/verify-license?key={key}",
-    description: "Cryptographic proof of license validity with on-chain verification via Base mainnet. Returns holder, covered content, license type, expiry, and blockchain proof.",
+    description: "Cryptographic proof of license validity with on-chain verification via Tempo. Returns holder, covered content, license type, expiry, and blockchain proof.",
   },
   {
     icon: Globe,
     badge: "GET",
     name: "Registry of Proof",
     path: "/registry?license_key={key}",
-    description: "Query the immutable on-chain license registry by key, article, publisher, or browse the global feed. Every issued license is registered on the Base blockchain.",
+    description: "Query the immutable on-chain license registry by key, article, publisher, or browse the global feed. Every issued license is registered on the Tempo blockchain.",
   },
   {
     icon: BookOpen,
@@ -92,14 +92,14 @@ const license = await fetch(
         method: "stripe_pm",
         payment_method_id: "pm_xxxxxxxxxxxx",
       },
-      // Or pay with USDC on Base:
-      // payment: { method: "usdc", tx_hash: "0x...", chain: "base" }
+      // Or pay with USDC on Tempo:
+      // payment: { method: "usdc", tx_hash: "0x...", chain: "tempo" }
     }),
   }
 ).then(r => r.json());
 
 console.log(license.data.license_key);
-// → "OPEDD-A7X9-K3M2-BASE" (registered on-chain on Base mainnet)
+// → "OPEDD-A7X9-K3M2" (registered on-chain on Tempo)
 
 // 3. Verify at any time
 const proof = await fetch(
@@ -107,7 +107,7 @@ const proof = await fetch(
 ).then(r => r.json());
 
 console.log(proof.data.blockchain_status);
-// → "confirmed" — immutable proof on Base`;
+// → "confirmed" — immutable proof on Tempo`;
 
 const PUBLISHER_API_CODE = `// Server-to-server: list your articles
 const articles = await fetch(
@@ -175,7 +175,7 @@ export default function ForAiAgents() {
               Built for AI agents
             </motion.h1>
             <motion.p variants={fadeUp} custom={2} className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
-              Discover, purchase, and verify content licenses programmatically — with on-chain proof on Base, USDC payments, and a native MCP server for Claude and Cursor.
+              Discover, purchase, and verify content licenses programmatically — with on-chain proof on Tempo, USDC payments, and a native MCP server for Claude and Cursor.
             </motion.p>
             <motion.div variants={fadeUp} custom={3} className="flex items-center justify-center gap-4 pt-4 flex-wrap">
               <a
@@ -199,7 +199,7 @@ export default function ForAiAgents() {
             {/* On-chain callout */}
             <motion.div variants={fadeUp} custom={4} className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 mt-4">
               <Link2 size={16} className="text-[#A78BFA] shrink-0" />
-              <span className="text-sm text-white/60">Every license issued is registered on-chain — <span className="text-white/80 font-medium">Base mainnet · OpeddRegistry.sol</span></span>
+              <span className="text-sm text-white/60">Every license issued is registered on-chain — <span className="text-white/80 font-medium">Tempo · OpeddRegistry.sol</span></span>
             </motion.div>
           </motion.div>
         </div>
@@ -405,19 +405,19 @@ export default function ForAiAgents() {
                 <Link2 size={13} />
                 On-Chain Registry
               </div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">Every license lives on Base mainnet</h2>
+              <h2 className="text-2xl font-bold text-white tracking-tight">Every license lives on Tempo</h2>
               <p className="text-white/50 leading-relaxed text-sm">
-                Every license Opedd issues — human, AI, archive — is registered on the <span className="text-white/80">OpeddRegistry smart contract</span> deployed on Base. Verify any license key on-chain, independently of Opedd's infrastructure.
+                Every license Opedd issues — human, AI, archive — is registered on the <span className="text-white/80">OpeddRegistry smart contract</span> deployed on Tempo. Verify any license key on-chain, independently of Opedd's infrastructure.
               </p>
               <div className="flex items-center gap-3 pt-1">
                 <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
-                  0x0ca09c63cd768490dad1734594c0ee3bfd3cce55
+                  0xf2cb1347de16c362eb67549dc1521fc8ab2f8d6d
                 </code>
               </div>
             </div>
             <div className="shrink-0 grid grid-cols-2 gap-3 text-center">
               {[
-                { label: "Network", value: "Base" },
+                { label: "Network", value: "Tempo" },
                 { label: "Status", value: "Live" },
                 { label: "Payment", value: "Stripe + USDC" },
                 { label: "Proof", value: "On-chain" },

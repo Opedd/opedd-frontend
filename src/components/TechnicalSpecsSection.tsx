@@ -24,7 +24,7 @@ const specs = [
     icon: Shield,
     label: "ON-CHAIN PROOF",
     title: "Blockchain Verification",
-    description: "Every license registered on Base (Coinbase L2). Tamper-proof, permanent, verifiable by anyone.",
+    description: "Every license registered on Tempo (Stripe's payments blockchain). Tamper-proof, permanent, verifiable by anyone.",
   },
 ];
 

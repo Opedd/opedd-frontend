@@ -55,14 +55,14 @@ export default function Privacy() {
                 <li><strong>Stripe</strong> — payment processing (UK/EU data processing agreement in place)</li>
                 <li><strong>Supabase</strong> — database and authentication hosting (EU region)</li>
                 <li><strong>Resend</strong> — transactional email delivery</li>
-                <li><strong>Base blockchain</strong> — public on-chain license registration (immutable, permanent)</li>
+                <li><strong>Tempo blockchain</strong> — public on-chain license registration (immutable, permanent)</li>
               </ul>
               <p className="mt-3">We do not sell your personal data to third parties.</p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">5. On-Chain Data</h2>
-              <p>When a license is issued, the license key, content identifier, and license type are recorded on the Base blockchain. This data is public and permanent and cannot be erased. It does not include your name or email address.</p>
+              <p>When a license is issued, the license key, content identifier, and license type are recorded on the Tempo blockchain. This data is public and permanent and cannot be erased. It does not include your name or email address.</p>
             </section>
 
             <section>

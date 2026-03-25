@@ -53,7 +53,7 @@ export default function Terms() {
 
             <section>
               <h2 className="text-xl font-semibold text-[#040042] mt-8 mb-3">7. On-Chain Data</h2>
-              <p>License registrations may be recorded on a public blockchain (Base). Once recorded, this data cannot be deleted. By purchasing a license, you acknowledge that the license key, content identifier, and license type will be permanently public on-chain.</p>
+              <p>License registrations may be recorded on a public blockchain (Tempo). Once recorded, this data cannot be deleted. By purchasing a license, you acknowledge that the license key, content identifier, and license type will be permanently public on-chain.</p>
             </section>
 
             <section>

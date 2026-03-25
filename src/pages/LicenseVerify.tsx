@@ -263,7 +263,7 @@ export default function LicenseVerify() {
               <div className="flex flex-wrap gap-2">
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${bp.registered ? "bg-[#ECFDF5] text-[#059669]" : "bg-[#F3F4F6] text-[#9CA3AF]"}`}>
                   <Check className="h-3 w-3" />
-                  Registered on Base
+                  Registered on Tempo
                 </span>
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${bp.valid ? "bg-[#ECFDF5] text-[#059669]" : "bg-[#FEF2F2] text-[#DC2626]"}`}>
                   {bp.valid ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
@@ -272,7 +272,7 @@ export default function LicenseVerify() {
               </div>
               {bp.explorer_url && (
                 <a href={bp.explorer_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[#4A26ED] hover:underline">
-                  View on BaseScan <ExternalLink className="h-3.5 w-3.5" />
+                  View on Tempo Explorer <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}
               {bp.contract_address && (

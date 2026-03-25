@@ -420,7 +420,7 @@ const enterpriseFeatures: Feature[] = [
   { t: "Full catalog indexing", ok: true },
   { t: "Unlimited archive licenses", ok: true },
   { t: "Unlimited API access", ok: true },
-  { t: "On-chain blockchain proof (Base)", ok: true },
+  { t: "On-chain blockchain proof (Tempo)", ok: true },
   { t: "Custom widget branding", ok: true },
   { t: "Unlimited team seats", ok: true },
   { t: "Dedicated account manager + Slack", ok: true },

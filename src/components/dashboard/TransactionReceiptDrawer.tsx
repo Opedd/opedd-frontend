@@ -250,7 +250,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                   <button onClick={handleCopyHash} className="text-white/70 hover:text-white transition-colors">{copiedHash ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}</button>
                 </div>
                 {transaction.blockchainStatus === "confirmed" && (
-                  <p className="text-xs text-emerald-400 mt-2">Confirmed on Base mainnet</p>
+                  <p className="text-xs text-emerald-400 mt-2">Confirmed on Tempo</p>
                 )}
               </div>
             ) : transaction.blockchainStatus === "pending" || transaction.blockchainStatus === "submitted" ? (
