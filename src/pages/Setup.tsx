@@ -638,6 +638,17 @@ export default function Setup() {
                   <Input placeholder="pub_xxxxxxxx" value={beehiivPubId} onChange={e => setBeehiivPubId(e.target.value)} className="mt-1" />
                 </div>
                 <p className="text-xs text-[#9CA3AF] mt-2">Find these in Beehiiv → Settings → Integrations → API</p>
+                <div className="bg-[#F5F3FF] border border-[#DDD6FE] rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">For new posts</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a subscriber in Beehiiv → Subscribers → Add Subscriber</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
               </div>
             )}
 
