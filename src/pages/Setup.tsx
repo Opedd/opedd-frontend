@@ -39,10 +39,10 @@ const CATEGORIES = [
 ];
 
 const PLATFORM_OPTIONS: { id: Platform; label: string; desc: string; logo: string | null }[] = [
-  { id: "ghost", label: "Ghost", desc: "Full archive including members-only posts", logo: ghostLogo },
-  { id: "wordpress", label: "WordPress", desc: "Full archive via plugin", logo: wordpressLogo },
-  { id: "beehiiv", label: "Beehiiv", desc: "Public archive + email relay for paid content", logo: beehiivLogo },
-  { id: "substack", label: "Substack", desc: "Public archive + email relay for paid content", logo: substackLogo },
+  { id: "substack", label: "Substack", desc: "Archive via data export (includes premium content)", logo: substackLogo },
+  { id: "beehiiv", label: "Beehiiv", desc: "Full archive via API key (includes premium content)", logo: beehiivLogo },
+  { id: "ghost", label: "Ghost", desc: "Full archive via Admin API (includes members-only)", logo: ghostLogo },
+  { id: "wordpress", label: "WordPress", desc: "Full archive — automatic, no credentials needed", logo: wordpressLogo },
   { id: "custom", label: "Custom / Other", desc: "Any CMS with a sitemap URL", logo: null },
 ];
 
@@ -61,8 +61,11 @@ export default function Setup() {
   const [ghostUrl, setGhostUrl] = useState("");
   const [ghostKey, setGhostKey] = useState("");
   const [beehiivUrl, setBeehiivUrl] = useState("");
+  const [beehiivApiKey, setBeehiivApiKey] = useState("");
+  const [beehiivPubId, setBeehiivPubId] = useState("");
   const [substackUrl, setSubstackUrl] = useState("");
   const [sitemapUrl, setSitemapUrl] = useState("");
+  const [wpUrl, setWpUrl] = useState("");
   const [wpConfirmed, setWpConfirmed] = useState(false);
   const [substackMode, setSubstackMode] = useState<"csv" | "sitemap">("csv");
   const [substackFile, setSubstackFile] = useState<File | null>(null);
@@ -78,9 +81,9 @@ export default function Setup() {
   const [feedDetectionDone, setFeedDetectionDone] = useState(false);
   const [selectedFeedUrl, setSelectedFeedUrl] = useState<string>("");
 
-  // Derive the URL to detect feeds for
+  // Derive the URL to detect feeds for (only for sitemap-based flows)
+  // Beehiiv uses API key, Ghost uses Admin API — no feed detection needed for those
   const feedDetectInput =
-    platform === "beehiiv" ? beehiivUrl :
     platform === "substack" && substackMode === "sitemap" ? substackUrl :
     platform === "custom" ? sitemapUrl : "";
 
@@ -218,20 +221,36 @@ export default function Setup() {
     setStep1Error("");
     if (!platform) return;
 
+    // ── WORDPRESS: REST API (no credentials needed) ──
     if (platform === "wordpress") {
-      if (!wpConfirmed) {
-        setStep1Error("Please install the plugin and confirm the sync before continuing.");
-        return;
+      if (!wpUrl) { setStep1Error("Please enter your WordPress site URL."); return; }
+      setStep1Loading(true);
+      try {
+        const headers = await authHeaders();
+        const res = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ url: wpUrl, platform: "wordpress", credentials: { site_url: wpUrl } }),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          setStep1Error(json?.error || "WordPress REST API not accessible — check the URL.");
+          return;
+        }
+        setStep(2);
+        startImportPoll();
+      } catch {
+        setStep1Error("Network error. Please try again.");
+      } finally {
+        setStep1Loading(false);
       }
-      setStep(2);
-      startImportPoll();
       return;
     }
 
-    // Substack CSV upload mode
+    // ── SUBSTACK CSV: upload posts.csv ──
     if (platform === "substack" && substackMode === "csv") {
       if (!substackFile) { setStep1Error("Please select a posts.csv file."); return; }
-      if (substackFile.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
+      if (substackFile.size > 50 * 1024 * 1024) { setStep1Error("File too large (max 50 MB)."); return; }
       if (!substackFile.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
       setStep1Loading(true);
       try {
@@ -246,7 +265,6 @@ export default function Setup() {
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || json?.message || "Upload failed");
         setCsvImportResult({ imported: json.imported ?? 0, skipped: json.skipped ?? 0 });
-        // Auto-advance after 2 seconds
         setTimeout(() => { setStep(2); startImportPoll(); }, 2000);
       } catch (err: any) {
         setStep1Error(err?.message || "Upload failed — please try again.");
@@ -256,47 +274,90 @@ export default function Setup() {
       return;
     }
 
-    setStep1Loading(true);
-    try {
-      const headers = await authHeaders();
+    // ── BEEHIIV: API v2 (full archive including premium) ──
+    if (platform === "beehiiv") {
+      if (!beehiivApiKey || !beehiivPubId) {
+        setStep1Error("Please enter your API Key and Publication ID.");
+        return;
+      }
+      setStep1Loading(true);
+      try {
+        const headers = await authHeaders();
+        const url = beehiivUrl || `https://${beehiivPubId}.beehiiv.com`;
+        const res = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            url,
+            platform: "beehiiv",
+            credentials: { api_key: beehiivApiKey, pub_id: beehiivPubId },
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          setStep1Error(json?.error || "Connection failed — check your API Key and Publication ID.");
+          return;
+        }
+        setStep(2);
+        startImportPoll();
+      } catch {
+        setStep1Error("Network error. Please try again.");
+      } finally {
+        setStep1Loading(false);
+      }
+      return;
+    }
 
-      if (platform === "ghost") {
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-ghost`, {
+    // ── GHOST: Admin API (full archive including members-only) ──
+    if (platform === "ghost") {
+      if (!ghostUrl || !ghostKey) {
+        setStep1Error("Please enter your Ghost URL and Admin API Key.");
+        return;
+      }
+      setStep1Loading(true);
+      try {
+        const headers = await authHeaders();
+        const res = await fetch(`${EXT_SUPABASE_URL}/import-ghost`, {
           method: "POST",
           headers,
           body: JSON.stringify({ ghost_url: ghostUrl, admin_api_key: ghostKey }),
         });
         if (!res.ok) {
-          const status = res.status;
-          if (status === 401) { setStep1Error("Authentication failed. Please check your Admin API Key."); return; }
-          if (status === 502) { setStep1Error("Could not reach your Ghost blog. Please check the URL."); return; }
-          setStep1Error("Something went wrong. Please try again.");
+          const json = await res.json().catch(() => ({}));
+          if (res.status === 401) { setStep1Error("Authentication failed — check your Admin API Key."); }
+          else if (res.status === 502) { setStep1Error("Could not reach your Ghost blog — check the URL."); }
+          else { setStep1Error(json?.error || "Import failed."); }
           return;
         }
-      } else {
-        // beehiiv / substack (sitemap mode) / custom → import-sitemap
-        // Prefer detected/selected feed URL, fall back to constructed URL
-        let url = selectedFeedUrl || sitemapUrl;
-        if (!selectedFeedUrl) {
-          if (platform === "beehiiv" && beehiivUrl) {
-            url = beehiivUrl.replace(/\/$/, "") + "/sitemap.xml";
-          } else if (platform === "substack" && substackUrl) {
-            url = substackUrl.replace(/\/$/, "") + "/sitemap.xml";
-          }
-        }
-        if (!url) { setStep1Error("Please enter a URL."); return; }
-
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/import-sitemap`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ sitemap_url: url }),
-        });
-        if (!res.ok) {
-          setStep1Error("Import failed. Please check the URL and try again.");
-          return;
-        }
+        setStep(2);
+        startImportPoll();
+      } catch {
+        setStep1Error("Network error. Please try again.");
+      } finally {
+        setStep1Loading(false);
       }
+      return;
+    }
 
+    // ── SUBSTACK SITEMAP / CUSTOM: sitemap-based import ──
+    setStep1Loading(true);
+    try {
+      const headers = await authHeaders();
+      let url = selectedFeedUrl || sitemapUrl;
+      if (!selectedFeedUrl && platform === "substack" && substackUrl) {
+        url = substackUrl.replace(/\/$/, "") + "/sitemap.xml";
+      }
+      if (!url) { setStep1Error("Please enter a URL."); setStep1Loading(false); return; }
+
+      const res = await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ sitemap_url: url }),
+      });
+      if (!res.ok) {
+        setStep1Error("Import failed — check the URL and try again.");
+        return;
+      }
       setStep(2);
       startImportPoll();
     } catch {
