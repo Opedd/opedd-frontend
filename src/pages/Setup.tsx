@@ -67,6 +67,8 @@ export default function Setup() {
   const [sitemapUrl, setSitemapUrl] = useState("");
   const [wpUrl, setWpUrl] = useState("");
   const [wpConfirmed, setWpConfirmed] = useState(false);
+  const [wpUsername, setWpUsername] = useState("");
+  const [wpAppPassword, setWpAppPassword] = useState("");
   const [substackMode, setSubstackMode] = useState<"csv" | "sitemap">("csv");
   const [substackFile, setSubstackFile] = useState<File | null>(null);
   const [substackDragging, setSubstackDragging] = useState(false);
@@ -230,7 +232,7 @@ export default function Setup() {
         const res = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
           method: "POST",
           headers,
-          body: JSON.stringify({ url: wpUrl, platform: "wordpress", credentials: { site_url: wpUrl } }),
+          body: JSON.stringify({ url: wpUrl, platform: "wordpress", credentials: { site_url: wpUrl, username: wpUsername, app_password: wpAppPassword } }),
         });
         const json = await res.json();
         if (!res.ok) {
@@ -561,6 +563,7 @@ export default function Setup() {
             {/* Platform-specific fields */}
             {platform === "ghost" && (
               <div className="space-y-3 bg-white rounded-xl border border-[#E5E7EB] p-5">
+                <p className="text-sm text-[#9CA3AF] italic mb-4">The Admin API Key gives us read access to your full archive, including members-only posts. It's created in Ghost Admin → Settings → Integrations.</p>
                 <div>
                   <label className="text-sm font-medium text-[#040042]">Ghost blog URL</label>
                   <Input placeholder="https://yourblog.ghost.io" value={ghostUrl} onChange={e => setGhostUrl(e.target.value)} className="mt-1" />
@@ -619,16 +622,48 @@ export default function Setup() {
 
             {platform === "wordpress" && (
               <div className="space-y-3 bg-white rounded-xl border border-[#E5E7EB] p-5">
+                <h3 className="text-sm font-semibold text-[#040042]">Connect your WordPress site</h3>
+                <p className="text-xs text-[#6B7280]">We'll import all your published posts automatically.</p>
+                <p className="text-sm text-[#9CA3AF] italic mb-4">We use an Application Password to verify you own this site and import your content. Your password is only used once during import — we don't store it.</p>
                 <div>
                   <label className="text-sm font-medium text-[#040042]">Site URL</label>
                   <Input placeholder="https://yoursite.com" value={wpUrl} onChange={e => setWpUrl(e.target.value)} className="mt-1" />
-                  <p className="text-xs text-[#9CA3AF] mt-2">Works with any WordPress site with the REST API enabled (most do by default)</p>
                 </div>
+                <div>
+                  <label className="text-sm font-medium text-[#040042]">Username</label>
+                  <Input placeholder="admin" value={wpUsername} onChange={e => setWpUsername(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#040042]">Application Password</label>
+                  <Input type="password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" value={wpAppPassword} onChange={e => setWpAppPassword(e.target.value)} className="mt-1" />
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+                  To verify you own this site, we use a WordPress Application Password.
+                  Create one in your WordPress Admin → Users → Profile → Application Passwords.
+                  Enter any name (e.g. "Opedd") and click "Add New". Copy the generated password above.
+                  This proves you're an admin and lets us import your full archive.
+                </div>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#4A26ED] transition-colors">
+                    <ChevronDown size={14} className="transition-transform group-data-[state=open]:rotate-180" />
+                    Don't have admin access? Import via sitemap instead
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-[#040042]">Sitemap URL</label>
+                      <Input placeholder="https://yoursite.com/sitemap.xml" value={sitemapUrl} onChange={e => setSitemapUrl(e.target.value)} className="mt-1" />
+                    </div>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                      Sitemap import requires ownership verification before your content becomes licensable. You'll need to add a verification code to your site.
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             )}
 
             {platform === "beehiiv" && (
               <div className="space-y-3 bg-white rounded-xl border border-[#E5E7EB] p-5">
+                <p className="text-sm text-[#9CA3AF] italic mb-4">Your API key lets us securely import your full archive — including premium posts — directly from Beehiiv. This is the fastest way to get started.</p>
                 <div>
                   <label className="text-sm font-medium text-[#040042]">API Key</label>
                   <Input type="password" placeholder="Your Beehiiv API key" value={beehiivApiKey} onChange={e => setBeehiivApiKey(e.target.value)} className="mt-1" />
@@ -654,6 +689,7 @@ export default function Setup() {
 
             {platform === "substack" && (
               <div className="space-y-4 bg-white rounded-xl border border-[#E5E7EB] p-5">
+                <p className="text-sm text-[#9CA3AF] italic mb-4">Your archive export is the only way to capture premium content from Substack, since Substack has no API. Public posts can be imported via URL, but paywalled content requires the data export.</p>
                 {/* Instructions */}
                 <ol className="text-xs text-[#6B7280] space-y-0.5 list-decimal list-inside">
                   <li>Go to <span className="font-medium text-[#374151]">substack.com/settings/account</span></li>
@@ -759,6 +795,7 @@ export default function Setup() {
 
             {platform === "custom" && (
               <div className="space-y-3 bg-white rounded-xl border border-[#E5E7EB] p-5">
+                <p className="text-sm text-[#9CA3AF] italic mb-4">Enter your sitemap URL and we'll import all article URLs. You'll need to verify ownership before your content becomes licensable.</p>
                 <div>
                   <label className="text-sm font-medium text-[#040042]">Sitemap URL</label>
                   <Input placeholder="https://yoursite.com/sitemap.xml" value={sitemapUrl} onChange={e => setSitemapUrl(e.target.value)} className="mt-1" />
@@ -787,7 +824,7 @@ export default function Setup() {
                   platform === "substack" && substackMode === "csv" ? (
                     <>Upload and Import <ChevronRight size={16} className="ml-1" /></>
                   ) : platform === "wordpress" ? (
-                    <>Import Archive <ChevronRight size={16} className="ml-1" /></>
+                    <>Verify & Import Archive <ChevronRight size={16} className="ml-1" /></>
                   ) : (
                     <>Continue <ChevronRight size={16} className="ml-1" /></>
                   )
@@ -841,6 +878,69 @@ export default function Setup() {
                   <span className={importDone ? "text-green-700" : "text-[#6B7280]"}>Licensing activated</span>
                 </div>
               </div>
+
+              {/* Platform-specific inbound email / sync callout */}
+              {importDone && platform === "substack" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Receive new premium posts automatically</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a free subscriber in Substack → Settings → Email → Manage.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
+              {importDone && platform === "beehiiv" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Receive new posts automatically</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a subscriber in Beehiiv → Audience → Add Subscriber.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
+              {importDone && platform === "ghost" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Real-time sync</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Ghost supports webhooks for real-time sync — set one up in Ghost Admin → Settings → Integrations for instant content delivery. Alternatively, add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a member.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
+              {importDone && platform === "wordpress" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 size={14} className="text-green-600" />
+                    <span className="text-sm font-medium text-[#040042]">Automatic sync active</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">New posts will sync automatically via the WordPress REST API on a regular schedule. No additional setup needed.</p>
+                </div>
+              )}
+              {importDone && platform === "custom" && (
+                <div className="bg-[#EEF0FD] rounded-lg p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">Receive new content automatically</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Forward your newsletter to <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> or set up a webhook.</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
+                    {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
+                    {emailCopied ? "Copied!" : "Copy email"}
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Button onClick={() => setStep((platform === "substack" || platform === "beehiiv") ? 4 : 3)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">

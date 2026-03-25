@@ -12,6 +12,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { VerificationPendingBanner } from "@/components/dashboard/VerificationPendingBanner";
 import { ReferralStep } from "@/components/dashboard/ReferralStep";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
@@ -250,6 +251,11 @@ export default function Dashboard() {
           onRegisterContent={() => setAddPubDrawerOpen(true)}
           onAiLicensingComplete={() => setAiLicensingConfigured(true)}
         />
+
+        {/* Verification Pending Banner */}
+        {totalAssets > 0 && !isLoading && (
+          <VerificationPendingBanner />
+        )}
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 gap-4">
