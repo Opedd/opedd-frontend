@@ -566,11 +566,9 @@ export default function Setup() {
                   <Input placeholder="https://yourblog.ghost.io" value={ghostUrl} onChange={e => setGhostUrl(e.target.value)} className="mt-1" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-[#040042]">Admin API Key</label>
+                  <label className="text-sm font-medium text-[#040042]">Admin API Key (format: key_id:secret)</label>
                   <Input type="password" placeholder="key_id:hex_secret" value={ghostKey} onChange={e => setGhostKey(e.target.value)} className="mt-1" />
-                  <a href="https://ghost.org/integrations/custom-integrations/" target="_blank" rel="noreferrer" className="text-xs text-[#4A26ED] hover:underline mt-1 inline-flex items-center gap-1">
-                    Get this from Ghost Admin → Settings → Integrations <ExternalLink size={10} />
-                  </a>
+                  <p className="text-xs text-[#9CA3AF] mt-2">Ghost Admin → Settings → Integrations → Add Custom Integration → copy Admin API Key</p>
                 </div>
                 <p className="text-xs text-[#6B7280]">This gives us read access to your full post archive, including members-only content. We never write to your Ghost account.</p>
 
@@ -621,24 +619,10 @@ export default function Setup() {
 
             {platform === "wordpress" && (
               <div className="space-y-3 bg-white rounded-xl border border-[#E5E7EB] p-5">
-                <div className="bg-[#F0F4FF] rounded-lg p-3">
-                  <p className="text-sm font-medium text-[#040042]">Install the Opedd WordPress Plugin</p>
-                  <ol className="text-xs text-[#6B7280] mt-2 space-y-1 list-decimal list-inside">
-                    <li>Download and install the plugin.</li>
-                    <li>Enter your Publisher ID in the plugin settings.</li>
-                    <li>Click 'Sync Archive' in the plugin.</li>
-                  </ol>
-                  <a href="https://opedd.com/downloads/opedd-widget.zip" className="inline-block mt-2">
-                    <Button size="sm" variant="outline" className="text-xs">Download Plugin</Button>
-                  </a>
-                </div>
                 <div>
-                  <label className="text-xs font-medium text-[#6B7280]">Your Publisher ID</label>
-                  <Input readOnly value={publisherId} className="mt-1 font-mono text-xs bg-[#F9FAFB]" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox id="wp-confirm" checked={wpConfirmed} onCheckedChange={v => setWpConfirmed(!!v)} />
-                  <label htmlFor="wp-confirm" className="text-sm text-[#040042]">I've installed the plugin and clicked Sync Archive</label>
+                  <label className="text-sm font-medium text-[#040042]">Site URL</label>
+                  <Input placeholder="https://yoursite.com" value={wpUrl} onChange={e => setWpUrl(e.target.value)} className="mt-1" />
+                  <p className="text-xs text-[#9CA3AF] mt-2">Works with any WordPress site with the REST API enabled (most do by default)</p>
                 </div>
               </div>
             )}
@@ -646,14 +630,21 @@ export default function Setup() {
             {platform === "beehiiv" && (
               <div className="space-y-3 bg-white rounded-xl border border-[#E5E7EB] p-5">
                 <div>
-                  <label className="text-sm font-medium text-[#040042]">Beehiiv publication URL</label>
-                  <Input placeholder="https://yourblog.beehiiv.com" value={beehiivUrl} onChange={e => setBeehiivUrl(e.target.value)} className="mt-1" />
+                  <label className="text-sm font-medium text-[#040042]">API Key</label>
+                  <Input type="password" placeholder="Your Beehiiv API key" value={beehiivApiKey} onChange={e => setBeehiivApiKey(e.target.value)} className="mt-1" />
                 </div>
-                {renderFeedDetection()}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-sm text-amber-900 font-medium">For paywalled content</p>
-                  <p className="text-xs text-amber-800 mt-1">Subscribe <code className="bg-amber-100 px-1 rounded font-mono text-xs">newsletter@inbound.opedd.com</code> to your paid subscriber list in Beehiiv → Subscribers → Add Subscriber. Future paid issues will be delivered automatically.</p>
-                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-amber-700" onClick={handleCopyEmail}>
+                <div>
+                  <label className="text-sm font-medium text-[#040042]">Publication ID</label>
+                  <Input placeholder="pub_xxxxxxxx" value={beehiivPubId} onChange={e => setBeehiivPubId(e.target.value)} className="mt-1" />
+                </div>
+                <p className="text-xs text-[#9CA3AF] mt-2">Find these in Beehiiv → Settings → Integrations → API</p>
+                <div className="bg-[#F5F3FF] border border-[#DDD6FE] rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail size={14} className="text-[#7C3AED]" />
+                    <span className="text-sm font-medium text-[#040042]">For new posts</span>
+                  </div>
+                  <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a subscriber in Beehiiv → Subscribers → Add Subscriber</p>
+                  <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
                     {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
                     {emailCopied ? "Copied!" : "Copy email"}
                   </Button>
@@ -663,127 +654,105 @@ export default function Setup() {
 
             {platform === "substack" && (
               <div className="space-y-4 bg-white rounded-xl border border-[#E5E7EB] p-5">
-                {/* Mode toggle */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    onClick={() => { setSubstackMode("csv"); setStep1Error(""); setCsvImportResult(null); }}
-                    className={`relative p-3 rounded-lg border-2 text-left transition-all ${substackMode === "csv" ? "border-[#4A26ED] bg-[#4A26ED]/5" : "border-[#E5E7EB] hover:border-[#D1D5DB]"}`}
-                  >
-                    <span className="absolute -top-2.5 right-2 bg-emerald-100 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">Recommended</span>
-                    <div className="flex items-center gap-2">
-                      <Upload size={16} className="text-[#4A26ED]" />
-                      <span className="text-sm font-semibold text-[#040042]">Upload Substack Export</span>
-                    </div>
-                    <p className="text-xs text-[#6B7280] mt-1">Includes paywalled posts with full article bodies</p>
-                  </button>
-                  <button
-                    onClick={() => { setSubstackMode("sitemap"); setStep1Error(""); setCsvImportResult(null); }}
-                    className={`p-3 rounded-lg border-2 text-left transition-all ${substackMode === "sitemap" ? "border-[#4A26ED] bg-[#4A26ED]/5" : "border-[#E5E7EB] hover:border-[#D1D5DB]"}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Globe size={16} className="text-[#6B7280]" />
-                      <span className="text-sm font-semibold text-[#040042]">Import from sitemap</span>
-                    </div>
-                    <p className="text-xs text-[#6B7280] mt-1">Public posts only</p>
-                  </button>
-                </div>
+                {/* Instructions */}
+                <ol className="text-xs text-[#6B7280] space-y-0.5 list-decimal list-inside">
+                  <li>Go to <span className="font-medium text-[#374151]">substack.com/settings/account</span></li>
+                  <li>Click <span className="font-medium text-[#374151]">"Export data"</span></li>
+                  <li>Download the ZIP and extract <code className="font-mono text-[10px] bg-[#F3F4F6] px-1 py-0.5 rounded">posts.csv</code></li>
+                  <li>Drag <span className="font-medium text-[#374151]">posts.csv</span> into the box below</li>
+                </ol>
 
-                {/* CSV Upload mode */}
-                {substackMode === "csv" && (
+                {/* Success state */}
+                {csvImportResult && (
                   <div className="space-y-3">
-                    <div className="bg-[#F9FAFB] rounded-lg p-3">
-                      <p className="text-xs font-medium text-[#374151] mb-1">How to export:</p>
-                      <ol className="text-xs text-[#6B7280] space-y-0.5 list-decimal list-inside">
-                        <li>Go to <span className="font-medium">substack.com/settings → Exports</span></li>
-                        <li>Request your data export (email arrives in ~1 minute)</li>
-                        <li>Unzip the file → find <code className="font-mono text-[10px] bg-white px-1 py-0.5 rounded border border-[#E5E7EB]">posts.csv</code></li>
-                        <li>Upload it below</li>
-                      </ol>
-                    </div>
-
-                    {/* Success state */}
-                    {csvImportResult && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                        <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
-                          <CheckCircle2 size={16} className="text-emerald-600" />
-                          ✓ {csvImportResult.imported} post{csvImportResult.imported !== 1 ? "s" : ""} imported ({csvImportResult.skipped} skipped)
-                        </div>
-                        <p className="text-xs text-emerald-600 mt-1 ml-6">Paywalled content included — full article bodies stored for AI delivery.</p>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+                        <CheckCircle2 size={16} className="text-emerald-600" />
+                        ✓ {csvImportResult.imported} post{csvImportResult.imported !== 1 ? "s" : ""} imported ({csvImportResult.skipped} skipped)
                       </div>
-                    )}
-
-                    {/* Drag & drop zone */}
-                    {!csvImportResult && (
-                      <>
-                        <div
-                          onDragOver={e => { e.preventDefault(); setSubstackDragging(true); }}
-                          onDragLeave={() => setSubstackDragging(false)}
-                          onDrop={e => {
-                            e.preventDefault();
-                            setSubstackDragging(false);
-                            const f = e.dataTransfer.files?.[0];
-                            if (f) {
-                              if (!f.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
-                              if (f.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
-                              setSubstackFile(f);
-                              setStep1Error("");
-                            }
-                          }}
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = ".csv";
-                            input.onchange = (e: any) => {
-                              const f = e.target.files?.[0];
-                              if (f) {
-                                if (!f.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
-                                if (f.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
-                                setSubstackFile(f);
-                                setStep1Error("");
-                              }
-                            };
-                            input.click();
-                          }}
-                          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
-                            ${substackDragging ? "border-[#4A26ED] bg-[#4A26ED]/5" : substackFile ? "border-emerald-300 bg-emerald-50" : "border-[#D1D5DB] hover:border-[#4A26ED]/40"}`}
-                        >
-                          {substackFile ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <FileText size={18} className="text-emerald-600" />
-                              <span className="text-sm font-medium text-[#040042]">{substackFile.name}</span>
-                              <span className="text-xs text-[#6B7280]">({(substackFile.size / 1024).toFixed(0)} KB)</span>
-                              <button onClick={e => { e.stopPropagation(); setSubstackFile(null); }} className="text-xs text-[#6B7280] hover:text-red-500 ml-2 underline">Remove</button>
-                            </div>
-                          ) : (
-                            <div className="space-y-1">
-                              <Upload size={24} className="mx-auto text-[#9CA3AF]" />
-                              <p className="text-sm text-[#6B7280]">Drag & drop <span className="font-medium">posts.csv</span> here, or click to browse</p>
-                              <p className="text-xs text-[#9CA3AF]">Max 50MB</p>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* Sitemap mode */}
-                {substackMode === "sitemap" && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-[#040042]">Substack URL</label>
-                      <Input placeholder="https://yourname.substack.com" value={substackUrl} onChange={e => setSubstackUrl(e.target.value)} className="mt-1" />
+                      <p className="text-xs text-emerald-600 mt-1 ml-6">Paywalled content included — full article bodies stored for AI delivery.</p>
                     </div>
-                    {renderFeedDetection()}
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                      <p className="text-sm text-amber-900 font-medium">For paywalled content</p>
-                      <p className="text-xs text-amber-800 mt-1">In Substack → Settings → Email, add <code className="bg-amber-100 px-1 rounded font-mono text-xs">newsletter@inbound.opedd.com</code> as a comp subscription. Future paid issues will be delivered automatically.</p>
-                      <Button size="sm" variant="ghost" className="text-xs mt-2 text-amber-700" onClick={handleCopyEmail}>
+                    {/* Inbound email callout after successful import */}
+                    <div className="bg-[#F5F3FF] border border-[#DDD6FE] rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Mail size={14} className="text-[#7C3AED]" />
+                        <span className="text-sm font-medium text-[#040042]">For new posts</span>
+                      </div>
+                      <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a free subscriber in Substack → Settings → Email</p>
+                      <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
                         {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
                         {emailCopied ? "Copied!" : "Copy email"}
                       </Button>
                     </div>
                   </div>
+                )}
+
+                {/* Drag & drop zone */}
+                {!csvImportResult && (
+                  <div
+                    onDragOver={e => { e.preventDefault(); setSubstackDragging(true); }}
+                    onDragLeave={() => setSubstackDragging(false)}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setSubstackDragging(false);
+                      const f = e.dataTransfer.files?.[0];
+                      if (f) {
+                        if (!f.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
+                        if (f.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
+                        setSubstackFile(f);
+                        setStep1Error("");
+                      }
+                    }}
+                    onClick={() => {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = ".csv";
+                      input.onchange = (e: any) => {
+                        const f = e.target.files?.[0];
+                        if (f) {
+                          if (!f.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
+                          if (f.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
+                          setSubstackFile(f);
+                          setStep1Error("");
+                        }
+                      };
+                      input.click();
+                    }}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
+                      ${substackDragging ? "border-[#4A26ED] bg-[#4A26ED]/5" : substackFile ? "border-emerald-300 bg-emerald-50" : "border-[#D1D5DB] hover:border-[#4A26ED]/40"}`}
+                  >
+                    {substackFile ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <FileText size={18} className="text-emerald-600" />
+                        <span className="text-sm font-medium text-[#040042]">{substackFile.name}</span>
+                        <span className="text-xs text-[#6B7280]">({(substackFile.size / 1024).toFixed(0)} KB)</span>
+                        <button onClick={e => { e.stopPropagation(); setSubstackFile(null); }} className="text-xs text-[#6B7280] hover:text-red-500 ml-2 underline">Remove</button>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <Upload size={24} className="mx-auto text-[#9CA3AF]" />
+                        <p className="text-sm text-[#6B7280]">Drag & drop <span className="font-medium">posts.csv</span> here, or click to browse</p>
+                        <p className="text-xs text-[#9CA3AF]">Max 50MB</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Collapsible fallback to sitemap */}
+                {!csvImportResult && (
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#4A26ED] transition-colors">
+                      <ChevronDown size={14} className="transition-transform group-data-[state=open]:rotate-180" />
+                      Don't have the export? Import via URL instead
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3 space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-[#040042]">Substack URL</label>
+                        <Input placeholder="https://yourname.substack.com" value={substackUrl} onChange={e => { setSubstackUrl(e.target.value); setSubstackMode("sitemap"); }} className="mt-1" />
+                      </div>
+                      {renderFeedDetection()}
+                    </CollapsibleContent>
+                  </Collapsible>
                 )}
               </div>
             )}
@@ -817,6 +786,8 @@ export default function Setup() {
                 ) : (
                   platform === "substack" && substackMode === "csv" ? (
                     <>Upload and Import <ChevronRight size={16} className="ml-1" /></>
+                  ) : platform === "wordpress" ? (
+                    <>Import Archive <ChevronRight size={16} className="ml-1" /></>
                   ) : (
                     <>Continue <ChevronRight size={16} className="ml-1" /></>
                   )
