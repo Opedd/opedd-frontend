@@ -1559,49 +1559,121 @@ export default function Settings() {
                         <div>
                           <h2 className="font-bold text-[#040042] text-lg">AI Licensing</h2>
                           <p className="text-sm text-[#6B7280] leading-relaxed mt-1 max-w-2xl">
-                            Control which AI use cases your content can be licensed for. Enterprise AI labs (like AI research teams and LLM companies) purchase bulk licenses directly from Opedd — you receive your share automatically each month.
+                            Control how AI companies can license your content archive and new articles
                           </p>
                         </div>
 
-                        {/* Toggle rows */}
-                        <div className="space-y-5">
+                        {/* Pricing fields */}
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="ai-annual-price" className="text-sm font-semibold text-[#040042]">Annual Catalog Price (USD)</Label>
+                            <Input
+                              id="ai-annual-price"
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={aiAnnualPrice}
+                              onChange={(e) => setAiAnnualPrice(e.target.value)}
+                              placeholder="e.g. 12000"
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-[#9CA3AF] mt-1.5">
+                              This is what AI labs pay per year for access to your full catalog. We suggest starting based on your content volume.
+                            </p>
+                            {aiAnnualPrice && Number(aiAnnualPrice) > 0 && (
+                              <p className="text-xs text-[#6B7280] mt-1 font-medium">
+                                Monthly forward feed: ${(Number(aiAnnualPrice) / 12).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <Label htmlFor="default-ai-price" className="text-sm font-semibold text-[#040042]">Per-Article AI Price (USD)</Label>
+                            <Input
+                              id="default-ai-price"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={defaultAiPrice}
+                              onChange={(e) => setDefaultAiPrice(e.target.value)}
+                              placeholder="e.g. 2.50"
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-[#9CA3AF] mt-1.5">Price per article for individual AI licensing (training, RAG, inference)</p>
+                          </div>
+                          <div>
+                            <Label htmlFor="default-human-price-ai" className="text-sm font-semibold text-[#040042]">Per-Article Human Price (USD)</Label>
+                            <Input
+                              id="default-human-price-ai"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={defaultHumanPrice}
+                              onChange={(e) => setDefaultHumanPrice(e.target.value)}
+                              placeholder="e.g. 25.00"
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-[#9CA3AF] mt-1.5">Price per article for human republication</p>
+                          </div>
+                        </div>
+
+                        {/* AI License Type checkboxes */}
+                        <div className="space-y-3 pt-2">
+                          <p className="text-sm font-semibold text-[#040042]">AI License Types</p>
                           {([
-                            { key: "rag" as const, label: "RAG / Retrieval", sublabel: "Allow AI systems to retrieve and cite your articles in real-time responses. This is the most common and highest-volume AI use case." },
-                            { key: "training" as const, label: "Model Training", sublabel: "Allow your content to be used in training or fine-tuning AI language models." },
-                            { key: "inference" as const, label: "Inference / Summarization", sublabel: "Allow AI products to summarize or transform your articles for end-user responses." },
+                            { key: "rag" as const, label: "RAG (Retrieval-Augmented Generation)" },
+                            { key: "training" as const, label: "Model Training" },
+                            { key: "inference" as const, label: "Inference (Real-time AI outputs)" },
                           ]).map((toggle) => (
-                            <div key={toggle.key} className="flex items-start justify-between gap-4 py-3 border-b border-[#F3F4F6] last:border-0">
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-[#040042]">{toggle.label}</p>
-                                <p className="text-sm text-[#6B7280] mt-0.5 leading-relaxed">{toggle.sublabel}</p>
-                              </div>
-                              <Switch
+                            <label key={toggle.key} className="flex items-center gap-2.5 cursor-pointer">
+                              <input
+                                type="checkbox"
                                 checked={aiLicenseTypes[toggle.key]}
-                                onCheckedChange={(checked) => setAiLicenseTypes(prev => ({ ...prev, [toggle.key]: checked }))}
-                                className="mt-1 shrink-0"
+                                onChange={(e) => setAiLicenseTypes(prev => ({ ...prev, [toggle.key]: e.target.checked }))}
+                                className="h-4 w-4 rounded border-slate-300 text-[#4A26ED] focus:ring-[#4A26ED]"
                               />
-                            </div>
+                              <span className="text-sm text-[#040042]">{toggle.label}</span>
+                            </label>
                           ))}
+                          <p className="text-xs text-[#9CA3AF] mt-1">Choose which AI use cases you allow. Most publishers enable all three.</p>
+                        </div>
+
+                        {/* Content Delivery toggle */}
+                        <div className="flex items-start justify-between gap-4 pt-2 border-t border-[#F3F4F6]">
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-[#040042]">Enable Content Delivery API</p>
+                            <p className="text-xs text-[#9CA3AF] mt-0.5 leading-relaxed">
+                              When enabled, licensed AI companies can access your full article text via API. When disabled, they only get metadata (title, description, URL).
+                            </p>
+                          </div>
+                          <Switch
+                            checked={profile?.content_delivery_enabled ?? true}
+                            onCheckedChange={(checked) => setProfile(prev => prev ? { ...prev, content_delivery_enabled: checked } : prev)}
+                            className="mt-1 shrink-0"
+                          />
                         </div>
 
                         {/* Save button */}
-                        <div className="flex items-center justify-between pt-2">
-                          <p className="text-xs text-[#9CA3AF] max-w-md leading-relaxed">
-                            Turning off a type means your content will be excluded from that licensing tier going forward. Active licenses already issued to AI labs are not affected until they expire.
-                          </p>
+                        <div className="flex items-center justify-end pt-2">
                           <Button
                             onClick={async () => {
                               setIsSavingAiLicensing(true);
                               try {
                                 const headers = await apiHeaders();
+                                const body: Record<string, unknown> = {
+                                  ai_license_types: aiLicenseTypes,
+                                  content_delivery_enabled: profile?.content_delivery_enabled ?? true,
+                                };
+                                if (aiAnnualPrice !== "") body.ai_annual_price = Number(aiAnnualPrice);
+                                if (defaultAiPrice !== "") body.default_ai_price = Number(defaultAiPrice);
+                                if (defaultHumanPrice !== "") body.default_human_price = Number(defaultHumanPrice);
                                 const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
                                   method: "PATCH",
                                   headers,
-                                  body: JSON.stringify({ ai_license_types: aiLicenseTypes }),
+                                  body: JSON.stringify(body),
                                 });
                                 const result = await res.json();
                                 if (result.success) {
-                                  toast({ title: "AI licensing preferences saved." });
+                                  toast({ title: "AI licensing settings saved." });
                                 } else {
                                   throw new Error(result.error?.message || "Save failed");
                                 }
@@ -1612,9 +1684,9 @@ export default function Settings() {
                               }
                             }}
                             disabled={isSavingAiLicensing}
-                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg px-5"
+                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg px-6"
                           >
-                            {isSavingAiLicensing ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Preferences"}
+                            {isSavingAiLicensing ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save AI Licensing Settings"}
                           </Button>
                         </div>
                       </div>
