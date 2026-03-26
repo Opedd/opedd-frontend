@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
 import { Search, ExternalLink, FileText, Award, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -153,14 +152,14 @@ export default function Publishers() {
                       </span>
                     </div>
 
-                    <Link to={`/registry?publisher_id=${pub.id}`}>
+                    <a href={`${EXT_SUPABASE_URL}/api?action=articles&publisher_id=${pub.id}`} target="_blank" rel="noopener noreferrer">
                       <Button
                         size="sm"
                         className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
                       >
                         View Catalog
                       </Button>
-                    </Link>
+                    </a>
                   </div>
                 </div>
               ))}

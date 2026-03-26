@@ -120,7 +120,7 @@ export default function Enterprise() {
       ].join("\n");
 
       const res = await fetch(
-        `${EXT_SUPABASE_URL}/functions/v1/contact-publisher`,
+        `${EXT_SUPABASE_URL}/contact-publisher`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
