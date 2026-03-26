@@ -99,7 +99,7 @@ export default function Privacy() {
               <p>Data controller contact: <a href="mailto:hello@opedd.com" className="text-indigo-600 hover:underline">hello@opedd.com</a></p>
             </section>
 
-            <p className="mt-8">See also: <a href="https://legal.opedd.com/terms" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Terms of Service</a></p>
+            <p className="mt-8">See also: <a href="/terms" className="text-indigo-600 hover:underline">Terms of Service</a></p>
           </div>
         </div>
       </main>
