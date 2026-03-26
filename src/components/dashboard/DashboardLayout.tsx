@@ -36,7 +36,7 @@ const navItems = [
   { title: "Buyers", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Billing", path: "/payments", icon: CreditCard },
+  { title: "Billing", path: "/settings?tab=billing", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
@@ -411,7 +411,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                 {" "}— import unlimited articles and explore all features.{urgent ? " Upgrade now to keep full access." : ""}
               </p>
               <NavLink
-                to="/payments"
+                to="/settings?tab=billing"
                 className={cn(
                   "shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap border",
                   urgent
