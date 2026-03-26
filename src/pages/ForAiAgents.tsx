@@ -411,7 +411,7 @@ export default function ForAiAgents() {
               </p>
               <div className="flex items-center gap-3 pt-1">
                 <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
-                  0xf2cb1347de16c362eb67549dc1521fc8ab2f8d6d
+                  0x7c3830c22cb7dd0742f0da38b9f1403aee1f50ad
                 </code>
               </div>
             </div>
