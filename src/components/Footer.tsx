@@ -4,8 +4,8 @@ import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const footerLinks = {
   Product: [
-    { label: "Features", href: "#products" },
-    { label: "How it Works", href: "#how-it-works" },
+    { label: "Features", href: "/pricing" },
+    { label: "For AI Agents", href: "/for-ai-agents" },
     { label: "Pricing", href: "/pricing" },
     { label: "For AI Agents", href: "/for-ai-agents" },
     { label: "API Docs", href: "https://docs.opedd.com", external: true },
