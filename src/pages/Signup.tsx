@@ -250,9 +250,9 @@ export default function Signup() {
 
         <p className="text-xs text-[#9CA3AF] text-center mt-3">
           By creating an account, you agree to our{" "}
-          <a href="https://legal.opedd.com/terms" target="_blank" rel="noopener noreferrer" className="text-[#4A26ED] hover:underline">Terms of Service</a>
-          {" "}and{" "}
-          <a href="https://legal.opedd.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#4A26ED] hover:underline">Privacy Policy</a>.
+           <a href="/terms" className="text-[#4A26ED] hover:underline">Terms of Service</a>
+           {" "}and{" "}
+           <a href="/privacy" className="text-[#4A26ED] hover:underline">Privacy Policy</a>.
         </p>
       </form>
 

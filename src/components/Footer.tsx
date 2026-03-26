@@ -22,8 +22,8 @@ const footerLinks = {
     { label: "npm", href: "https://www.npmjs.com/package/opedd-mcp", external: true },
   ],
   Legal: [
-    { label: "Privacy", href: "https://legal.opedd.com/privacy", external: true },
-    { label: "Terms", href: "https://legal.opedd.com/terms", external: true },
+    { label: "Privacy", href: "/privacy" },
+    { label: "Terms", href: "/terms" },
     { label: "Licenses", href: "/licenses" },
   ],
 };
@@ -113,9 +113,9 @@ const Footer = () => {
             © 2026 Opedd. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-sm text-alice-gray/50">
-            <a href="https://legal.opedd.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-alice-gray/80 transition-colors">Terms of Service</a>
-            <span className="text-alice-gray/20">·</span>
-            <a href="https://legal.opedd.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-alice-gray/80 transition-colors">Privacy Policy</a>
+             <a href="/terms" className="hover:text-alice-gray/80 transition-colors">Terms of Service</a>
+             <span className="text-alice-gray/20">·</span>
+             <a href="/privacy" className="hover:text-alice-gray/80 transition-colors">Privacy Policy</a>
             <span className="text-alice-gray/20">·</span>
             <a href="mailto:support@opedd.com" className="hover:text-alice-gray/80 transition-colors">Support</a>
           </div>
