@@ -27,6 +27,7 @@ const STEP_TITLES = [
   "Import Progress",
   "Install Widget",
   "Connect Stripe",
+  "Set Pricing",
   "Categorise",
 ];
 
@@ -102,7 +103,14 @@ export default function Setup() {
   const [stripeLoading, setStripeLoading] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
 
-  // Step 5
+  // Step 5 — AI Pricing
+  const [setupAiAnnualPrice, setSetupAiAnnualPrice] = useState("");
+  const [setupAiPrice, setSetupAiPrice] = useState("25");
+  const [setupHumanPrice, setSetupHumanPrice] = useState("5");
+  const [setupAiTypes, setSetupAiTypes] = useState({ rag: true, training: true, inference: true });
+  const [pricingSaving, setPricingSaving] = useState(false);
+
+  // Step 6
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [expertiseSummary, setExpertiseSummary] = useState("");
   const [finishLoading, setFinishLoading] = useState(false);
@@ -145,7 +153,7 @@ export default function Setup() {
       const saved = localStorage.getItem(`opedd_setup_step_${user.id}`);
       if (saved) {
         const s = parseInt(saved, 10);
-        if (s >= 1 && s <= 5) setStep(s);
+        if (s >= 1 && s <= 6) setStep(s);
       }
       setLoading(false);
     })();
@@ -400,6 +408,26 @@ export default function Setup() {
   // Step 4 — auto-skip if stripe connected
   useEffect(() => {
     if (step === 4 && stripeConnected) setStep(5);
+  }, [step, stripeConnected]);
+
+  // Step 5 — compute suggested price
+  const suggestedPrice = React.useMemo(() => {
+    const count = articleCount || 0;
+    if (count === 0) return 0;
+    const base = Math.max(count * 15, 3000);
+    const capped = Math.min(base, 50000);
+    const cat = selectedCategories[0] || "";
+    let multiplier = 1.0;
+    if (/finance|legal|law|healthcare|health|medicine|defen/i.test(cat)) multiplier = 2.0;
+    else if (/energy|policy|politic/i.test(cat)) multiplier = 1.5;
+    else if (/technology/i.test(cat)) multiplier = 1.3;
+    return Math.round((capped * multiplier) / 500) * 500;
+  }, [articleCount, selectedCategories]);
+
+  // Pre-fill suggested price when entering step 5
+  useEffect(() => {
+    if (step === 5 && suggestedPrice > 0 && !setupAiAnnualPrice) {
+      setSetupAiAnnualPrice(String(suggestedPrice));
   }, [step, stripeConnected]);
 
   const handleConnectStripe = async () => {
