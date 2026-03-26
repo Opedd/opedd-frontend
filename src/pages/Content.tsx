@@ -339,7 +339,7 @@ export default function Content() {
             <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
               {[
                 { value: "articles", label: "Articles" },
-                { value: "substack", label: "Substack Import" },
+                { value: "substack", label: "Re-import Archive" },
                 { value: "archive-license", label: "Archive License" },
               ].map((tab) => (
                 <TabsTrigger
@@ -544,16 +544,16 @@ export default function Content() {
         )}
           </TabsContent>
 
-          {/* Substack Import Tab */}
-          <TabsContent value="substack" className="mt-6">
-            <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-5">
-              <div className="flex items-center gap-3">
-                <img src={substackLogo} alt="Substack" className="w-10 h-10 rounded-xl" />
-                <div>
-                  <h2 className="text-base font-bold text-[#111827]">Import from Substack</h2>
-                  <p className="text-sm text-[#6B7280] mt-0.5">Upload your Substack <code className="text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded font-mono">posts.csv</code> to import your article catalog.</p>
-                </div>
-              </div>
+           {/* Re-import Archive Tab */}
+           <TabsContent value="substack" className="mt-6">
+             <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-5">
+               <div className="flex items-center gap-3">
+                 <img src={substackLogo} alt="Substack" className="w-10 h-10 rounded-xl" />
+                 <div>
+                   <h2 className="text-base font-bold text-[#111827]">Re-import Archive</h2>
+                   <p className="text-sm text-[#6B7280] mt-0.5">Already imported during setup? Use this to import additional posts or update your archive with a new <code className="text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded font-mono">posts.csv</code> export.</p>
+                 </div>
+               </div>
 
               <div className="bg-[#F9FAFB] rounded-lg p-4 text-sm text-[#6B7280] space-y-1">
                 <p className="font-medium text-[#111827] text-xs uppercase tracking-wider mb-2">How to get your CSV</p>

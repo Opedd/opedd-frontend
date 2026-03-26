@@ -1007,7 +1007,7 @@ export default function Settings() {
                               <span className="text-sm text-[#6B7280]">{summary}</span>
                             </div>
                             <button
-                              onClick={() => navigate("/payments")}
+                              onClick={() => navigate("/settings?tab=billing")}
                               className="text-sm font-medium text-[#4A26ED] hover:underline"
                             >
                               Manage Plan →
@@ -1169,12 +1169,9 @@ export default function Settings() {
                       {isGated ? <LockedTabContent /> : <>
                       {/* Stripe payouts nudge */}
                       {profile && (!profile.stripe_account_id || !profile.stripe_onboarding_complete) && (
-                        <p className="text-sm text-amber-600 mb-4">
-                          Stripe payouts not set up —{' '}
-                          <button onClick={() => navigate('/payments')} className="underline font-medium">
-                            configure in Payments
-                          </button>
-                        </p>
+                         <p className="text-sm text-amber-600 mb-4">
+                           Stripe payouts not set up — configure in the Billing tab above.
+                         </p>
                       )}
                       {/* Info note */}
                       <div className="bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-xl px-4 py-3">
