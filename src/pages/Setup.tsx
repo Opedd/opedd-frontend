@@ -428,7 +428,8 @@ export default function Setup() {
   useEffect(() => {
     if (step === 5 && suggestedPrice > 0 && !setupAiAnnualPrice) {
       setSetupAiAnnualPrice(String(suggestedPrice));
-  }, [step, stripeConnected]);
+    }
+  }, [step, suggestedPrice]);
 
   const handleConnectStripe = async () => {
     setStripeLoading(true);
