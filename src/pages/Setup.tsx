@@ -27,6 +27,7 @@ const STEP_TITLES = [
   "Import Progress",
   "Install Widget",
   "Connect Stripe",
+  "Set Pricing",
   "Categorise",
 ];
 
@@ -102,7 +103,14 @@ export default function Setup() {
   const [stripeLoading, setStripeLoading] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
 
-  // Step 5
+  // Step 5 — AI Pricing
+  const [setupAiAnnualPrice, setSetupAiAnnualPrice] = useState("");
+  const [setupAiPrice, setSetupAiPrice] = useState("25");
+  const [setupHumanPrice, setSetupHumanPrice] = useState("5");
+  const [setupAiTypes, setSetupAiTypes] = useState({ rag: true, training: true, inference: true });
+  const [pricingSaving, setPricingSaving] = useState(false);
+
+  // Step 6
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [expertiseSummary, setExpertiseSummary] = useState("");
   const [finishLoading, setFinishLoading] = useState(false);
@@ -145,7 +153,7 @@ export default function Setup() {
       const saved = localStorage.getItem(`opedd_setup_step_${user.id}`);
       if (saved) {
         const s = parseInt(saved, 10);
-        if (s >= 1 && s <= 5) setStep(s);
+        if (s >= 1 && s <= 6) setStep(s);
       }
       setLoading(false);
     })();
@@ -401,6 +409,27 @@ export default function Setup() {
   useEffect(() => {
     if (step === 4 && stripeConnected) setStep(5);
   }, [step, stripeConnected]);
+
+  // Step 5 — compute suggested price
+  const suggestedPrice = React.useMemo(() => {
+    const count = articleCount || 0;
+    if (count === 0) return 0;
+    const base = Math.max(count * 15, 3000);
+    const capped = Math.min(base, 50000);
+    const cat = selectedCategories[0] || "";
+    let multiplier = 1.0;
+    if (/finance|legal|law|healthcare|health|medicine|defen/i.test(cat)) multiplier = 2.0;
+    else if (/energy|policy|politic/i.test(cat)) multiplier = 1.5;
+    else if (/technology/i.test(cat)) multiplier = 1.3;
+    return Math.round((capped * multiplier) / 500) * 500;
+  }, [articleCount, selectedCategories]);
+
+  // Pre-fill suggested price when entering step 5
+  useEffect(() => {
+    if (step === 5 && suggestedPrice > 0 && !setupAiAnnualPrice) {
+      setSetupAiAnnualPrice(String(suggestedPrice));
+    }
+  }, [step, suggestedPrice]);
 
   const handleConnectStripe = async () => {
     setStripeLoading(true);
@@ -1043,8 +1072,140 @@ export default function Setup() {
           </>
         )}
 
-        {/* ===== STEP 5 ===== */}
+        {/* ===== STEP 5: AI Pricing ===== */}
         {step === 5 && (
+          <>
+            <div>
+              <h1 className="text-2xl font-bold text-[#040042]">How much is your content worth to AI companies?</h1>
+              <p className="text-sm text-[#6B7280] mt-1">Set your AI licensing prices. You can adjust these anytime in Settings.</p>
+            </div>
+
+            {articleCount === 0 ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+                Import your content first, then come back to set pricing. We'll calculate a suggestion based on your catalog size.
+              </div>
+            ) : (
+              <>
+                {suggestedPrice > 0 && (
+                  <div className="bg-[#EEF0FD] border border-[#DDD6FE] rounded-lg p-4">
+                    <p className="text-sm text-[#040042]">
+                      Based on your <span className="font-semibold">{articleCount}</span> articles
+                      {selectedCategories[0] ? <> in <span className="font-semibold">{selectedCategories[0]}</span></> : null}, we suggest:
+                    </p>
+                    <p className="text-xl font-bold text-[#4A26ED] mt-1">
+                      ${suggestedPrice.toLocaleString()}/year
+                      <span className="text-sm font-normal text-[#6B7280] ml-2">
+                        (${(suggestedPrice / 12).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/month)
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-semibold text-[#040042]">Annual Catalog Price (USD)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="100"
+                      value={setupAiAnnualPrice}
+                      onChange={e => setSetupAiAnnualPrice(e.target.value)}
+                      placeholder="e.g. 12000"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-[#9CA3AF] mt-1">What AI labs pay per year for access to your full catalog.</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-[#040042]">Per-Article AI Price (USD)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={setupAiPrice}
+                      onChange={e => setSetupAiPrice(e.target.value)}
+                      placeholder="e.g. 25"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-[#040042]">Per-Article Human Price (USD)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={setupHumanPrice}
+                      onChange={e => setSetupHumanPrice(e.target.value)}
+                      placeholder="e.g. 5"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-[#040042]">Allow all AI use cases (recommended)</p>
+                  {([
+                    { key: "rag" as const, label: "RAG (Retrieval-Augmented Generation)" },
+                    { key: "training" as const, label: "Model Training" },
+                    { key: "inference" as const, label: "Inference (Real-time AI outputs)" },
+                  ]).map(t => (
+                    <label key={t.key} className="flex items-center gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={setupAiTypes[t.key]}
+                        onChange={e => setSetupAiTypes(prev => ({ ...prev, [t.key]: e.target.checked }))}
+                        className="h-4 w-4 rounded border-slate-300 text-[#4A26ED] focus:ring-[#4A26ED]"
+                      />
+                      <span className="text-sm text-[#040042]">{t.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <Button
+              disabled={pricingSaving || articleCount === 0}
+              onClick={async () => {
+                setPricingSaving(true);
+                try {
+                  const headers = await authHeaders();
+                  const body: Record<string, unknown> = {
+                    ai_license_types: setupAiTypes,
+                    content_delivery_enabled: true,
+                  };
+                  if (setupAiAnnualPrice) body.ai_annual_price = Number(setupAiAnnualPrice);
+                  if (setupAiPrice) body.default_ai_price = Number(setupAiPrice);
+                  if (setupHumanPrice) body.default_human_price = Number(setupHumanPrice);
+                  const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+                    method: "PATCH",
+                    headers,
+                    body: JSON.stringify(body),
+                  });
+                  const result = await res.json();
+                  if (!result.success) throw new Error(result.error?.message || "Save failed");
+                  toast({ title: "Pricing saved!" });
+                  setStep(6);
+                } catch (err: unknown) {
+                  toast({ title: "Save failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+                } finally {
+                  setPricingSaving(false);
+                }
+              }}
+              className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11"
+            >
+              {pricingSaving ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              Continue <ChevronRight size={16} className="ml-1" />
+            </Button>
+
+            <div className="text-center">
+              <button onClick={() => setStep(6)} className="text-sm text-[#6B7280] hover:text-[#4A26ED] hover:underline">
+                Skip for now — you can always set your pricing later in Settings.
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ===== STEP 6: Categorise ===== */}
+        {step === 6 && (
           <>
             <div>
               <h1 className="text-2xl font-bold text-[#040042]">Help buyers find your content</h1>
