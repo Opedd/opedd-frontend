@@ -27,8 +27,8 @@ const STEP_TITLES = [
   "Import Progress",
   "Install Widget",
   "Connect Stripe",
-  "Set Pricing",
   "Categorise",
+  "Set Pricing",
 ];
 
 const CATEGORIES = [
@@ -424,9 +424,9 @@ export default function Setup() {
     return Math.round((capped * multiplier) / 500) * 500;
   }, [articleCount, selectedCategories]);
 
-  // Pre-fill suggested price when entering step 5
+   // Pre-fill suggested price when entering step 6
   useEffect(() => {
-    if (step === 5 && suggestedPrice > 0 && !setupAiAnnualPrice) {
+    if (step === 6 && suggestedPrice > 0 && !setupAiAnnualPrice) {
       setSetupAiAnnualPrice(String(suggestedPrice));
     }
   }, [step, suggestedPrice]);
