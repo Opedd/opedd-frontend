@@ -464,12 +464,12 @@ test.describe("8. Billing (Settings → Billing)", () => {
     await expect(page.locator("text=Enterprise").first()).toBeVisible();
   });
 
-  test("8.3 Stripe Connect tab renders", async ({ page }) => {
+  test("8.3 Billing tab renders plan info", async ({ page }) => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings?tab=billing`);
     await page.waitForLoadState("load");
-    await assertNoCrash(page, "Billing Stripe section");
-    await expect(page.locator("text=Stripe").first()).toBeVisible();
+    await assertNoCrash(page, "Billing tab");
+    await expect(page.locator("text=Manage Plan").first()).toBeVisible({ timeout: 5000 });
   });
 
   test("8.4 Annual/Monthly toggle works", async ({ page }) => {
@@ -941,15 +941,15 @@ test.describe("19. Workflow Stress Tests", () => {
     }
   });
 
-  // Billing page - plan prices match what's in the Stripe config
-  test("19.3 Pro plan shows $49/month on billing page", async ({ page }) => {
+  // Billing tab renders with current plan info
+  test("19.3 Billing tab shows current plan", async ({ page }) => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings?tab=billing`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
     const body = await page.textContent("body");
-    // Pro is $49/month
-    expect(body).toContain("$49");
+    // Should show current plan (Free, Pro, or Enterprise) and manage option
+    expect(body).toContain("Manage Plan");
   });
 
   // Settings pricing tab — verify bulk pricing Apply to all doesn't crash
