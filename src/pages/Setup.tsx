@@ -27,8 +27,8 @@ const STEP_TITLES = [
   "Import Progress",
   "Install Widget",
   "Connect Stripe",
-  "Set Pricing",
   "Categorise",
+  "Set Pricing",
 ];
 
 const CATEGORIES = [
@@ -424,9 +424,9 @@ export default function Setup() {
     return Math.round((capped * multiplier) / 500) * 500;
   }, [articleCount, selectedCategories]);
 
-  // Pre-fill suggested price when entering step 5
+   // Pre-fill suggested price when entering step 6
   useEffect(() => {
-    if (step === 5 && suggestedPrice > 0 && !setupAiAnnualPrice) {
+    if (step === 6 && suggestedPrice > 0 && !setupAiAnnualPrice) {
       setSetupAiAnnualPrice(String(suggestedPrice));
     }
   }, [step, suggestedPrice]);
@@ -1072,8 +1072,51 @@ export default function Setup() {
           </>
         )}
 
-        {/* ===== STEP 5: AI Pricing ===== */}
+        {/* ===== STEP 5: Categorise ===== */}
         {step === 5 && (
+          <>
+            <div>
+              <h1 className="text-2xl font-bold text-[#040042]">Help buyers find your content</h1>
+              <p className="text-sm text-[#6B7280] mt-1">Tell us what you write about. AI companies and media groups use this to discover publishers in their industry.</p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map(c => (
+                <button
+                  key={c}
+                  onClick={() => toggleCategory(c)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all
+                    ${selectedCategories.includes(c)
+                      ? "bg-[#4A26ED] text-white border-[#4A26ED]"
+                      : "bg-white text-[#374151] border-[#E5E7EB] hover:border-[#D1D5DB]"}`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+            {selectedCategories.length >= 5 && (
+              <p className="text-xs text-[#6B7280]">Maximum 5 categories selected.</p>
+            )}
+
+            <div>
+              <label className="text-sm font-medium text-[#040042]">One-sentence expertise summary</label>
+              <Input
+                placeholder="e.g. Covering US-China geopolitics and Asian markets since 2003."
+                value={expertiseSummary}
+                onChange={e => { if (e.target.value.length <= 200) setExpertiseSummary(e.target.value); }}
+                className="mt-1"
+              />
+              <p className="text-xs text-[#9CA3AF] mt-1">{expertiseSummary.length}/200</p>
+            </div>
+
+            <Button onClick={() => setStep(6)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">
+              Continue <ChevronRight size={16} className="ml-1" />
+            </Button>
+          </>
+        )}
+
+        {/* ===== STEP 6: AI Pricing ===== */}
+        {step === 6 && (
           <>
             <div>
               <h1 className="text-2xl font-bold text-[#040042]">How much is your content worth to AI companies?</h1>
@@ -1183,7 +1226,7 @@ export default function Setup() {
                   const result = await res.json();
                   if (!result.success) throw new Error(result.error?.message || "Save failed");
                   toast({ title: "Pricing saved!" });
-                  setStep(6);
+                  handleFinish();
                 } catch (err: unknown) {
                   toast({ title: "Save failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
                 } finally {
@@ -1193,58 +1236,14 @@ export default function Setup() {
               className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11"
             >
               {pricingSaving ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-              Continue <ChevronRight size={16} className="ml-1" />
+              Go live →
             </Button>
 
             <div className="text-center">
-              <button onClick={() => setStep(6)} className="text-sm text-[#6B7280] hover:text-[#4A26ED] hover:underline">
+              <button onClick={() => handleFinish()} className="text-sm text-[#6B7280] hover:text-[#4A26ED] hover:underline">
                 Skip for now — you can always set your pricing later in Settings.
               </button>
             </div>
-          </>
-        )}
-
-        {/* ===== STEP 6: Categorise ===== */}
-        {step === 6 && (
-          <>
-            <div>
-              <h1 className="text-2xl font-bold text-[#040042]">Help buyers find your content</h1>
-              <p className="text-sm text-[#6B7280] mt-1">Tell us what you write about. AI companies and media groups use this to discover publishers in their industry.</p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map(c => (
-                <button
-                  key={c}
-                  onClick={() => toggleCategory(c)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all
-                    ${selectedCategories.includes(c)
-                      ? "bg-[#4A26ED] text-white border-[#4A26ED]"
-                      : "bg-white text-[#374151] border-[#E5E7EB] hover:border-[#D1D5DB]"}`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-            {selectedCategories.length >= 5 && (
-              <p className="text-xs text-[#6B7280]">Maximum 5 categories selected.</p>
-            )}
-
-            <div>
-              <label className="text-sm font-medium text-[#040042]">One-sentence expertise summary</label>
-              <Input
-                placeholder="e.g. Covering US-China geopolitics and Asian markets since 2003."
-                value={expertiseSummary}
-                onChange={e => { if (e.target.value.length <= 200) setExpertiseSummary(e.target.value); }}
-                className="mt-1"
-              />
-              <p className="text-xs text-[#9CA3AF] mt-1">{expertiseSummary.length}/200</p>
-            </div>
-
-            <Button onClick={handleFinish} disabled={finishLoading} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11">
-              {finishLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-              Go live →
-            </Button>
           </>
         )}
       </div>
