@@ -13,6 +13,7 @@ const footerLinks = {
   Publishers: [
     { label: "Browse Publishers", href: "/publishers" },
     { label: "Enterprise", href: "/enterprise" },
+    { label: "Integration Guides", href: "/guides" },
     { label: "Documentation", href: "https://docs.opedd.com", external: true },
     { label: "Status", href: "/status" },
   ],
