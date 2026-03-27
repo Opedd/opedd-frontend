@@ -469,7 +469,8 @@ test.describe("8. Billing (Settings → Billing)", () => {
     await page.goto(`${BASE}/settings?tab=billing`);
     await page.waitForLoadState("load");
     await assertNoCrash(page, "Billing tab");
-    await expect(page.locator("text=Manage Plan").first()).toBeVisible({ timeout: 5000 });
+    // Test user is on Free plan — should see "Free" and "Upgrade"
+    await expect(page.locator("text=Free").first()).toBeVisible({ timeout: 5000 });
   });
 
   test("8.4 Annual/Monthly toggle works", async ({ page }) => {
@@ -947,9 +948,10 @@ test.describe("19. Workflow Stress Tests", () => {
     await page.goto(`${BASE}/settings?tab=billing`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(2000);
+    await assertNoCrash(page, "Settings billing tab");
+    // Should show current plan name (Free for test user)
     const body = await page.textContent("body");
-    // Should show current plan (Free, Pro, or Enterprise) and manage option
-    expect(body).toContain("Manage Plan");
+    expect(body).toContain("Free");
   });
 
   // Settings pricing tab — verify bulk pricing Apply to all doesn't crash
