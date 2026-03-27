@@ -1,456 +1,501 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import {
   ArrowRight,
-  Zap,
+  Search,
+  FlaskConical,
   CreditCard,
+  Download,
+  Check,
+  X,
+  Copy,
+  Database,
+  Cpu,
+  Warehouse,
+  Newspaper,
+  PenLine,
   Radio,
   Shield,
   FileJson,
-  Globe,
-  RefreshCw,
-  Scale,
-  Banknote,
-  Webhook,
-  Rss,
-  FileText,
-  Layers,
-  Users,
-  Loader2,
+  DollarSign,
+  Link2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { copyToClipboard } from "@/lib/clipboard";
+import opeddIcon from "@/assets/opedd-icon.svg";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: [0.4, 0, 0.2, 1] as const },
-  }),
-};
+/* ─── Static data ─── */
 
-const HOW_IT_WORKS = [
+const STEPS = [
   {
-    icon: Layers,
-    title: "Choose your coverage",
-    description:
-      "Select RAG, training, or inference licensing. Cover a custom list of publishers or opt for platform-wide access.",
+    icon: Search,
+    title: "Browse the Catalog",
+    desc: "Explore publishers, pricing, and sample articles via our public API. No account needed.",
   },
   {
-    icon: Banknote,
-    title: "One payment, Opedd disburses",
-    description:
-      "Pay a single annual fee. Opedd takes 10% and automatically disburses to every publisher monthly — no invoicing, no chasing payments.",
+    icon: FlaskConical,
+    title: "Evaluate in Sandbox",
+    desc: "Get a free sandbox token. Preview truncated content from any publisher. Zero commitment.",
   },
   {
-    icon: Zap,
-    title: "Content delivered in real-time",
-    description:
-      "Every time a publisher hits publish, the article is pushed to your webhook URL or available in your paginated content feed within seconds. Structured JSON or XML.",
+    icon: CreditCard,
+    title: "Purchase a License",
+    desc: "Pick your publishers, choose annual or monthly billing, and pay via Stripe. One invoice.",
+  },
+  {
+    icon: Download,
+    title: "Stream Content via API",
+    desc: "Fetch full articles with provenance metadata. Get webhooks when new content is published.",
   },
 ];
 
-const FEATURES = [
-  { icon: Webhook, text: "Real-time content webhooks (HMAC-signed JSON payloads)" },
-  { icon: Rss, text: "Paginated REST feed with cursor-based pagination" },
-  { icon: FileText, text: "Full HTML + plain text + excerpt for each article" },
-  { icon: Shield, text: "RAG, training, or inference licensing tiers" },
-  { icon: Users, text: "Platform-wide or custom publisher selection" },
-  { icon: RefreshCw, text: "Annual subscription with auto-renewal" },
-  { icon: Scale, text: "Legal coverage across all licensed publishers" },
-  { icon: CreditCard, text: "Monthly pro-rata disbursements to publishers" },
-];
-
-const TIERS = [
+const PRICING_ROWS = [
   {
-    name: "RAG / Retrieval",
-    description: "For real-time retrieval and citation in AI responses.",
-    price: "Custom pricing",
+    label: "What you get",
+    values: ["Single article, one-time", "Full back-catalog, 12 months", "All new content as published"],
   },
   {
-    name: "Model Training",
-    description: "For fine-tuning and training LLMs.",
-    price: "Custom pricing",
+    label: "Typical price range",
+    values: ["$5 – $200", "$3,000 – $25,000/yr", "$250 – $2,000/mo"],
+  },
+  {
+    label: "Billing",
+    values: ["One-time", "Annual subscription", "Monthly subscription"],
+  },
+  {
+    label: "Content delivery",
+    values: ["Single article", "Full catalog via API", "New articles via API + webhooks"],
+  },
+];
+
+const LICENSE_TIERS = [
+  {
+    name: "RAG",
+    desc: "Retrieval-Augmented Generation. Fetch content at inference time for grounded AI responses.",
+  },
+  {
+    name: "Training",
+    desc: "Model fine-tuning and pretraining. Use content in training datasets with full legal coverage.",
+  },
+  {
+    name: "Inference",
+    desc: "Real-time AI outputs. License content that appears in AI-generated responses.",
   },
   {
     name: "Full AI",
-    description: "RAG + Training + Inference. Full unrestricted access.",
-    price: "Custom pricing",
+    desc: "All use cases combined. Maximum flexibility for multi-purpose AI platforms.",
     highlighted: true,
   },
 ];
 
+const COMPARISON = [
+  { feature: "Single API for all publishers", opedd: true, direct: false, legacy: false },
+  { feature: "Publisher-set pricing", opedd: true, direct: true, legacy: "CCC sets rates" },
+  { feature: "Monthly forward feed", opedd: true, direct: "Varies", legacy: false },
+  { feature: "On-chain proof of license", opedd: true, direct: false, legacy: false },
+  { feature: "Sandbox / try before you buy", opedd: true, direct: false, legacy: false },
+  { feature: "Time to integrate", opedd: "Hours", direct: "Months", legacy: "Months" },
+  { feature: "Content delivery API", opedd: true, direct: "Varies", legacy: false },
+  { feature: "Webhooks for new content", opedd: true, direct: false, legacy: false },
+];
+
+const SANDBOX_CURL = `curl -X POST https://api.opedd.com/enterprise-auth \\
+  -H "Content-Type: application/json" \\
+  -d '{"action": "create_sandbox", "buyer_email": "you@yourcompany.com"}'`;
+
+/* ─── Helpers ─── */
+
+function CellValue({ val }: { val: boolean | string }) {
+  if (val === true) return <Check size={16} className="text-emerald-400 mx-auto" />;
+  if (val === false) return <X size={16} className="text-soft-white/20 mx-auto" />;
+  return <span className="text-soft-white/60 text-xs">{val}</span>;
+}
+
+/* ─── Component ─── */
+
 export default function Enterprise() {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    org: "",
-    email: "",
-    role: "",
-    useCase: "",
-    publisherCount: "",
-    message: "",
+  const [stats, setStats] = useState({
+    publishers: "50+",
+    articles: "10,000+",
+    licenses: "500+",
+    proofs: "500+",
   });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.org || !formData.email) return;
-    setSubmitting(true);
-    try {
-      const composedMessage = [
-        `Organization: ${formData.org}`,
-        `Role: ${formData.role || "N/A"}`,
-        `Use case: ${formData.useCase || "N/A"}`,
-        `Publisher coverage: ${formData.publisherCount || "N/A"}`,
-        formData.message ? `\nMessage:\n${formData.message}` : "",
-      ].join("\n");
-
-      const res = await fetch(
-        `${EXT_SUPABASE_URL}/contact-publisher`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            buyer_email: formData.email,
-            buyer_name: formData.org,
-            message: composedMessage,
-          }),
+  useEffect(() => {
+    fetch(`https://djdzcciayennqchjgybx.supabase.co/functions/v1/registry`, {
+      headers: { Authorization: `Bearer ${EXT_ANON_KEY}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data) {
+          setStats({
+            publishers: data.publishers_count ? `${data.publishers_count}+` : "50+",
+            articles: data.articles_count ? `${Number(data.articles_count).toLocaleString()}+` : "10,000+",
+            licenses: data.licenses_count ? `${Number(data.licenses_count).toLocaleString()}+` : "500+",
+            proofs: data.events_count ? `${Number(data.events_count).toLocaleString()}+` : "500+",
+          });
         }
-      );
-      if (!res.ok) throw new Error("Failed");
-      setSubmitted(true);
-    } catch {
-      toast({
-        title: "Something went wrong",
-        description: "Please try again or email enterprise@opedd.com directly.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
-    }
+      })
+      .catch(() => {});
+  }, []);
+
+  const scrollToSandbox = () =>
+    document.getElementById("sandbox")?.scrollIntoView({ behavior: "smooth" });
+
+  const handleCopy = async () => {
+    const ok = await copyToClipboard(SANDBOX_CURL);
+    toast({ title: ok ? "Copied to clipboard" : "Copy failed" });
   };
 
   return (
     <div className="min-h-screen bg-navy-deep">
       <Header />
 
-      {/* ── Hero ── */}
-      <section className="pt-32 pb-24 relative overflow-hidden">
+      {/* ══ HERO ══ */}
+      <section className="pt-32 pb-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-oxford/15 rounded-full blur-[120px]" />
           <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-plum-magenta/10 rounded-full blur-[100px]" />
         </div>
-        <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-4xl">
-          <motion.div initial="hidden" animate="visible" className="text-center space-y-6">
-            <motion.div
-              variants={fadeUp}
-              custom={0}
-              className="inline-flex items-center gap-2 bg-soft-white/5 border border-soft-white/10 rounded-full px-4 py-1.5 text-sm text-soft-white/60 font-medium"
+        <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-4xl text-center space-y-6">
+          <p className="inline-flex items-center gap-2 bg-soft-white/5 border border-soft-white/10 rounded-full px-4 py-1.5 text-sm text-soft-white/60 font-medium">
+            For AI Labs &amp; Enterprise
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-soft-white leading-[1.1] tracking-tight">
+            License thousands of newsletters for your AI.{" "}
+            <span className="text-soft-white/40">One API, one invoice.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-soft-white/50 max-w-3xl mx-auto leading-relaxed">
+            Opedd gives AI companies bulk access to premium publisher content — legally, programmatically, and with on-chain proof of every license.
+          </p>
+          <div className="flex items-center justify-center gap-4 pt-4 flex-wrap">
+            <Button
+              onClick={scrollToSandbox}
+              className="h-12 px-8 rounded-xl bg-soft-white text-navy-deep text-sm font-bold hover:bg-soft-white/90"
             >
-              Enterprise Licensing
-            </motion.div>
-            <motion.h1
-              variants={fadeUp}
-              custom={1}
-              className="text-4xl md:text-6xl font-bold text-soft-white leading-[1.1] tracking-tight"
+              Get Sandbox Access (Free)
+              <ArrowRight size={15} />
+            </Button>
+            <a
+              href="https://docs.opedd.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-soft-white/20 text-soft-white text-sm font-semibold hover:bg-soft-white/5 transition-all bg-transparent"
             >
-              License the world's best content for AI.{" "}
-              <span className="text-soft-white/40">At scale.</span>
-            </motion.h1>
-            <motion.p
-              variants={fadeUp}
-              custom={2}
-              className="text-lg md:text-xl text-soft-white/50 max-w-2xl mx-auto leading-relaxed"
-            >
-              One contract. One API. Hundreds of publishers. Opedd handles the legal, the payments, and the delivery — you get a structured JSON/XML feed of licensed articles the moment they're published.
-            </motion.p>
-            <motion.div variants={fadeUp} custom={3} className="flex items-center justify-center gap-4 pt-4 flex-wrap">
-              <Button
-                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-                className="h-12 px-8 rounded-xl bg-soft-white text-navy-deep text-sm font-bold hover:bg-soft-white/90"
-              >
-                Request Access
-                <ArrowRight size={15} />
-              </Button>
-              <a
-                href="mailto:enterprise@opedd.com"
-                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-soft-white/20 text-soft-white text-sm font-semibold hover:bg-soft-white/5 transition-all bg-transparent"
-              >
-                Talk to us →
-              </a>
-            </motion.div>
-          </motion.div>
+              View API Docs
+              <ArrowRight size={14} />
+            </a>
+          </div>
         </div>
       </section>
 
-      {/* ── How It Works ── */}
+      {/* ══ HOW IT WORKS ══ */}
       <section className="py-20 border-t border-soft-white/10">
         <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-14">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">
-              How It Works
-            </motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
-              Three steps to licensed content
-            </motion.h2>
-          </motion.div>
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">How It Works</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
+              Four steps to licensed content
+            </h2>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {HOW_IT_WORKS.map((step, i) => (
-              <motion.div
-                key={step.title}
-                variants={fadeUp}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-oxford/20">
-                  <step.icon size={24} className="text-oxford" />
+          {/* Step flow */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-4 relative">
+            {STEPS.map((step, i) => (
+              <div key={step.title} className="flex flex-col items-center text-center relative">
+                {/* Connector arrow (desktop only) */}
+                {i < STEPS.length - 1 && (
+                  <div className="hidden md:block absolute top-7 left-[calc(50%+28px)] w-[calc(100%-56px)] h-px bg-soft-white/15">
+                    <ArrowRight size={12} className="text-soft-white/30 absolute -right-1.5 -top-1.5" />
+                  </div>
+                )}
+                <div className="w-14 h-14 rounded-full bg-oxford/20 border border-oxford/30 flex items-center justify-center mb-4 relative z-10">
+                  <step.icon size={22} className="text-oxford" />
                 </div>
-                <h3 className="font-semibold text-base text-soft-white mb-2">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-soft-white/50">{step.description}</p>
-              </motion.div>
+                <span className="text-xs text-soft-white/30 font-mono mb-1">0{i + 1}</span>
+                <h3 className="font-semibold text-sm text-soft-white mb-1.5">{step.title}</h3>
+                <p className="text-xs leading-relaxed text-soft-white/50 max-w-[200px]">{step.desc}</p>
+              </div>
             ))}
+          </div>
+
+          <p className="text-center text-xs text-soft-white/40 mt-10">
+            Average integration time: <span className="text-soft-white/70 font-semibold">2 hours</span> from sandbox to first API call.
+          </p>
+        </div>
+      </section>
+
+      {/* ══ ARCHITECTURE DIAGRAM ══ */}
+      <section className="py-20 border-t border-soft-white/10">
+        <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">Architecture</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
+              How data and money flow
+            </h2>
+          </div>
+
+          <div className="bg-soft-white/[0.03] border border-soft-white/10 rounded-2xl p-6 md:p-10 relative overflow-hidden">
+            {/* Subtle grid */}
+            <div className="absolute inset-0 opacity-[0.04]" style={{
+              backgroundImage: "linear-gradient(hsl(0 0% 100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }} />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 relative z-10">
+              {/* Your AI Lab */}
+              <div className="text-center space-y-4">
+                <h3 className="text-sm font-bold text-soft-white uppercase tracking-wider">Your AI Lab</h3>
+                <div className="space-y-3">
+                  {[
+                    { icon: FileJson, label: "API" },
+                    { icon: Cpu, label: "Pipeline" },
+                    { icon: Warehouse, label: "Data Warehouse" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-center gap-2 text-soft-white/60 text-xs">
+                      <item.icon size={14} /> {item.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Opedd */}
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center gap-2">
+                  <img src={opeddIcon} alt="Opedd" className="w-5 h-5" />
+                  <h3 className="text-sm font-bold text-oxford uppercase tracking-wider">Opedd</h3>
+                </div>
+                <div className="bg-oxford/10 border border-oxford/20 rounded-xl p-4 space-y-2">
+                  {["Auth", "Catalog", "Delivery", "Billing", "On-chain Proof"].map((l) => (
+                    <div key={l} className="text-xs text-soft-white/70 font-medium">{l}</div>
+                  ))}
+                </div>
+                {/* Flow labels */}
+                <div className="grid grid-cols-2 gap-2 text-[10px] text-soft-white/40">
+                  <div className="text-left">← Content + license keys</div>
+                  <div className="text-right">API requests + payment →</div>
+                  <div className="text-left">← Content + pricing</div>
+                  <div className="text-right">Monthly payouts (80%) →</div>
+                </div>
+              </div>
+
+              {/* Publishers */}
+              <div className="text-center space-y-4">
+                <h3 className="text-sm font-bold text-soft-white uppercase tracking-wider">Publishers</h3>
+                <div className="space-y-3">
+                  {[
+                    { icon: Newspaper, label: "Newsletter" },
+                    { icon: PenLine, label: "Blog" },
+                    { icon: Radio, label: "Media" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-center gap-2 text-soft-white/60 text-xs">
+                      <item.icon size={14} /> {item.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── What You Get ── */}
+      {/* ══ PRICING ══ */}
       <section className="py-20 border-t border-soft-white/10">
         <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-14">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">
-              What You Get
-            </motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
-              Everything an AI team needs
-            </motion.h2>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {FEATURES.map((feat, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="flex items-start gap-3 p-4 rounded-xl bg-soft-white/5 border border-soft-white/10"
-              >
-                <feat.icon size={18} className="text-oxford shrink-0 mt-0.5" />
-                <span className="text-sm text-soft-white/80">{feat.text}</span>
-              </motion.div>
-            ))}
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">Pricing</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
+              Transparent, publisher-set pricing
+            </h2>
+            <p className="text-soft-white/40 mt-3 max-w-xl mx-auto text-sm">
+              Every publisher sets their own price. You see the full catalog and pick what you need.
+            </p>
           </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-soft-white/10">
+                  <th className="text-left py-3 px-4 text-soft-white/40 font-medium text-xs uppercase tracking-wider" />
+                  <th className="py-3 px-4 text-soft-white font-semibold text-xs uppercase tracking-wider">Per Article</th>
+                  <th className="py-3 px-4 text-soft-white font-semibold text-xs uppercase tracking-wider">Archive (Annual)</th>
+                  <th className="py-3 px-4 text-soft-white font-semibold text-xs uppercase tracking-wider">Forward Feed (Monthly)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {PRICING_ROWS.map((row, i) => (
+                  <tr key={i} className="border-b border-soft-white/5">
+                    <td className="py-3 px-4 text-soft-white/60 font-medium text-xs">{row.label}</td>
+                    {row.values.map((v, j) => (
+                      <td key={j} className="py-3 px-4 text-soft-white/80 text-xs text-center">{v}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-soft-white/40 mt-6 text-center max-w-2xl mx-auto">
+            Forward feed price is always annual price ÷ 12. Publishers control their pricing — no hidden markups.
+          </p>
         </div>
       </section>
 
-      {/* ── Pricing ── */}
+      {/* ══ LICENSE TIERS ══ */}
       <section className="py-20 border-t border-soft-white/10">
         <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-14">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">
-              Pricing
-            </motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl font-bold text-soft-white tracking-tight">
-              Pricing is based on coverage and license type
-            </motion.h2>
-            <motion.p variants={fadeUp} custom={2} className="text-soft-white/40 mt-3 max-w-xl mx-auto">
-              We work with you to negotiate a rate that matches your usage. Contact us to get a quote.
-            </motion.p>
-          </motion.div>
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">License Types</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
+              Choose the license that fits your use case
+            </h2>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {TIERS.map((tier, i) => (
-              <motion.div
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {LICENSE_TIERS.map((tier) => (
+              <div
                 key={tier.name}
-                variants={fadeUp}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className={`rounded-2xl border p-6 text-center ${
+                className={`rounded-2xl border p-6 ${
                   tier.highlighted
                     ? "border-oxford bg-oxford/10"
                     : "border-soft-white/10 bg-soft-white/5"
                 }`}
               >
-                <h3 className="font-semibold text-lg text-soft-white mb-2">{tier.name}</h3>
-                <p className="text-sm text-soft-white/50 mb-6">{tier.description}</p>
-                <p className="text-2xl font-bold text-soft-white">{tier.price}</p>
-              </motion.div>
+                <h3 className="font-bold text-lg text-soft-white mb-2">{tier.name}</h3>
+                <p className="text-xs text-soft-white/50 leading-relaxed">{tier.desc}</p>
+              </div>
             ))}
           </div>
-
-          <motion.p
-            variants={fadeUp}
-            custom={3}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="text-center text-sm text-soft-white/40 mt-8 max-w-2xl mx-auto"
-          >
-            All plans include automatic publisher disbursements, HMAC-signed webhook delivery, and a paginated content feed API.
-          </motion.p>
+          <p className="text-xs text-soft-white/40 mt-6 text-center max-w-2xl mx-auto">
+            Publishers opt into tiers individually. Your license only covers publishers who've enabled your tier.
+          </p>
         </div>
       </section>
 
-      {/* ── Contact Form ── */}
-      <section id="contact" className="py-20 border-t border-soft-white/10">
-        <div className="container mx-auto px-4 lg:px-8 max-w-2xl">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-12">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">
-              Get Started
-            </motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl font-bold text-soft-white tracking-tight">
-              Request Enterprise Access
-            </motion.h2>
-          </motion.div>
+      {/* ══ SANDBOX CTA ══ */}
+      <section id="sandbox" className="py-20 border-t border-soft-white/10 bg-navy-darker">
+        <div className="container mx-auto px-4 lg:px-8 max-w-3xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">Sandbox</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight mb-3">
+            Try it now — no account required
+          </h2>
+          <p className="text-soft-white/50 text-sm mb-8 max-w-xl mx-auto">
+            Get a free sandbox token in 30 seconds. Browse the full catalog, preview content, and evaluate the API before committing.
+          </p>
 
-          {submitted ? (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16"
+          <div className="bg-soft-white/[0.03] border border-soft-white/10 rounded-xl p-5 text-left relative">
+            <pre className="text-xs text-soft-white/80 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed">
+              {SANDBOX_CURL}
+            </pre>
+          </div>
+
+          <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
+            <Button
+              onClick={handleCopy}
+              variant="secondary"
+              className="gap-2 bg-soft-white/10 border-soft-white/10 text-soft-white hover:bg-soft-white/20"
             >
-              <div className="w-16 h-16 rounded-full bg-oxford/20 flex items-center justify-center mx-auto mb-4">
-                <ArrowRight size={28} className="text-oxford" />
-              </div>
-              <h3 className="text-xl font-semibold text-soft-white mb-2">Thanks! We'll be in touch within 24 hours.</h3>
-              <p className="text-sm text-soft-white/50">
-                Or reach us directly at{" "}
-                <a href="mailto:enterprise@opedd.com" className="text-oxford hover:underline">
-                  enterprise@opedd.com
-                </a>
-              </p>
-            </motion.div>
-          ) : (
-            <motion.form
-              onSubmit={handleSubmit}
-              variants={fadeUp}
-              custom={2}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="space-y-4 bg-soft-white/5 border border-soft-white/10 rounded-2xl p-6 md:p-8"
+              <Copy size={14} />
+              Copy to clipboard
+            </Button>
+            <a
+              href="https://docs.opedd.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-oxford hover:underline font-medium inline-flex items-center gap-1"
             >
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-soft-white/70 mb-1.5 block">Organization name *</label>
-                  <Input
-                    required
-                    value={formData.org}
-                    onChange={(e) => setFormData((p) => ({ ...p, org: e.target.value }))}
-                    placeholder="Signal AI"
-                    className="bg-soft-white/5 border-soft-white/10 text-soft-white placeholder:text-soft-white/30 focus-visible:ring-oxford/30 focus-visible:border-oxford"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-soft-white/70 mb-1.5 block">Work email *</label>
-                  <Input
-                    required
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
-                    placeholder="you@company.com"
-                    className="bg-soft-white/5 border-soft-white/10 text-soft-white placeholder:text-soft-white/30 focus-visible:ring-oxford/30 focus-visible:border-oxford"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-soft-white/70 mb-1.5 block">Role / title</label>
-                <Input
-                  value={formData.role}
-                  onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value }))}
-                  placeholder="Head of Data"
-                  className="bg-soft-white/5 border-soft-white/10 text-soft-white placeholder:text-soft-white/30 focus-visible:ring-oxford/30 focus-visible:border-oxford"
-                />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-soft-white/70 mb-1.5 block">Use case</label>
-                  <Select value={formData.useCase} onValueChange={(v) => setFormData((p) => ({ ...p, useCase: v }))}>
-                    <SelectTrigger className="bg-soft-white/5 border-soft-white/10 text-soft-white [&>span]:text-soft-white/30 data-[state=open]:border-oxford focus:ring-oxford/30">
-                      <SelectValue placeholder="Select use case" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rag">RAG / Retrieval</SelectItem>
-                      <SelectItem value="training">Model Training</SelectItem>
-                      <SelectItem value="inference">Inference</SelectItem>
-                      <SelectItem value="full">Full AI</SelectItem>
-                      <SelectItem value="unsure">Not sure yet</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-soft-white/70 mb-1.5 block">Estimated publishers</label>
-                  <Select value={formData.publisherCount} onValueChange={(v) => setFormData((p) => ({ ...p, publisherCount: v }))}>
-                    <SelectTrigger className="bg-soft-white/5 border-soft-white/10 text-soft-white [&>span]:text-soft-white/30 data-[state=open]:border-oxford focus:ring-oxford/30">
-                      <SelectValue placeholder="Select range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="<50">&lt;50</SelectItem>
-                      <SelectItem value="50-200">50–200</SelectItem>
-                      <SelectItem value="200-500">200–500</SelectItem>
-                      <SelectItem value="500+">500+</SelectItem>
-                      <SelectItem value="platform-wide">Platform-wide</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-soft-white/70 mb-1.5 block">Message (optional)</label>
-                <Textarea
-                  value={formData.message}
-                  onChange={(e) => setFormData((p) => ({ ...p, message: e.target.value }))}
-                  placeholder="Tell us about your project…"
-                  rows={4}
-                  className="bg-soft-white/5 border-soft-white/10 text-soft-white placeholder:text-soft-white/30 focus-visible:ring-oxford/30 focus-visible:border-oxford"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={submitting || !formData.org || !formData.email}
-                className="w-full h-12 rounded-xl text-sm font-bold"
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Request"}
-              </Button>
-            </motion.form>
-          )}
-        </div>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer className="border-t border-soft-white/10 py-8">
-        <div className="container mx-auto px-4 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-soft-white/40">
-          <span>© 2025 Opedd · enterprise@opedd.com</span>
-          <div className="flex items-center gap-4">
-            <Link to="/privacy" className="hover:text-soft-white/60 transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-soft-white/60 transition-colors">Terms</Link>
+              Or read the full integration guide <ArrowRight size={14} />
+            </a>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* ══ WHY OPEDD vs ALTERNATIVES ══ */}
+      <section className="py-20 border-t border-soft-white/10">
+        <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">Comparison</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
+              Why Opedd vs. alternatives
+            </h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-soft-white/10">
+                  <th className="text-left py-3 px-4 text-soft-white/40 font-medium text-xs uppercase tracking-wider">Feature</th>
+                  <th className="py-3 px-4 text-oxford font-bold text-xs uppercase tracking-wider">Opedd</th>
+                  <th className="py-3 px-4 text-soft-white/50 font-medium text-xs uppercase tracking-wider">Direct deals</th>
+                  <th className="py-3 px-4 text-soft-white/50 font-medium text-xs uppercase tracking-wider">Legacy (CCC)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARISON.map((row, i) => (
+                  <tr key={i} className="border-b border-soft-white/5">
+                    <td className="py-3 px-4 text-soft-white/70 text-xs">{row.feature}</td>
+                    <td className="py-3 px-4 text-center"><CellValue val={row.opedd} /></td>
+                    <td className="py-3 px-4 text-center"><CellValue val={row.direct} /></td>
+                    <td className="py-3 px-4 text-center"><CellValue val={row.legacy} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ SOCIAL PROOF / STATS ══ */}
+      <section className="py-20 border-t border-soft-white/10">
+        <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Publishers", value: stats.publishers },
+              { label: "Articles Licensed", value: stats.articles },
+              { label: "Licenses Issued", value: stats.licenses },
+              { label: "On-chain Proofs", value: stats.proofs },
+            ].map((m) => (
+              <div
+                key={m.label}
+                className="bg-soft-white/5 border border-soft-white/10 rounded-2xl p-6 text-center"
+              >
+                <p className="text-2xl md:text-3xl font-bold text-soft-white mb-1">{m.value}</p>
+                <p className="text-xs text-soft-white/40 uppercase tracking-wider font-medium">{m.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ BOTTOM CTA ══ */}
+      <section className="py-20 border-t border-soft-white/10">
+        <div className="container mx-auto px-4 lg:px-8 max-w-3xl text-center space-y-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-soft-white tracking-tight">
+            Ready to get started?
+          </h2>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <Button
+              onClick={scrollToSandbox}
+              className="h-12 px-8 rounded-xl bg-soft-white text-navy-deep text-sm font-bold hover:bg-soft-white/90"
+            >
+              Get Sandbox Access
+              <ArrowRight size={15} />
+            </Button>
+            <a
+              href="mailto:alexandre@opedd.com?subject=Enterprise%20Licensing%20Inquiry"
+              className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-soft-white/20 text-soft-white text-sm font-semibold hover:bg-soft-white/5 transition-all bg-transparent"
+            >
+              Talk to Sales
+              <ArrowRight size={14} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }
