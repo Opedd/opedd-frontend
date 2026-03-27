@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import opeddLogoColor from "@/assets/opedd-logo.png";
@@ -56,6 +57,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 export default function LicenseSuccess() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  useDocumentTitle("License Confirmed — Opedd");
 
   const [data, setData] = useState<CheckoutData | null>(null);
   const [loading, setLoading] = useState(true);

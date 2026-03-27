@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { decodeText } from "@/lib/utils";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -71,6 +72,7 @@ function mapStatus(status: string): "settled" | "processing" | "disputed" | "rev
 }
 
 export default function Ledger() {
+  useDocumentTitle("Buyers — Opedd");
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();

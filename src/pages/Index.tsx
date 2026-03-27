@@ -1,3 +1,4 @@
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import EditorialBreakSection from "@/components/EditorialBreakSection";
@@ -10,6 +11,7 @@ import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
 
 const Index = () => {
+  useDocumentTitle("Opedd — The Stripe for Content Licensing");
   return (
     <div className="min-h-screen bg-background">
       <Header />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail } from "lucide-react";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/sheet";
 
 export default function Dashboard() {
+  useDocumentTitle("Dashboard — Opedd");
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();

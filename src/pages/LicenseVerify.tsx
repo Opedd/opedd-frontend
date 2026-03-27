@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Shield, Check, Copy, Loader2, ExternalLink, AlertTriangle, Search, Download, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ export default function LicenseVerify() {
   const { key } = useParams<{ key: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  useDocumentTitle("Verify License — Opedd");
 
   const [data, setData] = useState<LicenseData | null>(null);
   const [loading, setLoading] = useState(false);

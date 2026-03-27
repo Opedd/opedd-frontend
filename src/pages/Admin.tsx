@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -116,6 +117,7 @@ function PlanBadge({ plan }: { plan: string }) {
 // --------------- Main Component ---------------
 
 export default function Admin() {
+  useDocumentTitle("Admin — Opedd");
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<"overview" | "publishers" | "transactions" | "webhooks">("overview");

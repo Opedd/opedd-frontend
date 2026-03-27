@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { ArrowLeft, Home, LayoutDashboard, Search } from "lucide-react";
@@ -7,6 +8,7 @@ import { ArrowLeft, Home, LayoutDashboard, Search } from "lucide-react";
 const NotFound = () => {
   const location = useLocation();
   const { user } = useAuth();
+  useDocumentTitle("Page Not Found — Opedd");
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);

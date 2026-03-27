@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -28,6 +29,7 @@ const serviceStatusConfig = {
 };
 
 export default function Status() {
+  useDocumentTitle("System Status — Opedd");
   const [data, setData] = useState<StatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);

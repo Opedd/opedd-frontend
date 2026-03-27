@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -62,6 +63,7 @@ type SortKey = "title" | "revenue" | "status";
 type SortDir = "asc" | "desc";
 
 export default function Content() {
+  useDocumentTitle("Content — Opedd");
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");

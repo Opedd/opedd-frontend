@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -186,6 +187,7 @@ function ResendLicensesForm() {
 }
 
 export default function Settings() {
+  useDocumentTitle("Settings — Opedd");
   const { user, getAccessToken, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();

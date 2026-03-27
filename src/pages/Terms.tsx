@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 
 export default function Terms() {
+  useDocumentTitle("Terms of Service — Opedd");
   return (
     <div className="min-h-screen bg-[#F2F9FF]">
       <header className="bg-white border-b border-[#E8F2FB] sticky top-0 z-50">

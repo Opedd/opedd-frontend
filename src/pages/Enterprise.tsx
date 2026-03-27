@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   ArrowRight,
   Search,
@@ -117,6 +118,7 @@ function CellValue({ val }: { val: boolean | string }) {
 /* ─── Component ─── */
 
 export default function Enterprise() {
+  useDocumentTitle("Enterprise Content Licensing — Opedd");
   const { toast } = useToast();
   const [stats, setStats] = useState({
     publishers: "50+",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Shield, Loader2, ChevronDown, CheckCircle, Copy, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +79,7 @@ const INTENDED_USE_OPTIONS = [
 export default function LicensePublicCheckout() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  useDocumentTitle("License Checkout — Opedd");
 
   const [asset, setAsset] = useState<AssetRow | null>(null);
   const [loading, setLoading] = useState(true);

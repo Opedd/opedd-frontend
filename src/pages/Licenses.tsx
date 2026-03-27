@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { ShieldCheck, Loader2, Mail, ArrowRight, Copy, Check, FileText, ExternalLink, Download, Key, ChevronDown, ChevronUp, Trash2, Plus, Webhook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -272,6 +273,7 @@ interface BuyerLicense {
 }
 
 export default function Licenses() {
+  useDocumentTitle("Look Up Licenses — Opedd");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"email" | "otp" | "results">("email");

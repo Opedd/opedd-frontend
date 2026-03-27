@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ import ForgotPasswordFlow from "@/components/auth/ForgotPasswordFlow";
 type ViewMode = "login" | "forgot-password";
 
 export default function Login() {
+  useDocumentTitle("Log In — Opedd");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
    const [isLoading, setIsLoading] = useState(false);

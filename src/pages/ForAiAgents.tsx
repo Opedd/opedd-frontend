@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   ArrowRight, ExternalLink, Terminal, Search, ShoppingCart, ShieldCheck,
   Cpu, Globe, BookOpen, Webhook, Layers, Link2,
@@ -155,6 +156,7 @@ const MCP_TOOLS = [
 ];
 
 export default function ForAiAgents() {
+  useDocumentTitle("For AI Agents — Opedd");
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
       <Header />

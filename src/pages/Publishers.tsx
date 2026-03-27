@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Search, ExternalLink, FileText, Award, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ interface Publisher {
 }
 
 export default function Publishers() {
+  useDocumentTitle("Publisher Directory — Opedd");
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

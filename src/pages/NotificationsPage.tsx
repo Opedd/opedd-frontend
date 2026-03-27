@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   Bell, Loader2, AlertTriangle, CheckCheck,
   ShieldCheck, CreditCard, FileText, Info, Zap, Archive,
@@ -63,6 +64,7 @@ function relativeTime(dateStr: string): string {
 }
 
 export default function NotificationsPage() {
+  useDocumentTitle("Notifications — Opedd");
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);

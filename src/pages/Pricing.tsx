@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL } from "@/lib/constants";
 import { Check, Minus, X, Newspaper, Bot, Briefcase, Info } from "lucide-react";
@@ -24,6 +25,7 @@ import {
 type Billing = "monthly" | "annually";
 
 export default function Pricing() {
+  useDocumentTitle("Pricing — Opedd");
   const [billing, setBilling] = useState<Billing>("monthly");
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();

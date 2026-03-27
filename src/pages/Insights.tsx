@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { 
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import {
   TrendingUp, FileCheck, Sparkles, User, Loader2, BarChart3, AlertTriangle,
 } from "lucide-react";
 import { decodeText } from "@/lib/utils";
@@ -23,6 +24,7 @@ const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 
 const PIE_COLORS = ["#D1009A", "#4A26ED"];
 
 export default function Insights() {
+  useDocumentTitle("Analytics — Opedd");
   const { user, getAccessToken } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);

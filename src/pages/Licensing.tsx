@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Link } from "react-router-dom";
 import {
   FileText,
@@ -209,6 +210,7 @@ function CopyableTextarea({ value }: { value: string }) {
 // --- Main Page ---
 
 export default function Licensing() {
+  useDocumentTitle("Licensing — Opedd");
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
 

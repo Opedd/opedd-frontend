@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -97,6 +98,7 @@ interface WebhookDelivery {
 
 
 export default function Connectors() {
+  useDocumentTitle("Distribution — Opedd");
   const { user, getAccessToken } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
