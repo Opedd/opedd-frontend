@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Github, Mail } from "lucide-react";
+import { Github, Mail, Twitter, Linkedin } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const footerLinks = {
@@ -7,7 +7,6 @@ const footerLinks = {
     { label: "Features", href: "/pricing" },
     { label: "For AI Agents", href: "/for-ai-agents" },
     { label: "Pricing", href: "/pricing" },
-    { label: "For AI Agents", href: "/for-ai-agents" },
     { label: "API Docs", href: "https://docs.opedd.com", external: true },
   ],
   Publishers: [
@@ -30,6 +29,8 @@ const footerLinks = {
 };
 
 const socialLinks = [
+  { icon: Twitter, href: "https://x.com/OpeddHQ", label: "X (Twitter)" },
+  { icon: Linkedin, href: "https://www.linkedin.com/company/opedd", label: "LinkedIn" },
   { icon: Github, href: "https://github.com/Opedd", label: "GitHub" },
   { icon: Mail, href: "mailto:hello@opedd.com", label: "Email" },
 ];
