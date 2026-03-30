@@ -107,8 +107,8 @@ const PricingSection = () => {
                 <div
                   className={`inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4 ${
                     tier.popular
-                      ? "bg-oxford/10 text-oxford"
-                      : "bg-muted text-alice-gray"
+                      ? "bg-[#4A26ED]/20 text-[#A78BFA]"
+                      : "bg-white/10 text-white/60"
                   }`}
                 >
                   <tier.icon className="w-7 h-7" />
