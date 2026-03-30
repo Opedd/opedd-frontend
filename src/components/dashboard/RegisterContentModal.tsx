@@ -2191,14 +2191,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </TabsList>
 
             <TabsContent value="widget" className="mt-4">
-              <div className="bg-slate-900 rounded-xl p-4 relative group">
-                <code className="text-xs text-emerald-400 font-mono break-all leading-relaxed">
+              <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl p-4 relative group">
+                <code className="text-xs text-[#334155] font-mono break-all leading-relaxed">
                   {widgetCode}
                 </code>
                 <Button
                   size="sm"
                   onClick={() => handleCopy(widgetCode, "widget")}
-                  className="absolute top-2 right-2 h-8 px-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-medium"
+                  className="absolute top-2 right-2 h-8 px-3 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-lg text-xs font-medium"
                 >
                   {copiedWidget ? (
                     <>

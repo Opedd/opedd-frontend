@@ -281,17 +281,17 @@ export default function ForAiAgents() {
           </motion.div>
 
           <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <div className="bg-[#0D0D2B] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-              <div className="flex items-center gap-2 px-5 py-3 border-b border-white/5">
+            <div className="bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-2xl">
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-[#E2E8F0]">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                  <div className="w-3 h-3 rounded-full bg-red-400/60" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
+                  <div className="w-3 h-3 rounded-full bg-green-400/60" />
                 </div>
-                <span className="text-white/30 text-xs font-mono ml-3">agent.ts</span>
+                <span className="text-slate-400 text-xs font-mono ml-3">agent.ts</span>
               </div>
               <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                <code className="text-white/80 font-mono whitespace-pre">{AGENT_CODE}</code>
+                <code className="text-[#334155] font-mono whitespace-pre">{AGENT_CODE}</code>
               </pre>
             </div>
           </motion.div>
@@ -330,17 +330,17 @@ export default function ForAiAgents() {
             </motion.div>
 
             <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <div className="bg-[#0D0D2B] rounded-2xl border border-[#1E1E3A] overflow-hidden shadow-lg">
-                <div className="flex items-center gap-2 px-5 py-3 border-b border-white/5">
+              <div className="bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-lg">
+                <div className="flex items-center gap-2 px-5 py-3 border-b border-[#E2E8F0]">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                    <div className="w-3 h-3 rounded-full bg-red-400/60" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
+                    <div className="w-3 h-3 rounded-full bg-green-400/60" />
                   </div>
-                  <span className="text-white/30 text-xs font-mono ml-3">publisher-api.ts</span>
+                  <span className="text-slate-400 text-xs font-mono ml-3">publisher-api.ts</span>
                 </div>
                 <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                  <code className="text-white/80 font-mono whitespace-pre">{PUBLISHER_API_CODE}</code>
+                  <code className="text-[#334155] font-mono whitespace-pre">{PUBLISHER_API_CODE}</code>
                 </pre>
               </div>
             </motion.div>
@@ -380,17 +380,17 @@ export default function ForAiAgents() {
             </motion.div>
 
             <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <div className="bg-[#0D0D2B] rounded-2xl border border-[#1E1E3A] overflow-hidden shadow-lg">
-                <div className="flex items-center gap-2 px-5 py-3 border-b border-white/5">
+              <div className="bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-lg">
+                <div className="flex items-center gap-2 px-5 py-3 border-b border-[#E2E8F0]">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                    <div className="w-3 h-3 rounded-full bg-red-400/60" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
+                    <div className="w-3 h-3 rounded-full bg-green-400/60" />
                   </div>
-                  <span className="text-white/30 text-xs font-mono ml-3">claude_desktop_config.json</span>
+                  <span className="text-slate-400 text-xs font-mono ml-3">claude_desktop_config.json</span>
                 </div>
                 <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                  <code className="text-white/80 font-mono whitespace-pre">{MCP_CONFIG}</code>
+                  <code className="text-[#334155] font-mono whitespace-pre">{MCP_CONFIG}</code>
                 </pre>
               </div>
             </motion.div>

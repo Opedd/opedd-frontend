@@ -66,12 +66,12 @@ function CodeBlock({ code }: CodeBlockProps) {
   };
   return (
     <div className="relative">
-      <pre className="bg-gray-900 text-green-400 font-mono text-sm rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+      <pre className="bg-[#F1F5F9] border border-[#E2E8F0] text-[#334155] font-mono text-sm rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
         {code}
       </pre>
       <button
         onClick={handleCopy}
-        className="absolute top-2 right-2 inline-flex items-center gap-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded px-2 py-1 transition-colors"
+        className="absolute top-2 right-2 inline-flex items-center gap-1 text-xs bg-slate-200 hover:bg-slate-300 text-slate-600 rounded px-2 py-1 transition-colors"
       >
         {copied ? <Check size={11} /> : <Copy size={11} />}
         {copied ? "Copied" : "Copy"}
@@ -520,8 +520,8 @@ export default function Connectors() {
 
                 <div>
                   <p className="text-xs font-medium text-slate-500 mb-2">robots.txt snippet</p>
-                  <div className="bg-slate-900 rounded-lg p-4 overflow-x-auto">
-                    <pre className="text-sm font-mono text-green-400 whitespace-pre leading-relaxed">{`User-agent: GPTBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /`}</pre>
+                  <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-4 overflow-x-auto">
+                    <pre className="text-sm font-mono text-[#334155] whitespace-pre leading-relaxed">{`User-agent: GPTBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /`}</pre>
                   </div>
                 </div>
 

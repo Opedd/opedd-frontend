@@ -91,8 +91,8 @@ const PricingSection = () => {
               viewport={{ once: true }}
               className={`relative rounded-2xl p-8 ${
                 tier.popular
-                  ? "bg-card border-2 border-oxford shadow-[0_0_40px_hsl(var(--oxford-blue)/0.15)]"
-                  : "bg-card/80 border border-soft-white/10"
+                  ? "bg-white/5 border-2 border-[#4A26ED] shadow-[0_0_40px_rgba(74,38,237,0.15)]"
+                  : "bg-white/5 border border-white/20"
               }`}
             >
               {tier.popular && (
@@ -165,7 +165,7 @@ const PricingSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="bg-card rounded-2xl border border-soft-white/10 overflow-hidden"
+          className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden"
         >
           <div className="p-6 border-b border-soft-white/10">
             <h3 className="text-2xl font-bold text-soft-white">
@@ -175,7 +175,7 @@ const PricingSection = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-soft-white/10 bg-muted/30">
+                <tr className="border-b border-white/10 bg-white/5">
                   <th className="text-left p-4 font-semibold text-soft-white">
                     Feature
                   </th>
@@ -205,7 +205,7 @@ const PricingSection = () => {
                 ].map((row, index) => (
                   <tr
                     key={row.feature}
-                    className={index % 2 === 0 ? "bg-background" : "bg-muted/20"}
+                    className={index % 2 === 0 ? "bg-transparent" : "bg-white/5"}
                   >
                     <td className="p-4 text-soft-white font-medium">
                       {row.feature}
