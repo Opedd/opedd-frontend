@@ -69,8 +69,54 @@ export default function Insights() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Insights">
-        <div className="flex-1 flex items-center justify-center py-20"><Loader2 size={40} className="animate-spin text-[#4A26ED]" /></div>
+      <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
+        <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
+          {/* Metric card skeletons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[0, 1].map(i => (
+              <div key={i} className="bg-white rounded-xl border border-[#E5E7EB] p-6 min-h-[120px] shadow-sm">
+                <div className="w-5 h-5 bg-[#E5E7EB] rounded animate-pulse mb-3" />
+                <div className="w-24 h-3 bg-[#E5E7EB] rounded animate-pulse mb-2" />
+                <div className="w-32 h-7 bg-[#E5E7EB] rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+          {/* Chart skeleton */}
+          <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6 min-h-[380px]">
+            <div className="w-40 h-5 bg-[#E5E7EB] rounded animate-pulse mb-2" />
+            <div className="w-48 h-3 bg-[#E5E7EB] rounded animate-pulse mb-6" />
+            <div className="w-full h-[300px] bg-[#F3F4F6] rounded-lg animate-pulse" />
+          </div>
+          {/* Bottom row skeletons */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden min-h-[280px]">
+              <div className="p-5 border-b border-[#E5E7EB]">
+                <div className="w-28 h-5 bg-[#E5E7EB] rounded animate-pulse mb-1" />
+                <div className="w-20 h-3 bg-[#E5E7EB] rounded animate-pulse" />
+              </div>
+              <div className="divide-y divide-[#F3F4F6]">
+                {[0, 1, 2, 3, 4].map(i => (
+                  <div key={i} className="flex items-center gap-4 px-5 py-3">
+                    <div className="flex-1 h-4 bg-[#F3F4F6] rounded animate-pulse" style={{ maxWidth: `${60 + (i % 3) * 10}%` }} />
+                    <div className="w-12 h-4 bg-[#F3F4F6] rounded animate-pulse" />
+                    <div className="w-16 h-4 bg-[#F3F4F6] rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6 min-h-[280px]">
+              <div className="w-28 h-5 bg-[#E5E7EB] rounded animate-pulse mb-1" />
+              <div className="w-36 h-3 bg-[#E5E7EB] rounded animate-pulse mb-6" />
+              <div className="flex items-center justify-center gap-6">
+                <div className="w-[160px] h-[160px] bg-[#F3F4F6] rounded-full animate-pulse" />
+                <div className="space-y-3">
+                  <div className="w-24 h-4 bg-[#F3F4F6] rounded animate-pulse" />
+                  <div className="w-20 h-4 bg-[#F3F4F6] rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </DashboardLayout>
     );
   }
@@ -103,12 +149,12 @@ export default function Insights() {
         ) : !fetchError && (
           <>
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
                 <TrendingUp size={18} className="text-[#4A26ED] mb-3" />
                 <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
                 <p className="text-2xl font-bold text-[#111827] mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
               </div>
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
                 <FileCheck size={18} className="text-[#4A26ED] mb-3" />
                 <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Transactions</p>
                 <p className="text-2xl font-bold text-[#111827] mt-1">{totalTransactions}</p>
