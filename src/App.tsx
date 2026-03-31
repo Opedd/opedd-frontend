@@ -37,6 +37,8 @@ const WordPressGuide = lazy(() => import("./pages/guides/WordPressGuide"));
 const GhostGuide = lazy(() => import("./pages/guides/GhostGuide"));
 const SubstackGuide = lazy(() => import("./pages/guides/SubstackGuide"));
 const BeehiivGuide = lazy(() => import("./pages/guides/BeehiivGuide"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 
 // Lazy-loaded: buyer-facing public pages
 const LicensePublicCheckout = lazy(() => import("./pages/LicensePublicCheckout"));
@@ -118,6 +120,8 @@ const App = () => (
                 <Route path="/guides/ghost" element={<GhostGuide />} />
                 <Route path="/guides/substack" element={<SubstackGuide />} />
                 <Route path="/guides/beehiiv" element={<BeehiivGuide />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

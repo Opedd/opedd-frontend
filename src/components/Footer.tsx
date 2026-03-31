@@ -17,6 +17,7 @@ const footerLinks = {
     { label: "Status", href: "/status" },
   ],
   Resources: [
+    { label: "Blog", href: "/blog" },
     { label: "Get help", href: "mailto:support@opedd.com" },
     { label: "GitHub", href: "https://github.com/Opedd", external: true },
     { label: "npm", href: "https://www.npmjs.com/package/opedd-mcp", external: true },
