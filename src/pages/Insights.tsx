@@ -154,7 +154,7 @@ export default function Insights() {
                 <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
                 <p className="text-2xl font-bold text-[#111827] mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
               </div>
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
                 <FileCheck size={18} className="text-[#4A26ED] mb-3" />
                 <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Transactions</p>
                 <p className="text-2xl font-bold text-[#111827] mt-1">{totalTransactions}</p>
