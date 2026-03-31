@@ -1874,7 +1874,7 @@ export default function Settings() {
                               <div className="flex items-center gap-3">
                                 <span className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${planColor}`}>{planLabel}</span>
                                 <span className="text-sm text-[#6B7280]">
-                                  {plan === "enterprise" ? "Unlimited articles · 5% fee" : plan === "pro" ? "Unlimited articles · 8% fee" : "500 articles · 15% fee"}
+                                  {publisherPlan === "enterprise" ? "Unlimited articles · 5% fee" : publisherPlan === "pro" ? "Unlimited articles · 8% fee" : "500 articles · 15% fee"}
                                 </span>
                               </div>
                               {plan !== "enterprise" && (
