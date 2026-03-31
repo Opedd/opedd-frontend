@@ -68,6 +68,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const location = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [bellOpen, setBellOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [publisherPlan, setPublisherPlan] = useState<PlanType | null>(
