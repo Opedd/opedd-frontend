@@ -159,9 +159,10 @@ export default function Dashboard() {
     }
   }, [user, getAccessToken]);
 
-  useEffect(() => { checkPublications(); }, [checkPublications]);
-  useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
-  useEffect(() => { checkReferral(); }, [checkReferral]);
+  // Fetch all dashboard data in parallel (not sequentially)
+  useEffect(() => {
+    Promise.all([checkPublications(), fetchMetrics(), checkReferral()]);
+  }, [checkPublications, fetchMetrics, checkReferral]);
 
   // Fetch admin stats
   const fetchAdminStats = useCallback(async () => {

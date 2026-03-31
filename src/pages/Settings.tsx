@@ -410,16 +410,31 @@ export default function Settings() {
     }
   }, [apiHeaders]);
 
-  const fetchTeam = useCallback(async () => {
+  const fetchTeam = useCallback(async (retry = true) => {
     setIsLoadingTeam(true);
     setTeamError(false);
     try {
-      const headers = await apiHeaders();
+      let headers;
+      try {
+        headers = await apiHeaders();
+      } catch {
+        // Token refresh failed — retry once after a brief delay
+        if (retry) {
+          await new Promise(r => setTimeout(r, 1000));
+          return fetchTeam(false);
+        }
+        throw new Error("Session expired — please refresh the page");
+      }
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "POST",
         headers,
         body: JSON.stringify({ action: "list_team" }),
       });
+      if (!res.ok && res.status === 401 && retry) {
+        // Auth expired mid-request — retry once
+        await new Promise(r => setTimeout(r, 500));
+        return fetchTeam(false);
+      }
       const result = await res.json();
       if (result.success && result.data) {
         setTeamMembers(result.data.members || []);
@@ -436,7 +451,6 @@ export default function Settings() {
       setTeamError(true);
     } finally {
       setIsLoadingTeam(false);
-      // Always mark as loaded to prevent infinite retry loop
       setTeamLoaded(true);
     }
   }, [apiHeaders]);
@@ -889,6 +903,7 @@ export default function Settings() {
                     { value: "ai-licensing", label: "AI Licensing" },
                     { value: "team", label: "Team" },
                     { value: "api-keys", label: "API Keys" },
+                    { value: "billing", label: "Billing" },
                     { value: "content", label: "Content" },
                     ...(isAdmin ? [{ value: "admin", label: "Admin" }] : []),
                   ].map((tab) => (
@@ -1839,6 +1854,59 @@ export default function Settings() {
                         >
                           {isSavingTaxonomy ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Taxonomy"}
                         </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </TabsContent>
+
+                {/* TAB: Billing */}
+                <TabsContent value="billing" className="mt-6" forceMount={activeTab === "billing" ? true : undefined}>
+                  {activeTab === "billing" && (
+                    <motion.div key="billing" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                      {/* Current Plan */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <h2 className="font-bold text-[#040042] mb-4">Current Plan</h2>
+                        {(() => {
+                          const planLabel = plan === "enterprise" ? "Enterprise" : plan === "pro" ? "Pro" : "Free";
+                          const planColor = plan === "enterprise" ? "bg-amber-100 text-amber-800" : plan === "pro" ? "bg-[#EEF2FF] text-[#4A26ED]" : "bg-[#F3F4F6] text-[#6B7280]";
+                          return (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${planColor}`}>{planLabel}</span>
+                                <span className="text-sm text-[#6B7280]">
+                                  {plan === "enterprise" ? "Unlimited articles · 5% fee" : plan === "pro" ? "Unlimited articles · 8% fee" : "500 articles · 15% fee"}
+                                </span>
+                              </div>
+                              {plan !== "enterprise" && (
+                                <button
+                                  onClick={() => handleUpgrade(plan === "free" ? "pro" : "enterprise")}
+                                  disabled={isUpgrading !== null}
+                                  className="text-sm font-medium text-white bg-[#4A26ED] hover:bg-[#3B1ED1] px-4 py-2 rounded-lg disabled:opacity-50"
+                                >
+                                  {isUpgrading ? "Processing..." : `Upgrade to ${plan === "free" ? "Pro" : "Enterprise"}`}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Stripe Connect */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <h2 className="font-bold text-[#040042] mb-2">Stripe Payouts</h2>
+                        <p className="text-sm text-[#6B7280] mb-4">Connect your Stripe account to receive licensing revenue directly.</p>
+                        {stripeStatus === "connected" ? (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-emerald-600 font-medium">✓ Stripe Connected</span>
+                            <button onClick={handleBillingPortal} disabled={isBillingPortalLoading} className="text-sm text-[#4A26ED] hover:underline font-medium disabled:opacity-50">
+                              {isBillingPortalLoading ? "Opening..." : "Manage in Stripe →"}
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => postAction("connect_stripe").then((r: any) => r?.data?.url && window.open(r.data.url, "_blank"))} className="text-sm font-medium text-white bg-[#4A26ED] hover:bg-[#3B1ED1] px-4 py-2 rounded-lg">
+                            Connect Stripe
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   )}
