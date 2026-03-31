@@ -84,7 +84,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const fetchNotifications = useCallback(async () => {
     try {
       const token = await getAccessToken();
-      if (!token) return;
+      if (!token) { setNotificationsLoading(false); return; }
       const res = await fetch(`${EXT_SUPABASE_URL}/get-notifications?limit=10`, {
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
@@ -95,6 +95,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
       }
     } catch (err) {
       console.warn("[DashboardLayout] Notifications fetch failed:", err);
+    } finally {
+      setNotificationsLoading(false);
     }
   }, [getAccessToken]);
 
