@@ -11,6 +11,10 @@
   <url><loc>https://opedd.com/guides/substack</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://opedd.com/guides/beehiiv</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://opedd.com/verify</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://opedd.com/blog</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://opedd.com/blog/how-much-is-your-newsletter-worth-to-ai</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://opedd.com/blog/ai-companies-licensing-newsletter-content</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://opedd.com/blog/setup-ai-content-licensing-5-minutes</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://opedd.com/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://opedd.com/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>

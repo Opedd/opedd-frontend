@@ -120,6 +120,8 @@ const App = () => (
                 <Route path="/guides/ghost" element={<GhostGuide />} />
                 <Route path="/guides/substack" element={<SubstackGuide />} />
                 <Route path="/guides/beehiiv" element={<BeehiivGuide />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
