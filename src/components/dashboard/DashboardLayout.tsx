@@ -68,6 +68,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const location = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [bellOpen, setBellOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [publisherPlan, setPublisherPlan] = useState<PlanType | null>(
@@ -83,7 +84,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const fetchNotifications = useCallback(async () => {
     try {
       const token = await getAccessToken();
-      if (!token) return;
+      if (!token) { setNotificationsLoading(false); return; }
       const res = await fetch(`${EXT_SUPABASE_URL}/get-notifications?limit=10`, {
         headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
@@ -94,6 +95,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
       }
     } catch (err) {
       console.warn("[DashboardLayout] Notifications fetch failed:", err);
+    } finally {
+      setNotificationsLoading(false);
     }
   }, [getAccessToken]);
 
@@ -321,8 +324,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             <Popover open={bellOpen} onOpenChange={setBellOpen}>
               <PopoverTrigger asChild>
                 <button className="relative p-2 rounded-lg hover:bg-[#F3F4F6] transition-colors">
-                  <Bell size={16} className="text-[#6B7280]" />
-                  {unreadCount > 0 && (
+                  <Bell size={16} className={cn("text-[#6B7280] transition-opacity", notificationsLoading && "animate-pulse opacity-40")} />
+                  {!notificationsLoading && unreadCount > 0 && (
                     <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444]" />
                   )}
                 </button>

@@ -262,7 +262,7 @@ export default function Dashboard() {
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Licensed Works</p>
             {isLoading ? (
               <div className="h-8 w-16 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
@@ -270,7 +270,7 @@ export default function Dashboard() {
               <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
             <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
             {isLoading ? (
               <div className="h-8 w-20 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
