@@ -140,3 +140,66 @@ html {
     background-size: 40px 40px;
   }
 }
+
+/* Blog prose styles */
+.prose-blog {
+  @apply text-[#374151] leading-[1.8] text-base;
+}
+.prose-blog h2 {
+  @apply text-2xl font-bold text-[#111827] mt-10 mb-4;
+}
+.prose-blog h3 {
+  @apply text-xl font-semibold text-[#111827] mt-8 mb-3;
+}
+.prose-blog p {
+  @apply mb-5;
+}
+.prose-blog a {
+  @apply text-[#4A26ED] underline underline-offset-2 hover:text-[#3B1ED1] transition-colors;
+}
+.prose-blog ul,
+.prose-blog ol {
+  @apply mb-5 pl-6;
+}
+.prose-blog ul {
+  @apply list-disc;
+}
+.prose-blog ol {
+  @apply list-decimal;
+}
+.prose-blog li {
+  @apply mb-2;
+}
+.prose-blog strong {
+  @apply font-semibold text-[#111827];
+}
+.prose-blog blockquote {
+  @apply border-l-4 border-[#4A26ED] pl-5 py-1 my-6 italic text-[#6B7280] bg-[#F9FAFB] rounded-r-lg;
+}
+.prose-blog table {
+  @apply w-full mb-6 border-collapse rounded-lg overflow-hidden;
+}
+.prose-blog thead {
+  @apply bg-[#F3F4F6];
+}
+.prose-blog th {
+  @apply text-left text-sm font-semibold text-[#111827] px-4 py-3 border border-[#E5E7EB];
+}
+.prose-blog td {
+  @apply text-sm px-4 py-3 border border-[#E5E7EB];
+}
+.prose-blog tbody tr:nth-child(even) {
+  @apply bg-[#F9FAFB];
+}
+.prose-blog code {
+  @apply bg-[#F1F5F9] border border-[#E2E8F0] text-[#334155] font-mono text-sm px-1.5 py-0.5 rounded;
+}
+.prose-blog pre {
+  @apply bg-[#F1F5F9] border border-[#E2E8F0] text-[#334155] font-mono text-sm p-4 rounded-lg overflow-x-auto mb-5;
+}
+.prose-blog pre code {
+  @apply bg-transparent border-0 p-0;
+}
+.prose-blog em {
+  @apply italic;
+}
