@@ -1895,7 +1895,7 @@ export default function Settings() {
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
                         <h2 className="font-bold text-[#040042] mb-2">Stripe Payouts</h2>
                         <p className="text-sm text-[#6B7280] mb-4">Connect your Stripe account to receive licensing revenue directly.</p>
-                        {stripeStatus === "connected" ? (
+                        {stripeStatus?.connected ? (
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-emerald-600 font-medium">✓ Stripe Connected</span>
                             <button onClick={handleBillingPortal} disabled={isBillingPortalLoading} className="text-sm text-[#4A26ED] hover:underline font-medium disabled:opacity-50">
