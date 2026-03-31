@@ -37,6 +37,8 @@ const WordPressGuide = lazy(() => import("./pages/guides/WordPressGuide"));
 const GhostGuide = lazy(() => import("./pages/guides/GhostGuide"));
 const SubstackGuide = lazy(() => import("./pages/guides/SubstackGuide"));
 const BeehiivGuide = lazy(() => import("./pages/guides/BeehiivGuide"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 
 // Lazy-loaded: buyer-facing public pages
 const LicensePublicCheckout = lazy(() => import("./pages/LicensePublicCheckout"));
