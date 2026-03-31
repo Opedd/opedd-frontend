@@ -1877,13 +1877,13 @@ export default function Settings() {
                                   {publisherPlan === "enterprise" ? "Unlimited articles · 5% fee" : publisherPlan === "pro" ? "Unlimited articles · 8% fee" : "500 articles · 15% fee"}
                                 </span>
                               </div>
-                              {plan !== "enterprise" && (
+                              {publisherPlan !== "enterprise" && (
                                 <button
-                                  onClick={() => handleUpgrade(plan === "free" ? "pro" : "enterprise")}
+                                  onClick={() => handleUpgrade(publisherPlan === "free" ? "pro" : "enterprise")}
                                   disabled={isUpgrading !== null}
                                   className="text-sm font-medium text-white bg-[#4A26ED] hover:bg-[#3B1ED1] px-4 py-2 rounded-lg disabled:opacity-50"
                                 >
-                                  {isUpgrading ? "Processing..." : `Upgrade to ${plan === "free" ? "Pro" : "Enterprise"}`}
+                                  {isUpgrading ? "Processing..." : `Upgrade to ${publisherPlan === "free" ? "Pro" : "Enterprise"}`}
                                 </button>
                               )}
                             </div>
