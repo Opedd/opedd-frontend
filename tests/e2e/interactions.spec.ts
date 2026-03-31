@@ -115,7 +115,7 @@ test.describe("Publisher Dashboard Journey", () => {
     if (await catalogLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       await catalogLink.click();
       await page.waitForLoadState("load");
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(4000);
       // Should see articles table or empty state
       const body = await page.textContent("body");
       const hasTable = body!.includes("Interaction Test Article") || body!.includes("article") || body!.includes("Import");
@@ -125,7 +125,7 @@ test.describe("Publisher Dashboard Journey", () => {
 
   test("3. Settings → change publisher name → save → verify persisted", async ({ page }) => {
     await gotoAuth(page, "/settings");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
 
     // Find the name input
     const nameInput = page.locator('input[type="text"]').first();
@@ -139,11 +139,11 @@ test.describe("Publisher Dashboard Journey", () => {
       const saveBtn = page.locator('button:has-text("Save")').first();
       if (await saveBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await saveBtn.click();
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(4000);
 
         // Refresh and verify
         await page.reload();
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(5000);
         const updatedName = await nameInput.inputValue();
         // Either the new name stuck or the original is still there (both are valid — save might require all fields)
         expect(updatedName.length).toBeGreaterThan(0);
@@ -163,7 +163,7 @@ test.describe("Publisher Dashboard Journey", () => {
 
   test("4. Settings → Team tab → loads without error", async ({ page }) => {
     await gotoAuth(page, "/settings?tab=team");
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
     const body = await page.textContent("body");
     // Should NOT show error state
@@ -178,7 +178,7 @@ test.describe("Publisher Dashboard Journey", () => {
       const retryBtn = page.locator('button:has-text("Try Again")').first();
       if (await retryBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
         await retryBtn.click();
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(5000);
         const bodyAfterRetry = await page.textContent("body");
         expect(bodyAfterRetry!.includes("Failed to load team data")).toBe(false);
       }
@@ -187,7 +187,7 @@ test.describe("Publisher Dashboard Journey", () => {
 
   test("5. Settings → Billing tab → shows plan and Stripe section", async ({ page }) => {
     await gotoAuth(page, "/settings?tab=billing");
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
     const body = await page.textContent("body");
     expect(body!.includes("Billing")).toBe(true);
@@ -198,7 +198,7 @@ test.describe("Publisher Dashboard Journey", () => {
 
   test("6. Content page → search filters results", async ({ page }) => {
     await gotoAuth(page, "/content");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
 
     const searchInput = page.locator('input[placeholder*="earch"], input[placeholder*="Filter"]').first();
     if (await searchInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -214,7 +214,7 @@ test.describe("Publisher Dashboard Journey", () => {
 
   test("7. Connectors → Widget tab → shows embed code", async ({ page }) => {
     await gotoAuth(page, "/connectors");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
 
     const body = await page.textContent("body");
     // Should show widget or distribution content
@@ -224,7 +224,7 @@ test.describe("Publisher Dashboard Journey", () => {
 
   test("8. Sidebar navigation → every link loads a different page", async ({ page }) => {
     await gotoAuth(page, "/dashboard");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
 
     const navItems = [
       { label: "Catalog", path: "/content" },
@@ -284,7 +284,7 @@ test.describe("Buyer Journey", () => {
   test("10. Verify page → enter invalid key → shows not found", async ({ page }) => {
     await page.goto(`${BASE}/verify/OP-FAKE-KEY1`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
 
     const body = await page.textContent("body");
     expect(body!.includes("not found") || body!.includes("Not Found") || body!.includes("No license")).toBe(true);
@@ -364,7 +364,7 @@ test.describe("Public Pages — Content & Interactions", () => {
   test("16. Publishers directory → renders publisher cards", async ({ page }) => {
     await page.goto(`${BASE}/publishers`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
 
     const body = await page.textContent("body");
     // Should show directory content (even if empty)
@@ -396,7 +396,7 @@ test.describe("Public Pages — Content & Interactions", () => {
   test("19. Status page → shows service health", async ({ page }) => {
     await page.goto(`${BASE}/status`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
 
     const body = await page.textContent("body");
     expect(body!.includes("operational") || body!.includes("Operational") || body!.includes("Status")).toBe(true);

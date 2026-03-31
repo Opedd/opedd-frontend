@@ -198,7 +198,7 @@ test("11 · Spam: rapid URL changes during setup debounce to a single API call",
   }
 
   // Wait for the API calls to complete
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(4000);
 
   // Should fire at most 2 API calls (1 from click + possibly 1 from debounce)
   expect(

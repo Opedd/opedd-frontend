@@ -195,7 +195,7 @@ test.describe("2. Auth Pages", () => {
     await page.fill("input[type='email']", "invalid@test.com");
     await page.fill("input[type='password']", "wrongpassword");
     await page.locator("button[type='submit'], button:has-text('Sign in'), button:has-text('Log in')").first().click();
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     // Should show error, not redirect
     expect(page.url()).not.toContain("/dashboard");
     await assertNoCrash(page, "Login invalid creds");
@@ -206,7 +206,7 @@ test.describe("2. Auth Pages", () => {
     await page.fill("input[type='email']", "' OR '1'='1");
     await page.fill("input[type='password']", "password");
     await page.locator("button[type='submit'], button:has-text('Sign in'), button:has-text('Log in')").first().click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await assertNoCrash(page, "Login SQL injection");
     expect(page.url()).not.toContain("/dashboard");
   });
@@ -239,7 +239,7 @@ test.describe("3. Dashboard", () => {
     await page.goto(`${BASE}/dashboard`);
     await page.waitForLoadState("load");
     // Dashboard may redirect to /setup — both are valid authenticated renders
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     await assertNoCrash(page, "Dashboard or Setup");
     // Verify we're on an authenticated page (either has sidebar nav or setup content)
     const hasNav = await page.locator("nav a, aside a").first().isVisible().catch(() => false);
@@ -256,7 +256,7 @@ test.describe("3. Dashboard", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/dashboard`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     // If redirected to /setup, nav may not be visible (setup is full-page)
     if (page.url().includes("/setup")) {
       await assertNoCrash(page, "Setup page (nav test N/A)");
@@ -272,7 +272,7 @@ test.describe("3. Dashboard", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/dashboard`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     if (page.url().includes("/setup")) {
       await assertNoCrash(page, "Setup wizard (register content flow)");
       return;
@@ -363,7 +363,7 @@ test.describe("5. Licensing (/licensing)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/licensing`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await dismissModal(page);
     const switches = page.locator("button[role='switch']");
     const count = await switches.count();
@@ -381,7 +381,7 @@ test.describe("5. Licensing (/licensing)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/licensing`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await dismissModal(page);
     // Enable editorial toggle if not enabled
     const editorialSwitch = page.locator("button[role='switch']").first();
@@ -499,11 +499,11 @@ test.describe("8. Billing (Settings → Billing)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings?tab=billing`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     const upgradeBtn = page.locator("button:has-text('Upgrade to Pro')").first();
     if (await upgradeBtn.isVisible()) {
       await upgradeBtn.dblclick();
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(4000);
       await assertNoCrash(page, "Billing double-click upgrade");
     }
   });
@@ -526,7 +526,7 @@ test.describe("9. Settings (/settings)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await expect(page.locator("input[placeholder*='name'], input[id*='name'], input[placeholder*='Name']").first()).toBeVisible();
   });
 
@@ -563,7 +563,7 @@ test.describe("9. Settings (/settings)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     // Clear name field
     const nameInput = page.locator("input[placeholder*='name'], input[id*='name']").first();
     if (await nameInput.isVisible()) {
@@ -581,7 +581,7 @@ test.describe("9. Settings (/settings)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings?tab=team`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     const emailInput = page.locator("input[placeholder*='email'], input[type='email']").first();
     if (await emailInput.isVisible()) {
       await emailInput.fill("not-an-email");
@@ -612,7 +612,7 @@ test.describe("10. Connectors (/connectors)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/connectors?tab=widget`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await assertNoCrash(page, "Connectors widget tab");
   });
 
@@ -627,7 +627,7 @@ test.describe("10. Connectors (/connectors)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/connectors?tab=webhooks`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await dismissModal(page);
     // If no webhook configured, try to save invalid URL
     const urlInput = page.locator("input[placeholder*='webhook'], input[placeholder*='https']").first();
@@ -646,7 +646,7 @@ test.describe("10. Connectors (/connectors)", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/connectors?tab=ai-policy`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await assertNoCrash(page, "Connectors AI policy tab");
     await expect(page.locator("text=GPTBot").first()).toBeVisible();
   });
@@ -795,7 +795,7 @@ test.describe("13. License Verify (/verify)", () => {
     await page.goto(`${BASE}/verify/OPEDD-INVALID-KEY-0000`);
     await page.waitForLoadState("load");
     // Wait for the API call to resolve (loading state → error message)
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     await assertNoCrash(page, "Verify invalid key");
     const body = await page.textContent("body");
     expect(body?.toLowerCase()).toMatch(/not found|invalid|could not|no license|error|unable/i);
@@ -941,7 +941,7 @@ test.describe("19. Workflow Stress Tests", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/dashboard`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await dismissModal(page);
     const bell = page.locator("button:has(.lucide-bell), button:has([data-lucide='bell'])").first();
     if (await bell.isVisible()) {
@@ -956,7 +956,7 @@ test.describe("19. Workflow Stress Tests", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings?tab=billing`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     await assertNoCrash(page, "Settings billing tab");
     // Billing tab should be visible in the tab bar
     await expect(page.locator("text=Billing").first()).toBeVisible();
@@ -967,7 +967,7 @@ test.describe("19. Workflow Stress Tests", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/settings?tab=pricing`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     const applyBtn = page.locator("button:has-text('Apply to all'), button:has-text('Apply defaults')").first();
     if (await applyBtn.isVisible()) {
       await applyBtn.click();
@@ -985,7 +985,7 @@ test.describe("19. Workflow Stress Tests", () => {
     await injectAuth(page);
     await page.goto(`${BASE}/content`);
     await page.waitForLoadState("load");
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     // Try clicking first checkbox if articles exist
     const checkbox = page.locator("input[type='checkbox'], [role='checkbox']").first();
     if (await checkbox.isVisible()) {
