@@ -324,8 +324,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             <Popover open={bellOpen} onOpenChange={setBellOpen}>
               <PopoverTrigger asChild>
                 <button className="relative p-2 rounded-lg hover:bg-[#F3F4F6] transition-colors">
-                  <Bell size={16} className="text-[#6B7280]" />
-                  {unreadCount > 0 && (
+                  <Bell size={16} className={cn("text-[#6B7280] transition-opacity", notificationsLoading && "animate-pulse opacity-40")} />
+                  {!notificationsLoading && unreadCount > 0 && (
                     <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444]" />
                   )}
                 </button>
