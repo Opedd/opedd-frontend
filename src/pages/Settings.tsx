@@ -1867,8 +1867,8 @@ export default function Settings() {
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
                         <h2 className="font-bold text-[#040042] mb-4">Current Plan</h2>
                         {(() => {
-                          const planLabel = plan === "enterprise" ? "Enterprise" : plan === "pro" ? "Pro" : "Free";
-                          const planColor = plan === "enterprise" ? "bg-amber-100 text-amber-800" : plan === "pro" ? "bg-[#EEF2FF] text-[#4A26ED]" : "bg-[#F3F4F6] text-[#6B7280]";
+                          const planLabel = publisherPlan === "enterprise" ? "Enterprise" : publisherPlan === "pro" ? "Pro" : "Free";
+                          const planColor = publisherPlan === "enterprise" ? "bg-amber-100 text-amber-800" : publisherPlan === "pro" ? "bg-[#EEF2FF] text-[#4A26ED]" : "bg-[#F3F4F6] text-[#6B7280]";
                           return (
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
