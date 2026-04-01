@@ -10,7 +10,13 @@ const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
 );
 
 const BeehiivGuide = () => (
-  <GuideLayout title="Beehiiv Integration Guide" documentTitle="Beehiiv Integration Guide — Opedd">
+  <GuideLayout
+    title="Beehiiv Integration Guide"
+    documentTitle="Beehiiv Integration Guide — Opedd"
+    intro="Your newsletter reaches thousands of readers — but AI companies are also consuming it for training data. Instead of letting them scrape for free, Opedd lets you set a price and get paid every time your content is licensed. Your full archive and every future edition become revenue-generating assets."
+    prerequisites="Your Beehiiv API Key and Publication ID. In Beehiiv dashboard → Settings → Integrations → API → Create new API key. Your Publication ID is in your Beehiiv dashboard URL (starts with pub_)."
+    afterSetup="Your archive imports and a webhook is registered automatically with Beehiiv. Every new post you publish arrives on Opedd in real-time — no manual action needed. Premium newsletter content is included and marked accordingly."
+  >
     <Step n={1}>
       In Beehiiv → <strong>Settings → Integrations → API → Create new API key</strong>.
     </Step>

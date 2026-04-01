@@ -10,7 +10,13 @@ const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
 );
 
 const GhostGuide = () => (
-  <GuideLayout title="Ghost Integration Guide" documentTitle="Ghost Integration Guide — Opedd">
+  <GuideLayout
+    title="Ghost Integration Guide"
+    documentTitle="Ghost Integration Guide — Opedd"
+    intro="Your Ghost publication contains high-value content that AI companies need for training, inference, and retrieval. Opedd lets you monetize your entire archive — including members-only posts — by making it available for licensed use by AI labs and enterprises. You set the price. They pay. You get paid via Stripe."
+    prerequisites="Your Ghost Admin API Key and API URL. In Ghost Admin → Settings → Integrations → click 'Add custom integration' → name it 'Opedd'. Copy the Admin API Key (not Content API Key — the Admin key is needed to access members-only posts)."
+    afterSetup="Your full archive imports including members-only and paid posts. Opedd verifies your ownership instantly via the Admin API key. New posts sync automatically. Revenue from AI licenses is deposited directly into your Stripe Connect account."
+  >
     <Step n={1}>
       In Ghost Admin → <strong>Settings → Integrations → Add custom integration</strong>.
     </Step>
