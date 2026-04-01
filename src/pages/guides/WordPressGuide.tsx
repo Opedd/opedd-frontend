@@ -33,6 +33,12 @@ const WordPressGuide = () => (
       Enable <strong>"Auto-embed on all posts"</strong> — or use the shortcode for specific posts.
     </Step>
     <Step n={7}>
+      Your article archive imports automatically in the background via the WordPress REST API. This may take a few minutes for large sites.
+    </Step>
+    <Step n={8}>
+      <strong>Optional:</strong> For full verification, go to Opedd Dashboard → Settings → Content, and connect with your WordPress <strong>Application Password</strong> (Users → Edit → Application Passwords). This proves ownership and enables instant content sync.
+    </Step>
+    <Step n={9}>
       <strong>Done</strong> — your articles are now licensable.
     </Step>
 

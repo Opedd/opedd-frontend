@@ -15,16 +15,16 @@ const GhostGuide = () => (
       In Ghost Admin → <strong>Settings → Integrations → Add custom integration</strong>.
     </Step>
     <Step n={2}>
-      Name it <strong>"Opedd"</strong> and copy the <strong>Content API Key</strong> and <strong>API URL</strong>.
+      Name it <strong>"Opedd"</strong> and copy the <strong>Admin API Key</strong> (not Content API Key) and <strong>API URL</strong>. The Admin key is needed to import members-only and paid posts.
     </Step>
     <Step n={3}>
       In Opedd Dashboard → <strong>Setup Wizard → select "Ghost"</strong>.
     </Step>
     <Step n={4}>
-      Paste your <strong>Ghost API URL</strong> and <strong>Content API Key</strong>.
+      Paste your <strong>Ghost API URL</strong> and <strong>Admin API Key</strong>. Your publication is verified automatically.
     </Step>
     <Step n={5}>
-      Opedd <strong>auto-syncs</strong> all your posts.
+      Opedd imports your full archive in the background — including members-only posts. This may take a few minutes depending on your catalog size.
     </Step>
     <Step n={6}>
       To add the licensing widget: Ghost Admin → <strong>Settings → Code Injection → Site Footer</strong>, paste the snippet below.

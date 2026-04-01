@@ -24,13 +24,13 @@ const BeehiivGuide = () => (
       Paste your <strong>API Key</strong> and <strong>Publication ID</strong>.
     </Step>
     <Step n={5}>
-      Opedd <strong>auto-syncs</strong> your newsletters.
+      Opedd imports your full archive in the background and automatically registers a webhook — <strong>new posts arrive in real-time</strong>, no manual action needed.
     </Step>
     <Step n={6}>
       To add the widget to your external website, paste the snippet below.
     </Step>
     <Step n={7}>
-      <strong>Done</strong> — your Beehiiv newsletter is now licensable.
+      <strong>Done</strong> — your Beehiiv newsletter is now licensable. New posts are synced automatically as you publish.
     </Step>
 
     <div className="mt-8 rounded-lg bg-muted/50 border border-border p-4">

@@ -22,13 +22,16 @@ const SubstackGuide = () => (
       <strong>Upload your CSV file</strong>.
     </Step>
     <Step n={4}>
-      Opedd imports all posts with <strong>titles, URLs, dates, and descriptions</strong>.
+      Opedd imports all posts with <strong>titles, URLs, dates, and descriptions</strong>. If your CSV includes full post content (<code>body_html</code> column), article text is imported too. Import happens in the background — may take a few minutes for large archives.
     </Step>
     <Step n={5}>
-      Set your <strong>human and AI pricing</strong>.
+      Set your <strong>human and AI pricing</strong>. Opedd auto-suggests prices based on your content category.
     </Step>
     <Step n={6}>
-      <strong>Done</strong> — your archive is licensable.
+      <strong>For new posts:</strong> Forward your Substack notification emails to your Opedd inbound address (shown in Dashboard → Distribution → Email Forwarding). New posts are imported automatically when received.
+    </Step>
+    <Step n={7}>
+      <strong>Done</strong> — your archive is licensable and new posts sync via email.
     </Step>
 
     <div className="mt-8 rounded-lg bg-amber-50 border border-amber-200 p-4 flex gap-3">
