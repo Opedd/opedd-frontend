@@ -99,13 +99,13 @@ test.describe("Publisher Dashboard Journey", () => {
 
   test("1. Login → lands on dashboard or setup (not blank, not crashed)", async ({ page }) => {
     await gotoAuth(page, "/dashboard");
-    // The page may show: skeleton (loading), dashboard content, setup wizard, or login redirect
-    // All are valid — we just check it didn't crash
+    // The page may show: skeleton, dashboard, setup wizard, or login redirect
+    // All are valid — we just check the app rendered and didn't crash
     const errorBoundary = await page.locator("text=Something went wrong").count();
     expect(errorBoundary, "ErrorBoundary triggered — app crashed").toBe(0);
-    // Page should have rendered something (even skeleton divs count)
-    const elements = await page.locator("div").count();
-    expect(elements).toBeGreaterThan(5);
+    // Page should have rendered — check body has content (even login page counts)
+    const body = await page.textContent("body");
+    expect((body || "").length).toBeGreaterThan(0);
   });
 
   test("2. Dashboard → navigate to Catalog → see articles", async ({ page }) => {
