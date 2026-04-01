@@ -11,7 +11,13 @@ const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
 );
 
 const SubstackGuide = () => (
-  <GuideLayout title="Substack Integration Guide" documentTitle="Substack Integration Guide — Opedd">
+  <GuideLayout
+    title="Substack Integration Guide"
+    documentTitle="Substack Integration Guide — Opedd"
+    intro="Your Substack archive is a goldmine for AI companies who need high-quality, curated content for training and inference. By uploading your archive to Opedd, you turn every past and future edition into a licensable asset. AI labs pay you directly — separate from your subscriber revenue. It's a new revenue stream, not a replacement."
+    prerequisites="Your Substack CSV export. In Substack → Settings → Export → click 'Create new export' → download the CSV file when ready. This contains all your published posts with titles, URLs, and dates."
+    afterSetup="Your archive imports from the CSV. For ongoing delivery of new posts, set up email forwarding in your Opedd Dashboard (Distribution → Email Forwarding). Forward your Substack notification emails to your Opedd inbound address. Each new post is imported automatically when the email arrives."
+  >
     <Step n={1}>
       In Substack → <strong>Settings → Export → Download CSV archive</strong>.
     </Step>

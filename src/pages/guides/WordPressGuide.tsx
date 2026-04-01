@@ -10,7 +10,13 @@ const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
 );
 
 const WordPressGuide = () => (
-  <GuideLayout title="WordPress Integration Guide" documentTitle="WordPress Integration Guide — Opedd">
+  <GuideLayout
+    title="WordPress Integration Guide"
+    documentTitle="WordPress Integration Guide — Opedd"
+    intro="AI companies are training models on your articles — often without permission or payment. By connecting your WordPress site to Opedd, every article in your archive becomes licensable. AI labs and enterprises pay you directly for the right to use your content, while you retain full ownership and control."
+    prerequisites="Your WordPress site URL (e.g. yoursite.com). Optionally, an Application Password for instant verification — go to Users → Your Profile → Application Passwords in WordPress Admin."
+    afterSetup="Your articles import automatically in the background via the WordPress REST API — this may take a few minutes for large sites. Prices are auto-set based on your content category. New posts sync on a daily schedule. You can adjust pricing anytime in your Opedd Dashboard."
+  >
     <Step n={1}>
       Download the <strong>Opedd Widget plugin</strong> —{" "}
       <a href="/wordpress/opedd-widget.zip" className="text-[#4A26ED] hover:underline">
