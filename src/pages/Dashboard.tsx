@@ -79,7 +79,7 @@ export default function Dashboard() {
     if (!user) return;
     try {
       const { count } = await (supabase as any)
-        .from("rss_sources")
+        .from("content_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .in("sync_status", ["active", "protected"]);
