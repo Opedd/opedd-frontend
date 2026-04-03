@@ -470,7 +470,12 @@ test.describe("8. Billing (Settings → Billing)", () => {
     await page.waitForLoadState("load");
     await expect(page.locator("text=Free").first()).toBeVisible();
     await expect(page.locator("text=Pro").first()).toBeVisible();
-    await expect(page.locator("text=Enterprise").first()).toBeVisible();
+    // Enterprise may be below the fold — scroll to it or check it exists in DOM
+    const enterprise = page.locator("text=Enterprise").first();
+    if (!(await enterprise.isVisible().catch(() => false))) {
+      await enterprise.scrollIntoViewIfNeeded().catch(() => {});
+    }
+    await expect(enterprise).toBeVisible({ timeout: 5_000 });
   });
 
   test("8.3 Billing tab renders plan info", async ({ page }) => {
