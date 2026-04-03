@@ -455,7 +455,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         if (existingSource?.id) {
           // Update existing source with new token
-          await supabase.from("rss_sources" as any).update({
+          await (supabase as any).from("rss_sources").update({
             verification_token: token,
             verification_token_expires_at: tokenExpiresAt,
             sync_status: "pending",
@@ -709,7 +709,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         .maybeSingle();
 
       if (existing?.id) {
-        await supabase.from("rss_sources" as any).update({
+        await (supabase as any).from("rss_sources").update({
           verification_token: tok,
           verification_token_expires_at: tokenExpiresAt,
           sync_status: "active",
