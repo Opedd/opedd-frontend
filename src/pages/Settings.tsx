@@ -196,7 +196,7 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    const validTabs = ["pricing", "api-keys", "team", "ai-licensing", "admin"];
+    const validTabs = ["pricing", "api-keys", "team", "ai-licensing", "billing", "content", "admin"];
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const fileInputRef = useRef<HTMLInputElement>(null);

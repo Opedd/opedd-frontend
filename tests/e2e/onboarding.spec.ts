@@ -125,7 +125,7 @@ test.describe("Setup Wizard — Onboarding", () => {
 
     // Ghost-specific fields
     await expect(page.getByPlaceholder("https://yourblog.ghost.io")).toBeVisible();
-    await expect(page.getByText("Admin API Key")).toBeVisible();
+    await expect(page.getByText("Admin API Key").first()).toBeVisible();
     await expect(page.getByPlaceholder("key_id:hex_secret")).toBeVisible();
 
     // Read-only notice
@@ -163,7 +163,7 @@ test.describe("Setup Wizard — Onboarding", () => {
 
     // Informational box about Application Passwords
     await expect(
-      page.getByText("To verify you own this site")
+      page.getByText("To verify you own this site").first()
     ).toBeVisible();
   });
 
@@ -191,13 +191,13 @@ test.describe("Setup Wizard — Onboarding", () => {
     await page.locator("button", { hasText: "Substack" }).click();
 
     // Export instructions (numbered list)
-    await expect(page.getByText("Export data")).toBeVisible();
-    await expect(page.getByText("posts.csv")).toBeVisible();
+    await expect(page.getByText("Export data").first()).toBeVisible();
+    await expect(page.getByText("posts.csv").first()).toBeVisible();
 
     // The drag & drop zone should be present
     // It renders text like "Drag" or contains the drop area
     await expect(
-      page.getByText(/drag/i)
+      page.getByText(/drag/i).first()
     ).toBeVisible();
   });
 

@@ -154,9 +154,9 @@ test.describe("Settings — Tab Switching", () => {
       "active"
     );
 
-    // Pricing tab should contain price-related content
+    // Pricing tab should contain price-related content or the locked-tab gate
     const hasPricing = await page
-      .getByText(/price|per article|license type/i)
+      .getByText(/price|per article|license type|verify your publication/i)
       .first()
       .isVisible()
       .catch(() => false);
