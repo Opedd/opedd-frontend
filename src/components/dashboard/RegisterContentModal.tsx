@@ -719,7 +719,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         return { token: tok, sourceId: existing.id };
       }
 
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("rss_sources")
         .insert({
           user_id: user!.id,
