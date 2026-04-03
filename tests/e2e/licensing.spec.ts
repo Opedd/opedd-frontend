@@ -33,7 +33,7 @@ test.afterAll(async () => {
 
 async function goToLicensing(page: import("@playwright/test").Page): Promise<boolean> {
   await injectAuth(page, { email: user.email, password: user.password });
-  await page.goto("/licensing");
+  await page.goto("/licensing", { timeout: 15_000 });
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(2000);
   await dismissModal(page);

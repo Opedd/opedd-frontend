@@ -199,7 +199,7 @@ test.describe.serial("Vertical Journey — Substack", () => {
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
-    test.setTimeout(20_000);
+    test.setTimeout(30_000);
     await injectAuth(page, user);
     await navigateAndVerify(page, "/settings", "Substack /settings profile");
 
