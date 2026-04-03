@@ -131,7 +131,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       // Check for active integrations if needed
       if (checkIntegrations && initialView === "publication" && user) {
         setIntegrationsLoading(true);
-        {next}
+        supabase
           .from("rss_sources")
           .select("id")
           .eq("user_id", user.id)
@@ -388,7 +388,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
     // Free plan: max 1 content source
     if (publisherPlan === "free") {
-      const { count: otherSourceCount } = await {next}
+      const { count: otherSourceCount } = await supabase
         .from("rss_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
@@ -445,7 +445,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       let rssSourceId = "";
       try {
         // Check for existing source first (re-registration after delete)
-        const { data: existingSource } = await {next}
+        const { data: existingSource } = await supabase
           .from("rss_sources")
           .select("id")
           .eq("user_id", user.id)
@@ -464,7 +464,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           }).eq("id", existingSource.id);
           rssSourceId = existingSource.id;
         } else {
-          const { data: insertedSource } = await {next}
+          const { data: insertedSource } = await supabase
             .from("rss_sources")
             .insert({
               user_id: user.id,
@@ -701,7 +701,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     const tok = generateVerificationCode();
     const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     try {
-      const { data: existing } = await {next}
+      const { data: existing } = await supabase
         .from("rss_sources")
         .select("id")
         .eq("user_id", user!.id)
@@ -719,7 +719,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         return { token: tok, sourceId: existing.id };
       }
 
-      const { data } = await {next}
+      const { data } = await supabase
         .from("rss_sources")
         .insert({
           user_id: user!.id,
