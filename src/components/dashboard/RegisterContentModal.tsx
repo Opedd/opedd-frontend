@@ -701,7 +701,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     const tok = generateVerificationCode();
     const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     try {
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase as any)
         .from("rss_sources")
         .select("id")
         .eq("user_id", user!.id)
