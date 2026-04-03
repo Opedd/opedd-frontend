@@ -117,15 +117,15 @@ export default function Content() {
 
   const fetchSources = useCallback(async () => {
     if (!user) return;
-    const sourcesResult = await supabase
-      .from("content_sources").select("id, name, source_type").eq("user_id", user.id);
+    const sourcesResult = await (supabase as any)
+      .from("rss_sources").select("id, name, platform").eq("user_id", user.id);
     const sources = sourcesResult.data || [];
     const lookup: Record<string, string> = {};
     const platLookup: Record<string, string> = {};
-    sources.forEach((s: any) => { lookup[s.id] = s.name; platLookup[s.id] = s.source_type || ""; });
+    sources.forEach((s: any) => { lookup[s.id] = s.name; platLookup[s.id] = s.platform || ""; });
     setSourceLookup(lookup);
     setPlatformLookup(platLookup);
-    setSourceList(sources);
+    setSourceList(sources as any);
   }, [user]);
 
   const fetchAssets = useCallback(async () => {
