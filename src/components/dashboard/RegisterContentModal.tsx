@@ -132,7 +132,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       if (checkIntegrations && initialView === "publication" && user) {
         setIntegrationsLoading(true);
         supabase
-          .from("content_sources")
+          .from("rss_sources" as any)
           .select("id")
           .eq("user_id", user.id)
           .eq("sync_status", "active")
@@ -389,7 +389,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     // Free plan: max 1 content source
     if (publisherPlan === "free") {
       const { count: otherSourceCount } = await supabase
-        .from("content_sources")
+        .from("rss_sources" as any)
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .neq("url", syncFeedUrl);
@@ -446,7 +446,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       try {
         // Check for existing source first (re-registration after delete)
         const { data: existingSource } = await supabase
-          .from("content_sources")
+          .from("rss_sources" as any)
           .select("id")
           .eq("user_id", user.id)
           .eq("url", syncFeedUrl)
@@ -455,7 +455,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         if (existingSource?.id) {
           // Update existing source with new token
-          await supabase.from("content_sources").update({
+          await supabase.from("rss_sources" as any).update({
             verification_token: token,
             verification_token_expires_at: tokenExpiresAt,
             sync_status: "pending",
@@ -465,7 +465,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           rssSourceId = existingSource.id;
         } else {
           const { data: insertedSource } = await supabase
-            .from("content_sources")
+            .from("rss_sources" as any)
             .insert({
               user_id: user.id,
               name: pubName,
@@ -702,14 +702,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     try {
       const { data: existing } = await supabase
-        .from("content_sources")
+        .from("rss_sources" as any)
         .select("id")
         .eq("user_id", user!.id)
         .eq("url", params.feedUrl)
         .maybeSingle();
 
       if (existing?.id) {
-        await supabase.from("content_sources").update({
+        await supabase.from("rss_sources" as any).update({
           verification_token: tok,
           verification_token_expires_at: tokenExpiresAt,
           sync_status: "active",
@@ -720,7 +720,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       }
 
       const { data } = await supabase
-        .from("content_sources")
+        .from("rss_sources" as any)
         .insert({
           user_id: user!.id,
           name: params.pubName,

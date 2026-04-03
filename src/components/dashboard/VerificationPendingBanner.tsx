@@ -11,7 +11,7 @@ export function VerificationPendingBanner() {
     if (!user) return;
     try {
       const { count } = await supabase
-        .from("content_sources")
+        .from("rss_sources" as any)
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("sync_status", "pending");
