@@ -65,7 +65,7 @@ const TechnicalSpecsSection = () => {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="group"
               >
-                <div className="bg-navy-deep/50 border border-soft-white/10 rounded-xl p-6 hover:border-oxford/30 transition-all duration-300">
+                <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-6 hover:border-oxford/30 transition-all duration-300">
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-lg border border-oxford/30 flex items-center justify-center bg-oxford/5">
