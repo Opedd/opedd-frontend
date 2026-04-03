@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Wallet, BarChart3, Settings, LogOut, Bell,
   ExternalLink, ChevronDown, CheckCheck, DollarSign, Shield,
-  RefreshCw, Menu, X, FileText, CreditCard, Zap, BookOpen, Scale, ShieldAlert,
+  RefreshCw, Menu, X, FileText, Zap, BookOpen, Scale, ShieldAlert,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -36,7 +36,6 @@ const navItems = [
   { title: "Buyers", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/connectors", icon: Zap },
-  { title: "Billing", path: "/settings?tab=billing", icon: CreditCard },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
