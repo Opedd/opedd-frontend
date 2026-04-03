@@ -388,7 +388,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
     // Free plan: max 1 content source
     if (publisherPlan === "free") {
-      const { count: otherSourceCount } = await supabase
+      const { count: otherSourceCount } = await (supabase as any)
         .from("rss_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
