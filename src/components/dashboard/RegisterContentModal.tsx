@@ -131,7 +131,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       // Check for active integrations if needed
       if (checkIntegrations && initialView === "publication" && user) {
         setIntegrationsLoading(true);
-        supabase
+        (supabase as any)
           .from("rss_sources")
           .select("id")
           .eq("user_id", user.id)
