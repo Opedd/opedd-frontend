@@ -18,7 +18,7 @@ jobs:
   e2e:
     name: Playwright E2E Suite
     runs-on: ubuntu-latest
-    timeout-minutes: 15        # hard ceiling — never let a hung test block the queue
+    timeout-minutes: 25        # E2E suite creates fresh users per file (~120 tests, ~18min)
 
     env:
       # Passed straight through to Playwright / test fixtures
