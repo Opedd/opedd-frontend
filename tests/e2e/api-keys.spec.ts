@@ -15,14 +15,26 @@
  * Run: npx playwright test tests/e2e/api-keys.spec.ts
  */
 import { test, expect } from "@playwright/test";
+import { createTestUser, destroyTestUser, TEST_PASSWORD } from "./fixtures";
 import { injectAuth, waitForAppReady, dismissModal, assertNoCrash } from "./helpers";
+
+let user: { userId: string; email: string; password: string };
+
+test.beforeAll(async () => {
+  const created = await createTestUser();
+  user = { userId: created.userId, email: created.email, password: TEST_PASSWORD };
+});
+
+test.afterAll(async () => {
+  if (user?.userId) await destroyTestUser(user.userId);
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 async function goToApiKeysTab(page: import("@playwright/test").Page): Promise<boolean> {
-  await injectAuth(page);
+  await injectAuth(page, { email: user.email, password: user.password });
   await page.goto("/settings?tab=api-keys");
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(2000);

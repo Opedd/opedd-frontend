@@ -8,14 +8,25 @@
  * Run: npx playwright test tests/e2e/dashboard.spec.ts
  */
 import { test, expect, type Page } from "@playwright/test";
-import { ANON_KEY } from "./fixtures";
+import { createTestUser, destroyTestUser, TEST_PASSWORD, ANON_KEY } from "./fixtures";
 import { injectAuth, waitForAppReady, dismissModal, assertNoCrash } from "./helpers";
+
+let user: { userId: string; email: string; password: string };
+
+test.beforeAll(async () => {
+  const created = await createTestUser();
+  user = { userId: created.userId, email: created.email, password: TEST_PASSWORD };
+});
+
+test.afterAll(async () => {
+  if (user?.userId) await destroyTestUser(user.userId);
+});
 
 // ── Tests ───────────────────────────────────────────────────────────────────
 
 test.describe("Dashboard", () => {
   test.beforeEach(async ({ page }) => {
-    await injectAuth(page);
+    await injectAuth(page, { email: user.email, password: user.password });
     await page.goto("/dashboard");
     await waitForAppReady(page);
     await dismissModal(page);

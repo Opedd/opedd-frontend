@@ -9,13 +9,25 @@
  * Run: npx playwright test tests/e2e/settings.spec.ts
  */
 import { test, expect, type Page } from "@playwright/test";
+import { createTestUser, destroyTestUser, TEST_PASSWORD } from "./fixtures";
 import { injectAuth, waitForAppReady, dismissModal, assertNoCrash } from "./helpers";
+
+let user: { userId: string; email: string; password: string };
+
+test.beforeAll(async () => {
+  const created = await createTestUser();
+  user = { userId: created.userId, email: created.email, password: TEST_PASSWORD };
+});
+
+test.afterAll(async () => {
+  if (user?.userId) await destroyTestUser(user.userId);
+});
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Navigate to settings and handle potential redirect to /setup */
 async function goToSettings(page: Page): Promise<boolean> {
-  await injectAuth(page);
+  await injectAuth(page, { email: user.email, password: user.password });
   await page.goto("/settings");
   await waitForAppReady(page);
   await dismissModal(page);
@@ -239,7 +251,7 @@ test.describe("Settings — Deep Links", () => {
   test("/settings?tab=billing opens Billing tab directly", async ({
     page,
   }) => {
-    await injectAuth(page);
+    await injectAuth(page, { email: user.email, password: user.password });
     await page.goto("/settings?tab=billing");
     await waitForAppReady(page);
     await dismissModal(page);
@@ -256,7 +268,7 @@ test.describe("Settings — Deep Links", () => {
   });
 
   test("/settings?tab=team opens Team tab directly", async ({ page }) => {
-    await injectAuth(page);
+    await injectAuth(page, { email: user.email, password: user.password });
     await page.goto("/settings?tab=team");
     await waitForAppReady(page);
     await dismissModal(page);
@@ -275,7 +287,7 @@ test.describe("Settings — Deep Links", () => {
   test("/settings?tab=api-keys opens API Keys tab directly", async ({
     page,
   }) => {
-    await injectAuth(page);
+    await injectAuth(page, { email: user.email, password: user.password });
     await page.goto("/settings?tab=api-keys");
     await waitForAppReady(page);
     await dismissModal(page);
@@ -291,7 +303,7 @@ test.describe("Settings — Deep Links", () => {
   });
 
   test("/payments redirects to /settings?tab=billing", async ({ page }) => {
-    await injectAuth(page);
+    await injectAuth(page, { email: user.email, password: user.password });
     await page.goto("/payments");
     await waitForAppReady(page);
 
@@ -304,7 +316,7 @@ test.describe("Settings — Deep Links", () => {
   });
 
   test("no crash on any tab", async ({ page }) => {
-    await injectAuth(page);
+    await injectAuth(page, { email: user.email, password: user.password });
     await page.goto("/settings");
     await waitForAppReady(page);
     await dismissModal(page);

@@ -15,14 +15,26 @@
  * Run: npx playwright test tests/e2e/team-settings.spec.ts
  */
 import { test, expect } from "@playwright/test";
+import { createTestUser, destroyTestUser, TEST_PASSWORD } from "./fixtures";
 import { injectAuth, waitForAppReady, dismissModal, assertNoCrash } from "./helpers";
+
+let user: { userId: string; email: string; password: string };
+
+test.beforeAll(async () => {
+  const created = await createTestUser();
+  user = { userId: created.userId, email: created.email, password: TEST_PASSWORD };
+});
+
+test.afterAll(async () => {
+  if (user?.userId) await destroyTestUser(user.userId);
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 async function goToTeamTab(page: import("@playwright/test").Page): Promise<boolean> {
-  await injectAuth(page);
+  await injectAuth(page, { email: user.email, password: user.password });
   await page.goto("/settings?tab=team");
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(2000);
@@ -185,7 +197,7 @@ test.describe("Team Settings — Members List", () => {
     if (isGated) { test.skip(true, "Gated"); return; }
 
     // The test user's email should appear in the team list
-    const emailVisible = await page.getByText("test@example.com").isVisible().catch(() => false);
+    const emailVisible = await page.getByText(user.email).isVisible().catch(() => false);
     // If test user is not the owner or email is different, at least one email should be visible
     const anyEmail = await page.locator("p.text-sm.font-medium").first().isVisible().catch(() => false);
     expect(emailVisible || anyEmail).toBe(true);
@@ -195,7 +207,7 @@ test.describe("Team Settings — Members List", () => {
 test.describe("Team Settings — Error & Loading States", () => {
   test("loading spinner appears while team data is fetching", async ({ page }) => {
     test.setTimeout(20_000);
-    await injectAuth(page);
+    await injectAuth(page, { email: user.email, password: user.password });
     await page.goto("/settings?tab=team");
     await page.waitForLoadState("domcontentloaded");
     await dismissModal(page);
