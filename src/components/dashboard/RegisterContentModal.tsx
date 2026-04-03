@@ -464,7 +464,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           }).eq("id", existingSource.id);
           rssSourceId = existingSource.id;
         } else {
-          const { data: insertedSource } = await supabase
+          const { data: insertedSource } = await (supabase as any)
             .from("rss_sources")
             .insert({
               user_id: user.id,
