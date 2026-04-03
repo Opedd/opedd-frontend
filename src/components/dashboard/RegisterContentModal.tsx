@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as Sentry from "@sentry/react";
 import {
   Dialog,
   DialogContent,
@@ -426,7 +427,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         pubName = url.hostname.split(".")[0];
         if (pubName === "www") pubName = url.hostname.split(".")[1] || "Your Publication";
         pubName = pubName.charAt(0).toUpperCase() + pubName.slice(1);
-      } catch {}
+      } catch (err) { Sentry.captureException(err); }
 
       // Use feed preview name if available (only for feed form path)
       if (feedPreview?.title && registrationPath === "newsletter_feed") {

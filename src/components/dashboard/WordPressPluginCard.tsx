@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as Sentry from "@sentry/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { copyToClipboard } from "@/lib/clipboard";
@@ -24,7 +25,7 @@ export function WordPressPluginCard() {
         });
         const json = await res.json();
         if (!cancelled && json?.data?.api_key) setApiKey(json.data.api_key);
-      } catch {}
+      } catch (err) { Sentry.captureException(err); }
     })();
     return () => { cancelled = true; };
   }, [getAccessToken]);

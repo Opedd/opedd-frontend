@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import * as Sentry from "@sentry/react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
@@ -370,7 +371,7 @@ export default function Dashboard() {
                   await navigator.clipboard.writeText(inboundEmail);
                   setInboundCopied(true);
                   setTimeout(() => setInboundCopied(false), 2000);
-                } catch {}
+                } catch (err) { Sentry.captureException(err); }
               }}
               className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium"
             >
