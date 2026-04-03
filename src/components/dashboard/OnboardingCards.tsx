@@ -36,7 +36,7 @@ export function OnboardingCards({ onSyncClick, onRegisterClick, onEnterpriseClic
                 />
               </div>
               <p className="text-[#040042]/60 text-sm leading-relaxed">
-                Automatically import and protect every new post via RSS or URL.
+                Automatically import and protect every new post via API or sitemap.
               </p>
             </div>
           </div>

@@ -60,7 +60,7 @@ export function OnboardingChecklist({
     {
       key: "content" as const,
       label: "Import your content",
-      description: "Add your RSS feed or sitemap to populate your catalog.",
+      description: "Import your content to populate your catalog.",
       cta: "Import Content",
       done: contentImported,
     },

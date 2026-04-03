@@ -78,7 +78,7 @@ export default function Setup() {
   const [step1Error, setStep1Error] = useState("");
 
   // Feed detection
-  type DetectedFeed = { url: string; type: "sitemap" | "rss" };
+  type DetectedFeed = { url: string; type: "sitemap" };
   const [detectingFeeds, setDetectingFeeds] = useState(false);
   const [detectedFeeds, setDetectedFeeds] = useState<DetectedFeed[]>([]);
   const [feedDetectionDone, setFeedDetectionDone] = useState(false);
@@ -195,9 +195,6 @@ export default function Setup() {
         if (json.sitemaps?.length) {
           json.sitemaps.forEach((s: string) => feeds.push({ url: s, type: "sitemap" }));
         }
-        if (json.feeds?.length) {
-          json.feeds.forEach((f: string) => feeds.push({ url: f, type: "rss" }));
-        }
         if (!cancelled) {
           setDetectedFeeds(feeds);
           setFeedDetectionDone(true);
@@ -231,21 +228,39 @@ export default function Setup() {
     setStep1Error("");
     if (!platform) return;
 
-    // ── WORDPRESS: REST API (no credentials needed) ──
+    // ── WORDPRESS: REST API (requires ownership verification) ──
     if (platform === "wordpress") {
       if (!wpUrl) { setStep1Error("Please enter your WordPress site URL."); return; }
+      // If using the main form (not sitemap fallback), require credentials
+      if (!sitemapUrl && (!wpUsername || !wpAppPassword)) {
+        setStep1Error("Please enter your username and Application Password to verify ownership.");
+        return;
+      }
       setStep1Loading(true);
       try {
         const headers = await authHeaders();
-        const res = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ url: wpUrl, platform: "wordpress", credentials: { site_url: wpUrl, username: wpUsername, app_password: wpAppPassword } }),
-        });
-        const json = await res.json();
-        if (!res.ok) {
-          setStep1Error(json?.error || "WordPress REST API not accessible — check the URL.");
-          return;
+        // If sitemap URL is set, use sitemap import instead of REST API
+        if (sitemapUrl) {
+          const res = await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ sitemap_url: sitemapUrl }),
+          });
+          if (!res.ok) {
+            setStep1Error("Sitemap import failed — check the URL and try again.");
+            return;
+          }
+        } else {
+          const res = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ url: wpUrl, platform: "wordpress", credentials: { site_url: wpUrl, username: wpUsername, app_password: wpAppPassword } }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            setStep1Error(json?.error || "WordPress connection failed — check the URL and credentials.");
+            return;
+          }
         }
         setStep(2);
         startImportPoll();
@@ -327,14 +342,18 @@ export default function Setup() {
       setStep1Loading(true);
       try {
         const headers = await authHeaders();
-        const res = await fetch(`${EXT_SUPABASE_URL}/import-ghost`, {
+        const res = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
           method: "POST",
           headers,
-          body: JSON.stringify({ ghost_url: ghostUrl, admin_api_key: ghostKey }),
+          body: JSON.stringify({
+            url: ghostUrl,
+            platform: "ghost",
+            credentials: { api_url: ghostUrl, admin_api_key: ghostKey },
+          }),
         });
+        const json = await res.json();
         if (!res.ok) {
-          const json = await res.json().catch(() => ({}));
-          if (res.status === 401) { setStep1Error("Authentication failed — check your Admin API Key."); }
+          if (res.status === 422 || res.status === 401) { setStep1Error(json?.error || "Authentication failed — check your Admin API Key."); }
           else if (res.status === 502) { setStep1Error("Could not reach your Ghost blog — check the URL."); }
           else { setStep1Error(json?.error || "Import failed."); }
           return;
@@ -514,7 +533,7 @@ export default function Setup() {
                 className="accent-[#4A26ED]"
               />
               <div className="min-w-0 flex-1">
-                <span className="text-xs font-medium text-[#040042]">{feed.type === "sitemap" ? "Sitemap" : "RSS Feed"}</span>
+                <span className="text-xs font-medium text-[#040042]">{"Sitemap"}</span>
                 <span className="text-xs text-[#6B7280] ml-1.5 truncate block">{feed.url}</span>
               </div>
             </label>
@@ -642,7 +661,7 @@ export default function Setup() {
                       </Button>
                     </div>
                     <p className="text-[11px] text-[#9CA3AF]">
-                      Without this, articles sync via our scheduled feed (up to 15 min delay).
+                      Without this, articles sync on a scheduled basis (up to 15 min delay).
                     </p>
                   </CollapsibleContent>
                 </Collapsible>
@@ -659,11 +678,11 @@ export default function Setup() {
                   <Input placeholder="https://yoursite.com" value={wpUrl} onChange={e => setWpUrl(e.target.value)} className="mt-1" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-[#040042]">Username</label>
+                  <label className="text-sm font-medium text-[#040042]">Username <span className="text-red-400">*</span></label>
                   <Input placeholder="admin" value={wpUsername} onChange={e => setWpUsername(e.target.value)} className="mt-1" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-[#040042]">Application Password</label>
+                  <label className="text-sm font-medium text-[#040042]">Application Password <span className="text-red-400">*</span></label>
                   <Input type="password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" value={wpAppPassword} onChange={e => setWpAppPassword(e.target.value)} className="mt-1" />
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
@@ -701,7 +720,11 @@ export default function Setup() {
                   <label className="text-sm font-medium text-[#040042]">Publication ID</label>
                   <Input placeholder="pub_xxxxxxxx" value={beehiivPubId} onChange={e => setBeehiivPubId(e.target.value)} className="mt-1" />
                 </div>
-                <p className="text-xs text-[#9CA3AF] mt-2">Find these in Beehiiv → Settings → Integrations → API</p>
+                <div>
+                  <label className="text-sm font-medium text-[#040042]">Publication URL <span className="text-[#9CA3AF] font-normal">(optional — only if you use a custom domain)</span></label>
+                  <Input placeholder="https://yourpublication.com" value={beehiivUrl} onChange={e => setBeehiivUrl(e.target.value)} className="mt-1" />
+                </div>
+                <p className="text-xs text-[#9CA3AF] mt-2">Find your API Key and Publication ID in Beehiiv → Settings → Integrations → API</p>
                 <div className="bg-[#F5F3FF] border border-[#DDD6FE] rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <Mail size={14} className="text-[#7C3AED]" />
@@ -811,6 +834,9 @@ export default function Setup() {
                       Don't have the export? Import via URL instead
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-3 space-y-3">
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                        URL-based import only captures public posts. Paywalled content will not be included — use the CSV export above for your complete archive.
+                      </div>
                       <div>
                         <label className="text-sm font-medium text-[#040042]">Substack URL</label>
                         <Input placeholder="https://yourname.substack.com" value={substackUrl} onChange={e => { setSubstackUrl(e.target.value); setSubstackMode("sitemap"); }} className="mt-1" />

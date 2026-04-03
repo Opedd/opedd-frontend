@@ -13,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Rss,
   Loader2,
   Shield,
   X,
@@ -64,8 +63,8 @@ interface RegisterContentModalProps {
 
 type ModalView = "choice" | "publication" | "single" | "enterprise" | "success";
 
-// Derive RSS feed URL from a site URL based on platform
-const deriveRssUrl = (siteUrl: string, platform: string): string => {
+// Derive feed URL from a site URL based on platform
+const deriveFeedUrl = (siteUrl: string, platform: string): string => {
   const base = siteUrl.replace(/\/+$/, ""); // strip trailing slashes
   switch (platform) {
     case "ghost": return base + "/rss";
@@ -132,7 +131,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       if (checkIntegrations && initialView === "publication" && user) {
         setIntegrationsLoading(true);
         supabase
-          .from("rss_sources")
+          .from("content_sources")
           .select("id")
           .eq("user_id", user.id)
           .eq("sync_status", "active")
@@ -201,7 +200,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     error: string | null;
   } | null>(null);
   
-  // Connecting state (for triggering RSS import)
+  // Connecting state (for triggering content import)
   const [isConnecting, setIsConnecting] = useState(false);
 
   // Platform-specific import step state
@@ -382,17 +381,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     }
   };
 
-  // Core sync logic — used by both RSS form and widget install path
+  // Core sync logic — used by both feed form and widget install path
   const runSync = async (syncFeedUrl: string, syncHumanPrice: string, syncAiPrice: string, registrationPath: string = "newsletter_feed") => {
     if (!user) return;
 
     // Free plan: max 1 content source
     if (publisherPlan === "free") {
       const { count: otherSourceCount } = await supabase
-        .from("rss_sources")
+        .from("content_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .neq("feed_url", syncFeedUrl);
+        .neq("url", syncFeedUrl);
       if ((otherSourceCount ?? 0) >= 1) {
         toast({
           title: "Source limit reached",
@@ -429,7 +428,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         pubName = pubName.charAt(0).toUpperCase() + pubName.slice(1);
       } catch {}
 
-      // Use feed preview name if available (only for RSS form path)
+      // Use feed preview name if available (only for feed form path)
       if (feedPreview?.title && registrationPath === "newsletter_feed") {
         const previewName = feedPreview.title;
         pubName = previewName.startsWith('Publication:') ? previewName.replace('Publication: ', '') : previewName;
@@ -441,38 +440,38 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       const accessToken = session?.access_token;
       if (!accessToken) throw new Error("Not authenticated");
 
-      // Step 2: Insert local rss_sources record — capture ID for inline verification
+      // Step 2: Insert local content_sources record — capture ID for inline verification
       let rssSourceId = "";
       try {
         // Check for existing source first (re-registration after delete)
         const { data: existingSource } = await supabase
-          .from("rss_sources")
+          .from("content_sources")
           .select("id")
           .eq("user_id", user.id)
-          .eq("feed_url", syncFeedUrl)
+          .eq("url", syncFeedUrl)
           .maybeSingle();
 
         const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         if (existingSource?.id) {
           // Update existing source with new token
-          await supabase.from("rss_sources").update({
+          await supabase.from("content_sources").update({
             verification_token: token,
             verification_token_expires_at: tokenExpiresAt,
             sync_status: "pending",
-            last_synced_at: new Date().toISOString(),
+            last_sync_at: new Date().toISOString(),
             verification_status: "pending",
           }).eq("id", existingSource.id);
           rssSourceId = existingSource.id;
         } else {
           const { data: insertedSource } = await supabase
-            .from("rss_sources")
+            .from("content_sources")
             .insert({
               user_id: user.id,
               name: pubName,
-              feed_url: syncFeedUrl,
-              platform: platformType,
+              url: syncFeedUrl,
+              source_type: platformType,
               sync_status: "pending",
-              last_synced_at: new Date().toISOString(),
+              last_sync_at: new Date().toISOString(),
               verification_token: token,
               verification_token_expires_at: tokenExpiresAt,
             })
@@ -484,7 +483,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         console.warn("[RegisterContentModal] Failed to insert/update local source:", localErr);
       }
 
-      // Step 3: Trigger RSS sync BEFORE showing animation — surface real errors
+      // Step 3: Trigger content sync BEFORE showing animation — surface real errors
       const syncRes = await fetch(`${EXT_SUPABASE_URL}/sync-content-source`, {
         method: "POST",
         headers: {
@@ -538,7 +537,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     if (!feedUrl.trim()) {
       toast({
         title: "Feed URL Required",
-        description: "Please enter your publication's RSS feed URL",
+        description: "Please enter your publication URL",
         variant: "destructive",
       });
       return;
@@ -691,7 +690,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     }
   };
 
-  // Helper: insert (or update) an rss_sources record with a fresh verification token
+  // Helper: insert (or update) a content_sources record with a fresh verification token
   const insertSourceWithToken = async (params: {
     feedUrl: string;
     platform: string;
@@ -702,32 +701,32 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     try {
       const { data: existing } = await supabase
-        .from("rss_sources")
+        .from("content_sources")
         .select("id")
         .eq("user_id", user!.id)
-        .eq("feed_url", params.feedUrl)
+        .eq("url", params.feedUrl)
         .maybeSingle();
 
       if (existing?.id) {
-        await supabase.from("rss_sources").update({
+        await supabase.from("content_sources").update({
           verification_token: tok,
           verification_token_expires_at: tokenExpiresAt,
           sync_status: "active",
           verification_status: "pending",
-          last_synced_at: new Date().toISOString(),
+          last_sync_at: new Date().toISOString(),
         }).eq("id", existing.id);
         return { token: tok, sourceId: existing.id };
       }
 
       const { data } = await supabase
-        .from("rss_sources")
+        .from("content_sources")
         .insert({
           user_id: user!.id,
           name: params.pubName,
-          feed_url: params.feedUrl,
-          platform: params.platform,
+          url: params.feedUrl,
+          source_type: params.platform,
           sync_status: "active",
-          last_synced_at: new Date().toISOString(),
+          last_sync_at: new Date().toISOString(),
           verification_token: tok,
           verification_token_expires_at: tokenExpiresAt,
         })
@@ -765,7 +764,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     }
   };
 
-  // Handle RSS import for Substack/Beehiiv
+  // Handle feed import for Substack/Beehiiv
   const handleRssImport = async () => {
     if (!pubDomainInput.trim()) return;
     const domain = pubDomainInput.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
@@ -785,7 +784,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     const sitemapUrl = `https://${domain}/sitemap.xml`;
 
     if (useRssFallback) {
-      // RSS fallback — use runSync which handles rss_sources + verificationState
+      // Sync fallback — use runSync which handles content_sources + verificationState
       const rssUrl = `https://${domain}/rss`;
       setFeedUrl(rssUrl);
       await runSync(rssUrl, pubHumanPrice, pubAiPrice, "sitemap_import");
@@ -844,7 +843,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           onSuccess?.();
         }
       } else {
-        toast({ title: "No sitemap found", description: "Try using RSS feed instead.", variant: "destructive" });
+        toast({ title: "No sitemap found", description: "Try using feed import instead.", variant: "destructive" });
       }
     } catch {
       setIsDetectingFeeds(false);
@@ -880,7 +879,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         onSuccess?.();
       }
     } else {
-      // RSS feed — runSync handles rss_sources insert + verificationState
+      // Feed sync — runSync handles content_sources insert + verificationState
       setFeedUrl(selectedFeedUrl);
       await runSync(selectedFeedUrl, pubHumanPrice, pubAiPrice, "newsletter_feed");
     }
@@ -1134,12 +1133,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 ))}
               </div>
 
-              {/* Or use RSS directly */}
+              {/* Or paste URL directly */}
               <div className="pt-2 border-t border-slate-100">
-                <p className="text-xs text-slate-400 mb-3">Or paste an RSS feed URL directly:</p>
+                <p className="text-xs text-slate-400 mb-3">Or paste a feed URL directly:</p>
                 <div className="space-y-2">
                   <div className="relative">
-                    <Rss size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+                    <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
                     <Input
                       value={feedUrl}
                       onChange={(e) => setFeedUrl(e.target.value)}
@@ -1152,7 +1151,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               </div>
             </div>
 
-            {/* Footer — only show if RSS URL entered directly */}
+            {/* Footer — only show if feed URL entered directly */}
             {feedUrl.trim() && (
               <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
                 <Button
@@ -1331,7 +1330,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               </>
             )}
 
-            {/* GHOST RSS FALLBACK */}
+            {/* GHOST FEED FALLBACK */}
             {pubPlatform === "ghost" && useRssFallback && (
               <>
                 <div className="space-y-2">
@@ -1347,7 +1346,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex gap-2">
                   <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700">
-                    RSS will import your latest ~50 articles. For a full archive, go back and use sitemap import.
+                    Feed import will capture your latest ~50 articles. For a full archive, go back and use sitemap import.
                   </p>
                 </div>
                 {/* Pricing */}
@@ -1414,7 +1413,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               </>
             )}
 
-            {/* WORDPRESS RSS FALLBACK */}
+            {/* WORDPRESS FEED FALLBACK */}
             {pubPlatform === "wordpress" && useRssFallback && (
               <>
                 <div className="space-y-2">
@@ -1509,7 +1508,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     )}
                     {detectedFeeds.rss_urls.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">RSS feeds</p>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Feeds</p>
                         {detectedFeeds.rss_urls.map((url) => (
                           <button
                             key={url}
@@ -1551,7 +1550,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {/* Footer */}
           {!isSitemapImporting && (
             <div className="flex-shrink-0 p-5 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] space-y-3">
-              {/* Substack / Beehiiv — RSS import */}
+              {/* Substack / Beehiiv — content import */}
               {(pubPlatform === "substack" || pubPlatform === "beehiiv") && (
                 <Button
                   onClick={handleRssImport}
@@ -1561,12 +1560,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   {isConnecting ? (
                     <><Loader2 size={18} className="mr-2 animate-spin" />Importing...</>
                   ) : (
-                    <><Rss size={18} className="mr-2" />Import via RSS</>
+                    <><Globe size={18} className="mr-2" />Import content</>
                   )}
                 </Button>
               )}
 
-              {/* Ghost — sitemap primary or RSS fallback */}
+              {/* Ghost — sitemap primary or feed fallback */}
               {pubPlatform === "ghost" && !useRssFallback && (
                 <>
                   <Button
@@ -1581,7 +1580,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     onClick={() => setUseRssFallback(true)}
                     className="w-full text-center text-sm text-slate-500 hover:text-[#4A26ED] transition-colors"
                   >
-                    Use RSS feed instead
+                    Use feed import instead
                   </button>
                 </>
               )}
@@ -1594,12 +1593,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   {isConnecting ? (
                     <><Loader2 size={18} className="mr-2 animate-spin" />Importing...</>
                   ) : (
-                    <><Rss size={18} className="mr-2" />Import via RSS</>
+                    <><Globe size={18} className="mr-2" />Import content</>
                   )}
                 </Button>
               )}
 
-              {/* WordPress — sitemap primary or RSS fallback */}
+              {/* WordPress — sitemap primary or feed fallback */}
               {pubPlatform === "wordpress" && !useRssFallback && (
                 <>
                   <Button
@@ -1617,7 +1616,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     onClick={() => setUseRssFallback(true)}
                     className="w-full text-center text-sm text-slate-500 hover:text-[#4A26ED] transition-colors"
                   >
-                    Use RSS feed instead
+                    Use feed import instead
                   </button>
                 </>
               )}
@@ -1630,7 +1629,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   {isConnecting ? (
                     <><Loader2 size={18} className="mr-2 animate-spin" />Importing...</>
                   ) : (
-                    <><Rss size={18} className="mr-2" />Import via RSS</>
+                    <><Globe size={18} className="mr-2" />Import content</>
                   )}
                 </Button>
               )}
@@ -1913,7 +1912,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
         const accessToken = session?.access_token;
         if (!accessToken) throw new Error("Not authenticated");
 
-        // Step 1: Create rss_sources record with verification token immediately
+        // Step 1: Create content_sources record with verification token immediately
         // so the source appears in the dashboard before import finishes
         await insertSourceWithToken({
           feedUrl: sitemapUrl,
@@ -2095,7 +2094,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-[#040042] font-semibold text-sm">Sync Newsletter / Site</h3>
-                  <p className="text-[#040042]/60 text-xs mt-0.5">Automatically import and protect every new post via RSS or URL.</p>
+                  <p className="text-[#040042]/60 text-xs mt-0.5">Automatically import and protect every new post via API or sitemap.</p>
                 </div>
                 <ArrowRight size={16} className="text-[#4A26ED] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </div>

@@ -15,7 +15,7 @@ const reasons = [
   {
     icon: Globe,
     title: "Universal Compatibility",
-    description: "Works with any CMS, any platform. Just add your RSS feed and go.",
+    description: "Works with any CMS, any platform. Connect via API or sitemap and go.",
   },
   {
     icon: TrendingUp,

@@ -516,7 +516,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 </div>
               )}
 
-              {/* Verification banner for pending newsletter/RSS sources only */}
+              {/* Verification banner for pending sources */}
               {isPending && isNewsletterFeed && (
                 <div className="mt-3 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-lg p-3">
                   <div className="flex items-start gap-2">

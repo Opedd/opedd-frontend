@@ -124,8 +124,8 @@ const EditorialBreakSection = () => {
           {[
             {
               step: "01",
-              title: "Connect Your Feed",
-              description: "Import your RSS or API endpoint. We catalog every article automatically.",
+              title: "Connect Your Publication",
+              description: "Import via API or sitemap. We catalog every article automatically.",
             },
             {
               step: "02",

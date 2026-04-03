@@ -11,7 +11,7 @@ import { deriveSlug } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
-import { PublicationSetupFlow } from "@/components/dashboard/PublicationSetupFlow";
+// PublicationSetupFlow removed — "Add content" now routes to /setup
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { VerificationPendingBanner } from "@/components/dashboard/VerificationPendingBanner";
 import { ReferralStep } from "@/components/dashboard/ReferralStep";
@@ -21,12 +21,7 @@ import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+// Sheet imports removed — drawer replaced with /setup navigation
 
 export default function Dashboard() {
   useDocumentTitle("Dashboard — Opedd");
@@ -66,7 +61,7 @@ export default function Dashboard() {
   // Setup flow state
   const [hasActivePublication, setHasActivePublication] = useState<boolean | null>(null);
   const [setupDismissed, setSetupDismissed] = useState(false);
-  const [addPubDrawerOpen, setAddPubDrawerOpen] = useState(false);
+  // addPubDrawerOpen removed — now routes to /setup
 
   // Referral step state
   const [referralChecked, setReferralChecked] = useState(false);
@@ -83,7 +78,7 @@ export default function Dashboard() {
     if (!user) return;
     try {
       const { count } = await supabase
-        .from("rss_sources")
+        .from("content_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .in("sync_status", ["active", "protected"]);
@@ -251,7 +246,7 @@ export default function Dashboard() {
           setupComplete={setupComplete}
           publisherSlug={publisherSlug}
           initialAiLicenseTypes={aiLicenseTypes}
-          onRegisterContent={() => setAddPubDrawerOpen(true)}
+          onRegisterContent={() => navigate("/setup")}
           onAiLicensingComplete={() => setAiLicensingConfigured(true)}
         />
 
@@ -393,38 +388,16 @@ export default function Dashboard() {
             <h2 className="text-[15px] font-semibold text-[#111827]">Sources</h2>
             <Button
               size="sm"
-              onClick={() => setAddPubDrawerOpen(true)}
+              onClick={() => navigate("/setup")}
               className="h-9 px-4 rounded-lg bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-sm font-medium"
             >
               <Plus size={15} className="mr-1.5 flex-shrink-0" />
               Register content
             </Button>
           </div>
-          <SourcesView key={sourcesKey} onAddSource={() => setAddPubDrawerOpen(true)} />
+          <SourcesView key={sourcesKey} onAddSource={() => navigate("/setup")} />
         </div>
       </div>
-
-      {/* Fix 5: Add Publication Drawer */}
-      <Sheet open={addPubDrawerOpen} onOpenChange={setAddPubDrawerOpen}>
-        <SheetContent side="right" className="sm:max-w-[480px] w-full p-0 overflow-y-auto bg-white">
-          <div className="px-6 py-5 border-b border-[#E5E7EB]">
-            <SheetTitle className="text-[#111827] text-lg font-bold">Register your content</SheetTitle>
-            <p className="text-sm text-[#6B7280] mt-0.5">Choose the type of content you want to protect and license.</p>
-          </div>
-          <PublicationSetupFlow
-            onComplete={() => {
-              setAddPubDrawerOpen(false);
-              setHasActivePublication(true);
-              fetchMetrics();
-              setSourcesKey(k => k + 1);
-              toast({
-                title: "Content registered",
-                description: "Your new content has been set up successfully",
-              });
-            }}
-          />
-        </SheetContent>
-      </Sheet>
 
       {needsReferral && (
         <ReferralStep onComplete={() => setNeedsReferral(false)} />

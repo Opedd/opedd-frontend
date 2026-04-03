@@ -193,7 +193,7 @@ const PricingSection = () => {
               <tbody>
                 {[
                   { feature: "Articles Indexed", free: "500", pro: "Unlimited", enterprise: "Unlimited" },
-                  { feature: "RSS Feeds", free: "1", pro: "10", enterprise: "Unlimited" },
+                  { feature: "Content Sources", free: "1", pro: "10", enterprise: "Unlimited" },
                   { feature: "Human Licensing & Reuse", free: true, pro: true, enterprise: true },
                   { feature: "Basic AI Protection", free: true, pro: true, enterprise: true },
                   { feature: "Advanced AI Licensing", free: false, pro: true, enterprise: true },

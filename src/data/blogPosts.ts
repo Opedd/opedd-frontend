@@ -158,9 +158,9 @@ export const blogPosts: BlogPost[] = [
 <ul>
 <li><strong>Substack</strong> — CSV archive import</li>
 <li><strong>Ghost</strong> — API key integration</li>
-<li><strong>WordPress</strong> — Plugin or RSS feed</li>
+<li><strong>WordPress</strong> — REST API or plugin</li>
 <li><strong>Beehiiv</strong> — API integration</li>
-<li><strong>Any platform</strong> — RSS feed fallback</li>
+<li><strong>Any platform</strong> — Sitemap import</li>
 </ul>
 
 <p>For Substack users, the fastest method is to export your archive as a CSV and upload it directly.</p>

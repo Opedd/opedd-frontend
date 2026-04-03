@@ -118,11 +118,11 @@ export default function Content() {
   const fetchSources = useCallback(async () => {
     if (!user) return;
     const sourcesResult = await supabase
-      .from("rss_sources").select("id, name, platform").eq("user_id", user.id);
+      .from("content_sources").select("id, name, source_type").eq("user_id", user.id);
     const sources = sourcesResult.data || [];
     const lookup: Record<string, string> = {};
     const platLookup: Record<string, string> = {};
-    sources.forEach((s) => { lookup[s.id] = s.name; platLookup[s.id] = s.platform || ""; });
+    sources.forEach((s: any) => { lookup[s.id] = s.name; platLookup[s.id] = s.source_type || ""; });
     setSourceLookup(lookup);
     setPlatformLookup(platLookup);
     setSourceList(sources);
@@ -420,8 +420,8 @@ export default function Content() {
                   <Button variant="default" size="sm" onClick={() => navigate("/setup")}>
                     <Globe size={14} className="mr-1.5" />Import from Sitemap
                   </Button>
-                  <Button variant="secondary" size="sm" onClick={() => navigate("/connectors")}>
-                    <Link2 size={14} className="mr-1.5" />Connect RSS Feed
+                  <Button variant="secondary" size="sm" onClick={() => navigate("/setup")}>
+                    <Link2 size={14} className="mr-1.5" />Connect Publication
                   </Button>
                 </div>
               </div>
