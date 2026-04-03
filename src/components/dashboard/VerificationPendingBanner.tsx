@@ -10,8 +10,8 @@ export function VerificationPendingBanner() {
   const check = useCallback(async () => {
     if (!user) return;
     try {
-      const { count } = await supabase
-        .from("rss_sources" as any)
+      const { count } = await (supabase as any)
+        .from("rss_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("sync_status", "pending");

@@ -78,8 +78,8 @@ export default function Dashboard() {
   const checkPublications = useCallback(async () => {
     if (!user) return;
     try {
-      const { count } = await supabase
-        .from("rss_sources" as any)
+      const { count } = await (supabase as any)
+        .from("rss_sources")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .in("sync_status", ["active", "protected"]);
