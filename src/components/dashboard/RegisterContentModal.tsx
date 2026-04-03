@@ -445,7 +445,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       let rssSourceId = "";
       try {
         // Check for existing source first (re-registration after delete)
-        const { data: existingSource } = await supabase
+        const { data: existingSource } = await (supabase as any)
           .from("rss_sources")
           .select("id")
           .eq("user_id", user.id)
