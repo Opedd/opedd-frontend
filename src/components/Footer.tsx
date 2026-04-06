@@ -114,6 +114,9 @@ const Footer = () => {
         >
           <p className="text-sm text-alice-gray/50">
             © 2026 Opedd. All rights reserved.
+            <span className="ml-2 text-alice-gray/30 text-xs" title={`Build ${__BUILD_HASH__} · ${__BUILD_TIME__}`}>
+              v{__BUILD_HASH__}
+            </span>
           </p>
           <div className="flex items-center gap-4 text-sm text-alice-gray/50">
              <a href="/terms" className="hover:text-alice-gray/80 transition-colors">Terms of Service</a>
