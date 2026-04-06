@@ -1,4 +1,5 @@
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import SEO from "@/components/SEO";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import EditorialBreakSection from "@/components/EditorialBreakSection";
