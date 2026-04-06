@@ -131,6 +131,7 @@ export default function Insights() {
 
   return (
     <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
+      <SEO title="Analytics — Opedd" path="/insights" noindex />
       <motion.div className="p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
 
         {/* Error state */}
