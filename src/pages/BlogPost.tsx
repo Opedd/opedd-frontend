@@ -28,6 +28,12 @@ const BlogPost = () => {
 
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
+      <SEO
+        title={`${post.title} | Opedd Blog`}
+        description={post.preview}
+        path={`/blog/${post.slug}`}
+        ogImage={post.ogImage}
+      />
       <Header />
 
       {/* Back link */}
