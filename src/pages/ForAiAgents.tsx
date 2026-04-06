@@ -357,7 +357,7 @@ export default function ForAiAgents() {
       {/* MCP Server */}
       <section className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-5">
               <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-full px-3.5 py-1 text-xs font-semibold text-[#4A26ED] uppercase tracking-wider">
                 <Terminal size={13} />
