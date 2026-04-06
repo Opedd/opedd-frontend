@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Search, ExternalLink, FileText, Award, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";

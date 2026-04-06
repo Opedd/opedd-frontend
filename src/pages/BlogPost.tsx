@@ -1,4 +1,5 @@
 import { useParams, Link, Navigate } from "react-router-dom";
+import SEO from "@/components/SEO";
 import { useEffect } from "react";
 import { Twitter, Linkedin, LinkIcon, ArrowLeft } from "lucide-react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";

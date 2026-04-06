@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import SEO from "@/components/SEO";
 import { useEffect } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";

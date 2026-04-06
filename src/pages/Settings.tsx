@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";

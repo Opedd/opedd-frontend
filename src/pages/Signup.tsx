@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";

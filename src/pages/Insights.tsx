@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   TrendingUp, FileCheck, Sparkles, User, Loader2, BarChart3, AlertTriangle,
