@@ -159,7 +159,7 @@ const MCP_TOOLS = [
 export default function ForAiAgents() {
   useDocumentTitle("For AI Agents — Opedd");
   return (
-    <div className="min-h-screen bg-[#FAFBFC]">
+    <div className="min-h-screen bg-[#FAFBFC] overflow-x-hidden">
       <SEO
         title="Opedd for AI Agents — Content Licensing API"
         description="Discover, purchase, and verify content licenses via API. Native MCP server for Claude and Cursor."
@@ -170,8 +170,8 @@ export default function ForAiAgents() {
       {/* Hero */}
       <section className="bg-[#040042] pt-32 pb-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-[#4A26ED]/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-[#7C3AED]/10 rounded-full blur-[100px]" />
+          <div className="absolute top-1/4 right-1/4 w-full max-w-[600px] h-[600px] bg-[#4A26ED]/15 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-1/3 w-full max-w-[400px] h-[400px] bg-[#7C3AED]/10 rounded-full blur-[100px]" />
         </div>
         <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-4xl">
           <motion.div initial="hidden" animate="visible" className="text-center space-y-6">
@@ -296,8 +296,8 @@ export default function ForAiAgents() {
                 </div>
                 <span className="text-slate-400 text-xs font-mono ml-3">agent.ts</span>
               </div>
-              <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                <code className="text-[#334155] font-mono whitespace-pre">{AGENT_CODE}</code>
+              <pre className="p-4 sm:p-6 overflow-x-auto text-xs sm:text-[13px] leading-relaxed">
+                <code className="text-[#334155] font-mono whitespace-pre block">{AGENT_CODE}</code>
               </pre>
             </div>
           </motion.div>
@@ -307,7 +307,7 @@ export default function ForAiAgents() {
       {/* Publisher API */}
       <section className="py-20 lg:py-28 bg-[#F9FAFB] border-y border-[#E5E7EB]">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-5">
               <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-full px-3.5 py-1 text-xs font-semibold text-[#4A26ED] uppercase tracking-wider">
                 <Layers size={13} />
@@ -345,8 +345,8 @@ export default function ForAiAgents() {
                   </div>
                   <span className="text-slate-400 text-xs font-mono ml-3">publisher-api.ts</span>
                 </div>
-                <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                  <code className="text-[#334155] font-mono whitespace-pre">{PUBLISHER_API_CODE}</code>
+                <pre className="p-4 sm:p-6 overflow-x-auto text-xs sm:text-[13px] leading-relaxed">
+                  <code className="text-[#334155] font-mono whitespace-pre block">{PUBLISHER_API_CODE}</code>
                 </pre>
               </div>
             </motion.div>
@@ -357,7 +357,7 @@ export default function ForAiAgents() {
       {/* MCP Server */}
       <section className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-5">
               <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-full px-3.5 py-1 text-xs font-semibold text-[#4A26ED] uppercase tracking-wider">
                 <Terminal size={13} />
@@ -395,8 +395,8 @@ export default function ForAiAgents() {
                   </div>
                   <span className="text-slate-400 text-xs font-mono ml-3">claude_desktop_config.json</span>
                 </div>
-                <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                  <code className="text-[#334155] font-mono whitespace-pre">{MCP_CONFIG}</code>
+                <pre className="p-4 sm:p-6 overflow-x-auto text-xs sm:text-[13px] leading-relaxed">
+                  <code className="text-[#334155] font-mono whitespace-pre block">{MCP_CONFIG}</code>
                 </pre>
               </div>
             </motion.div>
@@ -418,7 +418,7 @@ export default function ForAiAgents() {
                 Every license Opedd issues — human, AI, archive — is registered on the <span className="text-white/80">OpeddRegistry smart contract</span> deployed on Tempo. Verify any license key on-chain, independently of Opedd's infrastructure.
               </p>
               <div className="flex items-center gap-3 pt-1">
-                <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
+                <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg break-all">
                   0x7c3830c22cb7dd0742f0da38b9f1403aee1f50ad
                 </code>
               </div>
