@@ -115,6 +115,7 @@ const App = () => (
                 <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                 <Route path="/enterprise" element={<Enterprise />} />
                 <Route path="/for-ai-agents" element={<ForAiAgents />} />
+                <Route path="/docs" element={<Navigate to="/for-ai-agents" replace />} />
                 <Route path="/status" element={<Status />} />
                 <Route path="/publishers" element={<Publishers />} />
                 <Route path="/guides" element={<Guides />} />
