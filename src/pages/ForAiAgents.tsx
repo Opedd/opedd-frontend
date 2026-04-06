@@ -345,8 +345,8 @@ export default function ForAiAgents() {
                   </div>
                   <span className="text-slate-400 text-xs font-mono ml-3">publisher-api.ts</span>
                 </div>
-                <pre className="p-6 overflow-x-auto text-[13px] leading-relaxed">
-                  <code className="text-[#334155] font-mono whitespace-pre">{PUBLISHER_API_CODE}</code>
+                <pre className="p-4 sm:p-6 overflow-x-auto text-xs sm:text-[13px] leading-relaxed">
+                  <code className="text-[#334155] font-mono whitespace-pre block">{PUBLISHER_API_CODE}</code>
                 </pre>
               </div>
             </motion.div>
