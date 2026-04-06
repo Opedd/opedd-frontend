@@ -8,6 +8,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
+import { HelmetProvider } from "react-helmet-async";
 
 // Core dashboard routes — eagerly loaded (always needed after login)
 import Dashboard from "./pages/Dashboard";
