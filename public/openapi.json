@@ -1,0 +1,1157 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Opedd Public API",
+    "description": "Programmatic content licensing infrastructure for AI agents and publishers. Opedd enables autonomous discovery, purchase, and verification of content licenses across publishers. AI agents can discover pricing via /license-discovery or /lookup-article, purchase licenses via /agent-purchase, and verify them via /verify-license.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Opedd",
+      "url": "https://opedd.com",
+      "email": "support@opedd.com"
+    },
+    "license": {
+      "name": "Proprietary"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://djdzcciayennqchjgybx.supabase.co/functions/v1",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    { "name": "Discovery", "description": "Discover publishers, articles, and licensing terms" },
+    { "name": "Purchase", "description": "Purchase content licenses" },
+    { "name": "Verification", "description": "Verify and inspect licenses" },
+    { "name": "Content", "description": "Access licensed content" },
+    { "name": "Programmatic API", "description": "Publisher-scoped API with X-API-Key authentication" }
+  ],
+  "paths": {
+    "/license-discovery": {
+      "get": {
+        "operationId": "getLicenseDiscovery",
+        "tags": ["Discovery"],
+        "summary": "Publisher licensing manifest",
+        "description": "Returns the machine-readable opedd.json licensing discovery file for a publisher. AI agents fetch this to discover licensing terms, pricing, catalog size, and purchase endpoints. Cacheable for 5 minutes.",
+        "parameters": [
+          {
+            "name": "publisher_id",
+            "in": "query",
+            "description": "UUID of the publisher. Either publisher_id or domain is required.",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "description": "Publisher domain (e.g. 'economist.com'). Either publisher_id or domain is required.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Licensing discovery manifest",
+            "headers": {
+              "X-License-Protocol": {
+                "description": "Protocol identifier",
+                "schema": { "type": "string", "example": "opedd/1.0" }
+              },
+              "Cache-Control": {
+                "description": "Caching directive",
+                "schema": { "type": "string", "example": "public, max-age=300" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "@context": { "type": "string", "example": "https://opedd.com/schema/v1" },
+                    "protocol": { "type": "string", "example": "opedd" },
+                    "version": { "type": "string", "example": "1.0" },
+                    "publisher": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "name": { "type": "string" },
+                        "website": { "type": "string", "nullable": true },
+                        "description": { "type": "string", "nullable": true },
+                        "logo": { "type": "string", "nullable": true }
+                      }
+                    },
+                    "licensing": {
+                      "type": "object",
+                      "properties": {
+                        "available": { "type": "boolean" },
+                        "catalog_size": { "type": "integer" },
+                        "human_licensable": { "type": "integer" },
+                        "ai_licensable": { "type": "integer" },
+                        "default_pricing": {
+                          "type": "object",
+                          "properties": {
+                            "human": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "price": { "type": "number" },
+                                "currency": { "type": "string", "example": "usd" },
+                                "type": { "type": "string", "example": "human" }
+                              }
+                            },
+                            "ai_training": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "price": { "type": "number" },
+                                "currency": { "type": "string", "example": "usd" },
+                                "type": { "type": "string", "example": "ai" }
+                              }
+                            },
+                            "ai_inference": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "price": { "type": "number" },
+                                "currency": { "type": "string", "example": "usd" },
+                                "type": { "type": "string", "example": "ai_inference" }
+                              }
+                            },
+                            "ai_annual_catalog": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "price": { "type": "number" },
+                                "currency": { "type": "string", "example": "usd" },
+                                "interval": { "type": "string", "example": "year" },
+                                "type": { "type": "string", "example": "enterprise" }
+                              }
+                            }
+                          }
+                        },
+                        "payment_methods": {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "example": ["stripe", "usdc_tempo"]
+                        },
+                        "license_types": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": { "type": "string" },
+                              "label": { "type": "string" },
+                              "description": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "endpoints": {
+                      "type": "object",
+                      "properties": {
+                        "catalog": { "type": "string" },
+                        "article_lookup": { "type": "string" },
+                        "purchase": { "type": "string" },
+                        "verify": { "type": "string" },
+                        "certificate": { "type": "string" },
+                        "discovery": { "type": "string" },
+                        "publisher_directory": { "type": "string" },
+                        "enterprise_license": { "type": "string" },
+                        "licensed_feed": { "type": "string" }
+                      }
+                    },
+                    "agent_instructions": {
+                      "type": "object",
+                      "description": "Step-by-step instructions for AI agents to interact with this publisher's licensing API."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/lookup-article": {
+      "get": {
+        "operationId": "lookupArticle",
+        "tags": ["Discovery"],
+        "summary": "Resolve article pricing by URL",
+        "description": "Looks up an article by its source URL and returns licensing information including pricing for human and AI license types. Returns special X-License-* headers for protocol-level discovery.",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "The source URL of the article to look up.",
+            "schema": { "type": "string", "format": "uri" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article found with licensing information",
+            "headers": {
+              "X-License-Available": {
+                "description": "Whether licensing is available",
+                "schema": { "type": "string", "example": "true" }
+              },
+              "X-License-Protocol": {
+                "description": "Protocol identifier",
+                "schema": { "type": "string", "example": "opedd/1.0" }
+              },
+              "X-License-Human-Price": {
+                "description": "Human license price in USD",
+                "schema": { "type": "string", "example": "10" }
+              },
+              "X-License-AI-Price": {
+                "description": "AI license price in USD",
+                "schema": { "type": "string", "example": "50" }
+              },
+              "X-License-API": {
+                "description": "URL of the programmatic API",
+                "schema": { "type": "string" }
+              },
+              "X-License-Purchase-URL": {
+                "description": "URL for agent-based purchase",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "title": { "type": "string" },
+                        "description": { "type": "string", "nullable": true },
+                        "source_url": { "type": "string" },
+                        "publisher": { "type": "string" },
+                        "human_price": { "type": "number", "nullable": true },
+                        "ai_price": { "type": "number", "nullable": true },
+                        "contact_for_pricing": { "type": "boolean" },
+                        "metadata_quality": { "type": "string", "enum": ["url_only", "basic", "full"] },
+                        "content_delivery_available": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "403": {
+            "description": "Licensing not enabled for this article",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/agent-purchase": {
+      "post": {
+        "operationId": "agentPurchase",
+        "tags": ["Purchase"],
+        "summary": "Autonomous license purchase",
+        "description": "AI agents purchase a license for a specific article using Stripe PaymentMethod or USDC on-chain payment. No pre-authentication required. Discover pricing first via /license-discovery or /lookup-article, then POST here to complete the purchase.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["buyer_email", "license_type", "payment"],
+                "properties": {
+                  "article_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "UUID of the article. Either article_id or article_url is required."
+                  },
+                  "article_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Source URL of the article. Either article_id or article_url is required."
+                  },
+                  "license_type": {
+                    "type": "string",
+                    "enum": ["human", "ai", "ai_inference"],
+                    "description": "Type of license: human (republication), ai (training), or ai_inference (RAG/inference)."
+                  },
+                  "buyer_email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address of the license buyer."
+                  },
+                  "buyer_name": {
+                    "type": "string",
+                    "description": "Name of the buyer (optional)."
+                  },
+                  "buyer_organization": {
+                    "type": "string",
+                    "description": "Organization of the buyer (optional)."
+                  },
+                  "intended_use": {
+                    "type": "string",
+                    "enum": ["personal", "editorial", "commercial", "ai_training", "corporate"],
+                    "description": "Intended use of the licensed content (optional)."
+                  },
+                  "payment": {
+                    "type": "object",
+                    "required": ["method"],
+                    "description": "Payment details.",
+                    "properties": {
+                      "method": {
+                        "type": "string",
+                        "enum": ["stripe_pm", "usdc"],
+                        "description": "Payment method: stripe_pm for Stripe PaymentMethod, usdc for on-chain USDC."
+                      },
+                      "payment_method_id": {
+                        "type": "string",
+                        "description": "Stripe PaymentMethod ID (required when method is stripe_pm)."
+                      },
+                      "tx_hash": {
+                        "type": "string",
+                        "description": "USDC transaction hash (required when method is usdc)."
+                      },
+                      "chain": {
+                        "type": "string",
+                        "enum": ["base", "base_sepolia", "tempo"],
+                        "default": "base",
+                        "description": "Blockchain chain for USDC payment (default: base)."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "License issued successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "license_key": { "type": "string", "example": "OP-A1B2-C3D4" },
+                        "license_type": { "type": "string", "enum": ["human", "ai", "ai_inference"] },
+                        "license_type_label": { "type": "string", "example": "AI Training" },
+                        "article": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "title": { "type": "string" },
+                            "source_url": { "type": "string", "nullable": true }
+                          }
+                        },
+                        "amount": { "type": "number", "example": 50 },
+                        "currency": { "type": "string", "example": "usd" },
+                        "payment_method": { "type": "string", "enum": ["stripe_pm", "usdc"] },
+                        "status": { "type": "string", "example": "completed" },
+                        "issued_at": { "type": "string", "format": "date-time" },
+                        "verify_url": { "type": "string", "format": "uri" },
+                        "certificate_url": { "type": "string", "format": "uri" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "402": {
+            "description": "Payment failed or requires 3D Secure",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Licensing not enabled for this article",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": {
+            "description": "USDC transaction already used",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "No price set for the requested license type",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/verify-license": {
+      "get": {
+        "operationId": "verifyLicense",
+        "tags": ["Verification"],
+        "summary": "Verify a license key",
+        "description": "Verifies a license key and returns detailed license information including rights, licensee details (partially masked for privacy), blockchain proof, and content metadata. Also logs a license.verified event.",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "description": "License key in format OP-XXXX-XXXX.",
+            "schema": { "type": "string", "pattern": "^OP-.+" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "License verification result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "license_key": { "type": "string" },
+                        "status": { "type": "string", "enum": ["completed", "expired", "pending"] },
+                        "valid": { "type": "boolean" },
+                        "license_type": { "type": "string", "enum": ["human", "ai", "ai_inference", "archive"] },
+                        "license_type_label": { "type": "string" },
+                        "intended_use": { "type": "string", "nullable": true },
+                        "intended_use_label": { "type": "string", "nullable": true },
+                        "rights": { "type": "string", "description": "Human-readable description of the rights granted." },
+                        "licensee": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "type": "string", "nullable": true },
+                            "organization": { "type": "string", "nullable": true },
+                            "email": { "type": "string", "description": "Partially masked email (e.g. al***@gmail.com)." }
+                          }
+                        },
+                        "content": {
+                          "type": "object",
+                          "properties": {
+                            "title": { "type": "string" },
+                            "description": { "type": "string", "nullable": true },
+                            "source_url": { "type": "string", "nullable": true },
+                            "publisher": { "type": "string" }
+                          }
+                        },
+                        "amount": { "type": "number" },
+                        "currency": { "type": "string", "example": "usd" },
+                        "issued_at": { "type": "string", "format": "date-time" },
+                        "valid_from": { "type": "string", "format": "date", "nullable": true },
+                        "valid_until": { "type": "string", "format": "date", "nullable": true },
+                        "is_expired": { "type": "boolean", "description": "Present only for archive licenses." },
+                        "blockchain_proof": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "registered": { "type": "boolean" },
+                            "valid": { "type": "boolean" },
+                            "chain": { "type": "string", "example": "tempo" },
+                            "contract": { "type": "string" },
+                            "explorer_url": { "type": "string", "nullable": true }
+                          }
+                        },
+                        "territory": { "type": "string", "example": "worldwide" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "403": {
+            "description": "License has been revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/registry": {
+      "get": {
+        "operationId": "getRegistry",
+        "tags": ["Verification"],
+        "summary": "Public license registry",
+        "description": "Browse the public registry of issued licenses. Supports filtering by publisher, article, or specific license key. Names are masked for privacy (e.g. 'John Smith' becomes 'J. S.'). Supports both offset and cursor-based pagination.",
+        "parameters": [
+          {
+            "name": "publisher_id",
+            "in": "query",
+            "description": "Filter by publisher UUID.",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "article_id",
+            "in": "query",
+            "description": "Filter by article UUID.",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "license_key",
+            "in": "query",
+            "description": "Look up a specific license key for detailed view.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results (default 25, max 100).",
+            "schema": { "type": "integer", "default": 25, "maximum": 100 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Pagination offset (default 0).",
+            "schema": { "type": "integer", "default": 0 }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "ISO 8601 timestamp cursor for cursor-based pagination. Returns items older than this timestamp.",
+            "schema": { "type": "string", "format": "date-time" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registry entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "description": "Shape varies by query mode (license_key returns detail, others return paginated list)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/publisher-directory": {
+      "get": {
+        "operationId": "getPublisherDirectory",
+        "tags": ["Discovery"],
+        "summary": "Browse publishers",
+        "description": "Lists publishers available on the Opedd platform with their licensing information, pricing, article counts, and sample articles. Supports filtering by category, verification status, and minimum article count.",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by publisher category (case-insensitive substring match).",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "min_articles",
+            "in": "query",
+            "description": "Minimum number of licensable articles (default 0).",
+            "schema": { "type": "integer", "default": 0 }
+          },
+          {
+            "name": "verified",
+            "in": "query",
+            "description": "Only show verified publishers (default false).",
+            "schema": { "type": "string", "enum": ["true", "false"], "default": "false" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum results (default 50, max 200).",
+            "schema": { "type": "integer", "default": 50, "maximum": 200 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Pagination offset (default 0).",
+            "schema": { "type": "integer", "default": 0 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Publisher directory listing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "publishers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid" },
+                              "name": { "type": "string" },
+                              "website_url": { "type": "string", "nullable": true },
+                              "description": { "type": "string", "nullable": true },
+                              "category": { "type": "string", "nullable": true },
+                              "logo_url": { "type": "string", "nullable": true },
+                              "article_count": { "type": "integer" },
+                              "pricing": {
+                                "type": "object",
+                                "properties": {
+                                  "human_per_article": { "type": "number", "nullable": true },
+                                  "ai_per_article": { "type": "number", "nullable": true },
+                                  "ai_annual": { "type": "number", "nullable": true },
+                                  "forward_feed_monthly": { "type": "number", "nullable": true }
+                                }
+                              },
+                              "plan": { "type": "string" },
+                              "created_at": { "type": "string", "format": "date-time" },
+                              "sample_articles": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "title": { "type": "string" },
+                                    "url": { "type": "string" },
+                                    "published_at": { "type": "string", "format": "date-time", "nullable": true }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "total": { "type": "integer" },
+                        "full_count": { "type": "integer" },
+                        "limit": { "type": "integer" },
+                        "offset": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/enterprise-license": {
+      "post": {
+        "operationId": "createEnterpriseLicense",
+        "tags": ["Purchase"],
+        "summary": "Bulk catalog licensing",
+        "description": "Creates a Stripe Subscription for enterprise-grade content licensing across multiple publishers. Supports annual, monthly, or annual-plus-monthly billing. Returns a Stripe client_secret for the buyer to complete payment via Stripe.js.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["buyer_email"],
+                "properties": {
+                  "publisher_ids": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "uuid" },
+                    "description": "Publisher UUIDs to license (required for scope=custom, max 500)."
+                  },
+                  "buyer_email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email of the enterprise buyer."
+                  },
+                  "buyer_name": {
+                    "type": "string",
+                    "description": "Buyer name (optional)."
+                  },
+                  "buyer_org": {
+                    "type": "string",
+                    "description": "Buyer organization (optional)."
+                  },
+                  "duration_months": {
+                    "type": "integer",
+                    "default": 12,
+                    "minimum": 1,
+                    "maximum": 36,
+                    "description": "License duration in months (default 12)."
+                  },
+                  "license_tier": {
+                    "type": "string",
+                    "enum": ["rag", "training", "inference", "full_ai"],
+                    "default": "rag",
+                    "description": "AI license tier."
+                  },
+                  "scope": {
+                    "type": "string",
+                    "enum": ["platform_wide", "custom"],
+                    "default": "custom",
+                    "description": "Licensing scope: platform_wide (all opted-in publishers) or custom (specific publisher_ids)."
+                  },
+                  "billing_type": {
+                    "type": "string",
+                    "enum": ["annual", "monthly", "annual_plus_monthly"],
+                    "default": "annual",
+                    "description": "Billing interval: annual (yearly), monthly, or annual_plus_monthly (archive upfront + monthly forward feed)."
+                  },
+                  "buyer_webhook_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Webhook URL for license activation notifications (optional)."
+                  },
+                  "total_amount_cents": {
+                    "type": "integer",
+                    "description": "Override total amount in cents (required for platform_wide scope)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enterprise subscription created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "client_secret": { "type": "string", "description": "Stripe client_secret for completing payment." },
+                        "subscription_id": { "type": "string" },
+                        "total_amount_cents": { "type": "integer" },
+                        "breakdown": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "publisher_id": { "type": "string", "format": "uuid" },
+                              "publisher_name": { "type": "string" },
+                              "website_url": { "type": "string", "nullable": true },
+                              "amount_cents": { "type": "integer" },
+                              "annual_amount_cents": { "type": "integer" },
+                              "monthly_amount_cents": { "type": "integer" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": {
+            "description": "No eligible publishers or zero total amount",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getEnterpriseFeed",
+        "tags": ["Content"],
+        "summary": "Enterprise licensed content feed",
+        "description": "Paginated feed of licensed content across all publishers covered by an enterprise license. Requires an enterprise access key.",
+        "parameters": [
+          {
+            "name": "access_key",
+            "in": "query",
+            "required": true,
+            "description": "Enterprise access key (ent_xxx).",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Response format (default json).",
+            "schema": { "type": "string", "enum": ["json", "xml"], "default": "json" }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Pagination cursor.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum items per page (default 50).",
+            "schema": { "type": "integer", "default": 50 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Licensed content feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "description": "Paginated content feed with articles from licensed publishers."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/content-delivery": {
+      "get": {
+        "operationId": "getContent",
+        "tags": ["Content"],
+        "summary": "Access article content",
+        "description": "Retrieves the full content of a licensed article. Requires a bearer token: either a buyer token (bk_live_xxx) from an individual purchase, or an enterprise access token (eat_xxx) from an enterprise license. Sandbox enterprise tokens (eat_sandbox_xxx) return truncated content.",
+        "security": [
+          { "BearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "article_id",
+            "in": "query",
+            "required": true,
+            "description": "UUID of the article to retrieve content for.",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "article_id": { "type": "string", "format": "uuid" },
+                        "title": { "type": "string" },
+                        "description": { "type": "string", "nullable": true },
+                        "source_url": { "type": "string" },
+                        "content": { "type": "string", "description": "Full article content (or truncated for sandbox tokens)." },
+                        "content_available": { "type": "boolean" },
+                        "sandbox": { "type": "boolean", "description": "True if using a sandbox token (content is truncated)." }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "operationId": "apiListArticles",
+        "tags": ["Programmatic API"],
+        "summary": "List licensable articles",
+        "description": "Returns a paginated list of licensable articles for the authenticated publisher. Requires X-API-Key header with a valid op_ key.",
+        "security": [
+          { "ApiKeyAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "action",
+            "in": "query",
+            "required": true,
+            "description": "API action to perform.",
+            "schema": { "type": "string", "enum": ["articles"] }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum results (default 50, max 100).",
+            "schema": { "type": "integer", "default": 50, "maximum": 100 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Pagination offset (default 0).",
+            "schema": { "type": "integer", "default": 0 }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by license type availability.",
+            "schema": { "type": "string", "enum": ["human", "ai"] }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article listing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "articles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid" },
+                              "title": { "type": "string" },
+                              "description": { "type": "string", "nullable": true },
+                              "source_url": { "type": "string" },
+                              "pricing": {
+                                "type": "object",
+                                "properties": {
+                                  "human": {
+                                    "type": "object",
+                                    "nullable": true,
+                                    "properties": {
+                                      "price": { "type": "number" },
+                                      "currency": { "type": "string", "example": "usd" }
+                                    }
+                                  },
+                                  "ai": {
+                                    "type": "object",
+                                    "nullable": true,
+                                    "properties": {
+                                      "price": { "type": "number" },
+                                      "currency": { "type": "string", "example": "usd" }
+                                    }
+                                  }
+                                }
+                              },
+                              "stats": {
+                                "type": "object",
+                                "properties": {
+                                  "human_licenses_sold": { "type": "integer" },
+                                  "ai_licenses_sold": { "type": "integer" }
+                                }
+                              },
+                              "created_at": { "type": "string", "format": "date-time" }
+                            }
+                          }
+                        },
+                        "total": { "type": "integer" },
+                        "limit": { "type": "integer" },
+                        "offset": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "operationId": "apiPurchase",
+        "tags": ["Programmatic API"],
+        "summary": "Programmatic license purchase",
+        "description": "Purchase a license for an article owned by the authenticated publisher. The article must belong to the publisher identified by the API key. Payment is handled server-side (no Stripe redirect).",
+        "security": [
+          { "ApiKeyAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "action",
+            "in": "query",
+            "required": true,
+            "description": "API action to perform.",
+            "schema": { "type": "string", "enum": ["purchase"] }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["article_id", "license_type", "buyer_email"],
+                "properties": {
+                  "article_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "UUID of the article to license."
+                  },
+                  "license_type": {
+                    "type": "string",
+                    "enum": ["human", "ai", "ai_inference"],
+                    "description": "Type of license to purchase."
+                  },
+                  "buyer_email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Buyer's email address."
+                  },
+                  "buyer_name": {
+                    "type": "string",
+                    "description": "Buyer name (optional)."
+                  },
+                  "buyer_organization": {
+                    "type": "string",
+                    "description": "Buyer organization (optional)."
+                  },
+                  "intended_use": {
+                    "type": "string",
+                    "enum": ["personal", "editorial", "commercial", "ai_training", "corporate"],
+                    "description": "Intended use of the content (optional)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "License issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "license_key": { "type": "string" },
+                        "license_type": { "type": "string" },
+                        "article_id": { "type": "string", "format": "uuid" },
+                        "amount": { "type": "number" },
+                        "currency": { "type": "string", "example": "usd" },
+                        "status": { "type": "string", "example": "completed" },
+                        "verify_url": { "type": "string", "format": "uri" },
+                        "certificate_url": { "type": "string", "format": "uri" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Publisher API key (format: op_xxx). Obtain from publisher settings."
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Bearer token: buyer token (bk_live_xxx) or enterprise access token (eat_xxx)."
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": { "type": "string", "description": "Human-readable error message." }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request — missing or invalid parameters",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentication required or invalid credentials",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      }
+    }
+  }
+}
