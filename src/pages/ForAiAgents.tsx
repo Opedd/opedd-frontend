@@ -170,8 +170,8 @@ export default function ForAiAgents() {
       {/* Hero */}
       <section className="bg-[#040042] pt-32 pb-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-[#4A26ED]/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-[#7C3AED]/10 rounded-full blur-[100px]" />
+          <div className="absolute top-1/4 right-1/4 w-full max-w-[600px] h-[600px] bg-[#4A26ED]/15 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-1/3 w-full max-w-[400px] h-[400px] bg-[#7C3AED]/10 rounded-full blur-[100px]" />
         </div>
         <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-4xl">
           <motion.div initial="hidden" animate="visible" className="text-center space-y-6">
