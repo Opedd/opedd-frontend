@@ -418,7 +418,7 @@ export default function ForAiAgents() {
                 Every license Opedd issues — human, AI, archive — is registered on the <span className="text-white/80">OpeddRegistry smart contract</span> deployed on Tempo. Verify any license key on-chain, independently of Opedd's infrastructure.
               </p>
               <div className="flex items-center gap-3 pt-1">
-                <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg">
+                <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg break-all">
                   0x7c3830c22cb7dd0742f0da38b9f1403aee1f50ad
                 </code>
               </div>
