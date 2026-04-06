@@ -1,4 +1,5 @@
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import SEO from "@/components/SEO";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import EditorialBreakSection from "@/components/EditorialBreakSection";
@@ -14,6 +15,11 @@ const Index = () => {
   useDocumentTitle("Opedd — The Stripe for Content Licensing");
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Opedd — The Stripe for Content Licensing"
+        description="Programmatic content licensing for publishers and AI companies. Set prices, issue verifiable licenses, get paid via Stripe."
+        path="/"
+      />
       <Header />
       <main>
         <HeroSection />

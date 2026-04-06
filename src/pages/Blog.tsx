@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { blogPosts } from "@/data/blogPosts";
 import Header from "@/components/Header";
@@ -14,6 +15,11 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
+      <SEO
+        title="Blog — Opedd"
+        description="Insights on content licensing, publisher monetization, and the future of AI-powered media."
+        path="/blog"
+      />
       <Header />
 
       {/* Hero */}

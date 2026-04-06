@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Search, ExternalLink, FileText, Award, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,11 @@ export default function Publishers() {
 
   return (
     <div className="min-h-screen bg-[#040042] text-white">
+      <SEO
+        title="Publisher Directory — Opedd"
+        description="Browse verified publishers licensing their content through Opedd."
+        path="/publishers"
+      />
       <Header />
 
       {/* Hero */}

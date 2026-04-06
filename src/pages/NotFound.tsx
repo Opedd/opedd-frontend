@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import SEO from "@/components/SEO";
 import { useEffect } from "react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +17,7 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen bg-[#F2F9FF] flex flex-col">
+      <SEO title="Page Not Found — Opedd" path="/404" noindex />
       <header className="bg-white border-b border-[#E8F2FB]">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/">

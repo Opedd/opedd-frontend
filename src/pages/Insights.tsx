@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   TrendingUp, FileCheck, Sparkles, User, Loader2, BarChart3, AlertTriangle,
@@ -70,6 +71,7 @@ export default function Insights() {
   if (isLoading) {
     return (
       <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
+        <SEO title="Analytics — Opedd" path="/insights" noindex />
         <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
           {/* Metric card skeletons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -129,6 +131,7 @@ export default function Insights() {
 
   return (
     <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
+      <SEO title="Analytics — Opedd" path="/insights" noindex />
       <motion.div className="p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
 
         {/* Error state */}

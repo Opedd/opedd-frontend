@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Link } from "react-router-dom";
 import {
@@ -531,6 +532,7 @@ export default function Licensing() {
 
   return (
     <DashboardLayout title="Licensing">
+      <SEO title="Licensing — Opedd" path="/licensing" noindex />
       <PublicationGate
         isVerified={profile?.publication_verified ?? false}
         pendingSources={profile?.pending_sources ?? []}

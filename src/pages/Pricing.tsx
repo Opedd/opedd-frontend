@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SEO from "@/components/SEO";
 import { useNavigate } from "react-router-dom";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,6 +67,11 @@ export default function Pricing() {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="min-h-screen bg-white">
+        <SEO
+          title="Opedd Pricing — Free to Start, Scale as You Grow"
+          description="Start free with 500 articles. Pro at $79/mo for unlimited. Enterprise at $249/mo with 5% fees."
+          path="/pricing"
+        />
         <Header />
 
         {/* ── Hero ── */}
