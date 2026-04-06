@@ -13,6 +13,12 @@ Sentry.init({
   tracesSampleRate: 0.1,
   replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 1.0,
+  // Don't report errors from Lovable preview environments
+  beforeSend(event) {
+    const url = event.request?.url || "";
+    if (url.includes("lovable.app")) return null;
+    return event;
+  },
 });
 
 createRoot(document.getElementById("root")!).render(<App />);
