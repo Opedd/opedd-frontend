@@ -1,41 +1,42 @@
-# Opedd
+# Opedd — Programmatic Content Licensing Infrastructure
 
-> The licensing protocol for content in the age of AI. Publishers set prices, buyers get cryptographically-signed license keys, every transaction recorded on-chain.
+> Opedd is the licensing infrastructure for the AI age. Publishers set prices, issue verifiable license keys, and get paid automatically. AI labs discover, purchase, and verify content licenses via API.
 
-Opedd is infrastructure for content licensing — not a marketplace. Think Stripe, but for licensing rights to articles, datasets, and archives. Publishers embed a widget or API; buyers (human or AI) pay and instantly receive a license key (format: OP-XXXX-XXXX) with on-chain proof on Base (Coinbase L2).
+## Core API Endpoints
 
-## What Opedd does
+- [License Discovery](https://djdzcciayennqchjgybx.supabase.co/functions/v1/license-discovery): Machine-readable licensing manifest (opedd.json format)
+- [Agent Purchase](https://djdzcciayennqchjgybx.supabase.co/functions/v1/agent-purchase): Autonomous license purchase with Stripe or USDC payment
+- [Verify License](https://djdzcciayennqchjgybx.supabase.co/functions/v1/verify-license): Verify any license key with on-chain proof
+- [Lookup Article](https://djdzcciayennqchjgybx.supabase.co/functions/v1/lookup-article): Resolve article pricing by URL
+- [Registry](https://djdzcciayennqchjgybx.supabase.co/functions/v1/registry): Public registry of all issued licenses
+- [Content Delivery](https://djdzcciayennqchjgybx.supabase.co/functions/v1/content-delivery): Access full article content with bearer token
+- [Enterprise License](https://djdzcciayennqchjgybx.supabase.co/functions/v1/enterprise-license): Bulk catalog licensing for AI labs
+- [Publisher Directory](https://djdzcciayennqchjgybx.supabase.co/functions/v1/publisher-directory): Browse all available publishers
 
-- Lets publishers monetize articles and archive bundles for human republication, AI training, and AI inference/RAG use cases
-- Issues cryptographically-verifiable license keys with blockchain proof
-- Integrates via embeddable JavaScript widget, REST API, or MCP server (for AI agents)
-- Handles Stripe payments, PDF invoicing, webhook notifications, and certificate generation
+## License Types
 
-## Who uses it
+- **Human**: Editorial reuse, republication, citations
+- **AI Training**: Training or fine-tuning language models
+- **AI Inference**: RAG, retrieval, summarization, real-time AI outputs
+- **Archive**: Full publisher catalog access (annual subscription)
 
-- Publishers: news organizations, independent journalists, newsletters, data providers
-- Buyers: AI companies licensing training data, media organizations, enterprise research teams, AI agents
+## Payment Methods
 
-## License types
+- Stripe (Card, ACH/US bank account)
+- USDC on Tempo blockchain
 
-- human: republication and editorial rights
-- ai: AI training dataset rights
-- ai_inference: RAG and inference rights
-- archive: site license covering all content from a publisher within a date range
+## On-Chain Verification
 
-## Key public endpoints
+Every license is registered on the Tempo blockchain (OpeddRegistry.sol). Verify at: https://explore.tempo.xyz
 
-- GET /lookup-article?url={url} — check if content is licensed and get pricing
-- POST /agent-purchase — purchase a license programmatically with Stripe or USDC
-- GET /verify-license?key={key} — verify a license key (returns blockchain proof)
-- GET /registry — browse the public license registry
+## Quick Start (3 API calls)
 
-## MCP server
+1. Discover: GET /license-discovery?publisher_id={id}
+2. Purchase: POST /agent-purchase { article_id, license_type, buyer_email, payment }
+3. Verify: GET /verify-license?key={license_key}
 
-npx opedd-mcp — lets AI assistants discover, purchase, and verify licenses mid-conversation
-
-## Links
+## Documentation
 
 - Website: https://opedd.com
-- MCP server: https://npmjs.com/package/opedd-mcp
-- GitHub: https://github.com/Opedd
+- For AI Agents: https://opedd.com/for-ai-agents
+- Pricing: https://opedd.com/pricing
