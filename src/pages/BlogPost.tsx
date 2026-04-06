@@ -16,35 +16,6 @@ const BlogPost = () => {
 
   useDocumentTitle(post ? `${post.title} | Opedd Blog` : "Not Found | Opedd");
 
-  // Set meta tags
-  useEffect(() => {
-    if (!post) return;
-    const url = `https://opedd.com/blog/${post.slug}`;
-
-    const setMeta = (prop: string, content: string) => {
-      let el = document.querySelector(`meta[property="${prop}"]`) || document.querySelector(`meta[name="${prop}"]`);
-      if (!el) {
-        el = document.createElement("meta");
-        if (prop.startsWith("og:") || prop.startsWith("twitter:")) {
-          el.setAttribute(prop.startsWith("og:") ? "property" : "name", prop);
-        }
-        document.head.appendChild(el);
-      }
-      el.setAttribute("content", content);
-    };
-
-    setMeta("description", post.preview);
-    setMeta("og:title", post.title);
-    setMeta("og:description", post.preview);
-    setMeta("og:image", post.ogImage);
-    setMeta("og:url", url);
-    setMeta("og:type", "article");
-    setMeta("twitter:card", "summary_large_image");
-    setMeta("twitter:title", post.title);
-    setMeta("twitter:description", post.preview);
-    setMeta("twitter:image", post.ogImage);
-  }, [post]);
-
   if (!post) return <Navigate to="/blog" replace />;
 
   const otherPosts = blogPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
