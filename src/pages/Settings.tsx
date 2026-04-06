@@ -859,6 +859,7 @@ export default function Settings() {
 
   return (
     <DashboardLayout title="Settings">
+        <SEO title="Settings — Opedd" path="/settings" noindex />
         <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
           {/* Save feedback banners */}
           <AnimatePresence>

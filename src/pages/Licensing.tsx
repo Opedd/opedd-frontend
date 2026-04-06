@@ -532,6 +532,7 @@ export default function Licensing() {
 
   return (
     <DashboardLayout title="Licensing">
+      <SEO title="Licensing — Opedd" path="/licensing" noindex />
       <PublicationGate
         isVerified={profile?.publication_verified ?? false}
         pendingSources={profile?.pending_sources ?? []}

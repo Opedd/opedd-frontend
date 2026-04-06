@@ -67,6 +67,11 @@ export default function Pricing() {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="min-h-screen bg-white">
+        <SEO
+          title="Opedd Pricing — Free to Start, Scale as You Grow"
+          description="Start free with 500 articles. Pro at $79/mo for unlimited. Enterprise at $249/mo with 5% fees."
+          path="/pricing"
+        />
         <Header />
 
         {/* ── Hero ── */}

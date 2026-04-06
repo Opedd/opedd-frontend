@@ -7,6 +7,11 @@ export default function Terms() {
   useDocumentTitle("Terms of Service — Opedd");
   return (
     <div className="min-h-screen bg-[#F2F9FF]">
+      <SEO
+        title="Terms of Service — Opedd"
+        description="Read the Opedd terms of service governing use of the content licensing platform."
+        path="/terms"
+      />
       <header className="bg-white border-b border-[#E8F2FB] sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/">

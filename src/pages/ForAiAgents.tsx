@@ -160,6 +160,11 @@ export default function ForAiAgents() {
   useDocumentTitle("For AI Agents — Opedd");
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
+      <SEO
+        title="Opedd for AI Agents — Content Licensing API"
+        description="Discover, purchase, and verify content licenses via API. Native MCP server for Claude and Cursor."
+        path="/for-ai-agents"
+      />
       <Header />
 
       {/* Hero */}

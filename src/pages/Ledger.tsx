@@ -304,6 +304,7 @@ export default function Ledger() {
 
   return (
     <DashboardLayout title="Buyers" subtitle="License agreements and buyer transactions">
+      <SEO title="Buyers — Opedd" path="/ledger" noindex />
       <motion.div className="p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
         <motion.div className="flex items-center justify-between" variants={itemVariants}>
           <div>

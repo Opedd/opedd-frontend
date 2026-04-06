@@ -40,6 +40,11 @@ const Guides = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Integration Guides — Opedd"
+        description="Step-by-step guides to connect Opedd with WordPress, Ghost, Substack, and Beehiiv."
+        path="/guides"
+      />
       <Header />
       <main className="pt-32 pb-20">
         <div className="container mx-auto px-4 max-w-4xl">

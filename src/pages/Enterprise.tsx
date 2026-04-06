@@ -156,6 +156,11 @@ export default function Enterprise() {
 
   return (
     <div className="min-h-screen bg-navy-deep">
+      <SEO
+        title="Enterprise Content Licensing — Opedd"
+        description="License content at scale. Bulk API access, dedicated support, and custom pricing for enterprises."
+        path="/enterprise"
+      />
       <Header />
 
       {/* ══ HERO ══ */}

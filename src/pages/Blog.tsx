@@ -15,6 +15,11 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
+      <SEO
+        title="Blog — Opedd"
+        description="Insights on content licensing, publisher monetization, and the future of AI-powered media."
+        path="/blog"
+      />
       <Header />
 
       {/* Hero */}

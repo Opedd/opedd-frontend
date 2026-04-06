@@ -339,6 +339,7 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex">
+      <SEO title="Create Account — Opedd" path="/signup" noindex />
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-[40%] flex-col justify-between p-12 bg-[#040042]">
         <Link to="/">

@@ -64,6 +64,11 @@ export default function Status() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      <SEO
+        title="System Status — Opedd"
+        description="Check the current operational status of Opedd services, API, and infrastructure."
+        path="/status"
+      />
       {/* Header */}
       <header className="border-b py-6">
         <div className="container mx-auto px-4 flex items-center justify-between">
