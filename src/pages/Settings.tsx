@@ -1176,8 +1176,58 @@ export default function Settings() {
                         {isSaving ? <><Loader2 size={16} className="animate-spin mr-2" />Saving...</> : "Save Changes"}
                       </Button>
 
-                      {/* Danger Zone */}
+                      {/* Data Export */}
                       <div className="mt-10 pt-8 border-t border-slate-200">
+                        <div className="border border-slate-200 rounded-xl p-6 bg-white">
+                          <h2 className="text-lg font-bold text-[#040042] mb-1">Export your data</h2>
+                          <p className="text-sm text-[#6B7280] mb-4">
+                            Download all your articles, transactions, webhook deliveries, team, and profile as JSON or CSV. Limited to 5 exports per day.
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={async () => {
+                                const token = await getAccessToken();
+                                const url = `${EXT_SUPABASE_URL}/export-data?format=json`;
+                                const res = await fetch(url, { headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` } });
+                                if (!res.ok) {
+                                  toast({ title: "Export failed", description: (await res.json().catch(() => ({}))).error || res.statusText, variant: "destructive" });
+                                  return;
+                                }
+                                const blob = await res.blob();
+                                const a = document.createElement("a");
+                                a.href = URL.createObjectURL(blob);
+                                a.download = `opedd-export-${new Date().toISOString().slice(0, 10)}.json`;
+                                a.click();
+                                URL.revokeObjectURL(a.href);
+                                toast({ title: "Export downloaded" });
+                              }}
+                            >Download JSON</Button>
+                            <Button
+                              variant="outline"
+                              onClick={async () => {
+                                const token = await getAccessToken();
+                                const url = `${EXT_SUPABASE_URL}/export-data?format=csv`;
+                                const res = await fetch(url, { headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` } });
+                                if (!res.ok) {
+                                  toast({ title: "Export failed", description: (await res.json().catch(() => ({}))).error || res.statusText, variant: "destructive" });
+                                  return;
+                                }
+                                const blob = await res.blob();
+                                const a = document.createElement("a");
+                                a.href = URL.createObjectURL(blob);
+                                a.download = `opedd-export-${new Date().toISOString().slice(0, 10)}.csv`;
+                                a.click();
+                                URL.revokeObjectURL(a.href);
+                                toast({ title: "Export downloaded" });
+                              }}
+                            >Download CSV</Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Danger Zone */}
+                      <div className="mt-6">
                         <div className="border border-red-300 rounded-xl p-6 bg-white">
                           <h2 className="text-lg font-bold text-red-600 mb-1">Delete Account</h2>
                           <p className="text-sm text-[#6B7280] mb-4">

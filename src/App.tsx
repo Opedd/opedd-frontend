@@ -60,6 +60,7 @@ const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const WidgetPreview = lazy(() => import("./pages/WidgetPreview"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Dmca = lazy(() => import("./pages/Dmca"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -126,6 +127,7 @@ const App = () => (
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                <Route path="/dmca" element={<Dmca />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
