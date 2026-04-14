@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 function DashboardSkeleton() {
   return (
     <div className="flex h-screen bg-[#F7F8FA] overflow-hidden">
-      {/* Sidebar skeleton */}
       <aside className="hidden lg:flex w-[220px] bg-white border-r border-[#E5E7EB] flex-col shrink-0">
         <div className="h-14 flex items-center px-5 border-b border-[#E5E7EB]">
           <div className="h-7 w-24 bg-[#E5E7EB] rounded animate-pulse" />
@@ -18,10 +17,7 @@ function DashboardSkeleton() {
           ))}
         </nav>
       </aside>
-
-      {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar skeleton */}
         <header className="h-14 flex items-center justify-between px-6 border-b border-[#E5E7EB] bg-white">
           <div className="h-4 w-28 bg-[#E5E7EB] rounded animate-pulse" />
           <div className="flex items-center gap-3">
@@ -29,8 +25,6 @@ function DashboardSkeleton() {
             <div className="w-9 h-9 bg-[#E5E7EB] rounded-full animate-pulse" />
           </div>
         </header>
-
-        {/* Content skeleton */}
         <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 min-h-[120px]">
@@ -56,7 +50,13 @@ function DashboardSkeleton() {
   );
 }
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export function ProtectedRoute({
+  children,
+  requireAdmin = false,
+}: {
+  children: React.ReactNode;
+  requireAdmin?: boolean;
+}) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -65,6 +65,14 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requireAdmin) {
+    const ADMIN_EMAIL = "alexandre.n.bridi@gmail.com";
+    const isAdmin = user.email === ADMIN_EMAIL;
+    if (!isAdmin) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;

@@ -165,8 +165,18 @@ export default function LicensePublicCheckout() {
         });
         const result = await res.json();
         if (!res.ok || !result.success) throw new Error(result.error || "Checkout creation failed");
-        if (!result.data?.checkout_url) throw new Error("Invalid checkout response");
-        window.location.href = result.data.checkout_url;
+        const checkoutUrl = result.data?.checkout_url;
+        if (!checkoutUrl || typeof checkoutUrl !== "string") throw new Error("Invalid checkout response");
+        // Guard against open-redirect / malformed response — Stripe Checkout lives on stripe.com
+        try {
+          const parsed = new URL(checkoutUrl);
+          if (parsed.protocol !== "https:" || !parsed.hostname.endsWith("stripe.com")) {
+            throw new Error("Unexpected checkout host");
+          }
+        } catch {
+          throw new Error("Invalid checkout URL");
+        }
+        window.location.href = checkoutUrl;
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
