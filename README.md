@@ -1,73 +1,53 @@
-# Welcome to your Lovable project
+# Opedd Frontend
 
-## Project info
+Publisher dashboard and marketing site for [Opedd](https://opedd.com) — the programmatic content licensing protocol for the human and AI era.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Stack
 
-## How can I edit this code?
+- React 18 + Vite + TypeScript
+- Tailwind CSS + shadcn/ui components
+- Supabase (auth + data) via Edge Functions
+- Stripe Checkout (subscriptions + per-article licenses)
+- Playwright E2E + Vitest unit tests
+- Deployed via Lovable → Vercel. Main is production.
 
-There are several ways of editing your application.
+## Local development
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+npm install
+cp .env.example .env.local  # fill in values
+npm run dev                 # http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+## Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run dev          # Start Vite dev server with hot reload
+npm run build        # Production build → dist/
+npm run preview      # Serve built bundle locally
+npm run lint         # ESLint
+npm run test         # Vitest unit tests
+npm run test:e2e     # Playwright E2E suite
+```
 
-**Use GitHub Codespaces**
+## Pricing architecture
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+All plan pricing is fetched from `GET /functions/v1/plans` via the `usePlans()` hook (see `src/hooks/usePlans.ts`). **Do not hardcode subscription prices** (`$39`, `$99`, etc.) in components — the hook provides them with a localStorage fallback cache. Source of truth lives in the backend `_shared/pricing.ts`. See [PR #1](https://github.com/Opedd/opedd-frontend/pull/1) for the rationale.
 
-## What technologies are used for this project?
+## Backend
 
-This project is built with:
+Edge Functions + database live in the [opedd-backend](https://github.com/Opedd/opedd-backend) repo. API calls go through `src/lib/api.ts` which proxies through the `api-proxy` edge function.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Key files
 
-## How can I deploy this project?
+- `src/App.tsx` — routing, lazy-loaded marketing pages
+- `src/contexts/AuthContext.tsx` — Supabase auth + session refresh
+- `src/hooks/usePlans.ts` — subscription plan catalog from backend
+- `src/components/auth/ProtectedRoute.tsx` — auth gate (`requireAdmin` flag for admin routes)
+- `src/lib/api.ts` — fetch wrapper with auth token injection
+- `tailwind.config.ts` — brand tokens: `oxford` (#4A26ED), `navy.deep` (#040042), `plum.magenta` (#D1009A)
+- `playwright.config.ts` — E2E settings (serial, single worker, 25min timeout)
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Deploying
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+CI is the sole deploy path — Vercel git integration is disabled. Every push to main runs `.github/workflows/e2e-tests.yml`, which builds, runs Playwright, and only then deploys to Vercel production. PRs trigger the same E2E suite as a gate but don't deploy.

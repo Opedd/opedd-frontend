@@ -23,6 +23,20 @@ export function formatDate(dateStr: string | null | undefined): string | null {
 }
 
 /**
+ * Extract the numeric value from a plan-price display string.
+ * Examples: "$39" → 39, "$374/year" → 374, "$31" → 31.
+ * Returns `fallback` if parsing fails.
+ *
+ * Used by Pricing.tsx / Settings.tsx / Ledger.tsx to derive numbers from the
+ * `monthly_display` / `annual_total_display` strings returned by /plans.
+ */
+export function parsePriceDisplay(display: string | undefined | null, fallback: number): number {
+  if (!display) return fallback;
+  const num = Number(display.replace(/[^0-9.]/g, ""));
+  return Number.isFinite(num) && num > 0 ? num : fallback;
+}
+
+/**
  * Decode HTML entities and URL-encoded characters from article text.
  * Handles &amp; &#39; %21 %26 etc.
  */

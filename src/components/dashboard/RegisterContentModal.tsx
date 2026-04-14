@@ -136,7 +136,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           .select("id")
           .eq("user_id", user.id)
           .eq("sync_status", "active")
-          .then(({ data }) => {
+          .then(({ data }: { data: { id: string }[] | null }) => {
             setHasActiveIntegrations((data?.length || 0) > 0);
             setIntegrationsLoading(false);
           });
