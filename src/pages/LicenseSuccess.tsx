@@ -82,6 +82,8 @@ export default function LicenseSuccess() {
         setLoading(false);
         return result.data.processing_timeout ? "timeout" : result.data.status;
       }
+      setLoading(false);
+      return "unknown";
     } catch {
       setData({ status: "failed" });
       setLoading(false);

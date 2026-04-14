@@ -5,6 +5,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL } from "@/lib/constants";
 import { usePlans, getPlan } from "@/hooks/usePlans";
+import { parsePriceDisplay } from "@/lib/utils";
 import { Check, Minus, X, Newspaper, Bot, Briefcase, Info } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -63,12 +64,12 @@ export default function Pricing() {
   const { data: plansData } = usePlans();
   const proPlan = getPlan(plansData, "pro");
   const entPlan = getPlan(plansData, "enterprise");
-  const proMonthly = Number((proPlan?.monthly_display || "$39").replace(/[^0-9.]/g, "")) || 39;
-  const proAnnualTotal = Number((proPlan?.annual_total_display || "$374").replace(/[^0-9.]/g, "")) || 374;
-  const proAnnual = Number((proPlan?.annual_equivalent_display || "$31").replace(/[^0-9.]/g, "")) || 31;
-  const entMonthly = Number((entPlan?.monthly_display || "$99").replace(/[^0-9.]/g, "")) || 99;
-  const entAnnualTotal = Number((entPlan?.annual_total_display || "$950").replace(/[^0-9.]/g, "")) || 950;
-  const entAnnual = Number((entPlan?.annual_equivalent_display || "$79").replace(/[^0-9.]/g, "")) || 79;
+  const proMonthly = parsePriceDisplay(proPlan?.monthly_display, 39);
+  const proAnnualTotal = parsePriceDisplay(proPlan?.annual_total_display, 374);
+  const proAnnual = parsePriceDisplay(proPlan?.annual_equivalent_display, 31);
+  const entMonthly = parsePriceDisplay(entPlan?.monthly_display, 99);
+  const entAnnualTotal = parsePriceDisplay(entPlan?.annual_total_display, 950);
+  const entAnnual = parsePriceDisplay(entPlan?.annual_equivalent_display, 79);
 
   return (
     <TooltipProvider delayDuration={150}>

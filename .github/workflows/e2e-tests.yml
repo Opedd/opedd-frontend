@@ -44,6 +44,19 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      # ── 3a. TypeScript typecheck ────────────────────────────────────────────
+      # Catches type errors before running the heavy Playwright suite.
+      - name: Typecheck
+        run: npx tsc --noEmit --project tsconfig.app.json
+
+      # ── 3b. Lint ────────────────────────────────────────────────────────────
+      - name: Lint
+        run: npm run lint
+
+      # ── 3c. Unit tests ──────────────────────────────────────────────────────
+      - name: Unit tests
+        run: npm test
+
       # ── 4. Playwright browsers ───────────────────────────────────────────────
       # Only installs Chromium (the one project in playwright.config.ts).
       # --with-deps installs the OS-level shared libs (libnss, libgbm, etc.)
