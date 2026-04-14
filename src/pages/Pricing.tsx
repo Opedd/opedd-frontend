@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL } from "@/lib/constants";
+import { usePlans, getPlan } from "@/hooks/usePlans";
 import { Check, Minus, X, Newspaper, Bot, Briefcase, Info } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -59,17 +60,22 @@ export default function Pricing() {
     }
   };
 
-  const proMonthly = 49;
-  const proAnnual = Math.round(470 / 12);   // ~$39/mo
-  const entMonthly = 199;
-  const entAnnual = Math.round(1910 / 12);  // ~$159/mo
+  const { data: plansData } = usePlans();
+  const proPlan = getPlan(plansData, "pro");
+  const entPlan = getPlan(plansData, "enterprise");
+  const proMonthly = Number((proPlan?.monthly_display || "$39").replace(/[^0-9.]/g, "")) || 39;
+  const proAnnualTotal = Number((proPlan?.annual_total_display || "$374").replace(/[^0-9.]/g, "")) || 374;
+  const proAnnual = Number((proPlan?.annual_equivalent_display || "$31").replace(/[^0-9.]/g, "")) || 31;
+  const entMonthly = Number((entPlan?.monthly_display || "$99").replace(/[^0-9.]/g, "")) || 99;
+  const entAnnualTotal = Number((entPlan?.annual_total_display || "$950").replace(/[^0-9.]/g, "")) || 950;
+  const entAnnual = Number((entPlan?.annual_equivalent_display || "$79").replace(/[^0-9.]/g, "")) || 79;
 
   return (
     <TooltipProvider delayDuration={150}>
       <div className="min-h-screen bg-white">
         <SEO
-          title="Opedd Pricing — Free to Start, Scale as You Grow"
-          description="Start free with 500 articles. Pro at $79/mo for unlimited. Enterprise at $249/mo with 5% fees."
+          title="Opedd Pricing - Free to Start, Scale as You Grow"
+          description="Start free with 500 articles. Pro at $39/mo for unlimited. Enterprise at $99/mo with 5% fees."
           path="/pricing"
         />
         <Header />
@@ -164,7 +170,7 @@ export default function Pricing() {
                 className="text-xs mb-1 transition-opacity duration-150"
                 style={{ color: "#6B7280", visibility: billing === "annually" ? "visible" : "hidden" }}
               >
-                Billed $470/year — save $118
+                Billed ${proAnnualTotal}/year - save ${proMonthly * 12 - proAnnualTotal}
               </p>
               <p className="text-sm mb-4" style={{ color: "#6B7280" }}>For serious writers & newsletters</p>
               <div className="flex items-center gap-1.5 mb-2">
@@ -202,7 +208,7 @@ export default function Pricing() {
                 className="text-xs mb-1 transition-opacity duration-150"
                 style={{ color: "rgba(255,255,255,0.6)", visibility: billing === "annually" ? "visible" : "hidden" }}
               >
-                Billed $1,910/year — save $478
+                Billed ${entAnnualTotal}/year - save ${entMonthly * 12 - entAnnualTotal}
               </p>
               <p className="text-sm text-white/60 mb-4">For media teams & publications</p>
               <div className="flex items-center gap-1.5 mb-2">
@@ -292,8 +298,8 @@ export default function Pricing() {
                 <tr className="border-b text-left" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                   <th className="pb-3 pr-4 font-medium text-white/50">Monthly licensing revenue</th>
                   <th className="pb-3 px-4 font-medium text-white/50">Free (15% fee)</th>
-                  <th className="pb-3 px-4 font-medium text-white/50">Pro ($49 + 9%)</th>
-                  <th className="pb-3 pl-4 font-medium text-white/50">Enterprise ($199 + 5%)</th>
+                  <th className="pb-3 px-4 font-medium text-white/50">Pro (${proMonthly} + {proPlan?.platform_fee_display || "9%"})</th>
+                  <th className="pb-3 pl-4 font-medium text-white/50">Enterprise (${entMonthly} + {entPlan?.platform_fee_display || "5%"})</th>
                 </tr>
               </thead>
               <tbody>
@@ -435,13 +441,14 @@ const enterpriseFeatures: Feature[] = [
   { t: "99.9% SLA", ok: true },
 ];
 
-// Math rows recalculated: Free 15%, Pro $49+9%, Enterprise $199+5%
+// Math rows recalculated: Free 15%, Pro $39 + 9%, Enterprise $99 + 5%
+// "total" = monthly subscription + variable platform fee on this month's sales
 const mathRows = [
-  { sales: "$500",    free: "$75 in fees",    pro: "$94 total",    proWin: false, ent: "$224 total",   entWin: false },
-  { sales: "$1,000",  free: "$150 in fees",   pro: "$139 total",   proWin: true,  ent: "$249 total",   entWin: false },
-  { sales: "$5,000",  free: "$750 in fees",   pro: "$499 total",   proWin: true,  ent: "$449 total",   entWin: true  },
-  { sales: "$20,000", free: "$3,000 in fees", pro: "$1,849 total", proWin: true,  ent: "$1,199 total", entWin: true  },
-  { sales: "$50,000", free: "$7,500 in fees", pro: "$4,549 total", proWin: true,  ent: "$2,699 total", entWin: true  },
+  { sales: "$500",    free: "$75 in fees",    pro: "$84 total",    proWin: false, ent: "$124 total",   entWin: false },
+  { sales: "$1,000",  free: "$150 in fees",   pro: "$129 total",   proWin: true,  ent: "$149 total",   entWin: false },
+  { sales: "$5,000",  free: "$750 in fees",   pro: "$489 total",   proWin: true,  ent: "$349 total",   entWin: true  },
+  { sales: "$20,000", free: "$3,000 in fees", pro: "$1,839 total", proWin: true,  ent: "$1,099 total", entWin: true  },
+  { sales: "$50,000", free: "$7,500 in fees", pro: "$4,539 total", proWin: true,  ent: "$2,599 total", entWin: true  },
 ];
 
 const faqs = [

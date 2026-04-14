@@ -17,6 +17,7 @@ import { Handshake, Loader2, CheckCircle2, Copy, Download, ExternalLink, Zap } f
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { usePlans, getPlan } from "@/hooks/usePlans";
 import { format } from "date-fns";
 
 interface IssueArchiveLicenseModalProps {
@@ -29,6 +30,8 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
 
+  const { data: plansData } = usePlans();
+  const proDisplay = getPlan(plansData, "pro")?.monthly_display || "$39";
   const [publisherPlan, setPublisherPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
@@ -231,7 +234,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               {isUpgrading ? (
                 <><Loader2 size={16} className="mr-2 animate-spin" />Preparing checkout...</>
               ) : (
-                <><Zap size={16} className="mr-2" />Upgrade to Pro — $49/mo</>
+                <><Zap size={16} className="mr-2" />Upgrade to Pro - {proDisplay}/mo</>
               )}
             </Button>
             <button onClick={handleClose} className="text-sm text-slate-400 hover:text-slate-600 w-full">

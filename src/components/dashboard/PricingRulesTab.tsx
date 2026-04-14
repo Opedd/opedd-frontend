@@ -50,7 +50,7 @@ export function PricingRulesTab() {
           setProfileId(d.id);
           setExcludedPatterns(d.excluded_url_patterns || []);
           setDefaultHumanPrice(d.default_human_price != null ? String(d.default_human_price) : "5.00");
-          setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "10.00");
+          setDefaultAiPrice(d.default_ai_price != null ? String(d.default_ai_price) : "25.00");
           const cats = (d.pricing_rules as any)?.categories || {};
           const catArray = Object.entries(cats).map(([category, prices]: [string, any]) => ({
             category,
