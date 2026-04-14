@@ -92,23 +92,30 @@ export default function LicenseSuccess() {
   useEffect(() => {
     if (!sessionId) { setLoading(false); return; }
     startRef.current = Date.now();
-    const poll = async () => {
-      const status = await fetchStatus();
-      if (status === "pending") {
-        intervalRef.current = setInterval(async () => {
-          if (Date.now() - startRef.current > 60_000) {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            setTimedOut(true); setLoading(false); return;
-          }
-          const s = await fetchStatus();
-          if ((s !== "pending" && s !== "timeout") || s === "timeout") {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-          }
-        }, 2000);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+
+    // Adaptive backoff: 2s for first 30s (tight), then 5s up to 60s (relaxed), then stop.
+    const scheduleNext = () => {
+      if (cancelled) return;
+      const elapsed = Date.now() - startRef.current;
+      if (elapsed > 60_000) {
+        setTimedOut(true); setLoading(false);
+        return;
       }
+      const delay = elapsed < 30_000 ? 2_000 : 5_000;
+      timeoutId = setTimeout(async () => {
+        const s = await fetchStatus();
+        if (s === "pending") scheduleNext();
+      }, delay);
     };
-    poll();
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+
+    (async () => {
+      const status = await fetchStatus();
+      if (status === "pending") scheduleNext();
+    })();
+
+    return () => { cancelled = true; if (timeoutId) clearTimeout(timeoutId); };
   }, [fetchStatus, sessionId]);
 
   const handleCopy = async () => {
