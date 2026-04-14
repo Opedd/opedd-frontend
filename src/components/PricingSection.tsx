@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Check, X, Zap, Crown, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePlans, getPlan } from "@/hooks/usePlans";
 
-const tiers = [
+const buildTiers = (proPrice: string, entPrice: string) => [
   {
     name: "Free",
     icon: Zap,
@@ -25,7 +26,7 @@ const tiers = [
   {
     name: "Pro",
     icon: Crown,
-    price: "$49",
+    price: proPrice,
     period: "/month",
     description: "Advanced AI licensing with full ownership tracking for serious creators",
     features: [
@@ -44,7 +45,7 @@ const tiers = [
   {
     name: "Enterprise",
     icon: Building2,
-    price: "$199",
+    price: entPrice,
     period: "/month",
     description: "For media teams and large publications",
     features: [
@@ -63,6 +64,10 @@ const tiers = [
 ];
 
 const PricingSection = () => {
+  const { data } = usePlans();
+  const proPrice = getPlan(data, "pro")?.monthly_display || "$39";
+  const entPrice = getPlan(data, "enterprise")?.monthly_display || "$99";
+  const tiers = buildTiers(proPrice, entPrice);
   return (
     <section id="pricing" className="py-24 px-6 bg-navy-deep scroll-mt-24">
       <div className="max-w-7xl mx-auto">

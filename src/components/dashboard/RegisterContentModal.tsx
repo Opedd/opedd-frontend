@@ -177,7 +177,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   // Publication sync form
   const [feedUrl, setFeedUrl] = useState("");
-  const [pubHumanPrice, setPubHumanPrice] = useState("4.99");
+  const [pubHumanPrice, setPubHumanPrice] = useState("5.00");
   const [pubAiPrice, setPubAiPrice] = useState("");
   
 
@@ -185,7 +185,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [articleUrl, setArticleUrl] = useState("");
-  const [humanPrice, setHumanPrice] = useState("4.99");
+  const [humanPrice, setHumanPrice] = useState("5.00");
   const [aiPrice, setAiPrice] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -231,7 +231,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   // Enterprise (Media Org) state
   const [enterpriseOrgName, setEnterpriseOrgName] = useState("");
   const [enterpriseSitemapUrl, setEnterpriseSitemapUrl] = useState("");
-  const [enterpriseHumanPrice, setEnterpriseHumanPrice] = useState("4.99");
+  const [enterpriseHumanPrice, setEnterpriseHumanPrice] = useState("5.00");
   const [enterpriseAiPrice, setEnterpriseAiPrice] = useState("");
 
   // Simulate fetching feed metadata when URL changes
@@ -270,12 +270,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   const resetForm = () => {
     setView("choice");
     setFeedUrl("");
-    setPubHumanPrice("4.99");
+    setPubHumanPrice("5.00");
     setPubAiPrice("");
     setTitle("");
     setDescription("");
     setArticleUrl("");
-    setHumanPrice("4.99");
+    setHumanPrice("5.00");
     setAiPrice("");
     setUploadedFile(null);
     setInputMode("file");
@@ -285,7 +285,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     setCopiedVerification(false);
     setEnterpriseOrgName("");
     setEnterpriseSitemapUrl("");
-    setEnterpriseHumanPrice("4.99");
+    setEnterpriseHumanPrice("5.00");
     setEnterpriseAiPrice("");
     setPubStep("select");
     setPubPlatform(null);
@@ -605,7 +605,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           publisher_id: publisherId,
           title: title,
           source_url: articleUrl || null,
-          human_price: parseFloat(humanPrice) || 4.99,
+          human_price: parseFloat(humanPrice) || 5,
           ai_price: aiPrice ? parseFloat(aiPrice) : null,
           licensing_enabled: true,
           status: "pending",
@@ -1232,14 +1232,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       <Label className="text-xs font-medium text-[#040042]">Human price (USD)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="4.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="5.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#040042]">AI price (USD) <span className="text-slate-400 font-normal">optional</span></Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="49.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="25.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                   </div>
@@ -1275,14 +1275,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       <Label className="text-xs font-medium text-[#040042]">Human price (USD)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="4.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="5.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#040042]">AI price (USD) <span className="text-slate-400 font-normal">optional</span></Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="49.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="25.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                   </div>
@@ -1316,14 +1316,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       <Label className="text-xs font-medium text-[#040042]">Human price (USD)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="4.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="5.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#040042]">AI price (USD) <span className="text-slate-400 font-normal">optional</span></Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="49.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="25.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                   </div>
@@ -1358,14 +1358,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       <Label className="text-xs font-medium text-[#040042]">Human price (USD)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="4.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="5.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#040042]">AI price (USD) <span className="text-slate-400 font-normal">optional</span></Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="49.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="25.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                   </div>
@@ -1399,14 +1399,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       <Label className="text-xs font-medium text-[#040042]">Human price (USD)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="4.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="5.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#040042]">AI price (USD) <span className="text-slate-400 font-normal">optional</span></Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="49.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="25.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                   </div>
@@ -1435,14 +1435,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       <Label className="text-xs font-medium text-[#040042]">Human price (USD)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="4.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="5.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#040042]">AI price (USD) <span className="text-slate-400 font-normal">optional</span></Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="49.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="25.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                   </div>
@@ -1472,14 +1472,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       <Label className="text-xs font-medium text-[#040042]">Human price (USD)</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="4.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubHumanPrice} onChange={(e) => setPubHumanPrice(e.target.value)} placeholder="5.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#040042]">AI price (USD) <span className="text-slate-400 font-normal">optional</span></Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="49.99" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
+                        <Input type="number" min="0" step="0.01" value={pubAiPrice} onChange={(e) => setPubAiPrice(e.target.value)} placeholder="25.00" className="!bg-white !text-[#040042] border-slate-200 h-10 pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" style={{ backgroundColor: '#FFFFFF', color: '#000000' }} />
                       </div>
                     </div>
                   </div>
@@ -1836,7 +1836,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       type="number"
                       value={humanPrice}
                       onChange={(e) => setHumanPrice(e.target.value)}
-                      placeholder="4.99"
+                      placeholder="5.00"
                       className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
                       style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                       step="0.01"
@@ -1853,7 +1853,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                       type="number"
                       value={aiPrice}
                       onChange={(e) => setAiPrice(e.target.value)}
-                      placeholder="49.99"
+                      placeholder="25.00"
                       className="!bg-white !text-[#040042] border-slate-200 h-11 pl-7 focus:border-[#4A26ED]"
                       style={{ backgroundColor: '#FFFFFF', color: '#000000' }}
                       step="0.01"
@@ -2008,7 +2008,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   min="0"
                   value={enterpriseHumanPrice}
                   onChange={(e) => setEnterpriseHumanPrice(e.target.value)}
-                  placeholder="4.99"
+                  placeholder="5.00"
                   className="!bg-white !text-[#040042] border-slate-200 h-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20 placeholder:text-slate-400"
                 />
               </div>

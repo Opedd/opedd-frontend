@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { usePlans, getPlan } from "@/hooks/usePlans";
 import {
   User,
   Globe,
@@ -707,13 +708,26 @@ export default function Settings() {
   const isStripeFullyConnected = stripeStatus?.connected && stripeStatus?.onboarding_complete;
   const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
 
-  // Plan data
-  const PLANS = [
-    { key: "free", name: "Free", price: "$0", period: "/month", description: "For publishers getting started", features: [{ text: "Up to 500 articles" }, { text: "Widget embedding" }, { text: "Basic analytics" }, { text: "Email support" }], highlighted: false },
-    { key: "pro", name: "Pro", price: "$49", period: "/month", description: "For growing independent publishers", features: [{ text: "Unlimited articles" }, { text: "9% platform fee (vs 15% free)" }, { text: "Custom webhooks" }, { text: "Team members (up to 5)" }, { text: "Priority support" }, { text: "Advanced analytics" }], highlighted: true },
-    { key: "enterprise", name: "Enterprise", price: "$199", period: "/month", description: "For media organisations & large catalogs", features: [{ text: "Everything in Pro" }, { text: "5% platform fee (vs 15% free)" }, { text: "Unlimited team members" }, { text: "Custom integrations" }, { text: "Dedicated support" }, { text: "SLA guarantee" }], highlighted: false },
-  ];
-  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = { pro: { price: "$39", total: "$470/year" }, enterprise: { price: "$159", total: "$1,910/year" } };
+  const { data: plansData } = usePlans();
+  const PLANS = plansData.plans.map((p) => ({
+    key: p.id,
+    name: p.name,
+    price: p.monthly_display,
+    period: "/month",
+    description: p.description,
+    features: p.features.map((text) => ({ text })),
+    highlighted: p.highlighted,
+  }));
+  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = {
+    pro: {
+      price: getPlan(plansData, "pro")?.annual_equivalent_display || "$31",
+      total: getPlan(plansData, "pro")?.annual_total_display || "$374/year",
+    },
+    enterprise: {
+      price: getPlan(plansData, "enterprise")?.annual_equivalent_display || "$79",
+      total: getPlan(plansData, "enterprise")?.annual_total_display || "$950/year",
+    },
+  };
 
   if (!user) return null;
 
@@ -1876,7 +1890,7 @@ export default function Settings() {
                               <div className="flex items-center gap-3">
                                 <span className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${planColor}`}>{planLabel}</span>
                                 <span className="text-sm text-[#6B7280]">
-                                  {publisherPlan === "enterprise" ? "Unlimited articles · 5% fee" : publisherPlan === "pro" ? "Unlimited articles · 8% fee" : "500 articles · 15% fee"}
+                                  {publisherPlan === "enterprise" ? "Unlimited articles · 5% fee" : publisherPlan === "pro" ? "Unlimited articles · 9% fee" : "500 articles · 15% fee"}
                                 </span>
                               </div>
                               {publisherPlan !== "enterprise" && (
