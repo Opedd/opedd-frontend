@@ -93,7 +93,7 @@ export function usePlans(): { data: PlansData; loading: boolean; error: string |
         const { data, ts } = JSON.parse(cached);
         if (Date.now() - ts < CACHE_TTL_MS) return data;
       }
-    } catch {}
+    } catch { /* localStorage unavailable or parse error */ }
     return FALLBACK;
   });
   const [loading, setLoading] = useState(true);
@@ -114,7 +114,7 @@ export function usePlans(): { data: PlansData; loading: boolean; error: string |
           setData(fresh);
           try {
             localStorage.setItem(CACHE_KEY, JSON.stringify({ data: fresh, ts: Date.now() }));
-          } catch {}
+          } catch { /* localStorage unavailable or parse error */ }
         }
       } catch (e: any) {
         if (!cancelled) setError(e?.message || "Failed to load plans");

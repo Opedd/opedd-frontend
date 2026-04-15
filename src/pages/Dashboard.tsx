@@ -3,7 +3,8 @@ import * as Sentry from "@sentry/react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail } from "lucide-react";
+import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail, ArrowUp, ArrowDown, Bot, User as UserIcon } from "lucide-react";
+import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
 import { PageLoader } from "@/components/ui/PageLoader";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
@@ -32,6 +33,10 @@ export default function Dashboard() {
   const { licenses } = useAuthenticatedApi();
   const [totalAssets, setTotalAssets] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalLicensesSold, setTotalLicensesSold] = useState(0);
+  const [revenueTrend, setRevenueTrend] = useState<{ date: string; revenue: number }[]>([]);
+  const [recentSales, setRecentSales] = useState<Array<{ id: string; asset_title: string; buyer_email?: string; buyer_name?: string; amount: number; created_at: string; license_type: string }>>([]);
+  const [periodComparison, setPeriodComparison] = useState<{ percentChangeRevenue: number; percentChangeLicenses: number; previousRevenue: number; previousLicenses: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sourcesKey, setSourcesKey] = useState(0);
   const [publisherSlug, setPublisherSlug] = useState<string | null>(null);
@@ -93,19 +98,34 @@ export default function Dashboard() {
     if (!user) return;
     try {
       setIsLoading(true);
+      // Article count — cheap HEAD-equivalent via list with limit=1
       const result = await licenses.list<PaginatedResponse<DbAsset>>({ page: 1, limit: 1 });
       setTotalAssets(result.total);
-      if (result.total > 0) {
-        const fullResult = await licenses.list<PaginatedResponse<DbAsset>>({ page: 1, limit: 100 });
-        const rev = (Array.isArray(fullResult.data) ? fullResult.data : []).reduce((sum: number, a: any) => sum + (a.total_revenue || 0), 0);
-        setTotalRevenue(rev);
+
+      // Revenue + trend + recent sales — all from /get-insights (last 30d default)
+      const token = await getAccessToken();
+      if (token) {
+        const res = await fetch(`${EXT_SUPABASE_URL}/get-insights?days=30`, {
+          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const d = json?.data;
+          if (d) {
+            setTotalRevenue(d.overview?.totalRevenue ?? 0);
+            setTotalLicensesSold(d.overview?.totalLicenses ?? 0);
+            setRevenueTrend((d.revenueByDay ?? []).map((r: { date: string; revenue: number }) => ({ date: r.date, revenue: r.revenue })));
+            setRecentSales((d.recentActivity ?? []).slice(0, 5));
+            setPeriodComparison(d.periodComparison ?? null);
+          }
+        }
       }
-    } catch (err: any) {
-      console.warn("[Dashboard] Fetch error:", err?.message || err);
+    } catch (err: unknown) {
+      console.warn("[Dashboard] Fetch error:", err instanceof Error ? err.message : err);
     } finally {
       setIsLoading(false);
     }
-  }, [user, licenses]);
+  }, [user, licenses, getAccessToken]);
 
   function isPricingConfigured(pricingRules: any): boolean {
     if (!pricingRules?.license_types) return false;
@@ -257,24 +277,113 @@ export default function Dashboard() {
         )}
 
         {/* Compact Metrics */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Licensed Works</p>
+            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Articles</p>
             {isLoading ? (
               <div className="h-8 w-16 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
             ) : (
-              <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
+              <>
+                <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
+                <p className="text-xs text-[#9CA3AF] mt-1">
+                  {totalLicensesSold > 0 ? `${totalLicensesSold} licensed (last 30d)` : "Not yet licensed"}
+                </p>
+              </>
             )}
           </div>
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Total Revenue</p>
+            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Revenue (30d)</p>
             {isLoading ? (
               <div className="h-8 w-20 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
             ) : (
-              <p className="text-2xl font-bold text-[#111827] mt-1">${totalRevenue.toFixed(2)}</p>
+              <>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <p className="text-2xl font-bold text-[#111827]">${totalRevenue.toFixed(2)}</p>
+                  {periodComparison && periodComparison.previousRevenue > 0 && (
+                    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
+                      {Math.abs(periodComparison.percentChangeRevenue).toFixed(0)}%
+                    </span>
+                  )}
+                </div>
+                {periodComparison && (
+                  <p className="text-xs text-[#9CA3AF] mt-1">
+                    vs ${periodComparison.previousRevenue.toFixed(2)} previous 30d
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
+            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Trend</p>
+            {isLoading ? (
+              <div className="h-16 w-full bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
+            ) : revenueTrend.length > 0 && revenueTrend.some((r) => r.revenue > 0) ? (
+              <div className="mt-1 h-16">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={revenueTrend}>
+                    <defs>
+                      <linearGradient id="miniGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#4A26ED" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="#4A26ED" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#4A26ED"
+                      strokeWidth={1.5}
+                      fill="url(#miniGrad)"
+                      isAnimationActive={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-xs text-[#9CA3AF] mt-6">No revenue yet</p>
             )}
           </div>
         </div>
+
+        {/* Recent Sales (last 5) */}
+        {!isLoading && recentSales.length > 0 && (
+          <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#E5E7EB]">
+              <h2 className="text-[15px] font-semibold text-[#111827]">Recent sales</h2>
+              <Link to="/ledger" className="text-xs text-[#4A26ED] hover:underline font-medium">
+                View all →
+              </Link>
+            </div>
+            <ul className="divide-y divide-[#F3F4F6]">
+              {recentSales.map((sale) => {
+                const isAi = sale.license_type === "ai" || sale.license_type === "ai_inference";
+                const when = new Date(sale.created_at);
+                const ago = (() => {
+                  const mins = Math.floor((Date.now() - when.getTime()) / 60000);
+                  if (mins < 60) return `${mins}m ago`;
+                  const hrs = Math.floor(mins / 60);
+                  if (hrs < 24) return `${hrs}h ago`;
+                  const days = Math.floor(hrs / 24);
+                  return `${days}d ago`;
+                })();
+                return (
+                  <li key={sale.id} className="flex items-center gap-3 px-5 py-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isAi ? "bg-[#EEF0FD] text-[#4A26ED]" : "bg-[#FDF2FA] text-[#D1009A]"}`}>
+                      {isAi ? <Bot size={15} /> : <UserIcon size={15} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#111827] truncate">{sale.asset_title}</p>
+                      <p className="text-xs text-[#6B7280] truncate">
+                        {sale.buyer_name || sale.buyer_email || "Buyer"} · {ago}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-emerald-600 shrink-0">+${Number(sale.amount).toFixed(2)}</p>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
         {/* Admin Platform Stats */}
         {isAdmin && (
