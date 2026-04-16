@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Loader2, Copy, Check, Globe, ChevronRight, ChevronDown, Mail, ExternalLink,
   Wallet, Info, CheckCircle2, Upload, FileText, AlertTriangle, Radio,
-  Plug, Tags, Download, DollarSign, CreditCard, ArrowLeft,
+  Plug, Tags, Download, DollarSign, CreditCard, ArrowLeft, RefreshCw,
 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { EXT_SUPABASE_REST } from "@/lib/constants";
@@ -31,11 +31,12 @@ const STEP_TITLES = [
   "Connect Publication",
   "Categorise",
   "Import Progress",
+  "Set Up Sync",
   "Set Pricing",
   "Connect Stripe",
 ];
 
-const STEP_ICONS = [Plug, Tags, Download, DollarSign, CreditCard];
+const STEP_ICONS = [Plug, Tags, Download, RefreshCw, DollarSign, CreditCard];
 
 const CATEGORIES = [
   "Financial Markets & Investing",
@@ -119,14 +120,17 @@ export default function Setup() {
   const [importError, setImportError] = useState(false);
   const [articleCount, setArticleCount] = useState(0);
 
-  // Step 4 — Pricing
+  // Step 4 — Sync
+  const [syncConfirmed, setSyncConfirmed] = useState(false);
+
+  // Step 5 — Pricing
   const [setupAiAnnualPrice, setSetupAiAnnualPrice] = useState("");
   const [setupAiPrice, setSetupAiPrice] = useState("25");
   const [setupHumanPrice, setSetupHumanPrice] = useState("5");
   const [setupAiTypes, setSetupAiTypes] = useState({ rag: true, training: true, inference: true });
   const [pricingSaving, setPricingSaving] = useState(false);
 
-  // Step 5 — Stripe
+  // Step 6 — Stripe
   const [stripeLoading, setStripeLoading] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [finishLoading, setFinishLoading] = useState(false);
@@ -134,6 +138,7 @@ export default function Setup() {
   // Copy states
   const [emailCopied, setEmailCopied] = useState(false);
   const [webhookCopied, setWebhookCopied] = useState(false);
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -179,7 +184,7 @@ export default function Setup() {
       const saved = localStorage.getItem(`opedd_setup_step_${user.id}`);
       if (saved) {
         const s = parseInt(saved, 10);
-        if (s >= 1 && s <= 5) setStep(s);
+        if (s >= 1 && s <= 6) setStep(s);
       }
       setLoading(false);
     })();
@@ -415,7 +420,6 @@ export default function Setup() {
     else if (/energy|macro|government|policy/i.test(cat)) multiplier = 1.5;
     else if (/software|cyber|semi|ai/i.test(cat)) multiplier = 1.3;
     if (count === 0) {
-      // Category-based default when no articles yet
       return Math.round((5000 * multiplier) / 500) * 500;
     }
     const base = Math.max(count * 15, 3000);
@@ -423,9 +427,9 @@ export default function Setup() {
     return Math.round((capped * multiplier) / 500) * 500;
   }, [articleCount, effectiveCategory]);
 
-  // Pre-fill suggested price when entering step 4
+  // Pre-fill suggested price when entering step 5 (pricing)
   useEffect(() => {
-    if (step === 4 && suggestedPrice > 0 && !setupAiAnnualPrice) {
+    if (step === 5 && suggestedPrice > 0 && !setupAiAnnualPrice) {
       setSetupAiAnnualPrice(String(suggestedPrice));
     }
   }, [step, suggestedPrice]);
@@ -483,8 +487,21 @@ export default function Setup() {
   };
 
   const handleCopyEmail = async () => {
-    const ok = await copyToClipboard("newsletter@inbound.opedd.com");
+    const email = profile?.inbound_email || "newsletter@inbound.opedd.com";
+    const ok = await copyToClipboard(email);
     if (ok) { setEmailCopied(true); setTimeout(() => setEmailCopied(false), 2000); }
+  };
+
+  const handleCopyWebhook = async () => {
+    const ok = await copyToClipboard("https://api.opedd.com/platform-webhook");
+    if (ok) { setWebhookCopied(true); setTimeout(() => setWebhookCopied(false), 2000); }
+  };
+
+  const handleCopyApiKey = async () => {
+    const key = profile?.api_key || "";
+    if (!key) return;
+    const ok = await copyToClipboard(key);
+    if (ok) { setApiKeyCopied(true); setTimeout(() => setApiKeyCopied(false), 2000); }
   };
 
   const renderFeedDetection = () => (
@@ -526,6 +543,20 @@ export default function Setup() {
       )}
     </>
   );
+
+  // Platform-specific sync instruction for step 4
+  const getSyncInstruction = (): string => {
+    switch (platform) {
+      case "substack":
+        return "In Substack Settings → Subscribers, add this as a free subscriber. Include paid posts by enabling 'Gift a subscription'.";
+      case "beehiiv":
+        return "In Beehiiv → Subscribers → Add Subscriber, paste this email.";
+      case "ghost":
+        return "In Ghost Admin → Members → New member, add this email.";
+      default:
+        return "Add this email as a subscriber or contact in your email platform. Every newsletter you send will be imported automatically.";
+    }
+  };
 
   if (!user || loading) return <PageLoader />;
 
@@ -583,6 +614,9 @@ export default function Setup() {
       </div>
     </div>
   );
+
+  const inboundEmail = profile?.inbound_email || "newsletter@inbound.opedd.com";
+  const publisherApiKey = profile?.api_key || "";
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
@@ -652,44 +686,6 @@ export default function Setup() {
                       <p className="text-xs text-[#9CA3AF] mt-2">Ghost Admin → Settings → Integrations → Add Custom Integration → copy Admin API Key</p>
                     </div>
                     <p className="text-xs text-[#6B7280]">This gives us read access to your full post archive, including members-only content. We never write to your Ghost account.</p>
-
-                    <Collapsible>
-                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left mt-2 group">
-                        <div className="flex items-center gap-2 flex-1">
-                          <img src={ghostLogo} alt="Ghost" className="w-4 h-4" />
-                          <span className="text-sm font-medium text-[#040042]">Live sync via Ghost webhook</span>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-[#D1D5DB] text-[#6B7280]">Optional</Badge>
-                        </div>
-                        <ChevronDown size={14} className="text-[#9CA3AF] transition-transform group-data-[state=open]:rotate-180" />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-3 space-y-3">
-                        <p className="text-xs text-[#6B7280]">To receive new articles instantly when you publish, add a webhook in your Ghost Admin panel:</p>
-                        <ol className="text-xs text-[#6B7280] space-y-1 list-decimal list-inside">
-                          <li>Go to Ghost Admin → Settings → Integrations → Add custom integration</li>
-                          <li>Name it <span className="font-medium text-[#040042]">"Opedd"</span></li>
-                          <li>Under Webhooks, add: <span className="font-medium text-[#040042]">Event = Post published</span></li>
-                          <li>Paste the URL below and save</li>
-                        </ol>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs font-mono text-[#040042] truncate">
-                            https://djdzcciayennqchjgybx.supabase.co/functions/v1/platform-webhook
-                          </code>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="shrink-0 text-xs gap-1"
-                            onClick={async () => {
-                              const ok = await copyToClipboard("https://djdzcciayennqchjgybx.supabase.co/functions/v1/platform-webhook");
-                              if (ok) { setWebhookCopied(true); setTimeout(() => setWebhookCopied(false), 2000); }
-                            }}
-                          >
-                            {webhookCopied ? <Check size={12} /> : <Copy size={12} />}
-                            {webhookCopied ? "Copied" : "Copy"}
-                          </Button>
-                        </div>
-                        <p className="text-[11px] text-[#9CA3AF]">Without this, articles sync on a scheduled basis (up to 15 min delay).</p>
-                      </CollapsibleContent>
-                    </Collapsible>
                   </div>
                 )}
 
@@ -756,17 +752,6 @@ export default function Setup() {
                       <Input placeholder="https://yourpublication.com" value={beehiivUrl} onChange={e => setBeehiivUrl(e.target.value)} className="mt-1" />
                     </div>
                     <p className="text-xs text-[#9CA3AF] mt-2">Find your API Key and Publication ID in Beehiiv → Settings → Integrations → API</p>
-                    <div className="bg-[#F5F3FF] border border-[#DDD6FE] rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Mail size={14} className="text-[#7C3AED]" />
-                        <span className="text-sm font-medium text-[#040042]">For new posts</span>
-                      </div>
-                      <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a subscriber in Beehiiv → Subscribers → Add Subscriber</p>
-                      <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
-                        {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
-                        {emailCopied ? "Copied!" : "Copy email"}
-                      </Button>
-                    </div>
                   </div>
                 )}
 
@@ -792,17 +777,6 @@ export default function Setup() {
                             ✓ {csvImportResult.imported} post{csvImportResult.imported !== 1 ? "s" : ""} imported ({csvImportResult.skipped} skipped)
                           </div>
                           <p className="text-xs text-emerald-600 mt-1 ml-6">Paywalled content included — full article bodies stored for AI delivery.</p>
-                        </div>
-                        <div className="bg-[#F5F3FF] border border-[#DDD6FE] rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Mail size={14} className="text-[#7C3AED]" />
-                            <span className="text-sm font-medium text-[#040042]">For new posts</span>
-                          </div>
-                          <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a free subscriber in Substack → Settings → Email</p>
-                          <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
-                            {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
-                            {emailCopied ? "Copied!" : "Copy email"}
-                          </Button>
                         </div>
                       </div>
                     )}
@@ -888,8 +862,8 @@ export default function Setup() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-[#040042]">API Key (optional)</label>
-                      <Input type="password" placeholder="API key (optional)" value={customApiKey} onChange={e => setCustomApiKey(e.target.value)} className="mt-1" />
-                      <p className="text-xs text-[#6B7280] mt-1">If your CMS provides an API key (e.g., Brevo, ConvertKit), paste it here for full content import. Otherwise we'll use sitemap + email.</p>
+                      <Input type="password" placeholder="API key (optional — for Brevo, ConvertKit, etc.)" value={customApiKey} onChange={e => setCustomApiKey(e.target.value)} className="mt-1" />
+                      <p className="text-xs text-[#6B7280] mt-1">If your platform provides an API key, paste it here for full content import.</p>
                     </div>
                     {renderFeedDetection()}
                   </div>
@@ -1048,69 +1022,6 @@ export default function Setup() {
                       <span className={importDone ? "text-emerald-700 font-medium" : "text-[#6B7280]"}>Licensing activated</span>
                     </div>
                   </div>
-
-                  {/* Platform-specific inbound email / sync callout */}
-                  {importDone && platform === "substack" && (
-                    <div className="bg-[#EEF0FD] rounded-xl p-4 mt-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Mail size={14} className="text-[#7C3AED]" />
-                        <span className="text-sm font-medium text-[#040042]">Receive new premium posts automatically</span>
-                      </div>
-                      <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a free subscriber in Substack → Settings → Email → Manage.</p>
-                      <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
-                        {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
-                        {emailCopied ? "Copied!" : "Copy email"}
-                      </Button>
-                    </div>
-                  )}
-                  {importDone && platform === "beehiiv" && (
-                    <div className="bg-[#EEF0FD] rounded-xl p-4 mt-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Mail size={14} className="text-[#7C3AED]" />
-                        <span className="text-sm font-medium text-[#040042]">Receive new posts automatically</span>
-                      </div>
-                      <p className="text-xs text-[#6B7280]">Add <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> as a subscriber in Beehiiv → Audience → Add Subscriber.</p>
-                      <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
-                        {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
-                        {emailCopied ? "Copied!" : "Copy email"}
-                      </Button>
-                    </div>
-                  )}
-                  {importDone && platform === "ghost" && (
-                    <div className="bg-[#EEF0FD] rounded-xl p-4 mt-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Mail size={14} className="text-[#7C3AED]" />
-                        <span className="text-sm font-medium text-[#040042]">Real-time sync</span>
-                      </div>
-                      <p className="text-xs text-[#6B7280]">Ghost supports webhooks for real-time sync — set one up in Ghost Admin → Settings → Integrations for instant content delivery.</p>
-                      <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
-                        {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
-                        {emailCopied ? "Copied!" : "Copy email"}
-                      </Button>
-                    </div>
-                  )}
-                  {importDone && platform === "wordpress" && (
-                    <div className="bg-[#EEF0FD] rounded-xl p-4 mt-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CheckCircle2 size={14} className="text-emerald-600" />
-                        <span className="text-sm font-medium text-[#040042]">Automatic sync active</span>
-                      </div>
-                      <p className="text-xs text-[#6B7280]">New posts will sync automatically via the WordPress REST API on a regular schedule. No additional setup needed.</p>
-                    </div>
-                  )}
-                  {importDone && platform === "custom" && (
-                    <div className="bg-[#EEF0FD] rounded-xl p-4 mt-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Mail size={14} className="text-[#7C3AED]" />
-                        <span className="text-sm font-medium text-[#040042]">Receive new content automatically</span>
-                      </div>
-                      <p className="text-xs text-[#6B7280]">Forward your newsletter to <code className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">newsletter@inbound.opedd.com</code> or set up a webhook.</p>
-                      <Button size="sm" variant="ghost" className="text-xs mt-2 text-[#7C3AED]" onClick={handleCopyEmail}>
-                        {emailCopied ? <Check size={12} className="mr-1" /> : <Copy size={12} className="mr-1" />}
-                        {emailCopied ? "Copied!" : "Copy email"}
-                      </Button>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex gap-3">
@@ -1131,8 +1042,129 @@ export default function Setup() {
               </>
             )}
 
-            {/* ===== STEP 4 — Set Pricing ===== */}
+            {/* ===== STEP 4 — Set Up Sync ===== */}
             {step === 4 && (
+              <>
+                <div className="rounded-2xl border border-[#E5E7EB] bg-white shadow-sm p-8 space-y-2">
+                  <h1 className="text-2xl font-bold text-[#040042] tracking-tight">Keep your content in sync</h1>
+                  <p className="text-sm text-[#6B7280] leading-relaxed max-w-prose">Choose how new articles reach Opedd automatically.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Card 1 — Email Sync */}
+                  <div className="rounded-2xl border-2 border-[#4A26ED]/30 bg-white shadow-sm p-6 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Mail size={18} className="text-[#4A26ED]" />
+                      <span className="text-sm font-semibold text-[#040042]">Email Sync</span>
+                      <Badge className="bg-[#4A26ED] text-white text-[10px] px-1.5 py-0">Recommended</Badge>
+                    </div>
+
+                    <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 flex items-center gap-2">
+                      <code className="text-[#334155] font-mono text-sm flex-1 truncate">{inboundEmail}</code>
+                      <Button size="sm" variant="ghost" className="shrink-0 text-xs gap-1 h-7" onClick={handleCopyEmail}>
+                        {emailCopied ? <Check size={12} /> : <Copy size={12} />}
+                        {emailCopied ? "Copied" : "Copy"}
+                      </Button>
+                    </div>
+
+                    <p className="text-xs text-[#6B7280]">{getSyncInstruction()}</p>
+
+                    <p className="text-xs text-[#9CA3AF]">Works with every email platform. Full content including premium/paywalled posts.</p>
+                  </div>
+
+                  {/* Card 2 — Publish Webhook */}
+                  <div className="rounded-2xl border border-[#E5E7EB] bg-white shadow-sm p-6 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Globe size={18} className="text-[#6B7280]" />
+                      <span className="text-sm font-semibold text-[#040042]">Publish Webhook</span>
+                    </div>
+
+                    <p className="text-xs text-[#6B7280]">For content published on your website (not emailed)</p>
+
+                    <div>
+                      <label className="text-[11px] font-medium text-[#9CA3AF] uppercase tracking-wide">Webhook URL</label>
+                      <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 flex items-center gap-2 mt-1">
+                        <code className="text-[#334155] font-mono text-sm flex-1 truncate">https://api.opedd.com/platform-webhook</code>
+                        <Button size="sm" variant="ghost" className="shrink-0 text-xs gap-1 h-7" onClick={handleCopyWebhook}>
+                          {webhookCopied ? <Check size={12} /> : <Copy size={12} />}
+                          {webhookCopied ? "Copied" : "Copy"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {publisherApiKey && (
+                      <div>
+                        <label className="text-[11px] font-medium text-[#9CA3AF] uppercase tracking-wide">API Key</label>
+                        <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2 flex items-center gap-2 mt-1">
+                          <code className="text-[#334155] font-mono text-sm flex-1 truncate">{publisherApiKey}</code>
+                          <Button size="sm" variant="ghost" className="shrink-0 text-xs gap-1 h-7" onClick={handleCopyApiKey}>
+                            {apiKeyCopied ? <Check size={12} /> : <Copy size={12} />}
+                            {apiKeyCopied ? "Copied" : "Copy"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#4A26ED] transition-colors group">
+                        <ChevronDown size={14} className="transition-transform group-data-[state=open]:rotate-180" />
+                        How to integrate
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3 overflow-x-auto">
+                          <pre className="text-[#334155] font-mono text-xs whitespace-pre">{`fetch("https://api.opedd.com/platform-webhook", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-Opedd-Api-Key": "YOUR_API_KEY"
+  },
+  body: JSON.stringify({
+    post: {
+      title: "Article Title",
+      url: "https://yoursite.com/article",
+      content: "Full HTML content...",
+      published_at: new Date().toISOString()
+    }
+  })
+})`}</pre>
+                        </div>
+                        <p className="text-xs text-[#9CA3AF] mt-2">Add this call to your CMS publish workflow. Works with any platform.</p>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={syncConfirmed}
+                    onChange={e => setSyncConfirmed(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-[#4A26ED] focus:ring-[#4A26ED]"
+                  />
+                  <span className="text-sm text-[#040042]">I have set up at least one sync method</span>
+                </label>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleBack}
+                    variant="outline"
+                    className="h-11 rounded-xl border-[#E5E7EB] bg-white text-[#374151] hover:bg-[#F9FAFB] flex-shrink-0"
+                  >
+                    <ArrowLeft size={16} className="mr-1" /> Back
+                  </Button>
+                  <Button
+                    onClick={() => setStep(5)}
+                    disabled={!syncConfirmed}
+                    className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white flex-1 h-11 rounded-xl font-medium shadow-sm"
+                  >
+                    Continue <ChevronRight size={16} className="ml-1" />
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* ===== STEP 5 — Set Pricing ===== */}
+            {step === 5 && (
               <>
                 <div className="rounded-2xl border border-[#E5E7EB] bg-white shadow-sm p-8 space-y-6">
                   <div>
@@ -1241,7 +1273,7 @@ export default function Setup() {
                         const result = await res.json();
                         if (!result.success) throw new Error(result.error?.message || "Save failed");
                         toast({ title: "Pricing saved!" });
-                        setStep(5);
+                        setStep(6);
                       } catch (err: unknown) {
                         toast({ title: "Save failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
                       } finally { setPricingSaving(false); }
@@ -1255,8 +1287,8 @@ export default function Setup() {
               </>
             )}
 
-            {/* ===== STEP 5 — Connect Stripe ===== */}
-            {step === 5 && (
+            {/* ===== STEP 6 — Connect Stripe ===== */}
+            {step === 6 && (
               <>
                 <div className="rounded-2xl border border-[#E5E7EB] bg-white shadow-sm p-8 space-y-5">
                   <div>
