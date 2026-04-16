@@ -62,7 +62,7 @@ const PLATFORM_OPTIONS: { id: Platform; label: string; desc: string; logo: strin
   { id: "beehiiv", label: "Beehiiv", desc: "Full archive via API key (includes premium content)", logo: beehiivLogo },
   { id: "ghost", label: "Ghost", desc: "Full archive via Admin API (includes members-only)", logo: ghostLogo },
   { id: "wordpress", label: "WordPress", desc: "Full archive — automatic, no credentials needed", logo: wordpressLogo },
-  { id: "custom", label: "Custom / Other", desc: "Any CMS with a sitemap URL", logo: null },
+  { id: "custom", label: "Custom / Other", desc: "Any CMS — connect via API key, sitemap, or email", logo: null },
 ];
 
 export default function Setup() {
@@ -85,6 +85,7 @@ export default function Setup() {
   const [beehiivPubId, setBeehiivPubId] = useState("");
   const [substackUrl, setSubstackUrl] = useState("");
   const [sitemapUrl, setSitemapUrl] = useState("");
+  const [customApiKey, setCustomApiKey] = useState("");
   const [wpUrl, setWpUrl] = useState("");
   const [wpConfirmed, setWpConfirmed] = useState(false);
   const [wpUsername, setWpUsername] = useState("");
@@ -873,6 +874,11 @@ export default function Setup() {
                       <label className="text-sm font-medium text-[#040042]">Sitemap URL</label>
                       <Input placeholder="https://yoursite.com/sitemap.xml" value={sitemapUrl} onChange={e => setSitemapUrl(e.target.value)} className="mt-1" />
                       <p className="text-xs text-[#6B7280] mt-1">We'll import all article URLs from your sitemap.</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-[#040042]">API Key (optional)</label>
+                      <Input type="password" placeholder="API key (optional)" value={customApiKey} onChange={e => setCustomApiKey(e.target.value)} className="mt-1" />
+                      <p className="text-xs text-[#6B7280] mt-1">If your CMS provides an API key (e.g., Brevo, ConvertKit), paste it here for full content import. Otherwise we'll use sitemap + email.</p>
                     </div>
                     {renderFeedDetection()}
                   </div>
