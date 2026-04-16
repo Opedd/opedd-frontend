@@ -363,11 +363,22 @@ export default function Setup() {
         url = substackUrl.replace(/\/$/, "") + "/sitemap.xml";
       }
       if (!url) { setStep1Error("Please enter a URL."); setStep1Loading(false); return; }
-      const res = await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
-        method: "POST", headers,
-        body: JSON.stringify({ sitemap_url: url }),
-      });
-      if (!res.ok) { setStep1Error("Import failed — check the URL and try again."); return; }
+
+      // Custom platform with API key → use platform-connect instead of import-sitemap
+      if (platform === "custom" && customApiKey.trim()) {
+        const res = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
+          method: "POST", headers,
+          body: JSON.stringify({ url, platform: "custom", credentials: { api_key: customApiKey.trim() } }),
+        });
+        const json = await res.json();
+        if (!res.ok) { setStep1Error(json?.error || "Connection failed — check the API key and try again."); return; }
+      } else {
+        const res = await fetch(`${EXT_SUPABASE_URL}/import-sitemap`, {
+          method: "POST", headers,
+          body: JSON.stringify({ sitemap_url: url }),
+        });
+        if (!res.ok) { setStep1Error("Import failed — check the URL and try again."); return; }
+      }
       setStep(2);
       startImportPoll();
     } catch { setStep1Error("Network error. Please try again."); }
