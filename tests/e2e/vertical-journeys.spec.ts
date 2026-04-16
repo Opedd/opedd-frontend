@@ -129,12 +129,13 @@ test.describe.serial("Vertical Journey — Substack", () => {
     // Verify heading
     await expect(page.getByText("Where do you publish?")).toBeVisible();
 
-    // Verify 5 step indicators (Setup was refactored from 6 to 5: Install Widget removed)
+    // Verify 6 step indicators
     await expect(page.getByText("Connect Publication")).toBeVisible();
     await expect(page.getByText("Import Progress")).toBeVisible();
+    await expect(page.getByText("Set Up Sync")).toBeVisible();
     await expect(page.getByText("Connect Stripe")).toBeVisible();
     const stepCircles = page.locator(".rounded-full.flex.items-center.justify-center");
-    await expect(stepCircles).toHaveCount(5);
+    await expect(stepCircles).toHaveCount(6);
   });
 
   test("Phase 2: Substack platform selection & UI verification", async ({ page }) => {
@@ -240,7 +241,7 @@ test.describe.serial("Vertical Journey — Beehiiv", () => {
 
     await expect(page.getByText("Where do you publish?")).toBeVisible();
     const stepCircles = page.locator(".rounded-full.flex.items-center.justify-center");
-    await expect(stepCircles).toHaveCount(5);
+    await expect(stepCircles).toHaveCount(6);
   });
 
   test("Phase 2: Beehiiv platform selection & UI verification", async ({ page }) => {
@@ -351,7 +352,7 @@ test.describe.serial("Vertical Journey — Ghost", () => {
 
     await expect(page.getByText("Where do you publish?")).toBeVisible();
     const stepCircles = page.locator(".rounded-full.flex.items-center.justify-center");
-    await expect(stepCircles).toHaveCount(5);
+    await expect(stepCircles).toHaveCount(6);
   });
 
   test("Phase 2: Ghost platform selection & UI verification", async ({ page }) => {
@@ -453,7 +454,7 @@ test.describe.serial("Vertical Journey — WordPress", () => {
 
     await expect(page.getByText("Where do you publish?")).toBeVisible();
     const stepCircles = page.locator(".rounded-full.flex.items-center.justify-center");
-    await expect(stepCircles).toHaveCount(5);
+    await expect(stepCircles).toHaveCount(6);
   });
 
   test("Phase 2: WordPress platform selection & UI verification", async ({ page }) => {
@@ -556,7 +557,7 @@ test.describe.serial("Vertical Journey — Custom", () => {
 
     await expect(page.getByText("Where do you publish?")).toBeVisible();
     const stepCircles = page.locator(".rounded-full.flex.items-center.justify-center");
-    await expect(stepCircles).toHaveCount(5);
+    await expect(stepCircles).toHaveCount(6);
   });
 
   test("Phase 2: Custom platform selection & feed detection", async ({ page }) => {
