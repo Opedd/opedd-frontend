@@ -200,7 +200,7 @@ export default function Setup() {
       setSelectedFeedUrl("");
       return;
     }
-    let domain = debouncedFeedUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+    const domain = debouncedFeedUrl.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
     if (!domain) return;
 
     let cancelled = false;

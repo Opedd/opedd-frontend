@@ -21,6 +21,12 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // `any` is intentional opt-out — strict TS already surfaces real bugs,
+      // and forcing every Supabase query/untyped third-party callback to use `unknown`
+      // adds ceremony without catching anything. Downgraded to warn (was error default).
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Empty interfaces extending other types are sometimes necessary for shadcn/ui components.
+      "@typescript-eslint/no-empty-object-type": "warn",
     },
   },
 );

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
-  TrendingUp, FileCheck, Sparkles, User, Loader2, BarChart3, AlertTriangle,
+  TrendingUp, FileCheck, Sparkles, User, Loader2, BarChart3, AlertTriangle, ArrowUp, ArrowDown,
 } from "lucide-react";
 import { decodeText } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -19,6 +19,12 @@ import {
 interface RevenueDay { date: string; revenue: number; count: number; }
 interface TopArticle { id: string; title: string; revenue: number; count: number; }
 interface LicenseTypeSplit { human: number; ai: number; }
+interface PeriodComparison {
+  previousRevenue: number;
+  previousLicenses: number;
+  percentChangeRevenue: number;
+  percentChangeLicenses: number;
+}
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const } } };
@@ -34,6 +40,7 @@ export default function Insights() {
   const [revenueByDay, setRevenueByDay] = useState<RevenueDay[]>([]);
   const [topArticles, setTopArticles] = useState<TopArticle[]>([]);
   const [licenseTypeSplit, setLicenseTypeSplit] = useState<LicenseTypeSplit>({ human: 0, ai: 0 });
+  const [periodComparison, setPeriodComparison] = useState<PeriodComparison | null>(null);
   const [hasData, setHasData] = useState(false);
 
   const fetchInsights = useCallback(async () => {
@@ -49,12 +56,29 @@ export default function Insights() {
       const result = await res.json();
       if (res.ok && result.success && result.data) {
         const d = result.data;
-        setTotalRevenue(d.total_revenue ?? 0);
-        setTotalTransactions(d.total_transactions ?? 0);
-        setRevenueByDay(d.revenue_by_day || []);
-        setTopArticles((d.top_articles || []).slice(0, 5));
-        setLicenseTypeSplit(d.license_type_split || { human: 0, ai: 0 });
-        setHasData((d.total_transactions ?? 0) > 0 || (d.revenue_by_day?.length ?? 0) > 0);
+        // Prefer primary shape (overview.*) with fallback to flat aliases for older builds
+        const totalRev = d.overview?.totalRevenue ?? d.total_revenue ?? 0;
+        const totalTx = d.overview?.totalLicenses ?? d.total_transactions ?? 0;
+        const revDay = d.revenueByDay ?? d.revenue_by_day ?? [];
+        const topArts = (d.topArticles ?? d.top_articles ?? []).map((a: { licenses_sold?: number; count?: number; id: string; title: string; revenue: number }) => ({
+          id: a.id,
+          title: a.title,
+          revenue: a.revenue,
+          count: a.licenses_sold ?? a.count ?? 0,
+        }));
+        const split = d.license_type_split ?? {
+          human: d.overview?.humanLicenses ?? 0,
+          ai: d.overview?.aiLicenses ?? 0,
+        };
+        const period = d.periodComparison ?? d.period_comparison ?? null;
+
+        setTotalRevenue(totalRev);
+        setTotalTransactions(totalTx);
+        setRevenueByDay(revDay);
+        setTopArticles(topArts.slice(0, 5));
+        setLicenseTypeSplit(split);
+        setPeriodComparison(period);
+        setHasData(totalTx > 0 || revDay.length > 0);
       } else {
         setFetchError(true);
       }
@@ -155,12 +179,38 @@ export default function Insights() {
               <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
                 <TrendingUp size={18} className="text-[#4A26ED] mb-3" />
                 <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-                <p className="text-2xl font-bold text-[#111827] mt-1 tracking-tight">${totalRevenue.toFixed(2)}</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <p className="text-2xl font-bold text-[#111827] tracking-tight">${totalRevenue.toFixed(2)}</p>
+                  {periodComparison && periodComparison.previousRevenue > 0 && (
+                    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                      {Math.abs(periodComparison.percentChangeRevenue).toFixed(0)}%
+                    </span>
+                  )}
+                </div>
+                {periodComparison && (
+                  <p className="text-xs text-[#9CA3AF] mt-1">
+                    vs ${periodComparison.previousRevenue.toFixed(2)} prior period
+                  </p>
+                )}
               </div>
               <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
                 <FileCheck size={18} className="text-[#4A26ED] mb-3" />
                 <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-                <p className="text-2xl font-bold text-[#111827] mt-1">{totalTransactions}</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <p className="text-2xl font-bold text-[#111827]">{totalTransactions}</p>
+                  {periodComparison && periodComparison.previousLicenses > 0 && (
+                    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeLicenses >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      {periodComparison.percentChangeLicenses >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                      {Math.abs(periodComparison.percentChangeLicenses).toFixed(0)}%
+                    </span>
+                  )}
+                </div>
+                {periodComparison && (
+                  <p className="text-xs text-[#9CA3AF] mt-1">
+                    vs {periodComparison.previousLicenses} prior period
+                  </p>
+                )}
               </div>
             </motion.div>
 
