@@ -266,8 +266,7 @@ test.describe.serial("Vertical Journey — Beehiiv", () => {
     await expect(page.getByPlaceholder("https://yourpublication.com")).toBeVisible();
     await expect(page.getByText(/optional.*custom domain/i)).toBeVisible();
 
-    // Inbound email section is visible
-    await expect(page.getByText("newsletter@inbound.opedd.com").first()).toBeVisible();
+    // Inbound email is now shown in the dedicated "Set Up Sync" step (step 4), not here
 
     // Try clicking Continue without filling fields — verify error message
     const continueBtn = page.locator("button", { hasText: /Continue/i });
