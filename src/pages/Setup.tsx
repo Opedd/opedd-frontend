@@ -162,7 +162,8 @@ export default function Setup() {
     if (!user) return;
     (async () => {
       const p = await fetchProfile();
-      if (p?.setup_complete) {
+      const params = new URLSearchParams(window.location.search);
+      if (p?.setup_complete && !params.has("add")) {
         navigate("/dashboard", { replace: true });
         return;
       }

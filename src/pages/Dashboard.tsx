@@ -267,7 +267,7 @@ export default function Dashboard() {
           setupComplete={setupComplete}
           publisherSlug={publisherSlug}
           initialAiLicenseTypes={aiLicenseTypes}
-          onRegisterContent={() => navigate("/setup")}
+          onRegisterContent={() => navigate("/setup?add=1")}
           onAiLicensingComplete={() => setAiLicensingConfigured(true)}
         />
 
@@ -498,14 +498,14 @@ export default function Dashboard() {
             <h2 className="text-[15px] font-semibold text-[#111827]">Sources</h2>
             <Button
               size="sm"
-              onClick={() => navigate("/setup")}
+              onClick={() => navigate("/setup?add=1")}
               className="h-9 px-4 rounded-lg bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-sm font-medium"
             >
               <Plus size={15} className="mr-1.5 flex-shrink-0" />
               Register content
             </Button>
           </div>
-          <SourcesView key={sourcesKey} onAddSource={() => navigate("/setup")} />
+          <SourcesView key={sourcesKey} onAddSource={() => navigate("/setup?add=1")} />
         </div>
       </div>
 
