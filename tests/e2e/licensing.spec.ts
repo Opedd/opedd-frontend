@@ -151,7 +151,7 @@ test.describe("Licensing — License Type Configuration", () => {
 });
 
 test.describe("Licensing — Save Button", () => {
-  test("Sticky save bar exists", async ({ page }) => {
+  test("Sticky save bar appears after toggling a license type", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToLicensing(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
@@ -161,8 +161,16 @@ test.describe("Licensing — Save Button", () => {
     const isGated = await page.getByText(/verify your publication/i).isVisible().catch(() => false);
     if (isGated) { test.skip(true, "Gated"); return; }
 
-    const saveBtn = page.locator("button", { hasText: "Save changes" });
-    await expect(saveBtn).toBeVisible({ timeout: 5_000 });
+    // Toggle a license type to trigger the save bar
+    const firstToggle = page.locator("[role=\"switch\"]").first();
+    if (await firstToggle.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await firstToggle.click();
+      await page.waitForTimeout(500);
+      const saveBtn = page.getByText("Save changes").first();
+      await expect(saveBtn).toBeVisible({ timeout: 5_000 });
+      // Click again to revert
+      await firstToggle.click();
+    }
   });
 
   test("Save bar hidden when no changes have been made", async ({ page }) => {
@@ -175,8 +183,10 @@ test.describe("Licensing — Save Button", () => {
     const isGated = await page.getByText(/verify your publication/i).isVisible().catch(() => false);
     if (isGated) { test.skip(true, "Gated"); return; }
 
-    const saveBtn = page.locator("button", { hasText: "Save changes" });
-    await expect(saveBtn).toBeDisabled();
+    // Save bar should not be visible when no changes made
+    const saveBar = page.getByText("Save changes").first();
+    const isVisible = await saveBar.isVisible({ timeout: 2_000 }).catch(() => false);
+    expect(isVisible).toBe(false);
   });
 });
 

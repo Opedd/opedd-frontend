@@ -451,7 +451,7 @@ test.describe.serial("Vertical Journey — WordPress", () => {
     // Wait for setup page to render, then click WordPress
     await expect(page.getByText("Where do you publish?")).toBeVisible({ timeout: 10_000 });
     // WordPress card has the WordPress logo — find it by the exact label
-    const wpCard = page.locator("button").filter({ hasText: "Full archive — automatic" });
+    const wpCard = page.locator("button").filter({ hasText: "Connect with your site URL" });
     await wpCard.click();
 
     // Site URL field
