@@ -60,7 +60,7 @@ test.describe("Content — Page Load", () => {
     const ok = await goToContent(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
 
-    await expect(page).toHaveTitle(/Catalog/)/);
+    await expect(page).toHaveTitle(/Catalog/);
   });
 });
 
