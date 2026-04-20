@@ -3,11 +3,13 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,11 +22,9 @@ const Header = () => {
   const navLinks = [
     { label: "Products", href: "#products" },
     { label: "How it Works", href: "#how-it-works" },
-    { label: "Why Opedd", href: "#why-opedd" },
     { label: "Pricing", href: "/pricing", isRoute: true },
     { label: "Enterprise", href: "/enterprise", isRoute: true },
     { label: "Publishers", href: "/publishers", isRoute: true },
-    { label: "Docs", href: "https://docs.opedd.com", isExternal: true },
   ];
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -39,6 +39,56 @@ const Header = () => {
       window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
     setIsMobileMenuOpen(false);
+  };
+
+  // Auth-aware CTA cluster — prevents flash of "Login" for returning users
+  const renderAuthCtas = (mobile = false) => {
+    if (isLoading) {
+      // Reserve space to avoid CLS
+      return <div className={mobile ? "h-20" : "h-9 w-48"} aria-hidden="true" />;
+    }
+    if (user) {
+      return mobile ? (
+        <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+          <Button size="sm" className="w-full bg-oxford hover:bg-oxford-dark text-white">
+            Dashboard
+          </Button>
+        </Link>
+      ) : (
+        <Link to="/dashboard">
+          <Button size="sm" className="bg-oxford hover:bg-oxford-dark text-white">
+            Dashboard
+          </Button>
+        </Link>
+      );
+    }
+    return mobile ? (
+      <>
+        <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+          <Button variant="ghost" size="sm" className="w-full text-soft-white hover:text-oxford border border-white/30 hover:border-oxford hover:bg-transparent">
+            Login
+          </Button>
+        </Link>
+        <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+          <Button size="sm" className="w-full bg-oxford hover:bg-oxford-dark text-white">
+            Get Started Free
+          </Button>
+        </Link>
+      </>
+    ) : (
+      <>
+        <Link to="/login">
+          <Button variant="ghost" size="sm" className="text-soft-white hover:text-oxford border border-white/30 hover:border-oxford bg-transparent">
+            Login
+          </Button>
+        </Link>
+        <Link to="/signup">
+          <Button size="sm" className="bg-oxford hover:bg-oxford-dark text-white">
+            Get Started Free
+          </Button>
+        </Link>
+      </>
+    );
   };
 
   return (
@@ -60,17 +110,7 @@ const Header = () => {
 
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) =>
-              link.isExternal ? (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-alice-gray hover:text-oxford transition-colors duration-200 text-sm font-medium"
-                >
-                  {link.label}
-                </a>
-              ) : link.isRoute ? (
+              link.isRoute ? (
                 <Link
                   key={link.label}
                   to={link.href}
@@ -92,16 +132,7 @@ const Header = () => {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-soft-white hover:text-oxford border border-white/30 hover:border-oxford bg-transparent">
-                Login
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm" className="bg-oxford hover:bg-oxford-dark text-white">
-                Get Started Free
-              </Button>
-            </Link>
+            {renderAuthCtas(false)}
           </div>
 
           <button className="md:hidden text-soft-white p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -118,18 +149,7 @@ const Header = () => {
           >
             <nav className="flex flex-col gap-4 bg-navy-deep">
               {navLinks.map((link) =>
-                link.isExternal ? (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-alice-gray/80 hover:text-oxford transition-colors py-2 text-sm font-medium"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
-                ) : link.isRoute ? (
+                link.isRoute ? (
                   <Link
                     key={link.label}
                     to={link.href}
@@ -150,16 +170,7 @@ const Header = () => {
                 )
               )}
               <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full text-soft-white hover:text-oxford border border-white/30 hover:border-oxford hover:bg-transparent">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button size="sm" className="w-full bg-oxford hover:bg-oxford-dark text-white">
-                    Get Started Free
-                  </Button>
-                </Link>
+                {renderAuthCtas(true)}
               </div>
             </nav>
           </motion.div>

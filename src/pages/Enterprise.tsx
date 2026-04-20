@@ -129,7 +129,7 @@ export default function Enterprise() {
   });
 
   useEffect(() => {
-    fetch(`https://djdzcciayennqchjgybx.supabase.co/functions/v1/registry`, {
+    fetch(`${EXT_SUPABASE_URL}/functions/v1/registry`, {
       headers: { Authorization: `Bearer ${EXT_ANON_KEY}` },
     })
       .then((r) => r.json())
@@ -493,7 +493,7 @@ export default function Enterprise() {
               <ArrowRight size={15} />
             </Button>
             <a
-              href="mailto:alexandre@opedd.com?subject=Enterprise%20Licensing%20Inquiry"
+              href="mailto:sales@opedd.com?subject=Enterprise%20Licensing%20Inquiry"
               className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-soft-white/20 text-soft-white text-sm font-semibold hover:bg-soft-white/5 transition-all bg-transparent"
             >
               Talk to Sales
