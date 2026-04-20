@@ -143,6 +143,12 @@ export function OnboardingChecklist({
     setIsSavingAi(true);
     try {
       const token = await getAccessToken();
+      // Canonical format: write to pricing_rules.license_types.
+      // Map the legacy rag/training/inference toggles to the new license type keys.
+      const licenseTypes: Record<string, { enabled: boolean }> = {};
+      if (aiToggles.rag) licenseTypes.ai_retrieval = { enabled: true };
+      if (aiToggles.training) licenseTypes.ai_training = { enabled: true };
+      if (aiToggles.inference) licenseTypes.syndication = { enabled: true };
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers: {
@@ -150,7 +156,7 @@ export function OnboardingChecklist({
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ai_license_types: aiToggles }),
+        body: JSON.stringify({ pricing_rules: { license_types: licenseTypes } }),
       });
       const result = await res.json();
       if (result.success) {
