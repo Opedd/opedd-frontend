@@ -257,11 +257,13 @@ export default function Insights() {
                 <h2 className="font-bold text-[#111827] text-lg mb-1">License Split</h2>
                 <p className="text-sm text-[#6B7280] mb-4">Human vs AI licenses</p>
                 {pieData.length > 0 ? (
-                  <div className="flex items-center justify-center">
-                    <ResponsiveContainer width={200} height={200}>
-                      <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><RechartsTooltip formatter={(value: number, name: string) => [value, name]} /></PieChart>
-                    </ResponsiveContainer>
-                    <div className="ml-6 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                    <div className="w-full max-w-[200px] h-[200px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><RechartsTooltip formatter={(value: number, name: string) => [value, name]} /></PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="space-y-3">
                       <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#D1009A]" /><span className="text-sm text-[#111827]">Human: <strong>{licenseTypeSplit.human}</strong></span></div>
                       <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#4A26ED]" /><span className="text-sm text-[#111827]">AI: <strong>{licenseTypeSplit.ai}</strong></span></div>
                     </div>
