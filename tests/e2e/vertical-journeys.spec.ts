@@ -194,7 +194,7 @@ test.describe.serial("Vertical Journey — Substack", () => {
     await navigateAndVerify(page, "/settings?tab=billing", "Substack /settings?tab=billing");
 
     // Settings — API Keys tab
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Substack /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Substack /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -304,7 +304,7 @@ test.describe.serial("Vertical Journey — Beehiiv", () => {
     await navigateAndVerify(page, "/licensing", "Beehiiv /licensing");
     await navigateAndVerify(page, "/settings", "Beehiiv /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "Beehiiv /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Beehiiv /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Beehiiv /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -391,7 +391,7 @@ test.describe.serial("Vertical Journey — Ghost", () => {
     await navigateAndVerify(page, "/licensing", "Ghost /licensing");
     await navigateAndVerify(page, "/settings", "Ghost /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "Ghost /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Ghost /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Ghost /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -494,7 +494,7 @@ test.describe.serial("Vertical Journey — WordPress", () => {
     await navigateAndVerify(page, "/licensing", "WordPress /licensing");
     await navigateAndVerify(page, "/settings", "WordPress /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "WordPress /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "WordPress /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "WordPress /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -599,7 +599,7 @@ test.describe.serial("Vertical Journey — Custom", () => {
     await navigateAndVerify(page, "/licensing", "Custom /licensing");
     await navigateAndVerify(page, "/settings", "Custom /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "Custom /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Custom /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Custom /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {

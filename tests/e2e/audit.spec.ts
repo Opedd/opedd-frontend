@@ -262,7 +262,7 @@ test.describe("3. Dashboard", () => {
       await assertNoCrash(page, "Setup page (nav test N/A)");
       return;
     }
-    for (const label of ["Dashboard", "Catalog", "Licensing", "Buyers", "Analytics", "Distribution", "Settings"]) {
+    for (const label of ["Dashboard", "Catalog", "Licensing", "Ledger", "Analytics", "Distribution", "Settings"]) {
       const nav = page.locator(`nav a:has-text('${label}'), aside a:has-text('${label}')`).first();
       await expect(nav, `Nav item "${label}" missing`).toBeVisible({ timeout: 8_000 });
     }
@@ -541,7 +541,7 @@ test.describe("9. Settings (/settings)", () => {
 
   test("9.4 API keys tab renders", async ({ page }) => {
     await injectAuth(page);
-    await page.goto(`${BASE}/settings?tab=api-keys`);
+    await page.goto(`${BASE}/settings?tab=developers`);
     await page.waitForLoadState("load");
     await assertNoCrash(page, "Settings API keys tab");
   });
@@ -601,13 +601,13 @@ test.describe("9. Settings (/settings)", () => {
 // SECTION 10: CONNECTORS / DISTRIBUTION
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe("10. Connectors (/connectors)", () => {
+test.describe("10. Distribution (/connectors)", () => {
 
   test("10.1 Renders without crash", async ({ page }) => {
     await injectAuth(page);
     await page.goto(`${BASE}/connectors`);
     await page.waitForLoadState("load");
-    await assertNoCrash(page, "Connectors");
+    await assertNoCrash(page, "Distribution");
   });
 
   test("10.2 Widget tab shows embed code", async ({ page }) => {
@@ -615,14 +615,14 @@ test.describe("10. Connectors (/connectors)", () => {
     await page.goto(`${BASE}/connectors?tab=widget`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(4000);
-    await assertNoCrash(page, "Connectors widget tab");
+    await assertNoCrash(page, "Distribution widget tab");
   });
 
   test("10.3 Webhooks tab renders", async ({ page }) => {
     await injectAuth(page);
     await page.goto(`${BASE}/connectors?tab=webhooks`);
     await page.waitForLoadState("load");
-    await assertNoCrash(page, "Connectors webhooks tab");
+    await assertNoCrash(page, "Distribution webhooks tab");
   });
 
   test("10.4 Webhook save with invalid URL", async ({ page }) => {
@@ -639,7 +639,7 @@ test.describe("10. Connectors (/connectors)", () => {
       if (await saveBtn.isVisible()) {
         await saveBtn.click({ force: true });
         await page.waitForTimeout(1500);
-        await assertNoCrash(page, "Connectors webhook invalid URL");
+        await assertNoCrash(page, "Distribution webhook invalid URL");
       }
     }
   });
@@ -649,7 +649,7 @@ test.describe("10. Connectors (/connectors)", () => {
     await page.goto(`${BASE}/connectors?tab=ai-policy`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(4000);
-    await assertNoCrash(page, "Connectors AI policy tab");
+    await assertNoCrash(page, "Distribution AI policy tab");
     await expect(page.locator("text=GPTBot").first()).toBeVisible();
   });
 });

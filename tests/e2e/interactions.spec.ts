@@ -212,7 +212,7 @@ test.describe("Publisher Dashboard Journey", () => {
     }
   });
 
-  test("7. Connectors → Widget tab → shows embed code", async ({ page }) => {
+  test("7. Distribution → Widget tab → shows embed code", async ({ page }) => {
     await gotoAuth(page, "/connectors");
     await page.waitForTimeout(4000);
 
@@ -229,7 +229,7 @@ test.describe("Publisher Dashboard Journey", () => {
     const navItems = [
       { label: "Catalog", path: "/content" },
       { label: "Licensing", path: "/licensing" },
-      { label: "Buyers", path: "/ledger" },
+      { label: "Ledger", path: "/ledger" },
       { label: "Analytics", path: "/insights" },
       { label: "Distribution", path: "/connectors" },
       { label: "Settings", path: "/settings" },
