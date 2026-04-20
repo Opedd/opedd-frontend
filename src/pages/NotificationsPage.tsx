@@ -239,56 +239,77 @@ export default function NotificationsPage() {
           >
             <Bell size={40} className="mx-auto text-[#D1D5DB] mb-4" />
             <h3 className="text-base font-semibold text-[#111827] mb-1">No notifications yet</h3>
-            <p className="text-sm text-[#6B7280] max-w-xs mx-auto">
+            <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-5">
               You'll be notified here when buyers license your content, payments are processed, and more.
             </p>
+            <a
+              href="/licensing"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#4A26ED] hover:underline"
+            >
+              View licensing page →
+            </a>
           </motion.div>
         )}
 
-        {/* Notification list */}
-        {!isLoading && !fetchError && notifications.length > 0 && (
-          <motion.div
-            variants={itemVariants}
-            className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden"
-          >
-            {notifications.map((notif, index) => (
-              <div
-                key={notif.id}
-                onClick={() => markRead(notif.id)}
-                className={[
-                  "flex items-start gap-4 px-6 py-4 cursor-pointer transition-colors hover:bg-[#F9FAFB]",
-                  index !== notifications.length - 1 ? "border-b border-[#F3F4F6]" : "",
-                  !notif.read ? "border-l-2 border-l-[#4A26ED] bg-[#F7F8FF]" : "",
-                ].join(" ")}
-              >
-                <div
-                  className={[
-                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
-                    !notif.read ? "bg-[#4A26ED]/10" : "bg-[#F3F4F6]",
-                  ].join(" ")}
-                >
-                  {getNotificationIcon(notif.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className={`text-sm font-medium ${!notif.read ? "text-[#111827]" : "text-[#374151]"}`}>
-                      {notif.title}
-                    </p>
-                    {!notif.read && (
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#4A26ED] shrink-0" />
-                    )}
-                  </div>
-                  {notif.message && (
-                    <p className="text-xs text-[#6B7280] mt-0.5 leading-relaxed">{notif.message}</p>
-                  )}
-                </div>
-                <span className="text-xs text-[#9CA3AF] shrink-0 mt-0.5 whitespace-nowrap">
-                  {relativeTime(notif.created_at)}
-                </span>
-              </div>
-            ))}
-          </motion.div>
-        )}
+        {/* Notification list (grouped by date bucket) */}
+        {!isLoading && !fetchError && notifications.length > 0 && (() => {
+          const groups = new Map<Bucket, Notification[]>();
+          for (const n of notifications) {
+            const b = bucketFor(n.created_at);
+            if (!groups.has(b)) groups.set(b, []);
+            groups.get(b)!.push(n);
+          }
+          return (
+            <div className="space-y-6">
+              {BUCKET_ORDER.filter((b) => groups.has(b)).map((b) => {
+                const items = groups.get(b)!;
+                return (
+                  <motion.div key={b} variants={itemVariants} className="space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-[#9CA3AF] px-1">{b}</p>
+                    <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                      {items.map((notif, index) => (
+                        <div
+                          key={notif.id}
+                          onClick={() => markRead(notif.id)}
+                          className={[
+                            "flex items-start gap-4 px-6 py-4 cursor-pointer transition-colors hover:bg-[#F9FAFB]",
+                            index !== items.length - 1 ? "border-b border-[#F3F4F6]" : "",
+                            !notif.read ? "border-l-2 border-l-[#4A26ED] bg-[#F7F8FF]" : "",
+                          ].join(" ")}
+                        >
+                          <div
+                            className={[
+                              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
+                              !notif.read ? "bg-[#4A26ED]/10" : "bg-[#F3F4F6]",
+                            ].join(" ")}
+                          >
+                            {getNotificationIcon(notif.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className={`text-sm font-medium ${!notif.read ? "text-[#111827]" : "text-[#374151]"}`}>
+                                {notif.title}
+                              </p>
+                              {!notif.read && (
+                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#4A26ED] shrink-0" />
+                              )}
+                            </div>
+                            {notif.message && (
+                              <p className="text-xs text-[#6B7280] mt-0.5 leading-relaxed">{notif.message}</p>
+                            )}
+                          </div>
+                          <span className="text-xs text-[#9CA3AF] shrink-0 mt-0.5 whitespace-nowrap">
+                            {relativeTime(notif.created_at)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </motion.div>
     </DashboardLayout>
   );
