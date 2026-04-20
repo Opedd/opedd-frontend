@@ -1630,143 +1630,25 @@ export default function Settings() {
                     </motion.div>
                   )}
                 </TabsContent>
-                {/* TAB: AI Licensing */}
+                {/* TAB: AI Licensing (license types now live on /licensing) */}
                 <TabsContent value="ai-licensing" className="mt-6" forceMount={activeTab === "ai-licensing" ? true : undefined}>
                   {activeTab === "ai-licensing" && (
                     <motion.div key="ai-licensing" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                       {isGated ? <LockedTabContent /> : <>
-                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
-                        <div>
-                          <h2 className="font-bold text-[#040042] text-lg">AI Licensing</h2>
-                          <p className="text-sm text-[#6B7280] leading-relaxed mt-1 max-w-2xl">
-                            Control how AI companies can license your content archive and new articles
-                          </p>
-                        </div>
-
-                        {/* Pricing fields */}
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="ai-annual-price" className="text-sm font-semibold text-[#040042]">Annual Catalog Price (USD)</Label>
-                            <Input
-                              id="ai-annual-price"
-                              type="number"
-                              min="0"
-                              step="1"
-                              value={aiAnnualPrice}
-                              onChange={(e) => setAiAnnualPrice(e.target.value)}
-                              placeholder="e.g. 12000"
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-[#9CA3AF] mt-1.5">
-                              This is what AI labs pay per year for access to your full catalog. We suggest starting based on your content volume.
-                            </p>
-                            {aiAnnualPrice && Number(aiAnnualPrice) > 0 && (
-                              <p className="text-xs text-[#6B7280] mt-1 font-medium">
-                                Monthly forward feed: ${(Number(aiAnnualPrice) / 12).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <Label htmlFor="default-ai-price" className="text-sm font-semibold text-[#040042]">Per-Article AI Price (USD)</Label>
-                            <Input
-                              id="default-ai-price"
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={defaultAiPrice}
-                              onChange={(e) => setDefaultAiPrice(e.target.value)}
-                              placeholder="e.g. 2.50"
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-[#9CA3AF] mt-1.5">Price per article for individual AI licensing (training, RAG, inference)</p>
-                          </div>
-                          <div>
-                            <Label htmlFor="default-human-price-ai" className="text-sm font-semibold text-[#040042]">Per-Article Human Price (USD)</Label>
-                            <Input
-                              id="default-human-price-ai"
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={defaultHumanPrice}
-                              onChange={(e) => setDefaultHumanPrice(e.target.value)}
-                              placeholder="e.g. 25.00"
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-[#9CA3AF] mt-1.5">Price per article for human republication</p>
-                          </div>
-                        </div>
-
-                        {/* AI License Type checkboxes */}
-                        <div className="space-y-3 pt-2">
-                          <p className="text-sm font-semibold text-[#040042]">AI License Types</p>
-                          {([
-                            { key: "rag" as const, label: "RAG (Retrieval-Augmented Generation)" },
-                            { key: "training" as const, label: "Model Training" },
-                            { key: "inference" as const, label: "Inference (Real-time AI outputs)" },
-                          ]).map((toggle) => (
-                            <label key={toggle.key} className="flex items-center gap-2.5 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={aiLicenseTypes[toggle.key]}
-                                onChange={(e) => setAiLicenseTypes(prev => ({ ...prev, [toggle.key]: e.target.checked }))}
-                                className="h-4 w-4 rounded border-slate-300 text-[#4A26ED] focus:ring-[#4A26ED]"
-                              />
-                              <span className="text-sm text-[#040042]">{toggle.label}</span>
-                            </label>
-                          ))}
-                          <p className="text-xs text-[#9CA3AF] mt-1">Choose which AI use cases you allow. Most publishers enable all three.</p>
-                        </div>
-
-                        {/* Content Delivery toggle */}
-                        <div className="flex items-start justify-between gap-4 pt-2 border-t border-[#F3F4F6]">
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
                           <div className="flex-1">
-                            <p className="text-sm font-semibold text-[#040042]">Enable Content Delivery API</p>
-                            <p className="text-xs text-[#9CA3AF] mt-0.5 leading-relaxed">
-                              When enabled, licensed AI companies can access your full article text via API. When disabled, they only get metadata (title, description, URL).
+                            <h2 className="font-bold text-[#040042] text-lg">License types</h2>
+                            <p className="text-sm text-[#6B7280] leading-relaxed mt-1 max-w-2xl">
+                              All license types — including AI retrieval, AI training, and syndication — are now configured in one place on the Licensing page.
                             </p>
                           </div>
-                          <Switch
-                            checked={profile?.content_delivery_enabled ?? true}
-                            onCheckedChange={(checked) => setProfile(prev => prev ? { ...prev, content_delivery_enabled: checked } : prev)}
-                            className="mt-1 shrink-0"
-                          />
-                        </div>
-
-                        {/* Save button */}
-                        <div className="flex items-center justify-end pt-2">
                           <Button
-                            onClick={async () => {
-                              setIsSavingAiLicensing(true);
-                              try {
-                                const headers = await apiHeaders();
-                                const body: Record<string, unknown> = {
-                                  ai_license_types: aiLicenseTypes,
-                                  content_delivery_enabled: profile?.content_delivery_enabled ?? true,
-                                };
-                                if (aiAnnualPrice !== "") body.ai_annual_price = Number(aiAnnualPrice);
-                                if (defaultAiPrice !== "") body.default_ai_price = Number(defaultAiPrice);
-                                if (defaultHumanPrice !== "") body.default_human_price = Number(defaultHumanPrice);
-                                const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                                  method: "PATCH",
-                                  headers,
-                                  body: JSON.stringify(body),
-                                });
-                                const result = await res.json();
-                                if (result.success) {
-                                  toast({ title: "AI licensing settings saved." });
-                                } else {
-                                  throw new Error(result.error?.message || "Save failed");
-                                }
-                              } catch (err: unknown) {
-                                toast({ title: "Save failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-                              } finally {
-                                setIsSavingAiLicensing(false);
-                              }
-                            }}
-                            disabled={isSavingAiLicensing}
-                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg px-6"
+                            onClick={() => navigate("/licensing")}
+                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg shrink-0"
                           >
-                            {isSavingAiLicensing ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save AI Licensing Settings"}
+                            Configure Licensing
+                            <ExternalLink size={14} className="ml-2" />
                           </Button>
                         </div>
                       </div>
