@@ -210,9 +210,9 @@ test.describe.serial("Vertical Journey — Substack", () => {
 
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasToggles = await page.getByText(/RAG/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
-    const hasVerifyPrompt = await page.getByText(/Verify your publication/i).first().isVisible({ timeout: 1_000 }).catch(() => false);
-    expect(hasToggles || hasVerifyPrompt).toBeTruthy();
+    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
 
@@ -320,9 +320,9 @@ test.describe.serial("Vertical Journey — Beehiiv", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasToggles = await page.getByText(/RAG/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
-    const hasVerifyPrompt = await page.getByText(/Verify your publication/i).first().isVisible({ timeout: 1_000 }).catch(() => false);
-    expect(hasToggles || hasVerifyPrompt).toBeTruthy();
+    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
 
@@ -407,9 +407,9 @@ test.describe.serial("Vertical Journey — Ghost", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasToggles = await page.getByText(/RAG/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
-    const hasVerifyPrompt = await page.getByText(/Verify your publication/i).first().isVisible({ timeout: 1_000 }).catch(() => false);
-    expect(hasToggles || hasVerifyPrompt).toBeTruthy();
+    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
 
@@ -510,9 +510,9 @@ test.describe.serial("Vertical Journey — WordPress", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasToggles = await page.getByText(/RAG/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
-    const hasVerifyPrompt = await page.getByText(/Verify your publication/i).first().isVisible({ timeout: 1_000 }).catch(() => false);
-    expect(hasToggles || hasVerifyPrompt).toBeTruthy();
+    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
 
@@ -615,8 +615,8 @@ test.describe.serial("Vertical Journey — Custom", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasToggles = await page.getByText(/RAG/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
-    const hasVerifyPrompt = await page.getByText(/Verify your publication/i).first().isVisible({ timeout: 1_000 }).catch(() => false);
-    expect(hasToggles || hasVerifyPrompt).toBeTruthy();
+    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
