@@ -151,7 +151,7 @@ test.describe("Licensing — License Type Configuration", () => {
 });
 
 test.describe("Licensing — Save Button", () => {
-  test("Save changes button exists", async ({ page }) => {
+  test("Sticky save bar exists", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToLicensing(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
@@ -165,7 +165,7 @@ test.describe("Licensing — Save Button", () => {
     await expect(saveBtn).toBeVisible({ timeout: 5_000 });
   });
 
-  test("Save button is disabled when no changes have been made", async ({ page }) => {
+  test("Save bar hidden when no changes have been made", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToLicensing(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
