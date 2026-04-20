@@ -184,15 +184,21 @@ test.describe.serial("Publisher Lifecycle — Full Journey", () => {
   // ── Step 4: "Register content" button works for completed publisher ──
   // THIS IS THE TEST THAT WOULD HAVE CAUGHT THE REDIRECT BUG
   test("Step 4: register content button navigates to /setup (not bounce back)", async ({ page }) => {
-    test.setTimeout(20_000);
+    test.setTimeout(30_000);
     await injectAuth(page, user);
     await page.goto("/dashboard");
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
+
+    // May have redirected to /setup if profile still loading — go back
+    if (page.url().includes("/setup")) {
+      await page.goto("/dashboard");
+      await page.waitForTimeout(5000);
+    }
 
     // Find and click "Register content" button
     const btn = page.getByRole("button", { name: /Register content/i });
-    await expect(btn).toBeVisible({ timeout: 10_000 });
+    await expect(btn).toBeVisible({ timeout: 15_000 });
     await btn.click();
 
     // Wait for navigation

@@ -68,11 +68,12 @@ test.describe.serial("Buyer Experience — Full Journey", () => {
       .from("licenses")
       .insert({
         publisher_id: ctx.publisherId,
-        title: "E2E Test Article — Buyer Lifecycle",
+        title: "E2E Test Article - Buyer Lifecycle",
         description: "Test article for buyer E2E tests",
         source_url: `https://test.opedd.com/e2e-${Date.now()}`,
-        human_price: 0, // free license for testing
+        human_price: 0,
         ai_price: 25,
+        license_type: "standard",
         licensing_enabled: true,
       })
       .select("id")
