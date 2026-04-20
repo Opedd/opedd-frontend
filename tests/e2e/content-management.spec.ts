@@ -55,12 +55,12 @@ test.describe("Content — Page Load", () => {
     await assertNoCrash(page, "Content /content");
   });
 
-  test("page title is set correctly", async ({ page }) => {
+  test("page title contains Catalog", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToContent(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
 
-    await expect(page).toHaveTitle(/Content/);
+    await expect(page).toHaveTitle(/Catalog/);
   });
 });
 

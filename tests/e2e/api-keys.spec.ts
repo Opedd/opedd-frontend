@@ -1,7 +1,7 @@
 /**
- * E2E: API Keys — /settings?tab=api-keys
+ * E2E: API Keys — /settings?tab=developers
  *
- * Tests the API Keys tab within the Settings page:
+ * Tests the Developers tab within the Settings page:
  *   - Tab loads without crash
  *   - Publisher ID section is visible with copy button
  *   - API Key section is visible (masked or "Generate API Key" button)
@@ -35,7 +35,7 @@ test.afterAll(async () => {
 
 async function goToApiKeysTab(page: import("@playwright/test").Page): Promise<boolean> {
   await injectAuth(page, { email: user.email, password: user.password });
-  await page.goto("/settings?tab=api-keys");
+  await page.goto("/settings?tab=developers");
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(2000);
   await dismissModal(page);
@@ -49,20 +49,20 @@ async function goToApiKeysTab(page: import("@playwright/test").Page): Promise<bo
 // ---------------------------------------------------------------------------
 
 test.describe("API Keys — Page Load", () => {
-  test("API Keys tab loads without crash", async ({ page }) => {
+  test("Developers tab loads without crash", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToApiKeysTab(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
 
-    await assertNoCrash(page, "Settings /settings?tab=api-keys");
+    await assertNoCrash(page, "Settings /settings?tab=developers");
   });
 
-  test("API Keys tab is active when navigated to directly", async ({ page }) => {
+  test("Developers tab is active when navigated to directly", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToApiKeysTab(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
 
-    const apiTab = page.getByRole("tab", { name: "API Keys" });
+    const apiTab = page.getByRole("tab", { name: "Developers" });
     await expect(apiTab).toHaveAttribute("data-state", "active");
   });
 });

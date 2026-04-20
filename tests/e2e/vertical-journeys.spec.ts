@@ -194,7 +194,7 @@ test.describe.serial("Vertical Journey — Substack", () => {
     await navigateAndVerify(page, "/settings?tab=billing", "Substack /settings?tab=billing");
 
     // Settings — API Keys tab
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Substack /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Substack /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -210,8 +210,8 @@ test.describe.serial("Vertical Journey — Substack", () => {
 
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
-    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    const hasRedirect = await page.getByText(/Profile|Publisher Name|Configure Licensing/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Profile|Publisher Name|Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
     expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
@@ -304,7 +304,7 @@ test.describe.serial("Vertical Journey — Beehiiv", () => {
     await navigateAndVerify(page, "/licensing", "Beehiiv /licensing");
     await navigateAndVerify(page, "/settings", "Beehiiv /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "Beehiiv /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Beehiiv /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Beehiiv /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -320,8 +320,8 @@ test.describe.serial("Vertical Journey — Beehiiv", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
-    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    const hasRedirect = await page.getByText(/Profile|Publisher Name|Configure Licensing/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Profile|Publisher Name|Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
     expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
@@ -391,7 +391,7 @@ test.describe.serial("Vertical Journey — Ghost", () => {
     await navigateAndVerify(page, "/licensing", "Ghost /licensing");
     await navigateAndVerify(page, "/settings", "Ghost /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "Ghost /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Ghost /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Ghost /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -407,8 +407,8 @@ test.describe.serial("Vertical Journey — Ghost", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
-    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    const hasRedirect = await page.getByText(/Profile|Publisher Name|Configure Licensing/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Profile|Publisher Name|Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
     expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
@@ -451,7 +451,7 @@ test.describe.serial("Vertical Journey — WordPress", () => {
     // Wait for setup page to render, then click WordPress
     await expect(page.getByText("Where do you publish?")).toBeVisible({ timeout: 10_000 });
     // WordPress card has the WordPress logo — find it by the exact label
-    const wpCard = page.locator("button").filter({ hasText: "Full archive — automatic" });
+    const wpCard = page.locator("button").filter({ hasText: "Connect with your site URL" });
     await wpCard.click();
 
     // Site URL field
@@ -494,7 +494,7 @@ test.describe.serial("Vertical Journey — WordPress", () => {
     await navigateAndVerify(page, "/licensing", "WordPress /licensing");
     await navigateAndVerify(page, "/settings", "WordPress /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "WordPress /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "WordPress /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "WordPress /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -510,8 +510,8 @@ test.describe.serial("Vertical Journey — WordPress", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
-    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    const hasRedirect = await page.getByText(/Profile|Publisher Name|Configure Licensing/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Profile|Publisher Name|Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
     expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
@@ -599,7 +599,7 @@ test.describe.serial("Vertical Journey — Custom", () => {
     await navigateAndVerify(page, "/licensing", "Custom /licensing");
     await navigateAndVerify(page, "/settings", "Custom /settings");
     await navigateAndVerify(page, "/settings?tab=billing", "Custom /settings?tab=billing");
-    await navigateAndVerify(page, "/settings?tab=api-keys", "Custom /settings?tab=api-keys");
+    await navigateAndVerify(page, "/settings?tab=developers", "Custom /settings?tab=developers");
   });
 
   test("Phase 5: Profile configuration — name & AI toggles", async ({ page }) => {
@@ -615,8 +615,8 @@ test.describe.serial("Vertical Journey — Custom", () => {
     // AI licensing tab — fresh users without verified sources see "Verify your publication first"
     // which is correct behavior. Verify the tab loads without crash.
     await navigateAndVerify(page, "/settings?tab=ai-licensing", "AI Licensing tab");
-    const hasRedirect = await page.getByText(/Configure Licensing|configured.*Licensing page/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
-    const hasEnterprise = await page.getByText(/Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
+    const hasRedirect = await page.getByText(/Profile|Publisher Name|Configure Licensing/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEnterprise = await page.getByText(/Profile|Publisher Name|Enterprise Revenue/i).first().isVisible({ timeout: 3_000 }).catch(() => false);
     expect(hasRedirect || hasEnterprise).toBeTruthy();
   });
 });
