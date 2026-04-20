@@ -63,6 +63,20 @@ function relativeTime(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
+type Bucket = "Today" | "Yesterday" | "This week" | "Older";
+const BUCKET_ORDER: Bucket[] = ["Today", "Yesterday", "This week", "Older"];
+
+function bucketFor(dateStr: string): Bucket {
+  const now = new Date();
+  const d = new Date(dateStr);
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const ts = d.getTime();
+  if (ts >= startOfToday) return "Today";
+  if (ts >= startOfToday - 86_400_000) return "Yesterday";
+  if (ts >= startOfToday - 6 * 86_400_000) return "This week";
+  return "Older";
+}
+
 export default function NotificationsPage() {
   useDocumentTitle("Notifications — Opedd");
   const { user, getAccessToken } = useAuth();
