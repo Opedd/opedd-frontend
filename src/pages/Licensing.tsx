@@ -445,8 +445,8 @@ export default function Licensing() {
     {
       key: "ai_retrieval",
       icon: <Cpu size={18} className="text-violet-500" />,
-      label: "AI / RAG retrieval",
-      description: "Structured API access for AI applications",
+      label: "AI Retrieval & Summarization",
+      description: "AI systems retrieve, summarize, and serve your content in real-time (RAG, chatbots, enterprise search)",
       priceFields: (
         <PriceInput
           value={localRules.license_types.ai_retrieval.price_monthly}
@@ -488,7 +488,7 @@ export default function Licensing() {
       key: "syndication",
       icon: <Share2 size={18} className="text-teal-500" />,
       label: "Syndication",
-      description: "Republish in your publication",
+      description: "Aggregators and platforms redistribute your content to their enterprise clients. Includes AI summarization rights.",
       priceFields: localRules.license_types.syndication.enabled ? (
         <div className="mt-2 space-y-2">
           <div className="flex items-center gap-4">
