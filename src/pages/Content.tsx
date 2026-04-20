@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Search, FileText, Loader2, Link2, MoreHorizontal, Check,
   Globe, Calendar, User, ExternalLink, Copy, X, AlertTriangle,
-  ArrowUpDown, Download, Handshake, Upload,
+  ArrowUpDown, Download, Handshake, Upload, ChevronDown,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -67,7 +67,8 @@ export default function Content() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "archive-license" ? tab : "articles";
+    if (tab === "archive-license" || tab === "substack") return tab;
+    return "articles";
   });
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
