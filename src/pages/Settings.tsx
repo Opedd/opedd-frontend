@@ -252,9 +252,7 @@ export default function Settings() {
   const [apiKeyWarning, setApiKeyWarning] = useState(false);
   const [contactForPricing, setContactForPricing] = useState(false);
 
-  // AI Licensing toggles
-  const [aiLicenseTypes, setAiLicenseTypes] = useState({ rag: true, training: true, inference: true });
-  const [isSavingAiLicensing, setIsSavingAiLicensing] = useState(false);
+  // Enterprise revenue (still surfaced on the AI Licensing tab below)
   const [enterpriseRevenue, setEnterpriseRevenue] = useState<{ total_usd: number; payouts: Array<{ month: string; amount_usd: number; license_id?: string; buyer_org?: string }> } | null>(null);
 
   // Content Taxonomy
@@ -388,13 +386,6 @@ export default function Settings() {
         setAiAnnualPrice((d as any).ai_annual_price != null ? String((d as any).ai_annual_price) : "");
         setPublisherCategory((d as any).category || "");
         setLogoPreview(d.logo_url || null);
-        if ((d as any).ai_license_types) {
-          setAiLicenseTypes({
-            rag: (d as any).ai_license_types.rag ?? true,
-            training: (d as any).ai_license_types.training ?? true,
-            inference: (d as any).ai_license_types.inference ?? true,
-          });
-         }
          if ((d as any).enterprise_revenue) {
            setEnterpriseRevenue((d as any).enterprise_revenue);
          }
