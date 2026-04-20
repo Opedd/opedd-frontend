@@ -25,6 +25,7 @@ const footerLinks = {
   Legal: [
     { label: "Privacy", href: "/privacy" },
     { label: "Terms", href: "/terms" },
+    { label: "DMCA", href: "/dmca" },
     { label: "Licenses", href: "/licenses" },
   ],
 };
@@ -122,6 +123,8 @@ const Footer = () => {
              <a href="/terms" className="hover:text-alice-gray/80 transition-colors">Terms of Service</a>
              <span className="text-alice-gray/20">·</span>
              <a href="/privacy" className="hover:text-alice-gray/80 transition-colors">Privacy Policy</a>
+            <span className="text-alice-gray/20">·</span>
+            <a href="/dmca" className="hover:text-alice-gray/80 transition-colors">DMCA</a>
             <span className="text-alice-gray/20">·</span>
             <a href="mailto:support@opedd.com" className="hover:text-alice-gray/80 transition-colors">Support</a>
           </div>
