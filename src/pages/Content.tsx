@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Search, FileText, Loader2, Link2, MoreHorizontal, Check,
   Globe, Calendar, User, ExternalLink, Copy, X, AlertTriangle,
-  ArrowUpDown, Download, Handshake, Upload,
+  ArrowUpDown, Download, Handshake, Upload, ChevronDown,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -63,11 +63,12 @@ type SortKey = "title" | "revenue" | "status";
 type SortDir = "asc" | "desc";
 
 export default function Content() {
-  useDocumentTitle("Content — Opedd");
+  useDocumentTitle("Catalog — Opedd");
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "archive-license" ? tab : "articles";
+    if (tab === "archive-license" || tab === "substack") return tab;
+    return "articles";
   });
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
@@ -318,44 +319,53 @@ export default function Content() {
   };
 
   return (
-    <DashboardLayout title="Content">
-      <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
+    <DashboardLayout title="Catalog">
+      <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-bold text-[#111827]">Content</h1>
+            <h1 className="text-xl font-bold text-[#111827]">Catalog</h1>
             <p className="text-sm text-[#6B7280] mt-0.5">
               {totalAssets} article{totalAssets !== 1 ? "s" : ""} across {sourceCount} publication{sourceCount !== 1 ? "s" : ""}
             </p>
           </div>
-          {activeTab === "articles" && (
-            <button onClick={handleExportCSV} disabled={assets.length === 0} className="flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+          <div className="flex items-center gap-2">
+            <button onClick={handleExportCSV} disabled={assets.length === 0} className="hidden sm:flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               <Download size={14} />Export CSV
             </button>
-          )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="secondary" className="h-9 gap-1.5">
+                  Actions
+                  <ChevronDown size={14} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white w-56">
+                <DropdownMenuItem onClick={() => setActiveTab("substack")}>
+                  <Upload size={14} className="mr-2" /> Import articles
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("archive-license")}>
+                  <Handshake size={14} className="mr-2" /> Issue archive license
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCSV} disabled={assets.length === 0} className="sm:hidden">
+                  <Download size={14} className="mr-2" /> Export CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs (controlled by Actions dropdown — tab list hidden) */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="border-b border-[#E5E7EB]">
-            <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
-              {[
-                { value: "articles", label: "Articles" },
-                { value: "substack", label: "Re-import Archive" },
-                { value: "archive-license", label: "Archive License" },
-              ].map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[14px] font-normal tracking-tight text-[#6B7280] transition-colors data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-[#1f2937]"
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+          {activeTab !== "articles" && (
+            <div className="flex items-center justify-between mb-2">
+              <button onClick={() => setActiveTab("articles")} className="inline-flex items-center gap-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors">
+                ← Back to Articles
+              </button>
+            </div>
+          )}
 
-          <TabsContent value="articles" className="mt-6 space-y-6">
+          <TabsContent value="articles" className="mt-0 space-y-6">
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 flex-wrap">

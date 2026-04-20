@@ -628,9 +628,9 @@ export default function Licensing() {
           )}
         </section>
 
-        {/* SECTION 2 — License Types Configuration */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 space-y-1">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">License types</h2>
+        {/* SECTION 2 — License Types Configuration (grouped) */}
+        <section className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+          <h2 className="text-base font-semibold text-gray-900">License types</h2>
 
           {profileLoading ? (
             <div className="space-y-4">
@@ -640,38 +640,52 @@ export default function Licensing() {
             </div>
           ) : (
             <>
-              <div className="divide-y divide-gray-100">
-                {licenseRows.map((row) => {
-                  const isEnabled = localRules.license_types[row.key].enabled;
-                  return (
-                    <div key={row.key} className="py-4 flex flex-col sm:flex-row sm:items-start gap-4">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Switch
-                          checked={isEnabled}
-                          onCheckedChange={(checked) =>
-                            updateLicenseType(row.key, { enabled: checked })
-                          }
-                          id={`toggle-${row.key}`}
-                        />
-                        <div className="min-w-0">
-                          <Label
-                            htmlFor={`toggle-${row.key}`}
-                            className="inline-flex items-center gap-2 font-medium text-gray-900 cursor-pointer"
-                          >
-                            {row.icon}
-                            {row.label}
-                            {hasChanges && isEnabled !== (originalRulesRef.current.license_types[row.key].enabled) && (
-                              <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" title="Unsaved changes" />
-                            )}
-                          </Label>
-                          <p className="text-sm text-gray-500 mt-0.5">{row.description}</p>
-                          {isEnabled && row.priceFields}
-                        </div>
-                      </div>
+              {([
+                { heading: "Direct sales", keys: ["editorial", "archive", "corporate"] as const },
+                { heading: "AI & Distribution", keys: ["ai_retrieval", "ai_training", "syndication"] as const },
+              ]).map((group) => {
+                const rows = licenseRows.filter((r) => (group.keys as readonly string[]).includes(r.key));
+                return (
+                  <div key={group.heading} className="space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                      {group.heading}
+                    </p>
+                    <div className="divide-y divide-gray-100 border border-gray-100 rounded-lg">
+                      {rows.map((row) => {
+                        const isEnabled = localRules.license_types[row.key].enabled;
+                        return (
+                          <div key={row.key} className="px-4 py-4 flex flex-col sm:flex-row sm:items-start gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <Switch
+                                checked={isEnabled}
+                                onCheckedChange={(checked) =>
+                                  updateLicenseType(row.key, { enabled: checked })
+                                }
+                                id={`toggle-${row.key}`}
+                                className="mt-0.5"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <Label
+                                  htmlFor={`toggle-${row.key}`}
+                                  className="inline-flex items-center gap-2 font-medium text-gray-900 cursor-pointer"
+                                >
+                                  {row.icon}
+                                  {row.label}
+                                  {hasChanges && isEnabled !== (originalRulesRef.current.license_types[row.key].enabled) && (
+                                    <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" title="Unsaved changes" />
+                                  )}
+                                </Label>
+                                <p className="text-sm text-gray-500 mt-0.5">{row.description}</p>
+                                {isEnabled && row.priceFields}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
 
               {/* Validation errors */}
               {validationErrors.length > 0 && (
@@ -681,25 +695,6 @@ export default function Licensing() {
                   ))}
                 </div>
               )}
-
-              <div className="pt-4 flex items-center justify-between">
-                {hasChanges && (
-                  <span className="text-xs text-amber-600 font-medium inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-                    Unsaved changes
-                  </span>
-                )}
-                <div className={hasChanges ? "" : "ml-auto"}>
-                  <Button
-                    onClick={handleSave}
-                    disabled={!hasChanges || saving}
-                    className="gap-2"
-                  >
-                    {saving && <Loader2 size={14} className="animate-spin" />}
-                    Save changes
-                  </Button>
-                </div>
-              </div>
             </>
           )}
         </section>
@@ -719,6 +714,43 @@ export default function Licensing() {
         </section>
 
       </div>
+
+      {/* Sticky Save Bar */}
+      {hasChanges && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E5E7EB] shadow-[0_-4px_12px_rgba(0,0,0,0.04)]"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+            <span className="text-sm text-amber-700 font-medium inline-flex items-center gap-2 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block shrink-0" />
+              You have unsaved changes
+            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setLocalRules(originalRulesRef.current);
+                  setValidationErrors([]);
+                }}
+                disabled={saving}
+              >
+                Discard
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={saving}
+                className="gap-2 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+              >
+                {saving && <Loader2 size={14} className="animate-spin" />}
+                Save changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       </PublicationGate>
     </DashboardLayout>
   );

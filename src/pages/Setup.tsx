@@ -62,7 +62,7 @@ const PLATFORM_OPTIONS: { id: Platform; label: string; desc: string; logo: strin
   { id: "substack", label: "Substack", desc: "Archive via data export (includes premium content)", logo: substackLogo },
   { id: "beehiiv", label: "Beehiiv", desc: "Full archive via API key (includes premium content)", logo: beehiivLogo },
   { id: "ghost", label: "Ghost", desc: "Full archive via Admin API (includes members-only)", logo: ghostLogo },
-  { id: "wordpress", label: "WordPress", desc: "Full archive — automatic, no credentials needed", logo: wordpressLogo },
+  { id: "wordpress", label: "WordPress", desc: "Connect with your site URL + Application Password", logo: wordpressLogo },
   { id: "custom", label: "Custom / Other", desc: "Any CMS — connect via API key, sitemap, or email", logo: null },
 ];
 

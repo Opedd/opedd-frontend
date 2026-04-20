@@ -223,8 +223,8 @@ export default function Dashboard() {
       headerActions={<></>}
     >
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
-        {/* Pending Earnings Card */}
-        {!stripeConnected && (
+        {/* Pending Earnings Card — only when there's actual revenue or licenses */}
+        {!stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0) && (
           <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm" style={{ borderImage: "linear-gradient(135deg, #F59E0B, #D97706) 1" }}>
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
@@ -232,9 +232,7 @@ export default function Dashboard() {
                   💰 Pending Earnings: ${totalRevenue.toFixed(2)}
                 </p>
                 <p className="text-sm text-[#6B7280] mt-1">
-                  {totalRevenue > 0
-                    ? "Your earnings are accumulating. Connect your bank to start receiving payouts."
-                    : "Once you make your first sale, your earnings will appear here."}
+                  Your earnings are accumulating. Connect your bank to start receiving payouts.
                 </p>
               </div>
               <Button
@@ -286,7 +284,7 @@ export default function Dashboard() {
               <>
                 <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
                 <p className="text-xs text-[#9CA3AF] mt-1">
-                  {totalLicensesSold > 0 ? `${totalLicensesSold} licensed (last 30d)` : "Not yet licensed"}
+                  {totalLicensesSold > 0 ? `${totalLicensesSold} licensed (last 30d)` : "Awaiting first license"}
                 </p>
               </>
             )}
