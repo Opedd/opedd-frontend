@@ -198,7 +198,14 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    const validTabs = ["pricing", "api-keys", "team", "ai-licensing", "billing", "content", "admin"];
+    // Back-compat: legacy tab values redirect to new consolidated tabs
+    if (tab === "api-keys" || tab === "developers") return "developers";
+    if (tab === "ai-licensing" || tab === "pricing" || tab === "content") return "profile";
+    if (tab === "admin") {
+      // Legacy admin tab — admin moved to /admin route
+      return "profile";
+    }
+    const validTabs = ["profile", "billing", "team", "developers"];
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -902,17 +909,13 @@ export default function Settings() {
             >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               {/* Global tab style — #4A26ED underline */}
-              <div className="border-b border-[#E5E7EB]">
-                <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
+              <div className="border-b border-[#E5E7EB] overflow-x-auto">
+                <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0 whitespace-nowrap">
                   {[
                     { value: "profile", label: "Profile" },
-                    { value: "pricing", label: "Pricing" },
-                    { value: "ai-licensing", label: "AI Licensing" },
-                    { value: "team", label: "Team" },
-                    { value: "api-keys", label: "API Keys" },
                     { value: "billing", label: "Billing" },
-                    { value: "content", label: "Content" },
-                    ...(isAdmin ? [{ value: "admin", label: "Admin" }] : []),
+                    { value: "team", label: "Team" },
+                    { value: "developers", label: "Developers" },
                   ].map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -1518,9 +1521,9 @@ export default function Settings() {
                 </TabsContent>
 
                 {/* TAB: API Keys */}
-                <TabsContent value="api-keys" className="mt-6" forceMount={activeTab === "api-keys" ? true : undefined}>
-                  {activeTab === "api-keys" && (
-                    <motion.div key="api-keys" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                <TabsContent value="developers" className="mt-6" forceMount={activeTab === "developers" ? true : undefined}>
+                  {activeTab === "developers" && (
+                    <motion.div key="developers" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                       {isGated ? <LockedTabContent /> : <>
                       {/* Publisher ID */}
                       <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
