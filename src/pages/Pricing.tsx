@@ -144,11 +144,11 @@ export default function Pricing() {
               </div>
               <p className="text-xs mb-5 italic" style={{ color: "#9CA3AF" }}>Only pay when you earn — $0 if you don't.</p>
               <button
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate(user ? "/dashboard" : "/signup")}
                 className="w-full py-2.5 rounded-lg text-sm font-semibold border bg-white transition-colors hover:bg-slate-50 mb-6"
                 style={{ borderColor: "#040042", color: "#040042" }}
               >
-                Get Started Free
+                {user ? "Go to Dashboard" : "Get Started Free"}
               </button>
               <FeatureList features={freeFeatures} variant="light" />
             </div>

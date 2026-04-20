@@ -160,14 +160,17 @@ export default function Publishers() {
                       </span>
                     </div>
 
-                    <a href={`${EXT_SUPABASE_URL}/api?action=articles&publisher_id=${pub.id}`} target="_blank" rel="noopener noreferrer">
-                      <Button
-                        size="sm"
-                        className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
-                      >
-                        View Catalog
-                      </Button>
-                    </a>
+                    {pub.website_url && (
+                      <a href={pub.website_url} target="_blank" rel="noopener noreferrer">
+                        <Button
+                          size="sm"
+                          className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                        >
+                          Visit Site
+                          <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+                        </Button>
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}

@@ -4,7 +4,7 @@ import opeddLogo from "@/assets/opedd-logo-inverse.png";
 
 const footerLinks = {
   Product: [
-    { label: "Features", href: "/pricing" },
+    { label: "Features", href: "/#products" },
     { label: "For AI Agents", href: "/for-ai-agents" },
     { label: "Pricing", href: "/pricing" },
     { label: "API Docs", href: "https://docs.opedd.com", external: true },
@@ -18,6 +18,7 @@ const footerLinks = {
   ],
   Resources: [
     { label: "Blog", href: "/blog" },
+    { label: "Buyer Portal", href: "/licenses" },
     { label: "Get help", href: "mailto:support@opedd.com" },
     { label: "GitHub", href: "https://github.com/Opedd", external: true },
     { label: "npm", href: "https://www.npmjs.com/package/opedd-mcp", external: true },
@@ -26,7 +27,6 @@ const footerLinks = {
     { label: "Privacy", href: "/privacy" },
     { label: "Terms", href: "/terms" },
     { label: "DMCA", href: "/dmca" },
-    { label: "Licenses", href: "/licenses" },
   ],
 };
 

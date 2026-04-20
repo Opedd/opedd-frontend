@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Check, X, Zap, Crown, Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePlans, getPlan } from "@/hooks/usePlans";
+import { useAuth } from "@/contexts/AuthContext";
 
 const buildTiers = (proPrice: string, entPrice: string) => [
   {
@@ -65,9 +67,21 @@ const buildTiers = (proPrice: string, entPrice: string) => [
 
 const PricingSection = () => {
   const { data } = usePlans();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const proPrice = getPlan(data, "pro")?.monthly_display || "$39";
   const entPrice = getPlan(data, "enterprise")?.monthly_display || "$99";
   const tiers = buildTiers(proPrice, entPrice);
+
+  const handleTierCta = (tierName: string) => {
+    if (tierName === "Free") {
+      navigate(user ? "/dashboard" : "/signup");
+    } else if (tierName === "Pro") {
+      navigate("/pricing");
+    } else if (tierName === "Enterprise") {
+      window.location.href = "mailto:sales@opedd.com?subject=Enterprise%20Inquiry";
+    }
+  };
   return (
     <section id="pricing" className="py-24 px-6 bg-navy-deep scroll-mt-24">
       <div className="max-w-7xl mx-auto">
@@ -157,8 +171,9 @@ const PricingSection = () => {
                 variant={tier.popular ? "default" : "outline"}
                 className="w-full"
                 size="lg"
+                onClick={() => handleTierCta(tier.name)}
               >
-                {tier.cta}
+                {tier.name === "Free" && user ? "Go to Dashboard" : tier.cta}
               </Button>
             </motion.div>
           ))}
