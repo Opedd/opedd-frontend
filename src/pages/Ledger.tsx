@@ -73,7 +73,7 @@ function mapStatus(status: string): "settled" | "processing" | "disputed" | "rev
 }
 
 export default function Ledger() {
-  useDocumentTitle("Buyers — Opedd");
+  useDocumentTitle("Ledger — Opedd");
   const { user, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -303,12 +303,12 @@ export default function Ledger() {
   if (isLoading && transactions.length === 0) return <PageLoader />;
 
   return (
-    <DashboardLayout title="Buyers" subtitle="License agreements and buyer transactions">
-      <SEO title="Buyers — Opedd" path="/ledger" noindex />
-      <motion.div className="p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
+    <DashboardLayout title="Ledger" subtitle="License agreements and buyer transactions">
+      <SEO title="Ledger — Opedd" path="/ledger" noindex />
+      <motion.div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
         <motion.div className="flex items-center justify-between" variants={itemVariants}>
           <div>
-            <h1 className="text-2xl font-bold text-[#111827]">Buyers</h1>
+            <h1 className="text-2xl font-bold text-[#111827]">Ledger</h1>
             <p className="text-sm text-[#6B7280] mt-0.5">License agreements and buyer transactions</p>
           </div>
           <Button onClick={handleExportCSV} disabled={isExporting || transactions.length === 0} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-medium px-4 py-2 rounded-lg">

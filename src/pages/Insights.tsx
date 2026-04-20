@@ -94,7 +94,7 @@ export default function Insights() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
+      <DashboardLayout title="Analytics" subtitle="Licensing analytics &amp; revenue trends">
         <SEO title="Analytics — Opedd" path="/insights" noindex />
         <div className="p-8 max-w-6xl w-full mx-auto space-y-6">
           {/* Metric card skeletons */}
@@ -154,9 +154,9 @@ export default function Insights() {
   ].filter(d => d.value > 0);
 
   return (
-    <DashboardLayout title="Insights" subtitle="Licensing analytics &amp; revenue trends">
+    <DashboardLayout title="Analytics" subtitle="Licensing analytics &amp; revenue trends">
       <SEO title="Analytics — Opedd" path="/insights" noindex />
-      <motion.div className="p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
+      <motion.div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
 
         {/* Error state */}
         {fetchError && (

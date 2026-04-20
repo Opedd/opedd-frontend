@@ -291,7 +291,7 @@ export default function Connectors() {
   };
 
   return (
-    <DashboardLayout title="Connectors">
+    <DashboardLayout title="Distribution" subtitle="How buyers and AI systems discover and license your content">
       <PublicationGate
         isVerified={publicationVerified}
         pendingSources={pendingSources}

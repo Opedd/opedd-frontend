@@ -63,7 +63,7 @@ type SortKey = "title" | "revenue" | "status";
 type SortDir = "asc" | "desc";
 
 export default function Content() {
-  useDocumentTitle("Content — Opedd");
+  useDocumentTitle("Catalog — Opedd");
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
