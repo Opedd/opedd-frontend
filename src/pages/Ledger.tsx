@@ -558,6 +558,7 @@ export default function Ledger() {
                                           <TooltipTrigger asChild>
                                             <button
                                               onClick={(e) => { e.stopPropagation(); setRefundTarget(tx); }}
+                                              aria-label="Issue refund"
                                               className="p-1.5 rounded-md text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
                                             >
                                               <RotateCcw size={14} />
@@ -570,6 +571,7 @@ export default function Ledger() {
                                         <TooltipTrigger asChild>
                                           <button
                                             onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
+                                            aria-label="Revoke license"
                                             className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                           >
                                             <Ban size={14} />

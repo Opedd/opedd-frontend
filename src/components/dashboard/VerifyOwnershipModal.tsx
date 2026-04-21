@@ -262,7 +262,7 @@ export function VerifyOwnershipModal({
               <div className="p-3">
                 <div className="bg-navy-deep rounded-lg p-3 flex items-center justify-between gap-3">
                   <code className="text-xs text-emerald-400 font-mono truncate">Verify with Opedd: {displayToken}</code>
-                  <button onClick={() => handleCopy(`Verify with Opedd: ${displayToken}`)} className="text-white/60 hover:text-white flex-shrink-0">
+                  <button onClick={() => handleCopy(`Verify with Opedd: ${displayToken}`)} aria-label="Copy visible verification snippet" className="text-white/60 hover:text-white flex-shrink-0">
                     {copied ? <Check size={12} /> : <Copy size={12} />}
                   </button>
                 </div>
@@ -278,7 +278,7 @@ export function VerifyOwnershipModal({
                 <div className="p-3">
                   <div className="bg-navy-deep rounded-lg p-3 flex items-center justify-between gap-3">
                     <code className="text-xs text-emerald-400 font-mono truncate">{`<meta name="opedd-verification" content="${displayToken}" />`}</code>
-                    <button onClick={() => handleCopy(`<meta name="opedd-verification" content="${displayToken}" />`)} className="text-white/60 hover:text-white flex-shrink-0">
+                    <button onClick={() => handleCopy(`<meta name="opedd-verification" content="${displayToken}" />`)} aria-label="Copy verification meta tag" className="text-white/60 hover:text-white flex-shrink-0">
                       {copied ? <Check size={12} /> : <Copy size={12} />}
                     </button>
                   </div>
@@ -316,7 +316,7 @@ export function VerifyOwnershipModal({
               <div className="p-3">
                 <div className="bg-navy-deep rounded-lg p-3 flex items-center justify-between gap-3">
                   <code className="text-xs text-emerald-400 font-mono">{domainForDns || "@"}</code>
-                  <button onClick={() => handleCopy(domainForDns || "@")} className="text-white/60 hover:text-white flex-shrink-0">
+                  <button onClick={() => handleCopy(domainForDns || "@")} aria-label="Copy DNS host" className="text-white/60 hover:text-white flex-shrink-0">
                     {copied ? <Check size={12} /> : <Copy size={12} />}
                   </button>
                 </div>
@@ -330,7 +330,7 @@ export function VerifyOwnershipModal({
               <div className="p-3">
                 <div className="bg-navy-deep rounded-lg p-3 flex items-center justify-between gap-3">
                   <code className="text-xs text-emerald-400 font-mono tracking-wider">{displayToken}</code>
-                  <button onClick={() => handleCopy(displayToken)} className="text-white/60 hover:text-white flex-shrink-0">
+                  <button onClick={() => handleCopy(displayToken)} aria-label="Copy DNS TXT value" className="text-white/60 hover:text-white flex-shrink-0">
                     {copied ? <Check size={12} /> : <Copy size={12} />}
                   </button>
                 </div>

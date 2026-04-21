@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 
@@ -68,14 +69,14 @@ function truncateKey(key: string) {
 
 function StatCard({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) {
   return (
-    <div className="bg-navy-deep rounded-xl p-5 border border-white/5">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
-          <Icon size={18} className="text-white/70" />
+        <div className="w-9 h-9 rounded-lg bg-oxford/10 flex items-center justify-center">
+          <Icon size={18} className="text-oxford" />
         </div>
-        <span className="text-xs font-medium text-white/40 uppercase tracking-wider">{label}</span>
+        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="text-2xl font-semibold text-gray-900">{value}</p>
     </div>
   );
 }
@@ -122,6 +123,7 @@ export default function Admin() {
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<"overview" | "publishers" | "transactions" | "webhooks" | "funnel">("overview");
+  const TABS = ["overview", "publishers", "transactions", "webhooks", "funnel"] as const;
   const [adminChecked, setAdminChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -161,27 +163,25 @@ export default function Admin() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 border-b border-gray-200">
-            {(["overview", "publishers", "transactions", "webhooks", "funnel"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
-                  tab === t
-                    ? "border-navy-deep text-navy-deep"
-                    : "border-transparent text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
+            <TabsList className="mb-6 bg-transparent border-b border-gray-200 rounded-none p-0 h-auto w-full justify-start gap-1">
+              {TABS.map((t) => (
+                <TabsTrigger
+                  key={t}
+                  value={t}
+                  className="capitalize px-4 py-2.5 text-sm font-medium text-gray-500 rounded-none border-b-2 border-transparent data-[state=active]:border-navy-deep data-[state=active]:text-navy-deep data-[state=active]:shadow-none data-[state=active]:bg-transparent hover:text-gray-900 -mb-px"
+                >
+                  {t}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-          {tab === "overview" && <OverviewTab getAccessToken={getAccessToken} />}
-          {tab === "publishers" && <PublishersTab getAccessToken={getAccessToken} />}
-          {tab === "transactions" && <TransactionsTab getAccessToken={getAccessToken} toast={toast} />}
-          {tab === "webhooks" && <WebhooksTab getAccessToken={getAccessToken} />}
-          {tab === "funnel" && <FunnelTab getAccessToken={getAccessToken} />}
+            <TabsContent value="overview" className="mt-0"><OverviewTab getAccessToken={getAccessToken} /></TabsContent>
+            <TabsContent value="publishers" className="mt-0"><PublishersTab getAccessToken={getAccessToken} /></TabsContent>
+            <TabsContent value="transactions" className="mt-0"><TransactionsTab getAccessToken={getAccessToken} toast={toast} /></TabsContent>
+            <TabsContent value="webhooks" className="mt-0"><WebhooksTab getAccessToken={getAccessToken} /></TabsContent>
+            <TabsContent value="funnel" className="mt-0"><FunnelTab getAccessToken={getAccessToken} /></TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
@@ -394,7 +394,7 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center gap-1.5">
                       <code className="text-xs font-mono text-gray-500">{truncateKey(tx.license_key)}</code>
-                      <button onClick={() => handleCopy(tx.license_key)} className="text-gray-400 hover:text-navy-deep transition-colors">
+                      <button onClick={() => handleCopy(tx.license_key)} aria-label="Copy license key" className="text-gray-400 hover:text-navy-deep transition-colors">
                         {copiedKey === tx.license_key ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                       </button>
                     </span>

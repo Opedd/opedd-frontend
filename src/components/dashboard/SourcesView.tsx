@@ -605,6 +605,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         variant="ghost"
                         size="icon"
                         onClick={() => { setDeleteConfirmSource(source); setDeleteConfirmInput(""); }}
+                        aria-label={`Remove source ${source.name}`}
                         className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
                       >
                         <Trash2 size={14} />

@@ -894,7 +894,7 @@ export default function Settings() {
                   <AlertTriangle size={16} className="text-[#DC2626] flex-shrink-0" />
                   <span className="text-sm font-medium text-[#DC2626]">Failed to save. Try again.</span>
                 </div>
-                <button onClick={() => setSaveBanner(null)} className="text-red-400 hover:text-red-600"><X size={14} /></button>
+                <button onClick={() => setSaveBanner(null)} aria-label="Dismiss save error" className="text-red-400 hover:text-red-600"><X size={14} /></button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1335,7 +1335,7 @@ export default function Settings() {
                                     {currentUserRole === "owner" && member.role !== "owner" && (
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50">
+                                          <Button size="sm" variant="ghost" aria-label={`Remove team member ${member.email}`} className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50">
                                             <Trash2 size={14} />
                                           </Button>
                                         </AlertDialogTrigger>
@@ -1450,7 +1450,7 @@ export default function Settings() {
                                     {apiKeyRevealed ? apiKey : apiKey.slice(0, 10) + "•".repeat(20)}
                                   </code>
                                 </div>
-                                <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} className="h-10 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
+                                <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} aria-label={apiKeyRevealed ? "Hide API key" : "Reveal API key"} className="h-10 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
                                   {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </Button>
                                 <Button size="sm" onClick={handleCopyApiKey} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium transition-all">
@@ -1677,7 +1677,7 @@ export default function Settings() {
       {checkoutClientSecret && checkoutStripePromise && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <button onClick={handleCloseCheckout} className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] hover:border-[#040042] transition-colors"><X size={16} /></button>
+            <button onClick={handleCloseCheckout} aria-label="Close checkout" className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] hover:border-[#040042] transition-colors"><X size={16} /></button>
             <div className="p-2">
               <EmbeddedCheckoutProvider stripe={checkoutStripePromise} options={{ clientSecret: checkoutClientSecret }}>
                 <EmbeddedCheckout />

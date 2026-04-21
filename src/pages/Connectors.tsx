@@ -480,7 +480,7 @@ export default function Connectors() {
                           <div className="flex-1 bg-white border border-amber-200 rounded-lg px-3 py-2 overflow-hidden">
                             <code className="text-xs font-mono text-navy-deep truncate block">{webhookSecret}</code>
                           </div>
-                          <Button size="sm" variant="outline" onClick={handleCopyWebhookSecret} className="h-9 px-3 border-amber-200 hover:bg-amber-100 rounded-lg">
+                          <Button size="sm" variant="outline" onClick={handleCopyWebhookSecret} aria-label="Copy webhook signing secret" className="h-9 px-3 border-amber-200 hover:bg-amber-100 rounded-lg">
                             {webhookSecretCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                           </Button>
                         </div>

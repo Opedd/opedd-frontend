@@ -509,12 +509,12 @@ export default function Content() {
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={(e) => handleCopyLink(e, asset.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-oxford transition-colors" title="Copy license link">
+                            <button onClick={(e) => handleCopyLink(e, asset.id)} aria-label={`Copy license link for ${asset.title}`} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-oxford transition-colors" title="Copy license link">
                               {isCopied ? <Check size={15} className="text-emerald-500" /> : <Link2 size={15} />}
                             </button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-500 transition-colors">
+                                <button onClick={(e) => e.stopPropagation()} aria-label={`More actions for ${asset.title}`} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-500 transition-colors">
                                   <MoreHorizontal size={15} />
                                 </button>
                               </DropdownMenuTrigger>

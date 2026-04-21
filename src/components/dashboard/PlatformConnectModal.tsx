@@ -682,6 +682,7 @@ export function PlatformConnectModal({
                     <code className="text-lg font-mono font-bold text-white tracking-[0.15em]">{token}</code>
                     <button
                       onClick={() => handleCopy(token, setCopied)}
+                      aria-label="Copy verification code"
                       className="text-white/60 hover:text-white transition-colors"
                     >
                       {copied ? <Check size={14} /> : <Copy size={14} />}
@@ -707,7 +708,7 @@ export function PlatformConnectModal({
                     <div className="p-3">
                       <div className="bg-navy-deep rounded-lg p-3 flex items-center justify-between gap-3">
                         <code className="text-xs text-emerald-400 font-mono">{item.value}</code>
-                        <button onClick={() => handleCopy(item.value, setCopied)} className="text-white/60 hover:text-white">
+                        <button onClick={() => handleCopy(item.value, setCopied)} aria-label={`Copy DNS ${item.label.toLowerCase()}`} className="text-white/60 hover:text-white">
                           {copied ? <Check size={12} /> : <Copy size={12} />}
                         </button>
                       </div>
@@ -779,7 +780,7 @@ export function PlatformConnectModal({
 
             <div className="bg-navy-deep rounded-xl p-3 flex items-center justify-between gap-3">
               <code className="text-xs text-emerald-400 font-mono truncate">{webhookUrl}</code>
-              <button onClick={() => handleCopy(webhookUrl, setWebhookCopied)} className="text-white/60 hover:text-white shrink-0">
+              <button onClick={() => handleCopy(webhookUrl, setWebhookCopied)} aria-label="Copy webhook URL" className="text-white/60 hover:text-white shrink-0">
                 {webhookCopied ? <Check size={14} /> : <Copy size={14} />}
               </button>
             </div>
