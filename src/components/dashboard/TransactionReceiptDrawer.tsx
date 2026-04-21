@@ -14,7 +14,7 @@ import {
   Archive, Calendar, AlertTriangle, RefreshCw, Loader2,
 } from "lucide-react";
 import { useState } from "react";
-import { formatUSD } from "@/lib/formatNumber";
+import { formatUSD, formatInteger } from "@/lib/formatNumber";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -242,7 +242,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                 <div className="flex items-center gap-2 mb-2"><Bot size={16} className="text-oxford" /><span className="text-sm font-semibold text-gray-900">AI Lab Details</span></div>
                 {transaction.aiLabName && <div className="flex items-center justify-between"><span className="text-xs text-gray-500 uppercase tracking-wider">Lab</span><span className="text-sm font-medium text-gray-900">{transaction.aiLabName}</span></div>}
                 {transaction.aiModel && <div className="flex items-center justify-between"><span className="text-xs text-gray-500 uppercase tracking-wider">Model</span><span className="text-sm font-medium text-gray-900">{transaction.aiModel}</span></div>}
-                {transaction.tokenVolume && <div className="flex items-center justify-between"><span className="text-xs text-gray-500 uppercase tracking-wider">Token Volume</span><span className="text-sm font-medium text-gray-900">{transaction.tokenVolume.toLocaleString()} Tokens</span></div>}
+                {transaction.tokenVolume && <div className="flex items-center justify-between"><span className="text-xs text-gray-500 uppercase tracking-wider">Token Volume</span><span className="text-sm font-medium text-gray-900">{formatInteger(transaction.tokenVolume)} Tokens</span></div>}
               </div>
             )}
           </div>
