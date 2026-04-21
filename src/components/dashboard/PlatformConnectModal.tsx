@@ -18,10 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { copyToClipboard } from "@/lib/clipboard";
 import {
-  X,
   Check,
   Copy,
-  Loader2,
   Upload,
   AlertTriangle,
   ChevronRight,
