@@ -86,6 +86,7 @@ export function BulkPricingModal({ open, onOpenChange, selectedIds, onSuccess }:
             </div>
             <button
               onClick={() => onOpenChange(false)}
+              aria-label="Close bulk pricing dialog"
               className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
             >
               <X size={16} className="text-white" />

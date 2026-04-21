@@ -256,7 +256,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-2">License Key</p>
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
                 <code className="text-sm font-mono text-navy-deep flex-1 break-all">{issuedKey}</code>
-                <button onClick={handleCopyKey} className="text-slate-400 hover:text-oxford transition-colors flex-shrink-0">
+                <button onClick={handleCopyKey} aria-label="Copy license key" className="text-slate-400 hover:text-oxford transition-colors flex-shrink-0">
                   {copiedKey ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Copy size={16} />}
                 </button>
               </div>

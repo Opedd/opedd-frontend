@@ -83,7 +83,7 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
         <p className="text-sm text-emerald-700 font-medium flex-1">
           Import complete — {record.inserted_count.toLocaleString()} articles added
         </p>
-        <button onClick={() => setDismissed(true)} className="text-emerald-400 hover:text-emerald-600">
+        <button onClick={() => setDismissed(true)} aria-label="Dismiss import notification" className="text-emerald-400 hover:text-emerald-600">
           <XCircle size={14} />
         </button>
       </div>
@@ -95,7 +95,7 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
       <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
         <XCircle size={16} className="text-red-500 flex-shrink-0" />
         <p className="text-sm text-red-700 font-medium flex-1">Import failed — please try again</p>
-        <button onClick={() => setDismissed(true)} className="text-red-400 hover:text-red-600">
+        <button onClick={() => setDismissed(true)} aria-label="Dismiss import notification" className="text-red-400 hover:text-red-600">
           <XCircle size={14} />
         </button>
       </div>

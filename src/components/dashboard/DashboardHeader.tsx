@@ -133,7 +133,7 @@ export function DashboardHeader() {
         {/* Notification Bell */}
         <Popover open={bellOpen} onOpenChange={setBellOpen}>
           <PopoverTrigger asChild>
-            <button className="relative p-2 rounded-lg hover:bg-alice-gray transition-colors focus:outline-none focus:ring-2 focus:ring-oxford/20">
+            <button aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"} className="relative p-2 rounded-lg hover:bg-alice-gray transition-colors focus:outline-none focus:ring-2 focus:ring-oxford/20">
               <Bell size={18} className="text-navy-deep/60" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
@@ -199,7 +199,7 @@ export function DashboardHeader() {
         {/* Profile Dropdown */}
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-1 py-1 rounded-full hover:bg-alice-gray transition-colors focus:outline-none focus:ring-2 focus:ring-oxford/20 focus:ring-offset-2 group">
+            <button aria-label="Open account menu" className="flex items-center gap-1.5 px-1 py-1 rounded-full hover:bg-alice-gray transition-colors focus:outline-none focus:ring-2 focus:ring-oxford/20 focus:ring-offset-2 group">
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-oxford group-hover:bg-oxford-dark transition-colors">
                 <span className="text-sm font-bold text-white">
                   {getInitial()}
