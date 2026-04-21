@@ -123,6 +123,8 @@ export default function Setup() {
 
   // Step 4 — Sync
   const [syncConfirmed, setSyncConfirmed] = useState(false);
+  const [webhookTestState, setWebhookTestState] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [webhookTestMessage, setWebhookTestMessage] = useState<string>("");
 
   // Step 5 — Pricing
   const [setupAiAnnualPrice, setSetupAiAnnualPrice] = useState("");
@@ -529,6 +531,49 @@ export default function Setup() {
   const handleCopyWebhook = async () => {
     const ok = await copyToClipboard("https://api.opedd.com/platform-webhook");
     if (ok) { setWebhookCopied(true); setTimeout(() => setWebhookCopied(false), 2000); }
+  };
+
+  const handleTestWebhook = async () => {
+    const key = profile?.api_key || "";
+    if (!key) {
+      setWebhookTestState("error");
+      setWebhookTestMessage("No API key on your profile yet — refresh and try again.");
+      return;
+    }
+    setWebhookTestState("loading");
+    setWebhookTestMessage("");
+    try {
+      const res = await fetch("https://api.opedd.com/platform-webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Opedd-Api-Key": key,
+          "X-Platform": "custom",
+        },
+        body: JSON.stringify({
+          post: {
+            test: true,
+            title: "Webhook Test",
+            url: "https://example.com/webhook-test",
+            published_at: new Date().toISOString(),
+          },
+        }),
+      });
+      if (res.ok) {
+        setWebhookTestState("success");
+        setWebhookTestMessage("Your API key is valid and Opedd accepts your payload.");
+      } else if (res.status === 401) {
+        setWebhookTestState("error");
+        setWebhookTestMessage("API key rejected. Copy the key again and retry.");
+      } else {
+        const text = await res.text().catch(() => "");
+        setWebhookTestState("error");
+        setWebhookTestMessage(text || `Opedd returned ${res.status}. Try again.`);
+      }
+    } catch {
+      setWebhookTestState("error");
+      setWebhookTestMessage("Network error — check your connection and retry.");
+    }
   };
 
   const handleCopyApiKey = async () => {
@@ -1179,6 +1224,32 @@ export default function Setup() {
                         <p className="text-xs text-[#9CA3AF] mt-2">Add this call to your CMS publish workflow. Works with any platform.</p>
                       </CollapsibleContent>
                     </Collapsible>
+
+                    {/* Test webhook — validates API key + endpoint before the user wires it to their CMS */}
+                    <div className="pt-2 border-t border-[#E5E7EB]">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={webhookTestState === "loading" || !publisherApiKey}
+                        onClick={handleTestWebhook}
+                        className="h-8 gap-1.5 text-xs"
+                      >
+                        {webhookTestState === "loading" ? <Loader2 size={12} className="animate-spin" /> : <Radio size={12} />}
+                        {webhookTestState === "loading" ? "Testing..." : "Test webhook"}
+                      </Button>
+                      {webhookTestState === "success" && (
+                        <div className="mt-2 flex items-start gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                          <CheckCircle2 size={14} className="mt-0.5 flex-shrink-0" />
+                          <span>{webhookTestMessage}</span>
+                        </div>
+                      )}
+                      {webhookTestState === "error" && (
+                        <div className="mt-2 flex items-start gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                          <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+                          <span>{webhookTestMessage}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
