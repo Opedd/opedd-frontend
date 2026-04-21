@@ -2,19 +2,24 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Canonical loading spinner for in-button and small inline contexts.
- * For full-page loading states, use PageLoader or DashboardSkeleton instead.
+ * Canonical loading spinner. Use everywhere instead of raw Loader2.
  *
- * Sizes map to pixel dimensions: sm=14, md=16 (default), lg=20, xl=24.
+ * Sizes:
+ *   sm = 14px  — inside buttons, inline text
+ *   md = 20px  — default, centered in cards/sections
+ *   lg = 32px  — full-page loading states
+ *
+ * Color: inherits from parent via currentColor. For brand-tinted
+ * usage on neutral backgrounds, pass `className="text-oxford"` etc.
  */
 export function Spinner({
   size = "md",
   className,
 }: {
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg";
   className?: string;
 }) {
-  const px = size === "sm" ? 14 : size === "lg" ? 20 : size === "xl" ? 24 : 16;
+  const px = size === "sm" ? 14 : size === "lg" ? 32 : 20;
   return (
     <Loader2
       size={px}
