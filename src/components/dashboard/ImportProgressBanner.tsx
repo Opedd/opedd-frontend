@@ -82,7 +82,7 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
         <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
         <p className="text-sm text-emerald-700 font-medium flex-1">
-          Import complete — {record.inserted_count.toLocaleString()} articles added
+          Import complete — {formatInteger(record.inserted_count)} articles added
         </p>
         <button onClick={() => setDismissed(true)} aria-label="Dismiss import notification" className="text-emerald-400 hover:text-emerald-600">
           <XCircle size={14} />
@@ -116,7 +116,7 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-navy-deep">Importing your archive…</p>
         <p className="text-xs text-gray-500">
-          {record.inserted_count.toLocaleString()} of {record.total_urls.toLocaleString()} articles
+          {formatInteger(record.inserted_count)} of {formatInteger(record.total_urls)} articles
           {record.total_urls > 0 && ` · ${etaLabel}`}
         </p>
       </div>
