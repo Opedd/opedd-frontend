@@ -365,7 +365,7 @@ function EmptyState() {
             <line x1="68" y1="106" x2="124" y2="106" stroke="hsl(0 0% 100% / 0.2)" strokeWidth="2" strokeLinecap="round" />
             <line x1="68" y1="120" x2="100" y2="120" stroke="hsl(0 0% 100% / 0.2)" strokeWidth="2" strokeLinecap="round" />
             <circle cx="148" cy="62" r="14" fill="hsl(243 100% 60% / 0.9)" />
-            <Sparkles x={141} y={55} className="opacity-0" />
+            
             <path
               d="M148 56 L150 60 L154 62 L150 64 L148 68 L146 64 L142 62 L146 60 Z"
               fill="hsl(0 0% 100%)"
