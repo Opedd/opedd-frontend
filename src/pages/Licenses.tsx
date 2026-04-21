@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { Link } from "react-router-dom";
 
@@ -403,8 +404,8 @@ export default function Licenses() {
                     <div key={lic.license_key} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium text-gray-900 truncate flex-1">{lic.article_title}</p>
-                        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-oxford-light text-oxford">
-                          {lic.license_type}
+                        <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${getLicenseTypeBadgeClass(lic.license_type)}`}>
+                          {getLicenseTypeLabel(lic.license_type, "short")}
                         </span>
                       </div>
                       {lic.publisher_name && <p className="text-xs text-gray-400">{lic.publisher_name}</p>}
