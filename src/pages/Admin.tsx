@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
-import { formatUSD } from "@/lib/formatNumber";
+import { formatUSD, formatInteger } from "@/lib/formatNumber";
 
 // --------------- Types ---------------
 
@@ -304,7 +304,7 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
                   <td className="py-3 px-4 font-medium text-gray-900">{p.display_name || "—"}</td>
                   <td className="py-3 px-4 text-gray-500 truncate max-w-[180px]">{p.website_url || "—"}</td>
                   <td className="py-3 px-4"><PlanBadge plan={p.plan} /></td>
-                  <td className="py-3 px-4 text-gray-900 text-right tabular-nums">{p.article_count.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-gray-900 text-right tabular-nums">{formatInteger(p.article_count)}</td>
                   <td className="py-3 px-4 text-gray-900 font-medium text-right tabular-nums">{formatUSD(p.total_revenue)}</td>
                   <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-gray-300">✗</span>}</td>
                   <td className="py-3 px-4 text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>

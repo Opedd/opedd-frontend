@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { formatInteger } from "@/lib/formatNumber";
 
 interface ImportRecord {
   status: "queued" | "processing" | "done" | "failed";
