@@ -10,6 +10,7 @@ import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import SEO from "@/components/SEO";
+import { LEGAL_METADATA, formatLegalDate } from "@/lib/legalMetadata";
 
 type ClaimType = "copyright" | "trademark" | "other";
 
@@ -108,8 +109,13 @@ export default function Dmca() {
                 <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
                   <ShieldAlert className="h-5 w-5 text-red-600" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Copyright / DMCA Claim</h1>
+                <div className="flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <h1 className="text-xl font-bold text-gray-900">Copyright / DMCA Claim</h1>
+                    <p className="text-xs text-[#6B7280] whitespace-nowrap mt-1">
+                      Last updated: {formatLegalDate(LEGAL_METADATA.dmca.lastUpdated)}
+                    </p>
+                  </div>
                   <p className="text-sm text-gray-500">Report content you believe infringes your rights.</p>
                 </div>
               </div>
