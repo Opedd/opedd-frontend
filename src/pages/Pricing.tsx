@@ -83,15 +83,15 @@ export default function Pricing() {
 
         {/* ── Hero ── */}
         <section className="pt-[80px] pb-16 px-6 text-center">
-          <span className="inline-block text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6" style={{ color: "#4A26ED", backgroundColor: "#F0EBFF" }}>
+          <span className="inline-block text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6 text-oxford bg-oxford-light">
             Simple, transparent pricing
           </span>
-          <h1 className="text-5xl font-bold mb-4" style={{ color: "#040042" }}>
+          <h1 className="text-5xl font-bold mb-4 text-navy-deep">
             Protect your writing.{" "}
             <br className="hidden sm:block" />
             Get paid when it's used.
           </h1>
-          <p className="text-lg mb-10 max-w-xl mx-auto" style={{ color: "#6B7280" }}>
+          <p className="text-lg mb-10 max-w-xl mx-auto text-gray-500">
             For independent writers, newsletter creators, and bloggers. Start free — upgrade when your earnings make it obvious.
           </p>
 
@@ -111,10 +111,8 @@ export default function Pricing() {
             </button>
             {/* Reserve width so the toggle row never reflows — use visibility not conditional render */}
             <span
-              className="text-xs font-semibold px-2.5 py-1 rounded-full transition-opacity duration-150"
+              className="text-xs font-semibold px-2.5 py-1 rounded-full transition-opacity duration-150 bg-emerald-100 text-emerald-800"
               style={{
-                backgroundColor: "#D1FAE5",
-                color: "#065F46",
                 visibility: billing === "annually" ? "visible" : "hidden",
               }}
             >
@@ -128,25 +126,24 @@ export default function Pricing() {
           <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 items-start">
 
             {/* Free — The Hobbyist */}
-            <div className="rounded-2xl p-8 border flex flex-col" style={{ borderColor: "#E5E7EB" }}>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#9CA3AF" }}>The Hobbyist</p>
-              <h3 className="text-xl font-bold" style={{ color: "#040042" }}>Free</h3>
+            <div className="rounded-2xl p-8 border border-gray-200 flex flex-col">
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2 text-gray-400">The Hobbyist</p>
+              <h3 className="text-xl font-bold text-navy-deep">Free</h3>
               <div className="mt-3 mb-1 flex items-baseline gap-1">
-                <span className="text-4xl font-bold" style={{ color: "#040042" }}>$0</span>
-                <span className="text-sm" style={{ color: "#6B7280" }}>/month</span>
+                <span className="text-4xl font-bold text-navy-deep">$0</span>
+                <span className="text-sm text-gray-500">/month</span>
               </div>
-              <p className="text-sm mb-4" style={{ color: "#6B7280" }}>No credit card required</p>
+              <p className="text-sm mb-4 text-gray-500">No credit card required</p>
               <div className="flex items-center gap-1.5 mb-5">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
                   15% platform fee
                 </span>
                 <FeeTip fee="15" />
               </div>
-              <p className="text-xs mb-5 italic" style={{ color: "#9CA3AF" }}>Only pay when you earn — $0 if you don't.</p>
+              <p className="text-xs mb-5 italic text-gray-400">Only pay when you earn — $0 if you don't.</p>
               <button
                 onClick={() => navigate(user ? "/dashboard" : "/signup")}
-                className="w-full py-2.5 rounded-lg text-sm font-semibold border bg-white transition-colors hover:bg-slate-50 mb-6"
-                style={{ borderColor: "#040042", color: "#040042" }}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold border border-navy-deep text-navy-deep bg-white transition-colors hover:bg-slate-50 mb-6"
               >
                 {user ? "Go to Dashboard" : "Get Started Free"}
               </button>
@@ -154,40 +151,39 @@ export default function Pricing() {
             </div>
 
             {/* Pro — The Professional */}
-            <div className="rounded-2xl p-8 relative flex flex-col md:-mt-4" style={{ border: "2px solid #4A26ED", boxShadow: "0 8px 30px rgba(74,38,237,0.15)" }}>
-              <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full text-white whitespace-nowrap" style={{ backgroundColor: "#4A26ED" }}>
+            <div className="rounded-2xl p-8 relative flex flex-col md:-mt-4 border-2 border-oxford" style={{ boxShadow: "0 8px 30px rgba(74,38,237,0.15)" }}>
+              <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full text-white whitespace-nowrap bg-oxford">
                 Most Popular
               </span>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#4A26ED" }}>The Professional</p>
-              <h3 className="text-xl font-bold" style={{ color: "#040042" }}>Pro</h3>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2 text-oxford">The Professional</p>
+              <h3 className="text-xl font-bold text-navy-deep">Pro</h3>
               <div className="mt-3 mb-1 flex items-baseline gap-1">
-                <span className="text-4xl font-bold transition-all duration-200" style={{ color: "#040042" }}>
+                <span className="text-4xl font-bold transition-all duration-200 text-navy-deep">
                   ${billing === "monthly" ? proMonthly : proAnnual}
                 </span>
-                <span className="text-sm" style={{ color: "#6B7280" }}>/month</span>
+                <span className="text-sm text-gray-500">/month</span>
               </div>
               {/* Always reserve line height — invisible when monthly to prevent CTA shift */}
               <p
-                className="text-xs mb-1 transition-opacity duration-150"
-                style={{ color: "#6B7280", visibility: billing === "annually" ? "visible" : "hidden" }}
+                className="text-xs mb-1 transition-opacity duration-150 text-gray-500"
+                style={{ visibility: billing === "annually" ? "visible" : "hidden" }}
               >
                 Billed ${proAnnualTotal}/year - save ${proMonthly * 12 - proAnnualTotal}
               </p>
-              <p className="text-sm mb-4" style={{ color: "#6B7280" }}>For serious writers & newsletters</p>
+              <p className="text-sm mb-4 text-gray-500">For serious writers & newsletters</p>
               <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#D1FAE5", color: "#065F46" }}>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
                   9% platform fee
                 </span>
                 <FeeTip fee="9" />
               </div>
-              <p className="text-xs mb-5 font-medium" style={{ color: "#4A26ED" }}>
+              <p className="text-xs mb-5 font-medium text-oxford">
                 ✦ 30-day full-access trial · No credit card required
               </p>
               <button
                 onClick={() => handleUpgrade("pro")}
                 disabled={upgrading !== null}
-                className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6 disabled:opacity-50"
-                style={{ backgroundColor: "#4A26ED" }}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 mb-6 disabled:opacity-50 bg-oxford"
               >
                 {upgrading === "pro" ? "Loading…" : "Start Free Trial"}
               </button>
@@ -195,8 +191,8 @@ export default function Pricing() {
             </div>
 
             {/* Enterprise — Media House */}
-            <div className="rounded-2xl p-8 flex flex-col" style={{ backgroundColor: "#040042" }}>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Media House</p>
+            <div className="rounded-2xl p-8 flex flex-col bg-navy-deep">
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2 text-white/40">Media House</p>
               <h3 className="text-xl font-bold text-white">Enterprise</h3>
               <div className="mt-3 mb-1 flex items-baseline gap-1">
                 <span className="text-4xl font-bold text-white transition-all duration-200">
@@ -206,14 +202,14 @@ export default function Pricing() {
               </div>
               {/* Always reserve line height — invisible when monthly to prevent CTA shift */}
               <p
-                className="text-xs mb-1 transition-opacity duration-150"
-                style={{ color: "rgba(255,255,255,0.6)", visibility: billing === "annually" ? "visible" : "hidden" }}
+                className="text-xs mb-1 transition-opacity duration-150 text-white/60"
+                style={{ visibility: billing === "annually" ? "visible" : "hidden" }}
               >
                 Billed ${entAnnualTotal}/year - save ${entMonthly * 12 - entAnnualTotal}
               </p>
               <p className="text-sm text-white/60 mb-4">For media teams & publications</p>
               <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-white bg-white/15">
                   5% platform fee
                 </span>
                 <FeeTip fee="5" dark />
@@ -224,8 +220,7 @@ export default function Pricing() {
               <button
                 onClick={() => handleUpgrade("enterprise")}
                 disabled={upgrading !== null}
-                className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 disabled:opacity-50"
-                style={{ backgroundColor: "white", color: "#040042" }}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors hover:bg-slate-100 mb-6 disabled:opacity-50 bg-white text-navy-deep"
               >
                 {upgrading === "enterprise" ? "Loading…" : "Get Enterprise"}
               </button>
@@ -235,49 +230,49 @@ export default function Pricing() {
         </section>
 
         {/* ── How You Get Paid ── */}
-        <section className="py-20 px-6" style={{ backgroundColor: "#F9FAFB" }}>
+        <section className="py-20 px-6 bg-gray-50">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-3" style={{ color: "#040042" }}>How you get paid</h2>
-              <p className="text-base" style={{ color: "#6B7280" }}>
+              <h2 className="text-3xl font-bold mb-3 text-navy-deep">How you get paid</h2>
+              <p className="text-base text-gray-500">
                 Opedd turns your writing into a licensable asset. Three ways buyers pay you:
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "#EEF0FD" }}>
-                  <Newspaper size={24} style={{ color: "#4A26ED" }} />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-oxford-light">
+                  <Newspaper size={24} className="text-oxford" />
                 </div>
-                <h3 className="font-semibold text-base mb-2" style={{ color: "#040042" }}>Reprint Rights</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
+                <h3 className="font-semibold text-base mb-2 text-navy-deep">Reprint Rights</h3>
+                <p className="text-sm leading-relaxed text-gray-500">
                   Magazines, news sites, and newsletters pay to legally republish your posts. Think of it as syndication — but you set the price.
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "#EEF0FD" }}>
-                  <Bot size={24} style={{ color: "#4A26ED" }} />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-oxford-light">
+                  <Bot size={24} className="text-oxford" />
                 </div>
-                <h3 className="font-semibold text-base mb-2 flex items-center justify-center gap-1.5" style={{ color: "#040042" }}>
+                <h3 className="font-semibold text-base mb-2 flex items-center justify-center gap-1.5 text-navy-deep">
                   AI Access &amp; Protection
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info size={13} className="cursor-help" style={{ color: "#9CA3AF" }} />
+                      <Info size={13} className="cursor-help text-gray-400" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[220px] text-xs">
                       AI companies pay to legally train on or retrieve from your content. Without this, they use it for free.
                     </TooltipContent>
                   </Tooltip>
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
+                <p className="text-sm leading-relaxed text-gray-500">
                   AI companies pay to legally use your work for training or retrieval. Without a license, they scrape it for free.
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "#EEF0FD" }}>
-                  <Briefcase size={24} style={{ color: "#4A26ED" }} />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-oxford-light">
+                  <Briefcase size={24} className="text-oxford" />
                 </div>
-                <h3 className="font-semibold text-base mb-2" style={{ color: "#040042" }}>Corporate Use</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
+                <h3 className="font-semibold text-base mb-2 text-navy-deep">Corporate Use</h3>
+                <p className="text-sm leading-relaxed text-gray-500">
                   Companies pay to use your research, analysis, or reporting internally — in reports, presentations, or training materials.
                 </p>
               </div>
@@ -286,7 +281,7 @@ export default function Pricing() {
         </section>
 
         {/* ── The Math ── */}
-        <section className="px-6 py-16" style={{ backgroundColor: "#040042" }}>
+        <section className="px-6 py-16 bg-navy-deep">
           <div className="max-w-4xl mx-auto text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-3">The upgrade pays for itself</h2>
             <p className="text-white/60">
@@ -329,16 +324,16 @@ export default function Pricing() {
         {/* ── FAQ ── */}
         <section className="py-20 px-6">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12" style={{ color: "#040042" }}>
+            <h2 className="text-3xl font-bold text-center mb-12 text-navy-deep">
               Frequently asked questions
             </h2>
             <Accordion type="single" collapsible className="space-y-2">
               {faqs.map((f, i) => (
                 <AccordionItem key={i} value={`faq-${i}`} className="border-b border-slate-100">
-                  <AccordionTrigger className="text-left font-medium text-sm hover:no-underline py-4" style={{ color: "#040042" }}>
+                  <AccordionTrigger className="text-left font-medium text-sm hover:no-underline py-4 text-navy-deep">
                     {f.q}
                   </AccordionTrigger>
-                  <AccordionContent className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
+                  <AccordionContent className="text-sm leading-relaxed text-gray-500">
                     {f.a}
                   </AccordionContent>
                 </AccordionItem>
@@ -471,7 +466,7 @@ function FeeTip({ fee, dark }: { fee: string; dark?: boolean }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Info size={13} className="cursor-help flex-shrink-0" style={{ color: dark ? "rgba(255,255,255,0.4)" : "#9CA3AF" }} />
+        <Info size={13} className={`cursor-help flex-shrink-0 ${dark ? "text-white/40" : "text-gray-400"}`} />
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-[200px] text-xs">
         Opedd takes {fee}% of each sale. You keep the rest. No monthly fee on Free.
