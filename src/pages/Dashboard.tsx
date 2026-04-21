@@ -224,6 +224,40 @@ export default function Dashboard() {
   const licensingUrl = publisherSlug ? `opedd.com/p/${publisherSlug}` : null;
   const licensingHref = publisherSlug ? `https://opedd.com/p/${publisherSlug}` : null;
 
+  // Priority banner: only the highest-priority banner renders.
+  // 1. Stripe KYC pending (account exists but payouts disabled)
+  // 2. Held Payments warning (revenue accruing but Stripe not connected)
+  // 3. Verification Pending (a publication is pending verification)
+  // 4. Onboarding Checklist (setup not complete)
+  // 5. Pending Earnings card (already covered by #2 — kept distinct for the case
+  //    where revenue is 0 but admin chooses to show. In MVP, #2 supersedes.)
+  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | "onboarding" | null;
+  const activeBanner: BannerKind = (() => {
+    const stripeKycPending =
+      !!stripeAccountId && (!stripeConnected || stripePayoutsEnabled === false);
+    if (stripeKycPending) return "stripe-kyc";
+    const heldPayments = !stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0);
+    if (heldPayments) return "held-payments";
+    if (totalAssets > 0 && !isLoading && hasPendingVerification) return "verification";
+    if (!setupComplete) return "onboarding";
+    return null;
+  })();
+
+  const showQuickActions = setupComplete && totalAssets > 0;
+
+  const handleConnectStripe = async () => {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action: "connect_stripe" }),
+      });
+      const json = await res.json();
+      if (json.url) window.location.href = json.url;
+    } catch { /* ignore */ }
+  };
+
   const handleCopyUrl = async () => {
     if (!licensingHref) return;
     try {
