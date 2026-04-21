@@ -33,6 +33,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { formatUSD } from "@/lib/formatNumber";
 import {
   CANONICAL_LICENSE_TYPES,
   LICENSE_TYPE_LABELS,
@@ -243,7 +244,7 @@ export default function Ledger() {
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error?.message || result.error || "Failed to refund");
       setTransactions(prev => prev.map(tx => tx.id === refundTarget.id ? { ...tx, status: "revoked" as const } : tx));
-      toast({ title: "Refund issued", description: `$${refundTarget.amount.toFixed(2)} refunded. Buyer notified by email.` });
+      toast({ title: "Refund issued", description: `$${formatUSD(refundTarget.amount)} refunded. Buyer notified by email.` });
     } catch (err: any) {
       toast({ title: "Refund failed", description: err.message, variant: "destructive" });
     } finally {
@@ -349,7 +350,7 @@ export default function Ledger() {
               <Lock size={18} className="text-amber-600 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-amber-800">
-                  {held.length} payment{held.length !== 1 ? "s" : ""} (${heldTotal.toFixed(2)} total) are held in escrow
+                  {held.length} payment{held.length !== 1 ? "s" : ""} (${formatUSD(heldTotal)} total) are held in escrow
                 </p>
                 <p className="text-xs text-amber-700 mt-0.5">Complete your Stripe Connect setup to receive payouts for these licenses.</p>
               </div>
@@ -508,7 +509,7 @@ export default function Ledger() {
                               </TableCell>
                               <TableCell>{getBuyerTypeBadge(tx)}</TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}</span></TableCell>
-                              <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-gray-500"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
+                              <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-gray-500"}`}>${formatUSD(Math.abs(tx.amount))}</span></TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.date}</span></TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1.5">
@@ -656,7 +657,7 @@ export default function Ledger() {
               Issue a refund?
             </DialogTitle>
             <DialogDescription className="text-gray-500">
-              This will refund <strong className="text-gray-900">${refundTarget?.amount.toFixed(2)}</strong> to the buyer and revoke license{" "}
+              This will refund <strong className="text-gray-900">${formatUSD(refundTarget?.amount)}</strong> to the buyer and revoke license{" "}
               <code className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">{refundTarget?.licenseKey}</code>.
               The buyer will be notified by email. This cannot be undone.
             </DialogDescription>

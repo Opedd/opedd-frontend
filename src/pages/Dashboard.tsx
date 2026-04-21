@@ -24,6 +24,7 @@ import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
+import { formatUSD } from "@/lib/formatNumber";
 // Sheet imports removed — drawer replaced with /setup navigation
 
 export default function Dashboard() {
@@ -305,7 +306,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
                   <Coins size={18} className="text-amber-600" />
-                  Pending Earnings: ${totalRevenue.toFixed(2)}
+                  Pending Earnings: ${formatUSD(totalRevenue)}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
                   Your earnings are accumulating. Connect your bank to start receiving payouts.
@@ -361,7 +362,7 @@ export default function Dashboard() {
             ) : (
               <>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">${formatUSD(totalRevenue)}</p>
                   {periodComparison && periodComparison.previousRevenue > 0 && (
                     <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                       {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
@@ -371,7 +372,7 @@ export default function Dashboard() {
                 </div>
                 {periodComparison && (
                   <p className="text-xs text-gray-400 mt-1">
-                    vs ${periodComparison.previousRevenue.toFixed(2)} previous 30d
+                    vs ${formatUSD(periodComparison.previousRevenue)} previous 30d
                   </p>
                 )}
               </>
@@ -474,7 +475,7 @@ export default function Dashboard() {
                         {sale.buyer_name || sale.buyer_email || "Buyer"} · {ago}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-emerald-600 shrink-0">+${Number(sale.amount).toFixed(2)}</p>
+                    <p className="text-sm font-semibold text-emerald-600 shrink-0">+${formatUSD(Number(sale.amount))}</p>
                   </li>
                 );
               })}
@@ -516,7 +517,7 @@ export default function Dashboard() {
                     <DollarSign size={14} className="text-gray-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Platform Revenue</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">${adminStats.total_revenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">${formatUSD(adminStats.total_revenue)}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
@@ -530,7 +531,7 @@ export default function Dashboard() {
                     <DollarSign size={14} className="text-gray-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Revenue Today</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">${adminStats.revenue_today.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">${formatUSD(adminStats.revenue_today)}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">

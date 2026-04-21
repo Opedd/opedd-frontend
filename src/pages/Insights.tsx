@@ -11,6 +11,7 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatUSD } from "@/lib/formatNumber";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -181,7 +182,7 @@ export default function Insights() {
                   <TrendingUp size={18} className="text-oxford mb-3" />
                   <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <p className="text-2xl font-bold text-gray-900 tracking-tight">${totalRevenue.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-gray-900 tracking-tight">${formatUSD(totalRevenue)}</p>
                     {periodComparison && periodComparison.previousRevenue > 0 && (
                       <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                         {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
@@ -191,7 +192,7 @@ export default function Insights() {
                   </div>
                   {periodComparison && (
                     <p className="text-xs text-gray-400 mt-1">
-                      vs ${periodComparison.previousRevenue.toFixed(2)} prior period
+                      vs ${formatUSD(periodComparison.previousRevenue)} prior period
                     </p>
                   )}
                 </div>
@@ -226,7 +227,7 @@ export default function Insights() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#6B7280" }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 12, fill: "#6B7280" }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
-                    <RechartsTooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]} />
+                    <RechartsTooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} formatter={(value: number) => [`$${formatUSD(value)}`, "Revenue"]} />
                     <Area type="monotone" dataKey="revenue" stroke="#4A26ED" fill="url(#gradRevenue)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -247,7 +248,7 @@ export default function Insights() {
                         <TableRow key={a.id} className="border-gray-100">
                           <TableCell className="font-medium text-gray-900 text-sm max-w-[200px] truncate">{decodeText(a.title)}</TableCell>
                           <TableCell className="text-right text-gray-500 text-sm">{a.count}</TableCell>
-                          <TableCell className="text-right font-bold text-emerald-600 text-sm">${a.revenue.toFixed(2)}</TableCell>
+                          <TableCell className="text-right font-bold text-emerald-600 text-sm">${formatUSD(a.revenue)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

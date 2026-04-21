@@ -14,6 +14,7 @@ import {
   Archive, Calendar, AlertTriangle, RefreshCw, Loader2,
 } from "lucide-react";
 import { useState } from "react";
+import { formatUSD } from "@/lib/formatNumber";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -87,7 +88,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
         const err = await res.json().catch(() => ({ error: "Refund failed" }));
         throw new Error(err.error || "Refund failed");
       }
-      toast({ title: "Refund issued", description: `$${transaction.amount.toFixed(2)} refunded to ${transaction.licenseeEmail || "buyer"}.` });
+      toast({ title: "Refund issued", description: `$${formatUSD(transaction.amount)} refunded to ${transaction.licenseeEmail || "buyer"}.` });
       onTransactionUpdate?.(transaction.id, { status: "refunded" as any });
     } catch (e: any) {
       toast({ title: "Refund failed", description: e.message, variant: "destructive" });
@@ -155,7 +156,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Amount</p>
               <p className={`text-3xl font-bold ${transaction.amount > 0 ? "text-emerald-600" : "text-gray-900"}`}>
-                {transaction.amount > 0 ? "+" : ""}${Math.abs(transaction.amount).toFixed(2)}
+                {transaction.amount > 0 ? "+" : ""}${formatUSD(Math.abs(transaction.amount))}
               </p>
             </div>
             <div className="text-right">
@@ -312,7 +313,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                     <RefreshCw size={20} className="text-amber-600" />Refund this license?
                   </AlertDialogTitle>
                   <AlertDialogDescription className="text-gray-500">
-                    Refund ${transaction.amount.toFixed(2)} to {transaction.licenseeEmail || "the buyer"}? This will revoke the license. This cannot be undone.
+                    Refund ${formatUSD(transaction.amount)} to {transaction.licenseeEmail || "the buyer"}? This will revoke the license. This cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

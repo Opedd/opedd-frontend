@@ -35,6 +35,7 @@ import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
+import { formatUSD } from "@/lib/formatNumber";
 
 function getPlatformLogo(url: string | undefined): string | null {
   if (!url) return null;
@@ -307,7 +308,7 @@ export default function Content() {
       a.status,
       a.human_price ? `$${a.human_price}` : "",
       a.ai_price ? `$${a.ai_price}` : "",
-      `$${(a.total_revenue ?? 0).toFixed(2)}`,
+      `$${formatUSD((a.total_revenue ?? 0))}`,
     ]);
     const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -505,7 +506,7 @@ export default function Content() {
                           {asset.ai_price ? <span className="text-sm font-medium text-gray-900">${asset.ai_price}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
                         <td className="py-3.5 px-4 text-right tabular-nums">
-                          <span className="text-sm text-gray-500">${(asset.total_revenue ?? 0).toFixed(2)}</span>
+                          <span className="text-sm text-gray-500">${formatUSD((asset.total_revenue ?? 0))}</span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -812,7 +813,7 @@ export default function Content() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-gray-50 rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-gray-900">${(selectedAsset.total_revenue ?? 0).toFixed(2)}</p>
+                    <p className="text-lg font-bold text-gray-900">${formatUSD((selectedAsset.total_revenue ?? 0))}</p>
                     <p className="text-xs text-gray-400 mt-0.5">Total revenue</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-3 text-center">

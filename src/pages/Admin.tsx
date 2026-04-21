@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
+import { formatUSD } from "@/lib/formatNumber";
 
 // --------------- Types ---------------
 
@@ -219,9 +220,9 @@ function OverviewTab({ getAccessToken }: { getAccessToken: () => Promise<string 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <StatCard label="Total Publishers" value={stats.total_publishers} icon={Users} />
       <StatCard label="Total Transactions" value={stats.total_transactions} icon={Activity} />
-      <StatCard label="Total Revenue" value={`$${stats.total_revenue.toFixed(2)}`} icon={DollarSign} />
+      <StatCard label="Total Revenue" value={`$${formatUSD(stats.total_revenue)}`} icon={DollarSign} />
       <StatCard label="Transactions Today" value={stats.transactions_today} icon={Activity} />
-      <StatCard label="Revenue Today" value={`$${stats.revenue_today.toFixed(2)}`} icon={DollarSign} />
+      <StatCard label="Revenue Today" value={`$${formatUSD(stats.revenue_today)}`} icon={DollarSign} />
       <StatCard label="Failed Webhooks (24h)" value={stats.failed_webhooks_24h} icon={AlertTriangle} />
     </div>
   );
@@ -304,7 +305,7 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
                   <td className="py-3 px-4 text-gray-500 truncate max-w-[180px]">{p.website_url || "—"}</td>
                   <td className="py-3 px-4"><PlanBadge plan={p.plan} /></td>
                   <td className="py-3 px-4 text-gray-900 text-right tabular-nums">{p.article_count.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-gray-900 font-medium text-right tabular-nums">${p.total_revenue.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-gray-900 font-medium text-right tabular-nums">${formatUSD(p.total_revenue)}</td>
                   <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-gray-300">✗</span>}</td>
                   <td className="py-3 px-4 text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>
@@ -389,7 +390,7 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
                 <tr key={tx.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                   <td className="py-3 px-4 text-gray-500">{new Date(tx.created_at).toLocaleDateString()}</td>
                   <td className="py-3 px-4 text-gray-500">{maskEmail(tx.buyer_email)}</td>
-                  <td className="py-3 px-4 font-medium text-gray-900 text-right tabular-nums">${tx.amount.toFixed(2)}</td>
+                  <td className="py-3 px-4 font-medium text-gray-900 text-right tabular-nums">${formatUSD(tx.amount)}</td>
                   <td className="py-3 px-4"><TypeBadge type={tx.license_type} /></td>
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center gap-1.5">

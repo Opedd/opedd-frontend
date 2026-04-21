@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { getLicenseTypeLabel } from "@/lib/licenseTypes";
+import { formatUSD } from "@/lib/formatNumber";
 
 interface BlockchainProof {
   registered: boolean;
@@ -240,7 +241,7 @@ export default function LicenseVerify() {
               </DetailRow>
               <DetailRow label="License Type">{getLicenseTypeLabel(data.license_type)}</DetailRow>
               {data.intended_use_label && <DetailRow label="Intended Use">{data.intended_use_label}</DetailRow>}
-              <DetailRow label="Amount">${data.amount.toFixed(2)}</DetailRow>
+              <DetailRow label="Amount">${formatUSD(data.amount)}</DetailRow>
               <DetailRow label="Issued">{formatDate(data.issued_at)}</DetailRow>
             </CardContent>
           </Card>

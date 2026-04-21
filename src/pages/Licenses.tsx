@@ -8,6 +8,7 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { Link } from "react-router-dom";
+import { formatUSD } from "@/lib/formatNumber";
 
 interface BuyerToken {
   id: string;
@@ -418,7 +419,7 @@ export default function Licenses() {
                         </button>
                       </div>
                       <div className="flex items-center justify-between text-xs text-gray-400">
-                        <span>${lic.amount.toFixed(2)}</span>
+                        <span>${formatUSD(lic.amount)}</span>
                         <span>{new Date(lic.created_at).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center gap-3 pt-1">
