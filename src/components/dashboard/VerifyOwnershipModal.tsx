@@ -394,23 +394,15 @@ export function VerifyOwnershipModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]">
+      <DialogContent className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="bg-navy-deep px-6 py-5 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield size={20} className="text-violet-400" />
-              <div>
-                <h1 className="text-white font-bold text-base leading-tight">Verify Ownership</h1>
-                <p className="text-violet-400 text-sm truncate max-w-[250px]">{source.name}</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <Shield size={20} className="text-violet-400" />
+            <div>
+              <h1 className="text-white font-bold text-base leading-tight">Verify Ownership</h1>
+              <p className="text-violet-400 text-sm truncate max-w-[250px]">{source.name}</p>
             </div>
-            <button
-              onClick={handleClose}
-              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            >
-              <X size={16} className="text-white" />
-            </button>
           </div>
         </div>
 

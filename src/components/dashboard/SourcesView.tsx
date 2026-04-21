@@ -662,7 +662,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         open={!!deleteConfirmSource}
         onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
       >
-        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-modal gap-0">
+        <DialogContent className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-modal gap-0">
           <DialogHeader className="space-y-0 mb-5">
             <DialogTitle className="text-lg font-semibold text-navy-deep">Remove Source</DialogTitle>
             <DialogDescription className="text-sm text-navy-deep/50 mt-1.5 leading-relaxed">
