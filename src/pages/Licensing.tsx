@@ -718,7 +718,7 @@ export default function Licensing() {
       {/* Sticky Save Bar */}
       {hasChanges && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E5E7EB] shadow-[0_-4px_12px_rgba(0,0,0,0.04)]"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
@@ -742,7 +742,7 @@ export default function Licensing() {
                 size="sm"
                 onClick={handleSave}
                 disabled={saving}
-                className="gap-2 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                className="gap-2 bg-oxford hover:bg-oxford-dark text-white"
               >
                 {saving && <Loader2 size={14} className="animate-spin" />}
                 Save changes

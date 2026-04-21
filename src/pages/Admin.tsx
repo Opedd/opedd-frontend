@@ -67,7 +67,7 @@ function truncateKey(key: string) {
 
 function StatCard({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) {
   return (
-    <div className="bg-[#040042] rounded-xl p-5 border border-white/5">
+    <div className="bg-navy-deep rounded-xl p-5 border border-white/5">
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
           <Icon size={18} className="text-white/70" />
@@ -103,9 +103,9 @@ function TypeBadge({ type }: { type: string }) {
 
 function PlanBadge({ plan }: { plan: string }) {
   const colors: Record<string, string> = {
-    free: "bg-[#F3F4F6] text-[#6B7280]",
-    pro: "bg-[#EEF0FD] text-[#4A26ED]",
-    enterprise: "bg-[#FFFBEB] text-[#D97706]",
+    free: "bg-gray-100 text-gray-500",
+    pro: "bg-oxford-light text-oxford",
+    enterprise: "bg-amber-50 text-amber-600",
   };
   return (
     <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${colors[plan] || colors.free}`}>
@@ -143,32 +143,32 @@ export default function Admin() {
   }, [getAccessToken]);
 
   if (!adminChecked) {
-    return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center"><Loader2 className="animate-spin text-[#4A26ED]" size={28} /></div>;
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-oxford" size={28} /></div>;
   }
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
+    <div className="min-h-screen bg-slate-50 flex">
       <DashboardSidebar />
       <main className="flex-1 p-6 lg:p-8 overflow-x-hidden">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
-            <ShieldAlert size={24} className="text-[#040042]" />
-            <h1 className="text-xl font-bold text-[#111827]">Admin Dashboard</h1>
+            <ShieldAlert size={24} className="text-navy-deep" />
+            <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 border-b border-[#E5E7EB]">
+          <div className="flex gap-1 mb-6 border-b border-gray-200">
             {(["overview", "publishers", "transactions", "webhooks"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
                   tab === t
-                    ? "border-[#040042] text-[#040042]"
-                    : "border-transparent text-[#6B7280] hover:text-[#111827]"
+                    ? "border-navy-deep text-navy-deep"
+                    : "border-transparent text-gray-500 hover:text-gray-900"
                 }`}
               >
                 {t}
@@ -211,7 +211,7 @@ function OverviewTab({ getAccessToken }: { getAccessToken: () => Promise<string 
   }, [getAccessToken]);
 
   if (loading) return <LoadingState />;
-  if (!stats) return <p className="text-sm text-[#6B7280]">Failed to load stats.</p>;
+  if (!stats) return <p className="text-sm text-gray-500">Failed to load stats.</p>;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -271,40 +271,40 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
   return (
     <div className="space-y-4">
       <div className="relative max-w-xs">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
           placeholder="Search publishers…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pl-10 h-10 border-[#E5E7EB]"
+          className="pl-10 h-10 border-gray-200"
         />
       </div>
-      <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+      <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+              <tr className="border-b border-gray-200 bg-gray-50">
                 <SortTh label="Name" active={sortKey === "display_name"} dir={sortDir} onClick={() => handleSort("display_name")} />
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Website</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Plan</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Website</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</th>
                 <SortTh label="Articles" active={sortKey === "article_count"} dir={sortDir} onClick={() => handleSort("article_count")} />
                 <SortTh label="Revenue" active={sortKey === "total_revenue"} dir={sortDir} onClick={() => handleSort("total_revenue")} />
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Stripe</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Joined</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Stripe</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Joined</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-[#9CA3AF]">No publishers found.</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-gray-400">No publishers found.</td></tr>
               ) : filtered.map(p => (
-                <tr key={p.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
-                  <td className="py-3 px-4 font-medium text-[#111827]">{p.display_name || "—"}</td>
-                  <td className="py-3 px-4 text-[#6B7280] truncate max-w-[180px]">{p.website_url || "—"}</td>
+                <tr key={p.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                  <td className="py-3 px-4 font-medium text-gray-900">{p.display_name || "—"}</td>
+                  <td className="py-3 px-4 text-gray-500 truncate max-w-[180px]">{p.website_url || "—"}</td>
                   <td className="py-3 px-4"><PlanBadge plan={p.plan} /></td>
-                  <td className="py-3 px-4 text-[#111827]">{p.article_count}</td>
-                  <td className="py-3 px-4 text-[#111827] font-medium">${p.total_revenue.toFixed(2)}</td>
-                  <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-[#D1D5DB]">✗</span>}</td>
-                  <td className="py-3 px-4 text-[#6B7280]">{new Date(p.created_at).toLocaleDateString()}</td>
+                  <td className="py-3 px-4 text-gray-900">{p.article_count}</td>
+                  <td className="py-3 px-4 text-gray-900 font-medium">${p.total_revenue.toFixed(2)}</td>
+                  <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-gray-300">✗</span>}</td>
+                  <td className="py-3 px-4 text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -317,10 +317,10 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
 
 function SortTh({ label, active, dir, onClick }: { label: string; active: boolean; dir: string; onClick: () => void }) {
   return (
-    <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide cursor-pointer select-none" onClick={onClick}>
+    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide cursor-pointer select-none" onClick={onClick}>
       <span className="inline-flex items-center gap-1">
         {label}
-        <ArrowUpDown size={12} className={active ? "text-[#040042]" : "text-[#D1D5DB]"} />
+        <ArrowUpDown size={12} className={active ? "text-navy-deep" : "text-gray-300"} />
       </span>
     </th>
   );
@@ -367,32 +367,32 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
 
   return (
     <div className="space-y-4">
-      <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+      <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Date</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Buyer</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Amount</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Type</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">License Key</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Status</th>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Date</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Buyer</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Type</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">License Key</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
               </tr>
             </thead>
             <tbody>
               {txns.length === 0 ? (
-                <tr><td colSpan={6} className="py-12 text-center text-[#9CA3AF]">No transactions found.</td></tr>
+                <tr><td colSpan={6} className="py-12 text-center text-gray-400">No transactions found.</td></tr>
               ) : txns.map(tx => (
-                <tr key={tx.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
-                  <td className="py-3 px-4 text-[#6B7280]">{new Date(tx.created_at).toLocaleDateString()}</td>
-                  <td className="py-3 px-4 text-[#6B7280]">{maskEmail(tx.buyer_email)}</td>
-                  <td className="py-3 px-4 font-medium text-[#111827]">${tx.amount.toFixed(2)}</td>
+                <tr key={tx.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                  <td className="py-3 px-4 text-gray-500">{new Date(tx.created_at).toLocaleDateString()}</td>
+                  <td className="py-3 px-4 text-gray-500">{maskEmail(tx.buyer_email)}</td>
+                  <td className="py-3 px-4 font-medium text-gray-900">${tx.amount.toFixed(2)}</td>
                   <td className="py-3 px-4"><TypeBadge type={tx.license_type} /></td>
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center gap-1.5">
-                      <code className="text-xs font-mono text-[#6B7280]">{truncateKey(tx.license_key)}</code>
-                      <button onClick={() => handleCopy(tx.license_key)} className="text-[#9CA3AF] hover:text-[#040042] transition-colors">
+                      <code className="text-xs font-mono text-gray-500">{truncateKey(tx.license_key)}</code>
+                      <button onClick={() => handleCopy(tx.license_key)} className="text-gray-400 hover:text-navy-deep transition-colors">
                         {copiedKey === tx.license_key ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                       </button>
                     </span>
@@ -410,15 +410,15 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
         <button
           onClick={() => setPage(p => Math.max(0, p - 1))}
           disabled={page === 0}
-          className={`text-sm flex items-center gap-1 transition-colors ${page === 0 ? "text-[#D1D5DB] cursor-default" : "text-[#040042] hover:underline"}`}
+          className={`text-sm flex items-center gap-1 transition-colors ${page === 0 ? "text-gray-300 cursor-default" : "text-navy-deep hover:underline"}`}
         >
           <ChevronLeft size={14} /> Previous
         </button>
-        <span className="text-xs text-[#9CA3AF]">Page {page + 1}</span>
+        <span className="text-xs text-gray-400">Page {page + 1}</span>
         <button
           onClick={() => setPage(p => p + 1)}
           disabled={!hasMore}
-          className={`text-sm flex items-center gap-1 transition-colors ${!hasMore ? "text-[#D1D5DB] cursor-default" : "text-[#040042] hover:underline"}`}
+          className={`text-sm flex items-center gap-1 transition-colors ${!hasMore ? "text-gray-300 cursor-default" : "text-navy-deep hover:underline"}`}
         >
           Next <ChevronRight size={14} />
         </button>
@@ -457,32 +457,32 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
     return (
       <div className="py-16 text-center">
         <p className="text-lg mb-1">🎉</p>
-        <p className="text-sm font-medium text-[#6B7280]">No failed webhooks</p>
-        <p className="text-xs text-[#9CA3AF] mt-1">All webhook deliveries are healthy.</p>
+        <p className="text-sm font-medium text-gray-500">No failed webhooks</p>
+        <p className="text-xs text-gray-400 mt-1">All webhook deliveries are healthy.</p>
       </div>
     );
   }
 
   return (
-    <div className="border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Publisher</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Event Type</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Attempts</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Last Try</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Status</th>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Publisher</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Event Type</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Attempts</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Last Try</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
             </tr>
           </thead>
           <tbody>
             {webhooks.map(wh => (
-              <tr key={wh.id} className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB]">
-                <td className="py-3 px-4 font-medium text-[#111827]">{wh.publisher_name}</td>
-                <td className="py-3 px-4 text-[#6B7280]">{wh.event_type}</td>
-                <td className="py-3 px-4 text-[#111827]">{wh.attempts}</td>
-                <td className="py-3 px-4 text-[#6B7280]">{new Date(wh.last_attempt_at).toLocaleString()}</td>
+              <tr key={wh.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                <td className="py-3 px-4 font-medium text-gray-900">{wh.publisher_name}</td>
+                <td className="py-3 px-4 text-gray-500">{wh.event_type}</td>
+                <td className="py-3 px-4 text-gray-900">{wh.attempts}</td>
+                <td className="py-3 px-4 text-gray-500">{new Date(wh.last_attempt_at).toLocaleString()}</td>
                 <td className="py-3 px-4"><StatusBadge status={wh.status} /></td>
               </tr>
             ))}
@@ -498,7 +498,7 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
 function LoadingState() {
   return (
     <div className="py-16 flex justify-center">
-      <Loader2 size={24} className="animate-spin text-[#040042]" />
+      <Loader2 size={24} className="animate-spin text-navy-deep" />
     </div>
   );
 }

@@ -65,7 +65,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
-    <Loader2 className="h-6 w-6 animate-spin text-[#4A26ED]" />
+    <Loader2 className="h-6 w-6 animate-spin text-oxford" />
   </div>
 );
 

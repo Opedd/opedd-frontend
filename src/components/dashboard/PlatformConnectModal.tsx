@@ -281,7 +281,7 @@ export function PlatformConnectModal({
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   isActive
-                    ? "bg-[#4A26ED] text-white"
+                    ? "bg-oxford text-white"
                     : isDone
                     ? "bg-emerald-500 text-white"
                     : "bg-slate-200 text-slate-500"
@@ -291,7 +291,7 @@ export function PlatformConnectModal({
               </div>
               <span
                 className={`text-xs font-medium hidden sm:inline ${
-                  isActive ? "text-[#040042]" : "text-slate-400"
+                  isActive ? "text-navy-deep" : "text-slate-400"
                 }`}
               >
                 {label}
@@ -314,13 +314,13 @@ export function PlatformConnectModal({
           <img src={platformLogos[platform]} alt={platform} className="w-8 h-8" />
         )}
         <div>
-          <p className="text-sm font-bold text-[#040042]">{platformNames[platform] || "Custom"}</p>
+          <p className="text-sm font-bold text-navy-deep">{platformNames[platform] || "Custom"}</p>
           {detection.confidence === "low" && (
             <p className="text-xs text-amber-600">Platform auto-detected with low confidence</p>
           )}
         </div>
       </div>
-      <p className="text-sm text-[#6B7280]">
+      <p className="text-sm text-gray-500">
         Your content stays yours. We're building a licensing layer on top of your publication — not claiming ownership of anything.
       </p>
     </div>
@@ -346,12 +346,12 @@ export function PlatformConnectModal({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <CheckCircle size={16} className="text-emerald-500" />
-                <span className="text-sm font-medium text-[#040042]">Connected! Importing your archive…</span>
+                <span className="text-sm font-medium text-navy-deep">Connected! Importing your archive…</span>
               </div>
               <div className="space-y-2">
-                <div className="w-full h-1.5 bg-[#4A26ED]/10 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-oxford/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#4A26ED] rounded-full transition-all duration-500"
+                    className="h-full bg-oxford rounded-full transition-all duration-500"
                     style={{ width: `${Math.max(progress, 5)}%` }}
                   />
                 </div>
@@ -359,7 +359,7 @@ export function PlatformConnectModal({
                   {archiveJob?.processed_count || 0} / {archiveJob?.total_count || "?"} articles processed
                 </p>
               </div>
-              <p className="text-xs text-[#6B7280] leading-relaxed">
+              <p className="text-xs text-gray-500 leading-relaxed">
                 Importing your archive — this can take a few minutes for large publications. You can close this window and come back; the import will continue in the background.
               </p>
             </div>
@@ -390,7 +390,7 @@ export function PlatformConnectModal({
           {(archiveComplete || archiveFailed) && (
             <Button
               onClick={advanceFromStep1}
-              className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold"
+              className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
               Continue
               <ChevronRight size={16} className="ml-1.5" />
@@ -424,10 +424,10 @@ export function PlatformConnectModal({
 
         {platform === "beehiiv" && (
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-[#040042]">Connect via Beehiiv API</h3>
+            <h3 className="text-sm font-bold text-navy-deep">Connect via Beehiiv API</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-[#040042]/70 mb-1.5 block">API Key</label>
+                <label className="text-xs font-medium text-navy-deep/70 mb-1.5 block">API Key</label>
                 <Input
                   type="password"
                   placeholder="bh_api_xxxxxxxx"
@@ -436,7 +436,7 @@ export function PlatformConnectModal({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#040042]/70 mb-1.5 block">Publication ID</label>
+                <label className="text-xs font-medium text-navy-deep/70 mb-1.5 block">Publication ID</label>
                 <Input
                   placeholder="pub_xxxxxxxx"
                   value={pubId}
@@ -444,20 +444,20 @@ export function PlatformConnectModal({
                 />
               </div>
             </div>
-            <p className="text-xs text-[#6B7280] leading-relaxed flex items-start gap-1.5">
+            <p className="text-xs text-gray-500 leading-relaxed flex items-start gap-1.5">
               <Lock size={12} className="shrink-0 mt-0.5" />
               Read-only access — we can only read your posts, never publish, edit, or send anything on your behalf. You can revoke this key from your Beehiiv dashboard at any time.
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
               Find these in Beehiiv Settings → API. Your Publication ID is in the URL of your dashboard.
             </p>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
+            <p className="text-xs text-gray-500 leading-relaxed">
               We import your archive once, then use webhooks for real-time sync. Your API key is stored encrypted and never shared.
             </p>
             <Button
               onClick={handleConnect}
               disabled={isConnecting || !apiKey.trim()}
-              className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold"
+              className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
               {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
               Validate & Import Archive
@@ -467,10 +467,10 @@ export function PlatformConnectModal({
 
         {platform === "ghost" && (
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-[#040042]">Connect via Ghost Content API</h3>
+            <h3 className="text-sm font-bold text-navy-deep">Connect via Ghost Content API</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-[#040042]/70 mb-1.5 block">Site URL</label>
+                <label className="text-xs font-medium text-navy-deep/70 mb-1.5 block">Site URL</label>
                 <Input
                   placeholder="https://yoursite.com"
                   value={ghostSiteUrl}
@@ -478,7 +478,7 @@ export function PlatformConnectModal({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#040042]/70 mb-1.5 block">Content API Key</label>
+                <label className="text-xs font-medium text-navy-deep/70 mb-1.5 block">Content API Key</label>
                 <Input
                   type="password"
                   placeholder="Content API Key"
@@ -487,20 +487,20 @@ export function PlatformConnectModal({
                 />
               </div>
             </div>
-            <p className="text-xs text-[#6B7280] leading-relaxed flex items-start gap-1.5">
+            <p className="text-xs text-gray-500 leading-relaxed flex items-start gap-1.5">
               <Lock size={12} className="shrink-0 mt-0.5" />
               Read-only access — we can only read your posts, never publish, edit, or send anything on your behalf. You can revoke this key from your Ghost dashboard at any time.
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
               In Ghost Admin → Settings → Integrations → Add Custom Integration → copy Content API Key.
             </p>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
+            <p className="text-xs text-gray-500 leading-relaxed">
               We import your archive once, then use webhooks for real-time sync. Your API key is stored encrypted and never shared.
             </p>
             <Button
               onClick={handleConnect}
               disabled={isConnecting || !ghostApiKey.trim()}
-              className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold"
+              className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
               {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
               Validate & Import Archive
@@ -510,17 +510,17 @@ export function PlatformConnectModal({
 
         {platform === "wordpress" && (
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-[#040042]">Import WordPress Archive</h3>
-            <div className="bg-[#EEF0FD] border border-[#D5D9F2] rounded-xl p-4 flex items-start gap-3">
-              <Info size={16} className="text-[#4A26ED] mt-0.5 shrink-0" />
-              <p className="text-sm text-[#040042]/80">
+            <h3 className="text-sm font-bold text-navy-deep">Import WordPress Archive</h3>
+            <div className="bg-oxford-light border border-oxford-pale rounded-xl p-4 flex items-start gap-3">
+              <Info size={16} className="text-oxford mt-0.5 shrink-0" />
+              <p className="text-sm text-navy-deep/80">
                 Your WordPress archive will be imported automatically. No credentials needed.
               </p>
             </div>
             <Button
               onClick={handleConnect}
               disabled={isConnecting}
-              className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold"
+              className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
               {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
               Import Archive
@@ -530,39 +530,39 @@ export function PlatformConnectModal({
 
         {(platform === "substack" || platform === "other") && (
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-[#040042]">Import your archive</h3>
+            <h3 className="text-sm font-bold text-navy-deep">Import your archive</h3>
 
             {platform === "substack" && (
               <>
-                <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5 mb-4">
-                  <Info size={16} className="text-[#6B7280] shrink-0 mt-0.5" />
+                <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2.5 mb-4">
+                  <Info size={16} className="text-gray-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-[#040042]">Your content stays on Substack — this is just a copy</p>
-                    <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+                    <p className="text-sm font-semibold text-navy-deep">Your content stays on Substack — this is just a copy</p>
+                    <p className="text-sm text-gray-500 mt-1 leading-relaxed">
                       Exporting your data doesn't affect your publication, your subscribers, or your Substack account in any way. Think of it like making a backup. Your readers won't notice anything. We use this file to index your archive for licensing — we don't store your Substack login or have any access to your account.
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-xl p-4 flex items-start gap-3">
-                  <AlertTriangle size={16} className="text-[#D97706] mt-0.5 shrink-0" />
-                  <div className="text-sm text-[#92400E] leading-relaxed">
+                <div className="bg-amber-100 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                  <AlertTriangle size={16} className="text-amber-600 mt-0.5 shrink-0" />
+                  <div className="text-sm text-amber-800 leading-relaxed">
                     Substack doesn't have a public API. To import your existing archive: export your data from <strong>Substack Settings → Account → Export data</strong>, then upload the ZIP file here.
                   </div>
                 </div>
               </>
             )}
 
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[#4A26ED]/30 transition-colors cursor-pointer">
+            <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-oxford/30 transition-colors cursor-pointer">
               <Upload size={28} className="text-slate-300 mx-auto mb-3" />
-              <p className="text-sm font-medium text-[#040042]/70">
+              <p className="text-sm font-medium text-navy-deep/70">
                 {platform === "substack" ? "Drop your Substack export ZIP here" : "Drop your content export file here"}
               </p>
               <p className="text-xs text-slate-400 mt-1">ZIP files accepted</p>
             </div>
 
             {platform === "substack" && (
-              <p className="text-xs text-[#6B7280] leading-relaxed">
+              <p className="text-xs text-gray-500 leading-relaxed">
                 This is a one-time action. Future posts sync automatically via your inbound email — no repeat exports needed.
               </p>
             )}
@@ -579,7 +579,7 @@ export function PlatformConnectModal({
             <button
               onClick={handleSkipArchive}
               disabled={isConnecting}
-              className="w-full text-sm font-medium text-[#4A26ED] hover:text-[#3B1ED1] transition-colors disabled:opacity-50 py-2"
+              className="w-full text-sm font-medium text-oxford hover:text-oxford-dark transition-colors disabled:opacity-50 py-2"
             >
               {isConnecting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -614,19 +614,19 @@ export function PlatformConnectModal({
         {renderStepper()}
 
         {/* Why we verify — reassurance block */}
-        <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5">
-          <ShieldCheck size={16} className="text-[#4A26ED] shrink-0 mt-0.5" />
+        <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2.5">
+          <ShieldCheck size={16} className="text-oxford shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-[#040042]">Why we verify ownership</p>
-            <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+            <p className="text-sm font-semibold text-navy-deep">Why we verify ownership</p>
+            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
               When a buyer licenses your content, they need proof that the license comes from the actual publisher — not someone who copied your articles. This one-time verification is what makes your licenses legally credible and worth more.
             </p>
           </div>
         </div>
 
         <div className="text-center">
-          <Shield size={28} className="text-[#4A26ED] mx-auto mb-2" />
-          <h3 className="text-base font-bold text-[#040042]">Verify Ownership</h3>
+          <Shield size={28} className="text-oxford mx-auto mb-2" />
+          <h3 className="text-base font-bold text-navy-deep">Verify Ownership</h3>
           <p className="text-sm text-slate-500 mt-1">
             Prove you own this publication to activate licensing.
           </p>
@@ -638,17 +638,17 @@ export function PlatformConnectModal({
               <CheckCircle size={36} className="text-emerald-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[#040042]">Verified!</h3>
+              <h3 className="text-lg font-bold text-navy-deep">Verified!</h3>
               <p className="text-sm text-slate-500 mt-1">Your publication ownership has been confirmed.</p>
             </div>
-            <Button onClick={() => setStep(3)} className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold">
+            <Button onClick={() => setStep(3)} className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold">
               Continue
               <ChevronRight size={16} className="ml-1.5" />
             </Button>
           </div>
         ) : verifyResult === "loading" ? (
           <div className="text-center py-8">
-            <Loader2 size={32} className="animate-spin text-[#4A26ED] mx-auto" />
+            <Loader2 size={32} className="animate-spin text-oxford mx-auto" />
             <p className="text-sm text-slate-500 mt-3">Checking your publication…</p>
           </div>
         ) : verifyResult === "failed" ? (
@@ -661,7 +661,7 @@ export function PlatformConnectModal({
               <Button variant="outline" onClick={() => { onOpenChange(false); onComplete(); }} className="flex-1 h-11">
                 Verify Later
               </Button>
-              <Button onClick={() => { setVerifyResult("idle"); handleVerify(); }} className="flex-1 h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold">
+              <Button onClick={() => { setVerifyResult("idle"); handleVerify(); }} className="flex-1 h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold">
                 <RefreshCw size={14} className="mr-1.5" />
                 Try Again
               </Button>
@@ -672,11 +672,11 @@ export function PlatformConnectModal({
             {hosted ? (
               <div className="space-y-3">
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                  <p className="text-sm text-[#040042] leading-relaxed">
+                  <p className="text-sm text-navy-deep leading-relaxed">
                     Add this verification code to your publication's About page or bio, then click Verify.
                   </p>
                 </div>
-                <div className="bg-[#040042] rounded-xl p-4">
+                <div className="bg-navy-deep rounded-xl p-4">
                   <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2 font-medium">Verification Code</p>
                   <div className="flex items-center justify-between gap-3">
                     <code className="text-lg font-mono font-bold text-white tracking-[0.15em]">{token}</code>
@@ -692,7 +692,7 @@ export function PlatformConnectModal({
             ) : (
               <div className="space-y-3">
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-[#040042]">Add a DNS TXT record</p>
+                  <p className="text-sm font-semibold text-navy-deep">Add a DNS TXT record</p>
                   <p className="text-xs text-slate-500 mt-1">DNS changes can take up to 48 hours to propagate.</p>
                 </div>
                 {[
@@ -702,10 +702,10 @@ export function PlatformConnectModal({
                 ].map((item) => (
                   <div key={item.label} className="rounded-xl border border-slate-200 overflow-hidden">
                     <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                      <span className="text-xs font-semibold text-[#040042]">{item.label}</span>
+                      <span className="text-xs font-semibold text-navy-deep">{item.label}</span>
                     </div>
                     <div className="p-3">
-                      <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
+                      <div className="bg-navy-deep rounded-lg p-3 flex items-center justify-between gap-3">
                         <code className="text-xs text-emerald-400 font-mono">{item.value}</code>
                         <button onClick={() => handleCopy(item.value, setCopied)} className="text-white/60 hover:text-white">
                           {copied ? <Check size={12} /> : <Copy size={12} />}
@@ -727,7 +727,7 @@ export function PlatformConnectModal({
               </Button>
               <Button
                 onClick={() => { setStep(2); handleVerify(); }}
-                className="flex-1 h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold"
+                className="flex-1 h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
               >
                 I've Added It — Verify
               </Button>
@@ -747,8 +747,8 @@ export function PlatformConnectModal({
       <div className="space-y-5">
         {renderStepper()}
         <div className="text-center">
-          <Rss size={28} className="text-[#4A26ED] mx-auto mb-2" />
-          <h3 className="text-base font-bold text-[#040042]">Connect New Content</h3>
+          <Rss size={28} className="text-oxford mx-auto mb-2" />
+          <h3 className="text-base font-bold text-navy-deep">Connect New Content</h3>
           <p className="text-sm text-slate-500 mt-1">Set up forward sync so new posts arrive automatically.</p>
         </div>
 
@@ -767,7 +767,7 @@ export function PlatformConnectModal({
         {platform === "ghost" && (
           <div className="space-y-3">
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
-              <p className="text-sm font-semibold text-[#040042]">Set up a Ghost webhook for real-time sync</p>
+              <p className="text-sm font-semibold text-navy-deep">Set up a Ghost webhook for real-time sync</p>
               <p className="text-xs text-slate-500 leading-relaxed">
                 Go to Ghost Admin → Settings → Integrations → Your Integration → Add webhook.
               </p>
@@ -777,7 +777,7 @@ export function PlatformConnectModal({
               </ul>
             </div>
 
-            <div className="bg-[#040042] rounded-xl p-3 flex items-center justify-between gap-3">
+            <div className="bg-navy-deep rounded-xl p-3 flex items-center justify-between gap-3">
               <code className="text-xs text-emerald-400 font-mono truncate">{webhookUrl}</code>
               <button onClick={() => handleCopy(webhookUrl, setWebhookCopied)} className="text-white/60 hover:text-white shrink-0">
                 {webhookCopied ? <Check size={14} /> : <Copy size={14} />}
@@ -799,30 +799,30 @@ export function PlatformConnectModal({
         <div className="space-y-3">
           <div className="border-t border-slate-200 pt-4">
             {/* Reassurance block */}
-            <div className="bg-[#F9FAFB] rounded-lg p-3 flex items-start gap-2.5 mb-4">
-              <Mail size={16} className="text-[#4A26ED] shrink-0 mt-0.5" />
+            <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2.5 mb-4">
+              <Mail size={16} className="text-oxford shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-[#040042]">Add it as a free subscriber — it won't affect your metrics</p>
-                <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">
+                <p className="text-sm font-semibold text-navy-deep">Add it as a free subscriber — it won't affect your metrics</p>
+                <p className="text-sm text-gray-500 mt-1 leading-relaxed">
                   This works exactly like Readwise, Matter, and other newsletter tools your readers already use. Add it as a comp (free) subscription — it doesn't count toward your paid subscriber total, doesn't trigger billing, and you can remove it from your list at any time.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#EEF0FD] border border-[#D5D9F2] rounded-xl p-4">
+          <div className="bg-oxford-light border border-oxford-pale rounded-xl p-4">
             <div className="flex items-center justify-between gap-3">
-              <code className="text-sm font-mono font-semibold text-[#4A26ED] truncate">{displayEmail}</code>
+              <code className="text-sm font-mono font-semibold text-oxford truncate">{displayEmail}</code>
               <button
                 onClick={() => handleCopy(displayEmail, setEmailCopied)}
-                className="shrink-0 flex items-center gap-1.5 text-xs font-medium text-[#4A26ED] hover:text-[#3B1ED1] transition-colors"
+                className="shrink-0 flex items-center gap-1.5 text-xs font-medium text-oxford hover:text-oxford-dark transition-colors"
               >
                 {emailCopied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
               </button>
             </div>
           </div>
 
-          <p className="text-xs text-[#6B7280] leading-relaxed">
+          <p className="text-xs text-gray-500 leading-relaxed">
             Every new post you publish — including paid ones — will be delivered to Opedd automatically. No re-exports, no manual uploads, no ongoing setup.
           </p>
 
@@ -846,7 +846,7 @@ export function PlatformConnectModal({
 
         <Button
           onClick={() => { onOpenChange(false); onComplete(); }}
-          className="w-full h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold"
+          className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
         >
           Done — Start Licensing
           <ChevronRight size={16} className="ml-1.5" />
@@ -859,19 +859,19 @@ export function PlatformConnectModal({
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onOpenChange(false); } }}>
       <DialogContent
         hideCloseButton
-        className="bg-white border-none text-[#040042] sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+        className="bg-white border-none text-navy-deep sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="bg-[#040042] px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="bg-navy-deep px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             {platformLogos[platform] ? (
               <img src={platformLogos[platform]} alt={platform} className="w-6 h-6" />
             ) : (
-              <Rss size={20} className="text-[#A78BFA]" />
+              <Rss size={20} className="text-violet-400" />
             )}
             <div>
               <h1 className="text-white font-bold text-base leading-tight">Connect Publication</h1>
-              <p className="text-[#A78BFA] text-xs truncate max-w-[250px]">{detection.name || url}</p>
+              <p className="text-violet-400 text-xs truncate max-w-[250px]">{detection.name || url}</p>
             </div>
           </div>
           <button

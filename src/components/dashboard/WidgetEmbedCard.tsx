@@ -31,13 +31,13 @@ export function WidgetEmbedCard({ publisherId }: { publisherId: string }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-blue-50 p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
-          <Code2 size={16} className="text-[#4A26ED]" />
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-oxford/10 to-violet-600/10 flex items-center justify-center">
+          <Code2 size={16} className="text-oxford" />
         </div>
         <div>
-          <h2 className="font-bold text-[#040042]">Widget Embed Code</h2>
+          <h2 className="font-bold text-navy-deep">Widget Embed Code</h2>
           <p className="text-slate-500 text-xs">Add this script once to your article template. It automatically detects and registers each article — no per-page configuration needed.</p>
         </div>
       </div>
@@ -50,8 +50,8 @@ export function WidgetEmbedCard({ publisherId }: { publisherId: string }) {
             onClick={() => setMode(m)}
             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
               mode === m
-                ? "bg-white text-[#040042] shadow-sm"
-                : "text-slate-500 hover:text-[#040042]"
+                ? "bg-white text-navy-deep shadow-sm"
+                : "text-slate-500 hover:text-navy-deep"
             }`}
           >
             {LABELS[m]}
@@ -60,13 +60,13 @@ export function WidgetEmbedCard({ publisherId }: { publisherId: string }) {
       </div>
 
       {/* Code block */}
-      <div className="bg-[#0F172A] rounded-lg p-4 overflow-x-auto">
+      <div className="bg-slate-900 rounded-lg p-4 overflow-x-auto">
         <pre className="text-sm font-mono text-slate-300 whitespace-pre">{snippet}</pre>
       </div>
 
       {/* Copy button */}
       <div className="mt-3 flex items-center justify-between">
-        <Button size="sm" onClick={handleCopy} className="h-9 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium transition-all">
+        <Button size="sm" onClick={handleCopy} className="h-9 px-4 bg-oxford hover:bg-oxford-dark text-white rounded-lg font-medium transition-all">
           {copied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy snippet</>}
         </Button>
         <p className="text-xs text-slate-400 max-w-xs text-right">

@@ -105,18 +105,18 @@ export default function UpdatePassword() {
 
   const renderForm = () => (
     <>
-      <div className="w-16 h-16 bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-        <Lock size={28} className="text-[#4A26ED]" />
+      <div className="w-16 h-16 bg-gradient-to-br from-oxford/10 to-violet-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Lock size={28} className="text-oxford" />
       </div>
 
       <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-[#040042]">Set New Password</h2>
-        <p className="text-[#040042]/60 mt-1">Enter your new password below</p>
+        <h2 className="text-2xl font-bold text-navy-deep">Set New Password</h2>
+        <p className="text-navy-deep/60 mt-1">Enter your new password below</p>
       </div>
 
       <form onSubmit={handleUpdatePassword} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-[#040042]/80 font-medium">
+          <Label htmlFor="password" className="text-navy-deep/80 font-medium">
             New Password
           </Label>
           <div className="relative">
@@ -127,12 +127,12 @@ export default function UpdatePassword() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pr-12"
+              className="bg-alice-gray border-navy-deep/10 text-navy-deep placeholder:text-navy-deep/40 h-12 rounded-xl pr-12"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#040042]/40 hover:text-[#040042]/70 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-navy-deep/40 hover:text-navy-deep/70 transition-colors"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
@@ -140,7 +140,7 @@ export default function UpdatePassword() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirm-password" className="text-[#040042]/80 font-medium">
+          <Label htmlFor="confirm-password" className="text-navy-deep/80 font-medium">
             Confirm Password
           </Label>
           <div className="relative">
@@ -151,12 +151,12 @@ export default function UpdatePassword() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pr-12"
+              className="bg-alice-gray border-navy-deep/10 text-navy-deep placeholder:text-navy-deep/40 h-12 rounded-xl pr-12"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#040042]/40 hover:text-[#040042]/70 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-navy-deep/40 hover:text-navy-deep/70 transition-colors"
             >
               {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
@@ -164,9 +164,9 @@ export default function UpdatePassword() {
         </div>
 
         {/* Password requirements hint */}
-        <div className="bg-[#F2F9FF] rounded-xl p-4 border border-[#040042]/5">
-          <p className="text-xs font-medium text-[#040042]/70 mb-2">Password requirements:</p>
-          <ul className="text-xs text-[#040042]/50 space-y-1">
+        <div className="bg-alice-gray rounded-xl p-4 border border-navy-deep/5">
+          <p className="text-xs font-medium text-navy-deep/70 mb-2">Password requirements:</p>
+          <ul className="text-xs text-navy-deep/50 space-y-1">
             <li className={password.length >= 8 ? "text-green-600" : ""}>• At least 8 characters</li>
             <li className={/[A-Z]/.test(password) ? "text-green-600" : ""}>• One uppercase letter</li>
             <li className={/[a-z]/.test(password) ? "text-green-600" : ""}>• One lowercase letter</li>
@@ -177,7 +177,7 @@ export default function UpdatePassword() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#4A26ED]/30 disabled:opacity-50 transition-all active:scale-[0.98]"
+          className="w-full h-14 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-oxford/30 disabled:opacity-50 transition-all active:scale-[0.98]"
         >
           {isLoading ? "Updating..." : "Update Password"}
         </button>
@@ -191,14 +191,14 @@ export default function UpdatePassword() {
         <CheckCircle size={40} className="text-green-500" />
       </div>
 
-      <h2 className="text-2xl font-bold text-[#040042] mb-2">Password Updated!</h2>
-      <p className="text-[#040042]/60 mb-6">
+      <h2 className="text-2xl font-bold text-navy-deep mb-2">Password Updated!</h2>
+      <p className="text-navy-deep/60 mb-6">
         Your password has been successfully changed. You'll be redirected to your dashboard shortly.
       </p>
 
       <Link
         to="/dashboard"
-        className="inline-flex items-center justify-center w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#4A26ED]/30 transition-all active:scale-[0.98]"
+        className="inline-flex items-center justify-center w-full h-14 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-oxford/30 transition-all active:scale-[0.98]"
       >
         Go to Dashboard
       </Link>
@@ -206,9 +206,9 @@ export default function UpdatePassword() {
   );
 
   return (
-    <div className="min-h-screen bg-[#040042] flex">
+    <div className="min-h-screen bg-navy-deep flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-[#040042] to-[#0A0066]">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gradient-to-br from-navy-deep to-navy-deep">
         <Link to="/">
           <img src={opeddLogo} alt="Opedd" className="h-10" />
         </Link>
@@ -216,7 +216,7 @@ export default function UpdatePassword() {
           <h1 className="text-4xl font-bold text-white leading-tight">
             Secure Your Account.
             <br />
-            <span className="text-[#D1009A]">Stay Protected.</span>
+            <span className="text-plum-magenta">Stay Protected.</span>
           </h1>
           <p className="text-white/60 text-lg max-w-md">
             Create a strong password to keep your content and revenue safe.
@@ -226,7 +226,7 @@ export default function UpdatePassword() {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-[#F2F9FF]">
+      <div className="flex-1 flex items-center justify-center p-8 bg-alice-gray">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 flex justify-center">
@@ -235,7 +235,7 @@ export default function UpdatePassword() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-[#040042]/5">
+          <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-navy-deep/5">
             {isSuccess ? renderSuccess() : renderForm()}
           </div>
         </div>

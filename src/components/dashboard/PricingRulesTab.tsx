@@ -135,7 +135,7 @@ export function PricingRulesTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="animate-spin text-[#4A26ED]" size={24} />
+        <Loader2 className="animate-spin text-oxford" size={24} />
       </div>
     );
   }
@@ -143,14 +143,14 @@ export function PricingRulesTab() {
   return (
     <div className="space-y-8">
       {/* Category Pricing */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold text-[#040042]">Category Pricing</h3>
+            <h3 className="text-base font-semibold text-navy-deep">Category Pricing</h3>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info size={14} className="text-[#6B7280] cursor-help" />
+                  <Info size={14} className="text-gray-500 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="right" className="max-w-[220px] text-xs">
                   Category prices override your global defaults for articles in that category.
@@ -158,23 +158,23 @@ export function PricingRulesTab() {
               </Tooltip>
             </TooltipProvider>
           </div>
-          <p className="text-sm text-[#6B7280] mt-0.5">Override default prices for specific content categories. Articles without a category use your default prices.</p>
+          <p className="text-sm text-gray-500 mt-0.5">Override default prices for specific content categories. Articles without a category use your default prices.</p>
         </div>
         {isFetchingCategories ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="animate-spin text-[#4A26ED]" size={20} />
+            <Loader2 className="animate-spin text-oxford" size={20} />
           </div>
         ) : categoryRules.length === 0 ? (
           <div className="text-center py-8">
-            <DollarSign size={40} className="mx-auto mb-3 text-[#D1D5DB]" />
+            <DollarSign size={40} className="mx-auto mb-3 text-gray-300" />
             <p className="text-sm font-semibold text-[#111] mb-1">No categories yet</p>
-            <p className="text-sm text-[#6B7280] max-w-xs mx-auto">Your article categories will appear here automatically after your first content sync.</p>
+            <p className="text-sm text-gray-500 max-w-xs mx-auto">Your article categories will appear here automatically after your first content sync.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {categoryRules.map((rule, i) => (
               <div key={rule.category} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-sm font-medium text-[#040042] flex-1 capitalize">{rule.category}</span>
+                <span className="text-sm font-medium text-navy-deep flex-1 capitalize">{rule.category}</span>
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-slate-400">Human</span>
                   <div className="relative w-20">
@@ -183,7 +183,7 @@ export function PricingRulesTab() {
                       type="number" min="0" step="1"
                       value={rule.human}
                       onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, human: e.target.value } : r))}
-                      className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
+                      className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-navy-deep focus:outline-none focus:ring-1 focus:ring-oxford/30"
                     />
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export function PricingRulesTab() {
                       type="number" min="0" step="1"
                       value={rule.ai}
                       onChange={e => setCategoryRules(prev => prev.map((r, j) => j === i ? { ...r, ai: e.target.value } : r))}
-                      className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-[#040042] focus:outline-none focus:ring-1 focus:ring-[#4A26ED]/30"
+                      className="w-full border border-slate-200 rounded-lg pl-5 pr-2 py-1.5 text-xs text-navy-deep focus:outline-none focus:ring-1 focus:ring-oxford/30"
                     />
                   </div>
                 </div>
@@ -206,10 +206,10 @@ export function PricingRulesTab() {
       </div>
 
       {/* URL Exclusion Rules */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         <div>
-          <h3 className="text-base font-semibold text-[#040042]">URL Exclusion Rules</h3>
-          <p className="text-sm text-[#6B7280] mt-0.5">URLs matching these patterns will be skipped during sitemap import and widget auto-registration. Use * as wildcard.</p>
+          <h3 className="text-base font-semibold text-navy-deep">URL Exclusion Rules</h3>
+          <p className="text-sm text-gray-500 mt-0.5">URLs matching these patterns will be skipped during sitemap import and widget auto-registration. Use * as wildcard.</p>
         </div>
         <div className="space-y-2">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Built-in exclusions (always active)</p>
@@ -226,7 +226,7 @@ export function PricingRulesTab() {
           )}
           <div className="flex flex-wrap gap-2">
             {excludedPatterns.map((p, i) => (
-              <span key={i} className="flex items-center gap-1.5 px-2 py-1 bg-[#4A26ED]/5 border border-[#4A26ED]/15 text-[#4A26ED] text-xs rounded-lg font-mono">
+              <span key={i} className="flex items-center gap-1.5 px-2 py-1 bg-oxford/5 border border-oxford/15 text-oxford text-xs rounded-lg font-mono">
                 {p}
                 <button onClick={() => setExcludedPatterns(prev => prev.filter((_, j) => j !== i))} className="hover:text-red-500">
                   <XCircle size={12} />
@@ -247,7 +247,7 @@ export function PricingRulesTab() {
                   setNewPattern("");
                 }
               }}
-              className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-[#040042] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4A26ED]/20"
+              className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-navy-deep placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-oxford/20"
             />
             <Button
               variant="outline"
@@ -269,7 +269,7 @@ export function PricingRulesTab() {
         <Button
           disabled={isSaving}
           onClick={handleSave}
-          className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6"
+          className="bg-oxford hover:bg-oxford-dark text-white px-6"
         >
           {isSaving ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Pricing Rules"}
         </Button>

@@ -225,13 +225,13 @@ export default function Dashboard() {
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
         {/* Pending Earnings Card — only when there's actual revenue or licenses */}
         {!stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0) && (
-          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm" style={{ borderImage: "linear-gradient(135deg, #F59E0B, #D97706) 1" }}>
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm [border-image:linear-gradient(135deg,theme(colors.amber.500),theme(colors.amber.600))_1]">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <p className="text-lg font-bold text-[#040042] flex items-center gap-2">
+                <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
                   💰 Pending Earnings: ${totalRevenue.toFixed(2)}
                 </p>
-                <p className="text-sm text-[#6B7280] mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   Your earnings are accumulating. Connect your bank to start receiving payouts.
                 </p>
               </div>
@@ -249,7 +249,7 @@ export default function Dashboard() {
                     if (json.url) window.location.href = json.url;
                   } catch { /* ignore */ }
                 }}
-                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white shrink-0"
+                className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
               >
                 Connect Stripe →
               </Button>
@@ -276,27 +276,27 @@ export default function Dashboard() {
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Articles</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+            <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Articles</p>
             {isLoading ? (
-              <div className="h-8 w-16 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
+              <div className="h-8 w-16 bg-gray-100 rounded-md mt-1 animate-pulse" />
             ) : (
               <>
-                <p className="text-2xl font-bold text-[#111827] mt-1">{totalAssets}</p>
-                <p className="text-xs text-[#9CA3AF] mt-1">
+                <p className="text-2xl font-bold text-gray-900 mt-1">{totalAssets}</p>
+                <p className="text-xs text-gray-400 mt-1">
                   {totalLicensesSold > 0 ? `${totalLicensesSold} licensed (last 30d)` : "Awaiting first license"}
                 </p>
               </>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Revenue (30d)</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+            <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Revenue (30d)</p>
             {isLoading ? (
-              <div className="h-8 w-20 bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
+              <div className="h-8 w-20 bg-gray-100 rounded-md mt-1 animate-pulse" />
             ) : (
               <>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-[#111827]">${totalRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
                   {periodComparison && periodComparison.previousRevenue > 0 && (
                     <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                       {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
@@ -305,17 +305,17 @@ export default function Dashboard() {
                   )}
                 </div>
                 {periodComparison && (
-                  <p className="text-xs text-[#9CA3AF] mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     vs ${periodComparison.previousRevenue.toFixed(2)} previous 30d
                   </p>
                 )}
               </>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Trend</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+            <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Trend</p>
             {isLoading ? (
-              <div className="h-16 w-full bg-[#F3F4F6] rounded-md mt-1 animate-pulse" />
+              <div className="h-16 w-full bg-gray-100 rounded-md mt-1 animate-pulse" />
             ) : revenueTrend.length > 0 && revenueTrend.some((r) => r.revenue > 0) ? (
               <div className="mt-1 h-16">
                 <ResponsiveContainer width="100%" height="100%">
@@ -338,21 +338,21 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <p className="text-xs text-[#9CA3AF] mt-6">No revenue yet</p>
+              <p className="text-xs text-gray-400 mt-6">No revenue yet</p>
             )}
           </div>
         </div>
 
         {/* Recent Sales (last 5) */}
         {!isLoading && recentSales.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#E5E7EB]">
-              <h2 className="text-[15px] font-semibold text-[#111827]">Recent sales</h2>
-              <Link to="/ledger" className="text-xs text-[#4A26ED] hover:underline font-medium">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200">
+              <h2 className="text-[15px] font-semibold text-gray-900">Recent sales</h2>
+              <Link to="/ledger" className="text-xs text-oxford hover:underline font-medium">
                 View all →
               </Link>
             </div>
-            <ul className="divide-y divide-[#F3F4F6]">
+            <ul className="divide-y divide-gray-100">
               {recentSales.map((sale) => {
                 const isAi = sale.license_type === "ai" || sale.license_type === "ai_inference";
                 const when = new Date(sale.created_at);
@@ -366,12 +366,12 @@ export default function Dashboard() {
                 })();
                 return (
                   <li key={sale.id} className="flex items-center gap-3 px-5 py-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isAi ? "bg-[#EEF0FD] text-[#4A26ED]" : "bg-[#FDF2FA] text-[#D1009A]"}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isAi ? "bg-oxford-light text-oxford" : "bg-pink-50 text-plum-magenta"}`}>
                       {isAi ? <Bot size={15} /> : <UserIcon size={15} />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#111827] truncate">{sale.asset_title}</p>
-                      <p className="text-xs text-[#6B7280] truncate">
+                      <p className="text-sm font-medium text-gray-900 truncate">{sale.asset_title}</p>
+                      <p className="text-xs text-gray-500 truncate">
                         {sale.buyer_name || sale.buyer_email || "Buyer"} · {ago}
                       </p>
                     </div>
@@ -386,92 +386,92 @@ export default function Dashboard() {
         {/* Admin Platform Stats */}
         {isAdmin && (
           <div className="space-y-3">
-            <h2 className="text-[15px] font-semibold text-[#111827]">Platform</h2>
+            <h2 className="text-[15px] font-semibold text-gray-900">Platform</h2>
             {adminStatsLoading ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
-                    <div className="h-3.5 w-20 bg-[#F3F4F6] rounded animate-pulse mb-3" />
-                    <div className="h-8 w-16 bg-[#F3F4F6] rounded animate-pulse" />
+                  <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                    <div className="h-3.5 w-20 bg-gray-100 rounded animate-pulse mb-3" />
+                    <div className="h-8 w-16 bg-gray-100 rounded animate-pulse" />
                   </div>
                 ))}
               </div>
             ) : adminStats ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <Users size={14} className="text-[#6B7280]" />
-                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Publishers</p>
+                    <Users size={14} className="text-gray-500" />
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Publishers</p>
                   </div>
-                  <p className="text-2xl font-bold text-[#111827]">{adminStats.total_publishers}</p>
+                  <p className="text-2xl font-bold text-gray-900">{adminStats.total_publishers}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <Activity size={14} className="text-[#6B7280]" />
-                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Transactions</p>
+                    <Activity size={14} className="text-gray-500" />
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Transactions</p>
                   </div>
-                  <p className="text-2xl font-bold text-[#111827]">{adminStats.total_transactions}</p>
+                  <p className="text-2xl font-bold text-gray-900">{adminStats.total_transactions}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign size={14} className="text-[#6B7280]" />
-                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Platform Revenue</p>
+                    <DollarSign size={14} className="text-gray-500" />
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Platform Revenue</p>
                   </div>
-                  <p className="text-2xl font-bold text-[#111827]">${adminStats.total_revenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">${adminStats.total_revenue.toFixed(2)}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <Activity size={14} className="text-[#6B7280]" />
-                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Txns Today</p>
+                    <Activity size={14} className="text-gray-500" />
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Txns Today</p>
                   </div>
-                  <p className="text-2xl font-bold text-[#111827]">{adminStats.transactions_today}</p>
+                  <p className="text-2xl font-bold text-gray-900">{adminStats.transactions_today}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign size={14} className="text-[#6B7280]" />
-                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Revenue Today</p>
+                    <DollarSign size={14} className="text-gray-500" />
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Revenue Today</p>
                   </div>
-                  <p className="text-2xl font-bold text-[#111827]">${adminStats.revenue_today.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">${adminStats.revenue_today.toFixed(2)}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangleIcon size={14} className="text-amber-500" />
-                    <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wide">Failed Webhooks</p>
+                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Failed Webhooks</p>
                   </div>
-                  <p className="text-2xl font-bold text-[#111827]">{adminStats.failed_webhooks_24h}</p>
+                  <p className="text-2xl font-bold text-gray-900">{adminStats.failed_webhooks_24h}</p>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-[#6B7280]">Failed to load platform stats.</p>
+              <p className="text-sm text-gray-500">Failed to load platform stats.</p>
             )}
           </div>
         )}
 
         {licensingHref ? (
-          <div className="flex items-center gap-3 text-sm text-[#6B7280] mt-4">
+          <div className="flex items-center gap-3 text-sm text-gray-500 mt-4">
             <LinkIcon className="w-4 h-4 shrink-0" />
-            <span className="font-mono text-[#374151] truncate">{licensingUrl}</span>
-            <button onClick={handleCopyUrl} className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium">
+            <span className="font-mono text-gray-700 truncate">{licensingUrl}</span>
+            <button onClick={handleCopyUrl} className="shrink-0 text-oxford hover:underline text-xs font-medium">
               {urlCopied ? "Copied!" : "Copy"}
             </button>
-            <a href={licensingHref} target="_blank" rel="noreferrer" className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium">
+            <a href={licensingHref} target="_blank" rel="noreferrer" className="shrink-0 text-oxford hover:underline text-xs font-medium">
               Preview ↗
             </a>
           </div>
         ) : (
-          <p className="text-sm text-[#6B7280] mt-4">
+          <p className="text-sm text-gray-500 mt-4">
             Set your website URL in{" "}
-            <Link to="/settings" className="text-[#4A26ED] hover:underline font-medium">Settings</Link>
+            <Link to="/settings" className="text-oxford hover:underline font-medium">Settings</Link>
             {" "}to activate your licensing page.
           </p>
         )}
 
         {/* Inbound Email */}
         {inboundEmail && (
-          <div className="flex items-center gap-3 text-sm text-[#6B7280]">
+          <div className="flex items-center gap-3 text-sm text-gray-500">
             <Mail className="w-4 h-4 shrink-0" />
-            <span className="text-xs text-[#6B7280]">Inbound email:</span>
-            <code className="font-mono text-[#374151] text-xs truncate">{inboundEmail}</code>
+            <span className="text-xs text-gray-500">Inbound email:</span>
+            <code className="font-mono text-gray-700 text-xs truncate">{inboundEmail}</code>
             <button
               onClick={async () => {
                 try {
@@ -480,7 +480,7 @@ export default function Dashboard() {
                   setTimeout(() => setInboundCopied(false), 2000);
                 } catch (err) { Sentry.captureException(err); }
               }}
-              className="shrink-0 text-[#4A26ED] hover:underline text-xs font-medium"
+              className="shrink-0 text-oxford hover:underline text-xs font-medium"
             >
               {inboundCopied ? "Copied!" : "Copy"}
             </button>
@@ -493,11 +493,11 @@ export default function Dashboard() {
         {/* Sources Section */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[15px] font-semibold text-[#111827]">Sources</h2>
+            <h2 className="text-[15px] font-semibold text-gray-900">Sources</h2>
             <Button
               size="sm"
               onClick={() => navigate("/setup?add=1")}
-              className="h-9 px-4 rounded-lg bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-sm font-medium"
+              className="h-9 px-4 rounded-lg bg-oxford hover:bg-oxford-dark text-white text-sm font-medium"
             >
               <Plus size={15} className="mr-1.5 flex-shrink-0" />
               Register content

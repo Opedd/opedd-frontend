@@ -184,16 +184,16 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
       <DialogContent hideCloseButton className="max-w-md p-0 overflow-hidden">
         {planLoading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={24} className="animate-spin text-[#4A26ED]" />
+            <Loader2 size={24} className="animate-spin text-oxford" />
           </div>
         ) : publisherPlan === "free" ? (
           /* Upgrade wall */
           <div className="p-6 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#4A26ED]/10 border border-[#4A26ED]/20 flex items-center justify-center mx-auto">
-              <Handshake size={28} className="text-[#4A26ED]" />
+            <div className="w-14 h-14 rounded-2xl bg-oxford/10 border border-oxford/20 flex items-center justify-center mx-auto">
+              <Handshake size={28} className="text-oxford" />
             </div>
             <div>
-              <p className="font-bold text-[#040042] text-lg">Upgrade to Pro</p>
+              <p className="font-bold text-navy-deep text-lg">Upgrade to Pro</p>
               <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
                 Archive licenses are available on Pro and Enterprise plans. Upgrade now to issue site-wide deals instantly.
               </p>
@@ -229,7 +229,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                 }
               }}
               disabled={isUpgrading}
-              className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg h-11 font-semibold"
+              className="w-full bg-oxford hover:bg-oxford-dark text-white rounded-lg h-11 font-semibold"
             >
               {isUpgrading ? (
                 <><Loader2 size={16} className="mr-2 animate-spin" />Preparing checkout...</>
@@ -248,15 +248,15 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-3">
                 <CheckCircle2 size={28} className="text-emerald-500" />
               </div>
-              <h3 className="font-bold text-[#040042] text-lg">Deal Issued</h3>
+              <h3 className="font-bold text-navy-deep text-lg">Deal Issued</h3>
               <p className="text-sm text-slate-500 mt-1">A confirmation email has been sent to {buyerEmail}.</p>
             </div>
 
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-2">License Key</p>
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
-                <code className="text-sm font-mono text-[#040042] flex-1 break-all">{issuedKey}</code>
-                <button onClick={handleCopyKey} className="text-slate-400 hover:text-[#4A26ED] transition-colors flex-shrink-0">
+                <code className="text-sm font-mono text-navy-deep flex-1 break-all">{issuedKey}</code>
+                <button onClick={handleCopyKey} className="text-slate-400 hover:text-oxford transition-colors flex-shrink-0">
                   {copiedKey ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Copy size={16} />}
                 </button>
               </div>
@@ -266,7 +266,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               <Button
                 onClick={handleDownloadCertificate}
                 variant="outline"
-                className="flex-1 gap-2 border-slate-200 text-[#374151] hover:bg-slate-50 rounded-lg"
+                className="flex-1 gap-2 border-slate-200 text-gray-700 hover:bg-slate-50 rounded-lg"
               >
                 <Download size={15} />
                 Certificate PDF
@@ -274,14 +274,14 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               <Button
                 onClick={handleDownloadInvoice}
                 variant="outline"
-                className="flex-1 gap-2 border-slate-200 text-[#374151] hover:bg-slate-50 rounded-lg"
+                className="flex-1 gap-2 border-slate-200 text-gray-700 hover:bg-slate-50 rounded-lg"
               >
                 <ExternalLink size={15} />
                 Invoice PDF
               </Button>
             </div>
 
-            <Button onClick={handleClose} className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+            <Button onClick={handleClose} className="w-full bg-oxford hover:bg-oxford-dark text-white rounded-lg">
               Done
             </Button>
           </div>
@@ -295,7 +295,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                   <Handshake size={20} className="text-amber-600" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-[#040042] text-base">Issue Enterprise Deal</h2>
+                  <h2 className="font-bold text-navy-deep text-base">Issue Enterprise Deal</h2>
                   <p className="text-sm text-slate-500">Site-wide license covering all content in a date range.</p>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
             <div className="flex-1 overflow-y-auto px-6 space-y-4">
               {/* Buyer Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="buyer-email" className="text-sm font-medium text-[#040042]">
+                <Label htmlFor="buyer-email" className="text-sm font-medium text-navy-deep">
                   Buyer Email <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -322,7 +322,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               {/* Buyer Name + Organization */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="buyer-name" className="text-sm font-medium text-[#040042]">Buyer Name</Label>
+                  <Label htmlFor="buyer-name" className="text-sm font-medium text-navy-deep">Buyer Name</Label>
                   <Input
                     id="buyer-name"
                     placeholder="Jane Smith"
@@ -332,7 +332,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="buyer-org" className="text-sm font-medium text-[#040042]">Organization</Label>
+                  <Label htmlFor="buyer-org" className="text-sm font-medium text-navy-deep">Organization</Label>
                   <Input
                     id="buyer-org"
                     placeholder="Bloomberg LP"
@@ -346,7 +346,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               {/* Coverage dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="valid-from" className="text-sm font-medium text-[#040042]">
+                  <Label htmlFor="valid-from" className="text-sm font-medium text-navy-deep">
                     Coverage From <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -359,7 +359,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="valid-until" className="text-sm font-medium text-[#040042]">
+                  <Label htmlFor="valid-until" className="text-sm font-medium text-navy-deep">
                     Coverage To <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -382,14 +382,14 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
 
               {/* License type toggle */}
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-[#040042]">License Type</Label>
+                <Label className="text-sm font-medium text-navy-deep">License Type</Label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setLicenseType("human")}
                     className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all ${
                       licenseType === "human"
-                        ? "bg-[#D1009A]/10 border border-[#D1009A]/30 text-[#D1009A]"
+                        ? "bg-plum-magenta/10 border border-plum-magenta/30 text-plum-magenta"
                         : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
                     }`}
                   >
@@ -400,7 +400,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                     onClick={() => setLicenseType("ai")}
                     className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all ${
                       licenseType === "ai"
-                        ? "bg-[#4A26ED]/10 border border-[#4A26ED]/30 text-[#4A26ED]"
+                        ? "bg-oxford/10 border border-oxford/30 text-oxford"
                         : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
                     }`}
                   >
@@ -411,7 +411,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
 
               {/* Agreed price */}
               <div className="space-y-1.5">
-                <Label htmlFor="agreed-price" className="text-sm font-medium text-[#040042]">
+                <Label htmlFor="agreed-price" className="text-sm font-medium text-navy-deep">
                   Agreed Price (USD) <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
@@ -433,7 +433,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
 
               {/* Intended use */}
               <div className="space-y-1.5 pb-4">
-                <Label className="text-sm font-medium text-[#040042]">Intended Use</Label>
+                <Label className="text-sm font-medium text-navy-deep">Intended Use</Label>
                 <Select value={intendedUse} onValueChange={setIntendedUse}>
                   <SelectTrigger className="border-slate-200 bg-white rounded-lg">
                     <SelectValue placeholder="Select intended use (optional)" />
@@ -456,14 +456,14 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                 variant="outline"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="flex-1 border-slate-200 text-[#374151] hover:bg-slate-50 rounded-lg"
+                className="flex-1 border-slate-200 text-gray-700 hover:bg-slate-50 rounded-lg"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg"
+                className="flex-1 bg-oxford hover:bg-oxford-dark text-white rounded-lg"
               >
                 {isSubmitting ? (
                   <><Loader2 size={16} className="mr-2 animate-spin" />Issuing...</>

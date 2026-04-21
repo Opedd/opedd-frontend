@@ -35,19 +35,19 @@ function getNotificationIcon(type: string) {
   switch (type) {
     case "license.issued":
     case "license.paid":
-      return <CreditCard className="h-4 w-4 text-[#4A26ED]" />;
+      return <CreditCard className="h-4 w-4 text-oxford" />;
     case "license.verified":
       return <ShieldCheck className="h-4 w-4 text-emerald-600" />;
     case "license.revoked":
-      return <FileText className="h-4 w-4 text-[#DC2626]" />;
+      return <FileText className="h-4 w-4 text-red-600" />;
     case "archive":
       return <Archive className="h-4 w-4 text-amber-600" />;
     case "alert":
       return <AlertTriangle className="h-4 w-4 text-amber-600" />;
     case "system":
-      return <Zap className="h-4 w-4 text-[#6B7280]" />;
+      return <Zap className="h-4 w-4 text-gray-500" />;
     default:
-      return <Info className="h-4 w-4 text-[#6B7280]" />;
+      return <Info className="h-4 w-4 text-gray-500" />;
   }
 }
 
@@ -180,9 +180,9 @@ export default function NotificationsPage() {
         {/* Header */}
         <motion.div className="flex items-center justify-between" variants={itemVariants}>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-[#111827]">Notifications</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
             {unreadCount > 0 && (
-              <Badge className="bg-[#4A26ED] text-white border-0 hover:bg-[#4A26ED] font-medium text-xs px-2 py-0.5">
+              <Badge className="bg-oxford text-white border-0 hover:bg-oxford font-medium text-xs px-2 py-0.5">
                 {unreadCount}
               </Badge>
             )}
@@ -193,7 +193,7 @@ export default function NotificationsPage() {
               size="sm"
               onClick={markAllRead}
               disabled={isMarkingAll}
-              className="border-[#E5E7EB] text-[#6B7280] hover:text-[#111827] text-sm"
+              className="border-gray-200 text-gray-500 hover:text-gray-900 text-sm"
             >
               {isMarkingAll ? (
                 <><Loader2 size={14} className="mr-2 animate-spin" />Marking...</>
@@ -208,13 +208,13 @@ export default function NotificationsPage() {
         {fetchError && !isLoading && (
           <motion.div
             variants={itemVariants}
-            className="bg-white rounded-xl border border-[#DC2626]/30 p-6 flex items-center gap-3"
+            className="bg-white rounded-xl border border-red-600/30 p-6 flex items-center gap-3"
           >
-            <AlertTriangle size={20} className="text-[#DC2626] flex-shrink-0" />
-            <p className="text-sm font-medium text-[#DC2626] flex-1">Failed to load notifications.</p>
+            <AlertTriangle size={20} className="text-red-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-red-600 flex-1">Failed to load notifications.</p>
             <button
               onClick={fetchNotifications}
-              className="text-sm font-semibold text-[#4A26ED] hover:underline"
+              className="text-sm font-semibold text-oxford hover:underline"
             >
               Try again
             </button>
@@ -225,9 +225,9 @@ export default function NotificationsPage() {
         {isLoading && (
           <motion.div
             variants={itemVariants}
-            className="bg-white rounded-xl border border-[#E5E7EB] p-16 flex items-center justify-center"
+            className="bg-white rounded-xl border border-gray-200 p-16 flex items-center justify-center"
           >
-            <Loader2 className="h-6 w-6 animate-spin text-[#4A26ED]" />
+            <Loader2 className="h-6 w-6 animate-spin text-oxford" />
           </motion.div>
         )}
 
@@ -235,16 +235,16 @@ export default function NotificationsPage() {
         {!isLoading && !fetchError && notifications.length === 0 && (
           <motion.div
             variants={itemVariants}
-            className="bg-white rounded-xl border border-[#E5E7EB] p-16 text-center shadow-sm"
+            className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-sm"
           >
-            <Bell size={40} className="mx-auto text-[#D1D5DB] mb-4" />
-            <h3 className="text-base font-semibold text-[#111827] mb-1">No notifications yet</h3>
-            <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-5">
+            <Bell size={40} className="mx-auto text-gray-300 mb-4" />
+            <h3 className="text-base font-semibold text-gray-900 mb-1">No notifications yet</h3>
+            <p className="text-sm text-gray-500 max-w-xs mx-auto mb-5">
               You'll be notified here when buyers license your content, payments are processed, and more.
             </p>
             <a
               href="/licensing"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#4A26ED] hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:underline"
             >
               View licensing page →
             </a>
@@ -265,40 +265,40 @@ export default function NotificationsPage() {
                 const items = groups.get(b)!;
                 return (
                   <motion.div key={b} variants={itemVariants} className="space-y-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-[#9CA3AF] px-1">{b}</p>
-                    <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 px-1">{b}</p>
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                       {items.map((notif, index) => (
                         <div
                           key={notif.id}
                           onClick={() => markRead(notif.id)}
                           className={[
-                            "flex items-start gap-4 px-6 py-4 cursor-pointer transition-colors hover:bg-[#F9FAFB]",
-                            index !== items.length - 1 ? "border-b border-[#F3F4F6]" : "",
-                            !notif.read ? "border-l-2 border-l-[#4A26ED] bg-[#F7F8FF]" : "",
+                            "flex items-start gap-4 px-6 py-4 cursor-pointer transition-colors hover:bg-gray-50",
+                            index !== items.length - 1 ? "border-b border-gray-100" : "",
+                            !notif.read ? "border-l-2 border-l-oxford bg-gray-50" : "",
                           ].join(" ")}
                         >
                           <div
                             className={[
                               "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
-                              !notif.read ? "bg-[#4A26ED]/10" : "bg-[#F3F4F6]",
+                              !notif.read ? "bg-oxford/10" : "bg-gray-100",
                             ].join(" ")}
                           >
                             {getNotificationIcon(notif.type)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <p className={`text-sm font-medium ${!notif.read ? "text-[#111827]" : "text-[#374151]"}`}>
+                              <p className={`text-sm font-medium ${!notif.read ? "text-gray-900" : "text-gray-700"}`}>
                                 {notif.title}
                               </p>
                               {!notif.read && (
-                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#4A26ED] shrink-0" />
+                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-oxford shrink-0" />
                               )}
                             </div>
                             {notif.message && (
-                              <p className="text-xs text-[#6B7280] mt-0.5 leading-relaxed">{notif.message}</p>
+                              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{notif.message}</p>
                             )}
                           </div>
-                          <span className="text-xs text-[#9CA3AF] shrink-0 mt-0.5 whitespace-nowrap">
+                          <span className="text-xs text-gray-400 shrink-0 mt-0.5 whitespace-nowrap">
                             {relativeTime(notif.created_at)}
                           </span>
                         </div>

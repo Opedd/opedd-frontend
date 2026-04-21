@@ -272,21 +272,21 @@ export default function Ledger() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "ai_ingestion": return <div className="w-9 h-9 rounded-lg bg-[#4A26ED]/10 flex items-center justify-center"><Sparkles size={18} className="text-[#4A26ED]" /></div>;
-      case "human_license": return <div className="w-9 h-9 rounded-lg bg-[#D1009A]/10 flex items-center justify-center"><User size={18} className="text-[#D1009A]" /></div>;
+      case "ai_ingestion": return <div className="w-9 h-9 rounded-lg bg-oxford/10 flex items-center justify-center"><Sparkles size={18} className="text-oxford" /></div>;
+      case "human_license": return <div className="w-9 h-9 rounded-lg bg-plum-magenta/10 flex items-center justify-center"><User size={18} className="text-plum-magenta" /></div>;
       case "archive_license": return <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center"><Archive size={18} className="text-amber-600" /></div>;
       case "enterprise_license": return <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center"><Shield size={18} className="text-emerald-600" /></div>;
-      default: return <div className="w-9 h-9 rounded-lg bg-[#F3F4F6] flex items-center justify-center"><ArrowUpRight size={18} className="text-[#6B7280]" /></div>;
+      default: return <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center"><ArrowUpRight size={18} className="text-gray-500" /></div>;
     }
   };
 
   const getBuyerTypeBadge = (type: string) => {
     switch (type) {
-      case "ai_ingestion": return <Badge className="bg-[#4A26ED]/10 text-[#4A26ED] border border-[#4A26ED]/20 hover:bg-[#4A26ED]/10 font-medium"><Sparkles size={12} className="mr-1" />AI</Badge>;
-      case "human_license": return <Badge className="bg-[#D1009A]/10 text-[#D1009A] border border-[#D1009A]/20 hover:bg-[#D1009A]/10 font-medium"><User size={12} className="mr-1" />Human</Badge>;
+      case "ai_ingestion": return <Badge className="bg-oxford/10 text-oxford border border-oxford/20 hover:bg-oxford/10 font-medium"><Sparkles size={12} className="mr-1" />AI</Badge>;
+      case "human_license": return <Badge className="bg-plum-magenta/10 text-plum-magenta border border-plum-magenta/20 hover:bg-plum-magenta/10 font-medium"><User size={12} className="mr-1" />Human</Badge>;
       case "archive_license": return <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium"><Archive size={12} className="mr-1" />Archive</Badge>;
       case "enterprise_license": return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium"><Shield size={12} className="mr-1" />Enterprise</Badge>;
-      default: return <Badge className="bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F3F4F6] font-medium">Payout</Badge>;
+      default: return <Badge className="bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-100 font-medium">Payout</Badge>;
     }
   };
 
@@ -308,10 +308,10 @@ export default function Ledger() {
       <motion.div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6" variants={containerVariants} initial="hidden" animate="visible">
         <motion.div className="flex items-center justify-between" variants={itemVariants}>
           <div>
-            <h1 className="text-2xl font-bold text-[#111827]">Ledger</h1>
-            <p className="text-sm text-[#6B7280] mt-0.5">License agreements and buyer transactions</p>
+            <h1 className="text-2xl font-bold text-gray-900">Ledger</h1>
+            <p className="text-sm text-gray-500 mt-0.5">License agreements and buyer transactions</p>
           </div>
-          <Button onClick={handleExportCSV} disabled={isExporting || transactions.length === 0} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-medium px-4 py-2 rounded-lg">
+          <Button onClick={handleExportCSV} disabled={isExporting || transactions.length === 0} className="bg-oxford hover:bg-oxford-dark text-white font-medium px-4 py-2 rounded-lg">
             {isExporting ? <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</> : <><Download size={16} className="mr-2" />Export CSV</>}
           </Button>
         </motion.div>
@@ -336,65 +336,65 @@ export default function Ledger() {
         })()}
 
         <motion.div className={`grid grid-cols-1 gap-4 ${metrics.enterpriseLicenses > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`} variants={itemVariants}>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <User size={18} className="text-[#D1009A] mb-3" />
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Human Licenses</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1">{metrics.humanLicenses}</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <User size={18} className="text-plum-magenta mb-3" />
+            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Human Licenses</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.humanLicenses}</p>
           </div>
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-            <Sparkles size={18} className="text-[#4A26ED] mb-3" />
-            <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">AI Licenses</p>
-            <p className="text-2xl font-bold text-[#111827] mt-1">{metrics.aiLicenses}</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <Sparkles size={18} className="text-oxford mb-3" />
+            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">AI Licenses</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.aiLicenses}</p>
           </div>
           {metrics.enterpriseLicenses > 0 && (
             <div className="bg-white rounded-xl border border-emerald-200 p-6 shadow-sm">
               <Shield size={18} className="text-emerald-600 mb-3" />
-              <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Enterprise Deals</p>
-              <p className="text-2xl font-bold text-[#111827] mt-1">{metrics.enterpriseLicenses}</p>
+              <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Enterprise Deals</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.enterpriseLicenses}</p>
             </div>
           )}
         </motion.div>
 
         {/* Error state */}
         {fetchError && !isLoading && (
-          <div className="bg-white rounded-xl border border-[#DC2626]/30 p-6 flex items-center gap-3">
-            <AlertTriangle size={20} className="text-[#DC2626] flex-shrink-0" />
-            <p className="text-sm font-medium text-[#DC2626] flex-1">Failed to load transactions.</p>
-            <button onClick={() => { setOffset(0); fetchTransactions(0, false); }} className="text-sm font-semibold text-[#4A26ED] hover:underline">Try again</button>
+          <div className="bg-white rounded-xl border border-red-600/30 p-6 flex items-center gap-3">
+            <AlertTriangle size={20} className="text-red-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-red-600 flex-1">Failed to load transactions.</p>
+            <button onClick={() => { setOffset(0); fetchTransactions(0, false); }} className="text-sm font-semibold text-oxford hover:underline">Try again</button>
           </div>
         )}
 
         {!fetchError && (
           <motion.div variants={itemVariants}>
                 {transactions.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-[#E5E7EB] p-16 shadow-sm text-center">
-                    <FileCheck size={40} className="mx-auto text-[#D1D5DB] mb-4" />
-                    <h3 className="text-base font-semibold text-[#111827] mb-1">No transactions yet</h3>
-                    <p className="text-sm text-[#6B7280] max-w-xs mx-auto mb-5">Once buyers license your articles, all transactions will appear here with full details.</p>
+                  <div className="bg-white rounded-xl border border-gray-200 p-16 shadow-sm text-center">
+                    <FileCheck size={40} className="mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-base font-semibold text-gray-900 mb-1">No transactions yet</h3>
+                    <p className="text-sm text-gray-500 max-w-xs mx-auto mb-5">Once buyers license your articles, all transactions will appear here with full details.</p>
                     <Button
                       onClick={() => navigate("/content")}
-                      className="bg-[#4A26ED] hover:bg-[#3B1FD4] text-white font-medium px-5 py-2 rounded-lg"
+                      className="bg-oxford hover:bg-oxford-dark text-white font-medium px-5 py-2 rounded-lg"
                     >
                       Add your first article
                     </Button>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-[#E5E7EB]">
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-gray-200">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h2 className="font-bold text-[#111827] text-lg">Transaction History</h2>
-                          <p className="text-sm text-[#6B7280]">All IP licensing revenue</p>
+                          <h2 className="font-bold text-gray-900 text-lg">Transaction History</h2>
+                          <p className="text-sm text-gray-500">All IP licensing revenue</p>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F3F4F6] rounded-lg">
-                          <Shield size={14} className="text-[#4A26ED]" />
-                          <span className="text-xs font-medium text-[#6B7280]">Verified by Opedd Protocol</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
+                          <Shield size={14} className="text-oxford" />
+                          <span className="text-xs font-medium text-gray-500">Verified by Opedd Protocol</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
-                        <div className="flex items-center gap-1.5 text-[#9CA3AF]"><Filter size={14} /><span className="text-xs font-medium uppercase tracking-wider">Filters</span></div>
+                        <div className="flex items-center gap-1.5 text-gray-400"><Filter size={14} /><span className="text-xs font-medium uppercase tracking-wider">Filters</span></div>
                         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setOffset(0); }}>
-                          <SelectTrigger className="w-[140px] h-9 text-sm border-[#E5E7EB] rounded-lg"><SelectValue placeholder="Status" /></SelectTrigger>
+                          <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg"><SelectValue placeholder="Status" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
                             <SelectItem value="completed">Completed</SelectItem>
@@ -404,7 +404,7 @@ export default function Ledger() {
                           </SelectContent>
                         </Select>
                         <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setOffset(0); }}>
-                          <SelectTrigger className="w-[140px] h-9 text-sm border-[#E5E7EB] rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
+                          <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Types</SelectItem>
                             <SelectItem value="human">Human</SelectItem>
@@ -426,20 +426,20 @@ export default function Ledger() {
                               setOffset(0);
                             }, 400);
                           }}
-                          className="h-9 text-sm border-[#E5E7EB] rounded-lg w-[220px]"
+                          className="h-9 text-sm border-gray-200 rounded-lg w-[220px]"
                         />
                         <Input
                           type="date"
                           value={dateFrom}
                           onChange={(e) => { setDateFrom(e.target.value); setOffset(0); }}
-                          className="h-9 text-sm border-[#E5E7EB] rounded-lg w-[150px]"
+                          className="h-9 text-sm border-gray-200 rounded-lg w-[150px]"
                           title="From date"
                         />
                         <Input
                           type="date"
                           value={dateTo}
                           onChange={(e) => { setDateTo(e.target.value); setOffset(0); }}
-                          className="h-9 text-sm border-[#E5E7EB] rounded-lg w-[150px]"
+                          className="h-9 text-sm border-gray-200 rounded-lg w-[150px]"
                           title="To date"
                         />
                         {(searchEmail || dateFrom || dateTo) && (
@@ -452,7 +452,7 @@ export default function Ledger() {
                               setDateTo("");
                               setOffset(0);
                             }}
-                            className="h-9 px-3 text-xs text-[#6B7280] border-[#E5E7EB]"
+                            className="h-9 px-3 text-xs text-gray-500 border-gray-200"
                           >
                             <X size={13} className="mr-1" />Clear filters
                           </Button>
@@ -462,30 +462,30 @@ export default function Ledger() {
 
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-[#E5E7EB] bg-[#F9FAFB]">
-                          <TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Article</TableHead>
-                          <TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">License Type</TableHead>
-                          <TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Buyer</TableHead>
-                          <TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Amount</TableHead>
-                          <TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Date</TableHead>
-                          <TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Status</TableHead>
-                          <TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider w-12"></TableHead>
+                        <TableRow className="border-gray-200 bg-gray-50">
+                          <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Article</TableHead>
+                          <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">License Type</TableHead>
+                          <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Buyer</TableHead>
+                          <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Amount</TableHead>
+                          <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Date</TableHead>
+                          <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+                          <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider w-12"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         <AnimatePresence>
                           {transactions.map((tx, index) => (
-                            <motion.tr key={tx.id} variants={rowVariants} initial="hidden" animate="visible" transition={{ delay: index * 0.05 }} className="border-[#F3F4F6] cursor-pointer hover:bg-[#F9FAFB] transition-colors group" onClick={() => handleRowClick(tx)}>
+                            <motion.tr key={tx.id} variants={rowVariants} initial="hidden" animate="visible" transition={{ delay: index * 0.05 }} className="border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors group" onClick={() => handleRowClick(tx)}>
                               <TableCell>
                                 <div className="flex items-center gap-2">
                                   {getTypeIcon(tx.type)}
-                                  <span className="text-[#111827] font-medium text-sm truncate max-w-[200px]">{tx.assetTitle ? decodeText(tx.assetTitle) : "—"}</span>
+                                  <span className="text-gray-900 font-medium text-sm truncate max-w-[200px]">{tx.assetTitle ? decodeText(tx.assetTitle) : "—"}</span>
                                 </div>
                               </TableCell>
                               <TableCell>{getBuyerTypeBadge(tx.type)}</TableCell>
-                              <TableCell><span className="text-[#6B7280] text-sm">{tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}</span></TableCell>
-                              <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-[#6B7280]"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
-                              <TableCell><span className="text-[#6B7280] text-sm">{tx.date}</span></TableCell>
+                              <TableCell><span className="text-gray-500 text-sm">{tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}</span></TableCell>
+                              <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-gray-500"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
+                              <TableCell><span className="text-gray-500 text-sm">{tx.date}</span></TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1.5">
                                   {getStatusBadge(tx.status)}
@@ -508,7 +508,7 @@ export default function Ledger() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onClick={(e) => e.stopPropagation()}
-                                            className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
+                                            className="p-1.5 rounded-md text-gray-400 hover:text-oxford hover:bg-oxford/5 transition-colors"
                                           >
                                             <ScrollText size={14} />
                                           </a>
@@ -522,7 +522,7 @@ export default function Ledger() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onClick={(e) => e.stopPropagation()}
-                                            className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#4A26ED] hover:bg-[#4A26ED]/5 transition-colors"
+                                            className="p-1.5 rounded-md text-gray-400 hover:text-oxford hover:bg-oxford/5 transition-colors"
                                           >
                                             <Receipt size={14} />
                                           </a>
@@ -534,7 +534,7 @@ export default function Ledger() {
                                           <TooltipTrigger asChild>
                                             <button
                                               onClick={(e) => { e.stopPropagation(); setRefundTarget(tx); }}
-                                              className="p-1.5 rounded-md text-[#9CA3AF] hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                                              className="p-1.5 rounded-md text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
                                             >
                                               <RotateCcw size={14} />
                                             </button>
@@ -546,7 +546,7 @@ export default function Ledger() {
                                         <TooltipTrigger asChild>
                                           <button
                                             onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
-                                            className="p-1.5 rounded-md text-[#9CA3AF] hover:text-[#DC2626] hover:bg-red-50 transition-colors"
+                                            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                           >
                                             <Ban size={14} />
                                           </button>
@@ -556,7 +556,7 @@ export default function Ledger() {
                                     </>
                                   )}
                                   </TooltipProvider>
-                                  <Eye size={14} className="text-[#9CA3AF] group-hover:text-[#4A26ED] transition-colors" />
+                                  <Eye size={14} className="text-gray-400 group-hover:text-oxford transition-colors" />
                                 </div>
                               </TableCell>
                             </motion.tr>
@@ -565,7 +565,7 @@ export default function Ledger() {
                       </TableBody>
                     </Table>
                     {hasMore && transactions.length > 0 && (
-                      <div className="flex justify-center p-4 border-t border-[#E5E7EB]">
+                      <div className="flex justify-center p-4 border-t border-gray-200">
                         <Button
                           variant="outline"
                           disabled={isLoading}
@@ -574,7 +574,7 @@ export default function Ledger() {
                             setOffset(newOffset);
                             fetchTransactions(newOffset, true);
                           }}
-                          className="border-[#E5E7EB] text-[#6B7280] hover:text-[#111827]"
+                          className="border-gray-200 text-gray-500 hover:text-gray-900"
                         >
                           {isLoading ? <><Loader2 size={14} className="mr-2 animate-spin" />Loading...</> : "Load more"}
                         </Button>
@@ -593,16 +593,16 @@ export default function Ledger() {
       <Dialog open={!!revokeTarget} onOpenChange={(open) => { if (!open) { setRevokeTarget(null); setRevokeReason(""); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-[#111827]">
-              <AlertTriangle size={20} className="text-[#DC2626]" />
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
+              <AlertTriangle size={20} className="text-red-600" />
               Revoke this license?
             </DialogTitle>
-            <DialogDescription className="text-[#6B7280]">
-              This will permanently revoke license <code className="font-mono text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded">{revokeTarget?.licenseKey}</code>. The buyer will lose access rights. This cannot be undone.
+            <DialogDescription className="text-gray-500">
+              This will permanently revoke license <code className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">{revokeTarget?.licenseKey}</code>. The buyer will lose access rights. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">
-            <label className="text-sm font-medium text-[#374151] mb-1.5 block">Reason (optional)</label>
+            <label className="text-sm font-medium text-gray-700 mb-1.5 block">Reason (optional)</label>
             <Textarea
               placeholder="e.g. Content removed, license dispute, buyer request..."
               value={revokeReason}
@@ -615,7 +615,7 @@ export default function Ledger() {
             <Button variant="outline" onClick={() => { setRevokeTarget(null); setRevokeReason(""); }} disabled={isRevoking}>
               Cancel
             </Button>
-            <Button onClick={handleRevoke} disabled={isRevoking} className="bg-[#DC2626] hover:bg-red-700 text-white">
+            <Button onClick={handleRevoke} disabled={isRevoking} className="bg-red-600 hover:bg-red-700 text-white">
               {isRevoking ? <><Loader2 size={16} className="mr-2 animate-spin" />Revoking...</> : "Yes, Revoke"}
             </Button>
           </DialogFooter>
@@ -625,13 +625,13 @@ export default function Ledger() {
       <Dialog open={!!refundTarget} onOpenChange={(open) => { if (!open) setRefundTarget(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-[#111827]">
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
               <RotateCcw size={20} className="text-amber-600" />
               Issue a refund?
             </DialogTitle>
-            <DialogDescription className="text-[#6B7280]">
-              This will refund <strong className="text-[#111827]">${refundTarget?.amount.toFixed(2)}</strong> to the buyer and revoke license{" "}
-              <code className="font-mono text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded">{refundTarget?.licenseKey}</code>.
+            <DialogDescription className="text-gray-500">
+              This will refund <strong className="text-gray-900">${refundTarget?.amount.toFixed(2)}</strong> to the buyer and revoke license{" "}
+              <code className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">{refundTarget?.licenseKey}</code>.
               The buyer will be notified by email. This cannot be undone.
             </DialogDescription>
           </DialogHeader>

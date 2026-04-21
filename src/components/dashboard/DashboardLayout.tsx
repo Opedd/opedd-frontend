@@ -24,9 +24,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type PlanType = "free" | "pro" | "enterprise";
 const planBadgeStyles: Record<PlanType, { classes: string; label: string }> = {
-  free: { classes: "bg-[#F3F4F6] text-[#6B7280]", label: "Free" },
-  pro: { classes: "bg-[#EEF0FD] text-[#4A26ED]", label: "Pro" },
-  enterprise: { classes: "bg-[#FFFBEB] text-[#D97706]", label: "Enterprise" },
+  free: { classes: "bg-gray-100 text-gray-500", label: "Free" },
+  pro: { classes: "bg-oxford-light text-oxford", label: "Pro" },
+  enterprise: { classes: "bg-amber-50 text-amber-600", label: "Enterprise" },
 };
 
 const navItems = [
@@ -51,9 +51,9 @@ interface Notification {
 const typeConfig: Record<string, { icon: React.ElementType; color: string; dot: string }> = {
   license_sold: { icon: DollarSign, color: "text-emerald-600 bg-emerald-50", dot: "bg-emerald-500" },
   source_verified: { icon: Shield, color: "text-blue-600 bg-blue-50", dot: "bg-blue-500" },
-  sync_complete: { icon: RefreshCw, color: "text-[#6B7280] bg-[#F3F4F6]", dot: "bg-[#9CA3AF]" },
+  sync_complete: { icon: RefreshCw, color: "text-gray-500 bg-gray-100", dot: "bg-gray-400" },
 };
-const defaultConfig = { icon: Bell, color: "text-[#4A26ED] bg-[#EEF0FD]", dot: "bg-[#4A26ED]" };
+const defaultConfig = { icon: Bell, color: "text-oxford bg-oxford-light", dot: "bg-oxford" };
 
 export interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -172,7 +172,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   const SidebarNav = ({ onItemClick }: { onItemClick?: () => void }) => (
     <>
       {/* Logo */}
-      <div className="h-14 flex items-center px-5 border-b border-[#E5E7EB]">
+      <div className="h-14 flex items-center px-5 border-b border-gray-200">
         <Link to="/dashboard">
           <img src={opeddLogo} alt="Opedd" className="h-7" />
         </Link>
@@ -191,8 +191,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               className={cn(
                 "flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium transition-colors",
                 active
-                  ? "bg-[#EEF0FD] text-[#4A26ED] font-semibold"
-                  : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
+                  ? "bg-oxford-light text-oxford font-semibold"
+                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
               )}
             >
               <Icon size={16} strokeWidth={active ? 2 : 1.5} />
@@ -209,7 +209,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
           href="https://docs.opedd.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827] transition-colors"
+          className="flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           <BookOpen size={16} strokeWidth={1.5} />
           Docs
@@ -217,34 +217,34 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
       </div>
 
       {/* User section */}
-      <div className="px-3 py-3 border-t border-[#E5E7EB]">
+      <div className="px-3 py-3 border-t border-gray-200">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 px-2 py-2 w-full rounded-lg hover:bg-[#F3F4F6] transition-colors">
-              <div className="w-8 h-8 rounded-full bg-[#4A26ED] flex items-center justify-center flex-shrink-0">
+            <button className="flex items-center gap-3 px-2 py-2 w-full rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-oxford flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-bold text-white">{getInitial()}</span>
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-medium text-[#111827] truncate">{displayName}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
                   {publisherPlan ? (
                     <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0", planBadgeStyles[publisherPlan].classes)}>
                       {planBadgeStyles[publisherPlan].label}
                     </span>
                   ) : (
-                    <span className="w-8 h-4 bg-[#F3F4F6] rounded-full animate-pulse shrink-0" />
+                    <span className="w-8 h-4 bg-gray-100 rounded-full animate-pulse shrink-0" />
                   )}
                 </div>
-                <p className="text-xs text-[#9CA3AF] truncate">{user?.email}</p>
+                <p className="text-xs text-gray-400 truncate">{user?.email}</p>
               </div>
-              <ChevronDown size={14} className="text-[#9CA3AF] flex-shrink-0" />
+              <ChevronDown size={14} className="text-gray-400 flex-shrink-0" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-48 bg-white border-[#E5E7EB] shadow-lg z-50">
+          <DropdownMenuContent align="end" side="top" className="w-48 bg-white border-gray-200 shadow-lg z-50">
             <DropdownMenuItem asChild className="cursor-pointer text-sm py-2">
               <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-[#E5E7EB]" />
+            <DropdownMenuSeparator className="bg-gray-200" />
             <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); sessionStorage.removeItem("opedd_trial_days"); sessionStorage.removeItem("opedd_trial_dismissed"); logout(); }}>
               <LogOut className="mr-2 h-4 w-4" />Sign Out
             </DropdownMenuItem>
@@ -255,14 +255,14 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   );
 
   return (
-    <div className="flex h-screen bg-[#F7F8FA] overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-3 left-3 z-50 lg:hidden w-10 h-10 bg-white border border-[#E5E7EB] rounded-lg flex items-center justify-center shadow-sm"
+        className="fixed top-3 left-3 z-50 lg:hidden w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-sm"
         aria-label="Open menu"
       >
-        <Menu size={18} className="text-[#111827]" />
+        <Menu size={18} className="text-gray-900" />
       </button>
 
       {/* Mobile overlay */}
@@ -286,13 +286,13 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-y-0 left-0 w-[260px] bg-white border-r border-[#E5E7EB] z-50 lg:hidden flex flex-col"
+            className="fixed inset-y-0 left-0 w-[260px] bg-white border-r border-gray-200 z-50 lg:hidden flex flex-col"
           >
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-[#F3F4F6] flex items-center justify-center"
+              className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center"
             >
-              <X size={16} className="text-[#6B7280]" />
+              <X size={16} className="text-gray-500" />
             </button>
             <SidebarNav onItemClick={() => setMobileOpen(false)} />
           </motion.aside>
@@ -300,20 +300,20 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-[220px] bg-white border-r border-[#E5E7EB] flex-col shrink-0 h-full overflow-y-auto">
+      <aside className="hidden lg:flex w-[220px] bg-white border-r border-gray-200 flex-col shrink-0 h-full overflow-y-auto">
         <SidebarNav />
       </aside>
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="h-14 flex items-center justify-between px-6 border-b border-[#E5E7EB] bg-white sticky top-0 z-20">
+        <header className="h-14 flex items-center justify-between px-6 border-b border-gray-200 bg-white sticky top-0 z-20">
           <div className="flex items-center gap-2 pl-12 lg:pl-0">
-            <h1 className="text-[15px] font-semibold text-[#111827]">{title}</h1>
+            <h1 className="text-[15px] font-semibold text-gray-900">{title}</h1>
             {subtitle && (
               <>
-                <span className="text-[#D1D5DB]">/</span>
-                <span className="text-sm text-[#6B7280]">{subtitle}</span>
+                <span className="text-gray-300">/</span>
+                <span className="text-sm text-gray-500">{subtitle}</span>
               </>
             )}
           </div>
@@ -322,18 +322,18 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             {headerActions}
             <Popover open={bellOpen} onOpenChange={setBellOpen}>
               <PopoverTrigger asChild>
-                <button className="relative p-2 rounded-lg hover:bg-[#F3F4F6] transition-colors">
-                  <Bell size={16} className={cn("text-[#6B7280] transition-opacity", notificationsLoading && "animate-pulse opacity-40")} />
+                <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                  <Bell size={16} className={cn("text-gray-500 transition-opacity", notificationsLoading && "animate-pulse opacity-40")} />
                   {!notificationsLoading && unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444]" />
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0 bg-white border-[#E5E7EB] shadow-xl rounded-xl z-50">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E7EB]">
-                  <h3 className="font-semibold text-sm text-[#111827]">Notifications</h3>
+              <PopoverContent align="end" className="w-80 p-0 bg-white border-gray-200 shadow-xl rounded-xl z-50">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                  <h3 className="font-semibold text-sm text-gray-900">Notifications</h3>
                   {unreadCount > 0 && (
-                    <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="text-xs text-[#4A26ED] h-7 px-2">
+                    <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="text-xs text-oxford h-7 px-2">
                       <CheckCheck size={12} className="mr-1" />Mark all read
                     </Button>
                   )}
@@ -341,8 +341,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="py-10 text-center">
-                      <Bell size={24} className="mx-auto text-[#D1D5DB] mb-2" />
-                      <p className="text-sm text-[#9CA3AF]">No notifications yet</p>
+                      <Bell size={24} className="mx-auto text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-400">No notifications yet</p>
                     </div>
                   ) : (
                     notifications.map((n) => {
@@ -353,8 +353,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                           key={n.id}
                           onClick={() => !n.read && handleMarkOneRead(n.id)}
                           className={cn(
-                            "flex items-start gap-3 px-4 py-3 border-b border-[#F3F4F6] last:border-0 cursor-pointer hover:bg-[#F9FAFB] transition-colors",
-                            !n.read && "bg-[#EEF0FD]/50"
+                            "flex items-start gap-3 px-4 py-3 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 transition-colors",
+                            !n.read && "bg-oxford-light/50"
                           )}
                         >
                           <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0", cfg.color)}>
@@ -362,11 +362,11 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-[#111827] truncate">{n.title}</p>
+                              <p className="text-sm font-medium text-gray-900 truncate">{n.title}</p>
                               {!n.read && <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", cfg.dot)} />}
                             </div>
-                            <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-2">{n.message}</p>
-                            <p className="text-[10px] text-[#9CA3AF] mt-1">
+                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                            <p className="text-[10px] text-gray-400 mt-1">
                               {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                             </p>
                           </div>
@@ -381,15 +381,15 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             {/* Avatar dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-9 h-9 rounded-full bg-[#4A26ED] flex items-center justify-center hover:ring-2 hover:ring-[#4A26ED]/20 transition-all">
+                <button className="w-9 h-9 rounded-full bg-oxford flex items-center justify-center hover:ring-2 hover:ring-oxford/20 transition-all">
                   <span className="text-xs font-bold text-white">{getInitial()}</span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white border-[#E5E7EB] shadow-lg z-50">
+              <DropdownMenuContent align="end" className="w-48 bg-white border-gray-200 shadow-lg z-50">
                 <DropdownMenuItem asChild className="cursor-pointer text-sm py-2">
                   <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-[#E5E7EB]" />
+                <DropdownMenuSeparator className="bg-gray-200" />
                 <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); sessionStorage.removeItem("opedd_trial_days"); sessionStorage.removeItem("opedd_trial_dismissed"); logout(); }}>
                   <LogOut className="mr-2 h-4 w-4" />Sign Out
                 </DropdownMenuItem>
@@ -405,10 +405,10 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             <div className={cn(
               "shrink-0 px-4 py-2.5 flex items-center justify-between gap-4 border-b",
               urgent
-                ? "bg-[#FEF3C7] border-[#FDE68A]"
-                : "bg-[#EEF0FD] border-[#E0E2F0]"
+                ? "bg-amber-100 border-amber-200"
+                : "bg-oxford-light border-oxford-pale"
             )}>
-              <p className={cn("text-xs font-medium flex-1", urgent ? "text-[#92400E]" : "text-[#4A26ED]")}>
+              <p className={cn("text-xs font-medium flex-1", urgent ? "text-amber-800" : "text-oxford")}>
                 <span className="font-bold">{trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left on your free trial</span>
                 {" "}— import unlimited articles and explore all features.{urgent ? " Upgrade now to keep full access." : ""}
               </p>
@@ -417,15 +417,15 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                 className={cn(
                   "shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap border",
                   urgent
-                    ? "border-[#D97706] text-[#92400E] hover:bg-[#FDE68A]"
-                    : "border-[#4A26ED]/20 text-[#4A26ED] hover:bg-[#4A26ED]/5"
+                    ? "border-amber-600 text-amber-800 hover:bg-amber-200"
+                    : "border-oxford/20 text-oxford hover:bg-oxford/5"
                 )}
               >
                 Upgrade now
               </NavLink>
               <button
                 onClick={() => { sessionStorage.setItem("opedd_trial_dismissed", "1"); setTrialDaysRemaining(null); }}
-                className={cn("shrink-0 p-1 rounded-md transition-colors", urgent ? "text-[#92400E]/50 hover:text-[#92400E] hover:bg-[#FDE68A]" : "text-[#4A26ED]/40 hover:text-[#4A26ED] hover:bg-[#4A26ED]/5")}
+                className={cn("shrink-0 p-1 rounded-md transition-colors", urgent ? "text-amber-800/50 hover:text-amber-800 hover:bg-amber-200" : "text-oxford/40 hover:text-oxford hover:bg-oxford/5")}
                 aria-label="Dismiss trial banner"
               >
                 <X size={14} />

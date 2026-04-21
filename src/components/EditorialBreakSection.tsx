@@ -138,10 +138,10 @@ const EditorialBreakSection = () => {
               description: "Human readers and AI agents pay per use. Secure Rights Ledger tracks every transaction.",
             },
           ].map((item, index) => (
-            <div key={index} className="text-center bg-white rounded-xl p-6 border border-[#E5E7EB] shadow-sm">
+            <div key={index} className="text-center bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <span className="text-oxford font-mono text-sm font-bold">{item.step}</span>
-              <h4 className="text-xl font-bold text-[#111827] mt-2 mb-3">{item.title}</h4>
-              <p className="text-[#6B7280] text-sm leading-relaxed">{item.description}</p>
+              <h4 className="text-xl font-bold text-gray-900 mt-2 mb-3">{item.title}</h4>
+              <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>
             </div>
           ))}
         </motion.div>

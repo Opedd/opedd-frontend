@@ -90,6 +90,17 @@ export default {
         aqua: {
           teal: '#00EADF',
         },
+
+        /* Marketing tint family — single oxford-pale token */
+        'oxford-pale': 'hsl(var(--oxford-pale))',
+
+        /* External brand colors (immutable; tokenized for grep cleanliness) */
+        'google-blue': 'hsl(var(--google-blue))',
+        'google-green': 'hsl(var(--google-green))',
+        'google-yellow': 'hsl(var(--google-yellow))',
+        'google-red': 'hsl(var(--google-red))',
+        'wordpress-blue': 'hsl(var(--wordpress-blue))',
+        'substack-orange': 'hsl(var(--substack-orange))',
       },
       borderRadius: {
         lg: "var(--radius)",

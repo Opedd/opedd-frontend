@@ -197,7 +197,7 @@ export default function AcceptInvite() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F9FF] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-alice-gray flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
@@ -206,12 +206,12 @@ export default function AcceptInvite() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-[#040042]/5">
+        <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-navy-deep/5">
           {/* Loading */}
           {status === "loading" && (
             <div className="text-center py-8 space-y-4">
-              <Loader2 size={32} className="text-[#4A26ED] animate-spin mx-auto" />
-              <p className="text-[#040042]/60 text-sm">Loading invitation...</p>
+              <Loader2 size={32} className="text-oxford animate-spin mx-auto" />
+              <p className="text-navy-deep/60 text-sm">Loading invitation...</p>
             </div>
           )}
 
@@ -219,11 +219,11 @@ export default function AcceptInvite() {
           {(status === "form" || status === "submitting") && inviteInfo && (
             <>
               <div className="mb-6 text-center">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center">
-                  <Users size={24} className="text-[#4A26ED]" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-oxford/10 to-violet-600/10 flex items-center justify-center">
+                  <Users size={24} className="text-oxford" />
                 </div>
-                <h2 className="text-2xl font-bold text-[#040042]">Join {inviteInfo.publisher_name}</h2>
-                <p className="text-[#040042]/60 mt-1 text-sm">
+                <h2 className="text-2xl font-bold text-navy-deep">Join {inviteInfo.publisher_name}</h2>
+                <p className="text-navy-deep/60 mt-1 text-sm">
                   {accountExists
                     ? "You already have an account. Please log in to accept this invitation."
                     : "Set up your password to join the team."
@@ -238,7 +238,7 @@ export default function AcceptInvite() {
                       localStorage.setItem("pending_invite_token", token!);
                       navigate("/login");
                     }}
-                    className="w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl font-semibold text-base shadow-lg shadow-[#4A26ED]/25 transition-all active:scale-[0.98]"
+                    className="w-full h-14 bg-gradient-to-r from-oxford to-violet-600 hover:from-oxford-dark hover:to-violet-700 text-white rounded-xl font-semibold text-base shadow-lg shadow-oxford/25 transition-all active:scale-[0.98]"
                   >
                     Log In to Accept
                   </Button>
@@ -247,7 +247,7 @@ export default function AcceptInvite() {
                 <form onSubmit={handleSignupAndJoin} className="space-y-5">
                   {/* Email (read-only) */}
                   <div className="space-y-2">
-                    <Label className="text-[#040042]/80 font-medium">Email Address</Label>
+                    <Label className="text-navy-deep/80 font-medium">Email Address</Label>
                     <Input
                       type="email"
                       value={inviteInfo.email}
@@ -258,7 +258,7 @@ export default function AcceptInvite() {
 
                   {/* Password */}
                   <div className="space-y-2">
-                    <Label className="text-[#040042]/80 font-medium">Create Password</Label>
+                    <Label className="text-navy-deep/80 font-medium">Create Password</Label>
                     <div className="relative">
                       <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                       <Input
@@ -268,7 +268,7 @@ export default function AcceptInvite() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={8}
-                        className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pl-11 pr-11"
+                        className="bg-alice-gray border-navy-deep/10 text-navy-deep placeholder:text-navy-deep/40 h-12 rounded-xl pl-11 pr-11"
                       />
                       <button
                         type="button"
@@ -282,7 +282,7 @@ export default function AcceptInvite() {
 
                   {/* Confirm Password */}
                   <div className="space-y-2">
-                    <Label className="text-[#040042]/80 font-medium">Confirm Password</Label>
+                    <Label className="text-navy-deep/80 font-medium">Confirm Password</Label>
                     <div className="relative">
                       <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                       <Input
@@ -292,7 +292,7 @@ export default function AcceptInvite() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                         minLength={8}
-                        className="bg-[#F2F9FF] border-[#040042]/10 text-[#040042] placeholder:text-[#040042]/40 h-12 rounded-xl pl-11"
+                        className="bg-alice-gray border-navy-deep/10 text-navy-deep placeholder:text-navy-deep/40 h-12 rounded-xl pl-11"
                       />
                     </div>
                   </div>
@@ -300,7 +300,7 @@ export default function AcceptInvite() {
                   <button
                     type="submit"
                     disabled={status === "submitting"}
-                    className="w-full h-14 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#4A26ED]/30 disabled:opacity-50 transition-all active:scale-[0.98]"
+                    className="w-full h-14 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-oxford/30 disabled:opacity-50 transition-all active:scale-[0.98]"
                   >
                     {status === "submitting" ? (
                       <span className="flex items-center justify-center gap-2">
@@ -316,7 +316,7 @@ export default function AcceptInvite() {
 
               {!accountExists && (
                 <div className="mt-6 text-center">
-                  <p className="text-[#040042]/50 text-sm">
+                  <p className="text-navy-deep/50 text-sm">
                     Already have an account?{" "}
                     <button
                       type="button"
@@ -324,7 +324,7 @@ export default function AcceptInvite() {
                         localStorage.setItem("pending_invite_token", token!);
                         navigate("/login");
                       }}
-                      className="text-[#4A26ED] font-medium hover:underline"
+                      className="text-oxford font-medium hover:underline"
                     >
                       Log In
                     </button>
@@ -340,13 +340,13 @@ export default function AcceptInvite() {
               <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 flex items-center justify-center">
                 <CheckCircle2 size={28} className="text-emerald-600" />
               </div>
-              <h2 className="text-xl font-bold text-[#040042]">{message}</h2>
-              <p className="text-[#040042]/60 text-sm">
+              <h2 className="text-xl font-bold text-navy-deep">{message}</h2>
+              <p className="text-navy-deep/60 text-sm">
                 You now have access to the team dashboard. You can view content, transactions, and insights.
               </p>
               <Button
                 onClick={() => navigate("/dashboard")}
-                className="mt-2 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] hover:from-[#3B1ED1] hover:to-[#6D28D9] text-white rounded-xl shadow-lg shadow-[#4A26ED]/20"
+                className="mt-2 bg-gradient-to-r from-oxford to-violet-600 hover:from-oxford-dark hover:to-violet-700 text-white rounded-xl shadow-lg shadow-oxford/20"
               >
                 <Users size={16} className="mr-2" />
                 Go to Dashboard
@@ -360,8 +360,8 @@ export default function AcceptInvite() {
               <div className="w-16 h-16 mx-auto rounded-2xl bg-red-50 flex items-center justify-center">
                 <XCircle size={28} className="text-red-500" />
               </div>
-              <h2 className="text-xl font-bold text-[#040042]">Invitation Error</h2>
-              <p className="text-[#040042]/60 text-sm">{message}</p>
+              <h2 className="text-xl font-bold text-navy-deep">Invitation Error</h2>
+              <p className="text-navy-deep/60 text-sm">{message}</p>
               <Button
                 onClick={() => navigate("/")}
                 variant="outline"

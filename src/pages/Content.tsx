@@ -282,7 +282,7 @@ export default function Content() {
       </span>
     );
     if (isSyncing) return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#4A26ED] bg-[#4A26ED]/10 border border-[#4A26ED]/20 rounded-full px-2.5 py-0.5">
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-oxford bg-oxford/10 border border-oxford/20 rounded-full px-2.5 py-0.5">
         <Loader2 size={10} className="animate-spin" />Syncing
       </span>
     );
@@ -324,13 +324,13 @@ export default function Content() {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-bold text-[#111827]">Catalog</h1>
-            <p className="text-sm text-[#6B7280] mt-0.5">
+            <h1 className="text-xl font-bold text-gray-900">Catalog</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
               {totalAssets} article{totalAssets !== 1 ? "s" : ""} across {sourceCount} publication{sourceCount !== 1 ? "s" : ""}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={handleExportCSV} disabled={assets.length === 0} className="hidden sm:flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+            <button onClick={handleExportCSV} disabled={assets.length === 0} className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500 hover:text-navy-deep hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               <Download size={14} />Export CSV
             </button>
             <DropdownMenu>
@@ -359,7 +359,7 @@ export default function Content() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {activeTab !== "articles" && (
             <div className="flex items-center justify-between mb-2">
-              <button onClick={() => setActiveTab("articles")} className="inline-flex items-center gap-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors">
+              <button onClick={() => setActiveTab("articles")} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
                 ← Back to Articles
               </button>
             </div>
@@ -374,7 +374,7 @@ export default function Content() {
             <Input placeholder="Search articles..." value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="pl-9 h-9 text-sm border-slate-200 rounded-lg" />
           </div>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="h-9 w-[140px] text-sm border-slate-200 rounded-lg text-[#6B7280]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[140px] text-sm border-slate-200 rounded-lg text-gray-500"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="active">Protected</SelectItem>
@@ -385,7 +385,7 @@ export default function Content() {
           </Select>
           {sourceList.length > 0 && (
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="h-9 w-[160px] text-sm border-slate-200 rounded-lg text-[#6B7280]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[160px] text-sm border-slate-200 rounded-lg text-gray-500"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All sources</SelectItem>
                 {sourceList.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
@@ -396,36 +396,36 @@ export default function Content() {
 
         {/* Error state */}
         {fetchError && !isLoading && (
-          <div className="bg-white rounded-xl border border-[#DC2626]/30 p-6 flex items-center gap-3">
-            <AlertTriangle size={20} className="text-[#DC2626] flex-shrink-0" />
+          <div className="bg-white rounded-xl border border-red-600/30 p-6 flex items-center gap-3">
+            <AlertTriangle size={20} className="text-red-600 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-[#DC2626]">Failed to load articles.</p>
+              <p className="text-sm font-medium text-red-600">Failed to load articles.</p>
             </div>
-            <button onClick={fetchAssets} className="text-sm font-semibold text-[#4A26ED] hover:underline">Try again</button>
+            <button onClick={fetchAssets} className="text-sm font-semibold text-oxford hover:underline">Try again</button>
           </div>
         )}
 
         {/* Table */}
         {!fetchError && (
-          <div className="bg-white rounded-xl border border-[#E5E7EB] overflow-hidden shadow-sm overflow-x-auto">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm overflow-x-auto">
             {isLoading ? (
-              <div className="divide-y divide-[#F3F4F6]">
+              <div className="divide-y divide-gray-100">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-4 px-4 py-3">
-                    <div className="w-4 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
-                    <div className="flex-1 h-4 bg-[#F3F4F6] rounded animate-pulse" style={{ maxWidth: `${55 + (i % 3) * 15}%` }} />
-                    <div className="w-24 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
-                    <div className="w-20 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
-                    <div className="w-16 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
-                    <div className="w-16 h-4 bg-[#F3F4F6] rounded animate-pulse shrink-0" />
+                    <div className="w-4 h-4 bg-gray-100 rounded animate-pulse shrink-0" />
+                    <div className="flex-1 h-4 bg-gray-100 rounded animate-pulse" style={{ maxWidth: `${55 + (i % 3) * 15}%` }} />
+                    <div className="w-24 h-4 bg-gray-100 rounded animate-pulse shrink-0" />
+                    <div className="w-20 h-4 bg-gray-100 rounded animate-pulse shrink-0" />
+                    <div className="w-16 h-4 bg-gray-100 rounded animate-pulse shrink-0" />
+                    <div className="w-16 h-4 bg-gray-100 rounded animate-pulse shrink-0" />
                   </div>
                 ))}
               </div>
             ) : assets.length === 0 ? (
               <div className="py-20 text-center">
-                <FileText size={40} className="text-[#D1D5DB] mx-auto mb-3" />
-                <p className="text-sm font-bold text-[#111827]">No articles yet</p>
-                <p className="text-xs text-[#9CA3AF] mt-1">Import your content catalog to start licensing it.</p>
+                <FileText size={40} className="text-gray-300 mx-auto mb-3" />
+                <p className="text-sm font-bold text-gray-900">No articles yet</p>
+                <p className="text-xs text-gray-400 mt-1">Import your content catalog to start licensing it.</p>
                 <div className="flex items-center justify-center gap-3 mt-5">
                   <Button variant="default" size="sm" onClick={() => navigate("/setup")}>
                     <Globe size={14} className="mr-1.5" />Import from Sitemap
@@ -438,7 +438,7 @@ export default function Content() {
             ) : (
               <table className="w-full min-w-[900px]">
                 <thead>
-                  <tr className="border-b border-[#E5E7EB]">
+                  <tr className="border-b border-gray-200">
                     <th className="w-10 py-3 px-3">
                       <Checkbox
                         checked={selectedIds.size === sortedAssets.length && sortedAssets.length > 0}
@@ -446,20 +446,20 @@ export default function Content() {
                         className="h-4 w-4"
                       />
                     </th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap cursor-pointer select-none" onClick={() => toggleSort("title")}>
-                      <span className="flex items-center gap-1">Title <ArrowUpDown size={12} className="text-[#9CA3AF]" /></span>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap cursor-pointer select-none" onClick={() => toggleSort("title")}>
+                      <span className="flex items-center gap-1">Title <ArrowUpDown size={12} className="text-gray-400" /></span>
                     </th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[140px]">Source</th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[120px]">Published</th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px] cursor-pointer select-none" onClick={() => toggleSort("status")}>
-                      <span className="flex items-center gap-1">Status <ArrowUpDown size={12} className="text-[#9CA3AF]" /></span>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[140px]">Source</th>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[120px]">Published</th>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px] cursor-pointer select-none" onClick={() => toggleSort("status")}>
+                      <span className="flex items-center gap-1">Status <ArrowUpDown size={12} className="text-gray-400" /></span>
                     </th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px]">Permission</th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[90px]">AI Price</th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px] cursor-pointer select-none" onClick={() => toggleSort("revenue")}>
-                      <span className="flex items-center gap-1">Revenue <ArrowUpDown size={12} className="text-[#9CA3AF]" /></span>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px]">Permission</th>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[90px]">AI Price</th>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px] cursor-pointer select-none" onClick={() => toggleSort("revenue")}>
+                      <span className="flex items-center gap-1">Revenue <ArrowUpDown size={12} className="text-gray-400" /></span>
                     </th>
-                    <th className="text-xs font-medium text-[#6B7280] uppercase tracking-wide text-right py-3 px-4 whitespace-nowrap w-[80px]"></th>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-right py-3 px-4 whitespace-nowrap w-[80px]"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -473,7 +473,7 @@ export default function Content() {
                     return (
                       <tr
                         key={asset.id}
-                        className={`border-b border-[#F3F4F6] hover:bg-[#F9FAFB] cursor-pointer transition-colors group ${isSelected ? "bg-[#4A26ED]/5" : ""}`}
+                        className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors group ${isSelected ? "bg-oxford/5" : ""}`}
                         onClick={() => openDrawer(asset)}
                       >
                         <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
@@ -481,40 +481,40 @@ export default function Content() {
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
-                            {logo ? <img src={logo} className="w-4 h-4 object-contain flex-shrink-0" alt="" /> : <Globe size={14} className="text-[#9CA3AF] flex-shrink-0" />}
+                            {logo ? <img src={logo} className="w-4 h-4 object-contain flex-shrink-0" alt="" /> : <Globe size={14} className="text-gray-400 flex-shrink-0" />}
                             <div className="flex flex-col min-w-0">
-                              <span className="text-sm font-medium text-[#111827] truncate max-w-[380px]">{asset.title}</span>
-                              {asset.sourceUrl && <span className="text-xs text-[#9CA3AF] truncate max-w-[380px] mt-0.5">{asset.sourceUrl}</span>}
+                              <span className="text-sm font-medium text-gray-900 truncate max-w-[380px]">{asset.title}</span>
+                              {asset.sourceUrl && <span className="text-xs text-gray-400 truncate max-w-[380px] mt-0.5">{asset.sourceUrl}</span>}
                             </div>
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5">
-                            {logo ? <img src={logo} className="w-4 h-4 object-contain flex-shrink-0" alt="" /> : <Globe size={14} className="text-[#9CA3AF] flex-shrink-0" />}
-                            <span className="text-sm text-[#6B7280] truncate">{sourceName}</span>
+                            {logo ? <img src={logo} className="w-4 h-4 object-contain flex-shrink-0" alt="" /> : <Globe size={14} className="text-gray-400 flex-shrink-0" />}
+                            <span className="text-sm text-gray-500 truncate">{sourceName}</span>
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
-                          {pubDate ? <span className="text-sm text-[#6B7280]">{pubDate}</span> : <span className="text-sm text-[#D1D5DB]">—</span>}
+                          {pubDate ? <span className="text-sm text-gray-500">{pubDate}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
                         <td className="py-3.5 px-4">{getStatusBadge(asset)}</td>
                         <td className="py-3.5 px-4">
-                          {asset.human_price ? <span className="text-sm font-medium text-[#111827]">${asset.human_price}</span> : <span className="text-sm text-[#D1D5DB]">—</span>}
+                          {asset.human_price ? <span className="text-sm font-medium text-gray-900">${asset.human_price}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
                         <td className="py-3.5 px-4">
-                          {asset.ai_price ? <span className="text-sm font-medium text-[#111827]">${asset.ai_price}</span> : <span className="text-sm text-[#D1D5DB]">—</span>}
+                          {asset.ai_price ? <span className="text-sm font-medium text-gray-900">${asset.ai_price}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="text-sm text-[#6B7280]">${(asset.total_revenue ?? 0).toFixed(2)}</span>
+                          <span className="text-sm text-gray-500">${(asset.total_revenue ?? 0).toFixed(2)}</span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={(e) => handleCopyLink(e, asset.id)} className="p-1.5 rounded-lg hover:bg-[#F3F4F6] text-[#9CA3AF] hover:text-[#4A26ED] transition-colors" title="Copy license link">
+                            <button onClick={(e) => handleCopyLink(e, asset.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-oxford transition-colors" title="Copy license link">
                               {isCopied ? <Check size={15} className="text-emerald-500" /> : <Link2 size={15} />}
                             </button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg hover:bg-[#F3F4F6] text-[#9CA3AF] hover:text-[#6B7280] transition-colors">
+                                <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-500 transition-colors">
                                   <MoreHorizontal size={15} />
                                 </button>
                               </DropdownMenuTrigger>
@@ -536,21 +536,21 @@ export default function Content() {
 
         {/* Floating Action Bar */}
         {selectedIds.size > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#111827] text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-2xl">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-2xl">
             <span className="text-sm font-medium">{selectedIds.size} article{selectedIds.size !== 1 ? "s" : ""} selected</span>
-            <Button size="sm" onClick={() => { setBulkPricingOpen(true); setDrawerOpen(false); }} disabled={savingRates} className="h-8 bg-[#4A26ED] hover:bg-[#3B1FD4] text-white text-xs rounded-lg disabled:opacity-50">Set Prices</Button>
+            <Button size="sm" onClick={() => { setBulkPricingOpen(true); setDrawerOpen(false); }} disabled={savingRates} className="h-8 bg-oxford hover:bg-oxford-dark text-white text-xs rounded-lg disabled:opacity-50">Set Prices</Button>
             <button onClick={() => setSelectedIds(new Set())} className="text-xs text-white/60 hover:text-white transition-colors">Clear</button>
           </div>
         )}
 
         {/* Pagination */}
         {!fetchError && totalAssets > PAGE_SIZE && (
-          <div className="flex items-center justify-between pt-4 border-t border-[#F3F4F6]">
-            <span className="text-sm text-[#6B7280]">Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalAssets)} of {totalAssets} articles</span>
+          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+            <span className="text-sm text-gray-500">Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalAssets)} of {totalAssets} articles</span>
             <div className="flex items-center gap-3">
-              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className={`text-sm font-medium transition-colors ${page === 1 ? "text-[#D1D5DB] cursor-not-allowed" : "text-[#040042] hover:underline"}`}>← Previous</button>
-              <span className="text-sm text-[#6B7280]">Page {page} of {totalPages}</span>
-              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className={`text-sm font-medium transition-colors ${page === totalPages ? "text-[#D1D5DB] cursor-not-allowed" : "text-[#040042] hover:underline"}`}>Next →</button>
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className={`text-sm font-medium transition-colors ${page === 1 ? "text-gray-300 cursor-not-allowed" : "text-navy-deep hover:underline"}`}>← Previous</button>
+              <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
+              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className={`text-sm font-medium transition-colors ${page === totalPages ? "text-gray-300 cursor-not-allowed" : "text-navy-deep hover:underline"}`}>Next →</button>
             </div>
           </div>
         )}
@@ -558,21 +558,21 @@ export default function Content() {
 
            {/* Re-import Archive Tab */}
            <TabsContent value="substack" className="mt-6">
-             <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-5">
+             <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-2xl space-y-5">
                <div className="flex items-center gap-3">
                  <img src={substackLogo} alt="Substack" className="w-10 h-10 rounded-xl" />
                  <div>
-                   <h2 className="text-base font-bold text-[#111827]">Re-import Archive</h2>
-                   <p className="text-sm text-[#6B7280] mt-0.5">Already imported during setup? Use this to import additional posts or update your archive with a new <code className="text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded font-mono">posts.csv</code> export.</p>
+                   <h2 className="text-base font-bold text-gray-900">Re-import Archive</h2>
+                   <p className="text-sm text-gray-500 mt-0.5">Already imported during setup? Use this to import additional posts or update your archive with a new <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded font-mono">posts.csv</code> export.</p>
                  </div>
                </div>
 
-              <div className="bg-[#F9FAFB] rounded-lg p-4 text-sm text-[#6B7280] space-y-1">
-                <p className="font-medium text-[#111827] text-xs uppercase tracking-wider mb-2">How to get your CSV</p>
+              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-500 space-y-1">
+                <p className="font-medium text-gray-900 text-xs uppercase tracking-wider mb-2">How to get your CSV</p>
                 <ol className="list-decimal list-inside space-y-1 text-sm">
-                  <li>Go to <span className="font-medium text-[#111827]">substack.com → Settings → Export data</span></li>
+                  <li>Go to <span className="font-medium text-gray-900">substack.com → Settings → Export data</span></li>
                   <li>Download the ZIP file</li>
-                  <li>Open the ZIP and find <code className="bg-white px-1 py-0.5 rounded text-xs font-mono border border-[#E5E7EB]">posts.csv</code></li>
+                  <li>Open the ZIP and find <code className="bg-white px-1 py-0.5 rounded text-xs font-mono border border-gray-200">posts.csv</code></li>
                   <li>Upload it below</li>
                 </ol>
               </div>
@@ -580,15 +580,15 @@ export default function Content() {
               {/* File dropzone */}
               <label
                 className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-                  substackFile ? "border-[#4A26ED] bg-[#4A26ED]/5" : "border-[#E5E7EB] hover:border-[#4A26ED]/40 bg-[#F9FAFB]"
+                  substackFile ? "border-oxford bg-oxford/5" : "border-gray-200 hover:border-oxford/40 bg-gray-50"
                 }`}
               >
-                <Upload size={20} className={substackFile ? "text-[#4A26ED]" : "text-[#9CA3AF]"} />
-                <p className="mt-2 text-sm font-medium text-[#6B7280]">
+                <Upload size={20} className={substackFile ? "text-oxford" : "text-gray-400"} />
+                <p className="mt-2 text-sm font-medium text-gray-500">
                   {substackFile ? substackFile.name : "Choose posts.csv"}
                 </p>
                 {substackFile && (
-                  <p className="text-xs text-[#9CA3AF] mt-0.5">{(substackFile.size / 1024).toFixed(0)} KB</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{(substackFile.size / 1024).toFixed(0)} KB</p>
                 )}
                 <input
                   type="file"
@@ -605,13 +605,13 @@ export default function Content() {
                     checked={substackLicensing}
                     onCheckedChange={(v) => setSubstackLicensing(!!v)}
                   />
-                  <span className="text-sm text-[#111827]">Enable licensing on all imported posts</span>
+                  <span className="text-sm text-gray-900">Enable licensing on all imported posts</span>
                 </label>
 
                 {substackLicensing && (
                   <div className="grid grid-cols-2 gap-3 pl-7">
                     <div>
-                      <label className="text-xs text-[#6B7280] mb-1 block">Human price ($)</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Human price ($)</label>
                       <Input
                         type="number"
                         min="0"
@@ -623,7 +623,7 @@ export default function Content() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-[#6B7280] mb-1 block">AI price ($)</label>
+                      <label className="text-xs text-gray-500 mb-1 block">AI price ($)</label>
                       <Input
                         type="number"
                         min="0"
@@ -640,7 +640,7 @@ export default function Content() {
 
               <Button
                 disabled={!substackFile || substackImporting}
-                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
+                className="bg-oxford hover:bg-oxford-dark text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
                 onClick={async () => {
                   if (!substackFile) return;
                   setSubstackImporting(true);
@@ -686,22 +686,22 @@ export default function Content() {
 
 
           <TabsContent value="archive-license" className="mt-6">
-            <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 max-w-2xl space-y-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-2xl space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
                   <Handshake size={20} className="text-amber-600" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#111827]">Archive License</h2>
-                  <p className="text-sm text-[#6B7280] mt-0.5">Issue a site-wide license covering all your published content for a negotiated date range.</p>
+                  <h2 className="text-base font-bold text-gray-900">Archive License</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">Issue a site-wide license covering all your published content for a negotiated date range.</p>
                 </div>
               </div>
-              <p className="text-sm text-[#6B7280]">
+              <p className="text-sm text-gray-500">
                 Archive licenses are enterprise deals — one license key grants access to your entire content archive for a defined coverage period. Use this to close bulk AI training, syndication, or republication agreements.
               </p>
               <Button
                 onClick={() => setArchiveLicenseOpen(true)}
-                className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
+                className="bg-oxford hover:bg-oxford-dark text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
               >
                 <Handshake size={16} />
                 Issue Archive License
@@ -717,54 +717,54 @@ export default function Content() {
         <SheetContent side="right" className="sm:max-w-lg w-full !p-0 flex flex-col bg-white [&>button.absolute]:hidden">
           {selectedAsset && (
             <>
-              <div className="bg-white border-b border-[#E5E7EB] px-6 py-5 flex-shrink-0">
+              <div className="bg-white border-b border-gray-200 px-6 py-5 flex-shrink-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-[#4A26ED] text-xs font-semibold uppercase tracking-wide mb-1">Article</p>
-                    <h2 className="text-[#111827] font-bold text-base leading-snug">{selectedAsset.title}</h2>
+                    <p className="text-oxford text-xs font-semibold uppercase tracking-wide mb-1">Article</p>
+                    <h2 className="text-gray-900 font-bold text-base leading-snug">{selectedAsset.title}</h2>
                   </div>
-                  <button onClick={() => setDrawerOpen(false)} className="w-8 h-8 rounded-lg hover:bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
-                    <X size={16} className="text-[#6B7280]" />
+                  <button onClick={() => setDrawerOpen(false)} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <X size={16} className="text-gray-500" />
                   </button>
                 </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div>
-                  <div className="flex flex-wrap gap-4 text-sm text-[#6B7280]">
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1.5"><Globe size={13} /> {getHostname(selectedAsset.sourceUrl)}</span>
                     <span className="flex items-center gap-1.5"><Calendar size={13} /> {formatDate(selectedAsset.publishedAt || selectedAsset.createdAt) || "Unknown"}</span>
                   </div>
                   {selectedAsset.sourceUrl && (
-                    <a href={selectedAsset.sourceUrl.startsWith("http") ? selectedAsset.sourceUrl : `https://${selectedAsset.sourceUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs text-[#4A26ED] hover:underline flex items-center gap-1 mt-2">
+                    <a href={selectedAsset.sourceUrl.startsWith("http") ? selectedAsset.sourceUrl : `https://${selectedAsset.sourceUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs text-oxford hover:underline flex items-center gap-1 mt-2">
                       {selectedAsset.sourceUrl} <ExternalLink size={11} />
                     </a>
                   )}
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-2">License link</p>
-                  <div className="flex items-center gap-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-4 py-3">
-                    <code className="text-sm text-[#111827] font-mono flex-1 truncate">opedd.com/l/{selectedAsset.id}</code>
-                    <button onClick={handleDrawerCopy} className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-[#4A26ED] hover:text-[#3B1FD4] transition-colors">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">License link</p>
+                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    <code className="text-sm text-gray-900 font-mono flex-1 truncate">opedd.com/l/{selectedAsset.id}</code>
+                    <button onClick={handleDrawerCopy} className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-oxford hover:text-oxford-dark transition-colors">
                       {drawerCopied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
                       {drawerCopied ? "Copied" : "Copy"}
                     </button>
                   </div>
-                  <p className="text-xs text-[#9CA3AF] mt-1.5">Share this link so buyers can license this article directly.</p>
+                  <p className="text-xs text-gray-400 mt-1.5">Share this link so buyers can license this article directly.</p>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Rates</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rates</p>
                     {!editingRates && (
-                      <button onClick={handleEditRates} className="text-xs text-[#4A26ED] font-medium hover:underline">Edit</button>
+                      <button onClick={handleEditRates} className="text-xs text-oxford font-medium hover:underline">Edit</button>
                     )}
                   </div>
                   {editingRates ? (
                     <div className="space-y-3">
                       <div>
-                        <label className="text-xs text-[#6B7280] mb-1 block">Human / Permission ($)</label>
+                        <label className="text-xs text-gray-500 mb-1 block">Human / Permission ($)</label>
                         <Input
                           type="text" inputMode="decimal" placeholder="0.00"
                           value={rateHuman}
@@ -774,7 +774,7 @@ export default function Content() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-[#6B7280] mb-1 block">AI Training ($)</label>
+                        <label className="text-xs text-gray-500 mb-1 block">AI Training ($)</label>
                         <Input
                           type="text" inputMode="decimal" placeholder="0.00"
                           value={rateAi}
@@ -786,49 +786,49 @@ export default function Content() {
                       <div className="flex gap-2">
                         <button
                           onClick={handleSaveRates} disabled={savingRates}
-                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-[#4A26ED] text-white rounded-lg hover:bg-[#3B1ED1] disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-oxford text-white rounded-lg hover:bg-oxford-dark disabled:opacity-50"
                         >
                           {savingRates ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                           Save
                         </button>
-                        <button onClick={() => setEditingRates(false)} className="px-4 py-2 text-xs font-medium text-[#6B7280] hover:text-[#040042]">
+                        <button onClick={() => setEditingRates(false)} className="px-4 py-2 text-xs font-medium text-gray-500 hover:text-navy-deep">
                           Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-0">
-                      <div className="flex items-center justify-between py-2.5 border-b border-[#F3F4F6]">
-                        <div><p className="text-sm font-medium text-[#111827]">Permission</p><p className="text-xs text-[#9CA3AF]">Quote, cite, or share</p></div>
-                        <span className="text-sm font-semibold text-[#111827]">{selectedAsset.human_price ? `$${selectedAsset.human_price}` : <span className="text-[#D1D5DB] font-normal">Not set</span>}</span>
+                      <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
+                        <div><p className="text-sm font-medium text-gray-900">Permission</p><p className="text-xs text-gray-400">Quote, cite, or share</p></div>
+                        <span className="text-sm font-semibold text-gray-900">{selectedAsset.human_price ? `$${selectedAsset.human_price}` : <span className="text-gray-300 font-normal">Not set</span>}</span>
                       </div>
                       <div className="flex items-center justify-between py-2.5">
-                        <div><p className="text-sm font-medium text-[#111827]">AI training</p><p className="text-xs text-[#9CA3AF]">Dataset licensing</p></div>
-                        <span className="text-sm font-semibold text-[#111827]">{selectedAsset.ai_price ? `$${selectedAsset.ai_price}` : <span className="text-[#D1D5DB] font-normal">Disabled</span>}</span>
+                        <div><p className="text-sm font-medium text-gray-900">AI training</p><p className="text-xs text-gray-400">Dataset licensing</p></div>
+                        <span className="text-sm font-semibold text-gray-900">{selectedAsset.ai_price ? `$${selectedAsset.ai_price}` : <span className="text-gray-300 font-normal">Disabled</span>}</span>
                       </div>
                     </div>
                   )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-[#F9FAFB] rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-[#111827]">${(selectedAsset.total_revenue ?? 0).toFixed(2)}</p>
-                    <p className="text-xs text-[#9CA3AF] mt-0.5">Total revenue</p>
+                  <div className="bg-gray-50 rounded-xl p-3 text-center">
+                    <p className="text-lg font-bold text-gray-900">${(selectedAsset.total_revenue ?? 0).toFixed(2)}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Total revenue</p>
                   </div>
-                  <div className="bg-[#F9FAFB] rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-[#111827]">{selectedAsset.human_licenses_sold ?? 0}</p>
-                    <p className="text-xs text-[#9CA3AF] mt-0.5">Permission</p>
+                  <div className="bg-gray-50 rounded-xl p-3 text-center">
+                    <p className="text-lg font-bold text-gray-900">{selectedAsset.human_licenses_sold ?? 0}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Permission</p>
                   </div>
-                  <div className="bg-[#F9FAFB] rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-[#111827]">{selectedAsset.ai_licenses_sold ?? 0}</p>
-                    <p className="text-xs text-[#9CA3AF] mt-0.5">AI licenses</p>
+                  <div className="bg-gray-50 rounded-xl p-3 text-center">
+                    <p className="text-lg font-bold text-gray-900">{selectedAsset.ai_licenses_sold ?? 0}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">AI licenses</p>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-[#E5E7EB] px-6 py-4 bg-white flex gap-3 flex-shrink-0">
-                <button onClick={() => setDrawerOpen(false)} className="flex-1 h-10 text-sm text-[#6b7280] hover:text-[#040042] hover:underline transition-colors font-medium">Close</button>
-                <Button className="flex-1 h-10 text-sm bg-[#040042] hover:bg-[#040042]/90 text-white font-semibold rounded-lg" onClick={() => navigate(`/ledger?article=${selectedAsset.id}`)}>View transactions</Button>
+              <div className="border-t border-gray-200 px-6 py-4 bg-white flex gap-3 flex-shrink-0">
+                <button onClick={() => setDrawerOpen(false)} className="flex-1 h-10 text-sm text-gray-500 hover:text-navy-deep hover:underline transition-colors font-medium">Close</button>
+                <Button className="flex-1 h-10 text-sm bg-navy-deep hover:bg-navy-deep/90 text-white font-semibold rounded-lg" onClick={() => navigate(`/ledger?article=${selectedAsset.id}`)}>View transactions</Button>
               </div>
             </>
           )}

@@ -185,19 +185,19 @@ export function OnboardingChecklist({
   if (allDone) {
     if (sessionDismissed) return null;
     return (
-      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <div className="flex items-center gap-3">
           <PartyPopper size={24} className="text-emerald-500 flex-shrink-0" />
           <div className="flex-1">
-            <h3 className="text-base font-bold text-[#111827]">You're all set!</h3>
-            <p className="text-sm text-[#6B7280] mt-0.5">Your licensing page is live and ready to earn.</p>
+            <h3 className="text-base font-bold text-gray-900">You're all set!</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Your licensing page is live and ready to earn.</p>
           </div>
           <button
             onClick={() => {
               localStorage.setItem("opedd_checklist_dismissed", "true");
               setSessionDismissed(true);
             }}
-            className="text-xs text-[#9CA3AF] hover:text-[#6B7280] font-medium"
+            className="text-xs text-gray-400 hover:text-gray-500 font-medium"
           >
             Dismiss
           </button>
@@ -213,37 +213,37 @@ export function OnboardingChecklist({
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
       <div className="mb-4">
-        <h3 className="text-base font-bold text-[#111827]">Get started with Opedd</h3>
-        <p className="text-sm text-[#6B7280] mt-0.5">{completedCount} of {steps.length} steps complete</p>
+        <h3 className="text-base font-bold text-gray-900">Get started with Opedd</h3>
+        <p className="text-sm text-gray-500 mt-0.5">{completedCount} of {steps.length} steps complete</p>
       </div>
 
-      <Progress value={pct} className="h-2 mb-5 bg-[#F3F4F6] [&>div]:bg-[#4A26ED]" />
+      <Progress value={pct} className="h-2 mb-5 bg-gray-100 [&>div]:bg-oxford" />
 
       <ul className="space-y-1">
         {steps.map((step) => (
           <li key={step.key}>
             <div
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                step.done ? "bg-transparent" : "hover:bg-[#F9FAFB]"
+                step.done ? "bg-transparent" : "hover:bg-gray-50"
               }`}
             >
               {step.done ? (
                 <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0" />
               ) : (
-                <Circle size={20} className="text-[#D1D5DB] flex-shrink-0" />
+                <Circle size={20} className="text-gray-300 flex-shrink-0" />
               )}
 
               <div className="flex-1 min-w-0">
-                <span className={`text-sm block ${step.done ? "text-[#9CA3AF] line-through" : "text-[#111827] font-medium"}`}>
+                <span className={`text-sm block ${step.done ? "text-gray-400 line-through" : "text-gray-900 font-medium"}`}>
                   {step.label}
                 </span>
                 {!step.done && step.key !== "ai-licensing" && (
-                  <span className="text-xs text-[#9CA3AF]">{step.description}</span>
+                  <span className="text-xs text-gray-400">{step.description}</span>
                 )}
                 {!step.done && step.key === "ai-licensing" && expandedStep !== "ai-licensing" && (
-                  <span className="text-xs text-[#9CA3AF]">{step.description}</span>
+                  <span className="text-xs text-gray-400">{step.description}</span>
                 )}
               </div>
 
@@ -253,7 +253,7 @@ export function OnboardingChecklist({
                     <Button
                       size="sm"
                       onClick={() => onRegisterContent ? onRegisterContent() : navigate("/content")}
-                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {step.cta}<ArrowRight size={12} className="ml-1" />
                     </Button>
@@ -263,7 +263,7 @@ export function OnboardingChecklist({
                     <Button
                       size="sm"
                       onClick={() => setExpandedStep("ai-licensing")}
-                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {step.cta}<ArrowRight size={12} className="ml-1" />
                     </Button>
@@ -273,7 +273,7 @@ export function OnboardingChecklist({
                     <Button
                       size="sm"
                       onClick={() => navigate("/licensing")}
-                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {step.cta}<ArrowRight size={12} className="ml-1" />
                     </Button>
@@ -284,7 +284,7 @@ export function OnboardingChecklist({
                       size="sm"
                       onClick={handleConnectStripe}
                       disabled={isStripeConnecting}
-                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {isStripeConnecting ? (
                         <Loader2 size={12} className="animate-spin" />
@@ -299,7 +299,7 @@ export function OnboardingChecklist({
                       size="sm"
                       onClick={handleCopyLink}
                       disabled={!shareComplete}
-                      className="h-9 px-3 text-xs bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg flex-shrink-0"
+                      className="h-9 px-3 text-xs bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {linkCopied ? (
                         <><Check size={12} className="mr-1" />Copied!</>
@@ -314,17 +314,17 @@ export function OnboardingChecklist({
 
             {/* Expanded AI Licensing inline card */}
             {step.key === "ai-licensing" && !step.done && expandedStep === "ai-licensing" && (
-              <div className="ml-11 mr-3 mt-2 mb-3 rounded-xl border border-[#E5E7EB] bg-[#FAFBFC] p-5 space-y-4">
-                <p className="text-sm text-[#6B7280] leading-relaxed">
+              <div className="ml-11 mr-3 mt-2 mb-3 rounded-xl border border-gray-200 bg-gray-50 p-5 space-y-4">
+                <p className="text-sm text-gray-500 leading-relaxed">
                   {step.description}
                 </p>
 
                 <div className="space-y-3">
                   {aiToggleRows.map((row) => (
-                    <div key={row.key} className="flex items-start justify-between gap-3 py-2 border-b border-[#F3F4F6] last:border-0">
+                    <div key={row.key} className="flex items-start justify-between gap-3 py-2 border-b border-gray-100 last:border-0">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#040042]">{row.label}</p>
-                        <p className="text-xs text-[#6B7280] mt-0.5 leading-relaxed">{row.desc}</p>
+                        <p className="text-sm font-semibold text-navy-deep">{row.label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{row.desc}</p>
                       </div>
                       <Switch
                         checked={aiToggles[row.key]}
@@ -336,16 +336,16 @@ export function OnboardingChecklist({
                 </div>
 
                 {/* Info callout */}
-                <div className="flex items-start gap-2.5 rounded-lg bg-[#EEF0FD] p-3">
-                  <Info size={15} className="text-[#4A26ED] shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#4A26ED]/80 leading-relaxed">
+                <div className="flex items-start gap-2.5 rounded-lg bg-oxford-light p-3">
+                  <Info size={15} className="text-oxford shrink-0 mt-0.5" />
+                  <p className="text-xs text-oxford/80 leading-relaxed">
                     We recommend keeping all three enabled. AI licensing is how independent publishers generate passive revenue from their back catalog — with no extra work on your end. Opedd disburses your share automatically every month.
                   </p>
                 </div>
 
-                <p className="text-xs text-[#9CA3AF]">
+                <p className="text-xs text-gray-400">
                   Not sure? You can change these anytime in{" "}
-                  <button onClick={() => navigate("/settings?tab=ai-licensing")} className="underline hover:text-[#6B7280] transition-colors">
+                  <button onClick={() => navigate("/settings?tab=ai-licensing")} className="underline hover:text-gray-500 transition-colors">
                     Settings → AI Licensing
                   </button>.
                 </p>
@@ -353,7 +353,7 @@ export function OnboardingChecklist({
                 <Button
                   onClick={handleSaveAiLicensing}
                   disabled={isSavingAi}
-                  className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold rounded-lg"
+                  className="w-full bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg"
                 >
                   {isSavingAi ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save & Continue"}
                 </Button>

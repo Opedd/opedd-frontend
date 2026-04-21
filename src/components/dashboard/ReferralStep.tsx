@@ -68,16 +68,16 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
       <div className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 w-full max-w-md mx-4 space-y-6">
         <button
           onClick={handleSkip}
-          className="absolute top-4 right-4 w-8 h-8 rounded-lg border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] flex items-center justify-center transition-colors active:scale-95"
+          className="absolute top-4 right-4 w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 flex items-center justify-center transition-colors active:scale-95"
           aria-label="Skip"
         >
-          <X size={16} className="text-[#6B7280]" />
+          <X size={16} className="text-gray-500" />
         </button>
         <div>
-          <div className="w-12 h-12 bg-[#4A26ED]/10 rounded-xl flex items-center justify-center mb-4">
-            <MessageSquare size={24} className="text-[#4A26ED]" />
+          <div className="w-12 h-12 bg-oxford/10 rounded-xl flex items-center justify-center mb-4">
+            <MessageSquare size={24} className="text-oxford" />
           </div>
-          <h3 className="text-xl font-bold text-[#040042]">How did you hear about Opedd?</h3>
+          <h3 className="text-xl font-bold text-navy-deep">How did you hear about Opedd?</h3>
           <p className="text-sm text-slate-500 mt-1">This helps us understand how publishers find us.</p>
         </div>
 
@@ -89,7 +89,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
               onClick={() => setSelected(opt.label)}
               className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left text-sm font-medium transition-all ${
                 selected === opt.label
-                  ? "border-[#4A26ED] bg-[#4A26ED]/5 text-[#040042] ring-2 ring-[#4A26ED]/20"
+                  ? "border-oxford bg-oxford/5 text-navy-deep ring-2 ring-oxford/20"
                   : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
               }`}
             >
@@ -114,7 +114,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
         <button
           onClick={handleSubmit}
           disabled={!selected || submitting}
-          className="w-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
+          className="w-full bg-gradient-to-r from-oxford to-violet-600 text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
         >
           {submitting ? (
             <>

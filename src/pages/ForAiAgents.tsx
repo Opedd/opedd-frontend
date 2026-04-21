@@ -159,7 +159,7 @@ const MCP_TOOLS = [
 export default function ForAiAgents() {
   useDocumentTitle("For AI Agents — Opedd");
   return (
-    <div className="min-h-screen bg-[#FAFBFC] overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <SEO
         title="Opedd for AI Agents — Content Licensing API"
         description="Discover, purchase, and verify content licenses via API. Native MCP server for Claude and Cursor."
@@ -168,15 +168,15 @@ export default function ForAiAgents() {
       <Header />
 
       {/* Hero */}
-      <section className="bg-[#040042] pt-32 pb-20 relative overflow-hidden">
+      <section className="bg-navy-deep pt-32 pb-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 right-1/4 w-full max-w-[600px] h-[600px] bg-[#4A26ED]/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-1/3 w-full max-w-[400px] h-[400px] bg-[#7C3AED]/10 rounded-full blur-[100px]" />
+          <div className="absolute top-1/4 right-1/4 w-full max-w-[600px] h-[600px] bg-oxford/15 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-1/3 w-full max-w-[400px] h-[400px] bg-violet-600/10 rounded-full blur-[100px]" />
         </div>
         <div className="container mx-auto px-4 lg:px-8 relative z-10 max-w-4xl">
           <motion.div initial="hidden" animate="visible" className="text-center space-y-6">
             <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-sm text-white/60 font-medium">
-              <Cpu size={14} className="text-[#A78BFA]" />
+              <Cpu size={14} className="text-violet-400" />
               Agentic Licensing Protocol
             </motion.div>
             <motion.h1 variants={fadeUp} custom={1} className="text-4xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight">
@@ -190,7 +190,7 @@ export default function ForAiAgents() {
                 href="https://docs.opedd.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-white text-[#040042] text-sm font-bold hover:bg-white/90 transition-all"
+                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-white text-navy-deep text-sm font-bold hover:bg-white/90 transition-all"
               >
                 Read the docs
                 <ExternalLink size={15} />
@@ -206,7 +206,7 @@ export default function ForAiAgents() {
 
             {/* On-chain callout */}
             <motion.div variants={fadeUp} custom={4} className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 mt-4">
-              <Link2 size={16} className="text-[#A78BFA] shrink-0" />
+              <Link2 size={16} className="text-violet-400 shrink-0" />
               <span className="text-sm text-white/60">Every license issued is registered on-chain — <span className="text-white/80 font-medium">Tempo · OpeddRegistry.sol</span></span>
             </motion.div>
           </motion.div>
@@ -214,11 +214,11 @@ export default function ForAiAgents() {
       </section>
 
       {/* License Types */}
-      <section className="py-16 border-b border-[#E5E7EB]">
+      <section className="py-16 border-b border-gray-200">
         <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-10">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-[#4A26ED] mb-3">License Types</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-2xl md:text-3xl font-bold text-[#111827] tracking-tight">Four license types, one API</motion.h2>
+            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">License Types</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Four license types, one API</motion.h2>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {LICENSE_TYPES.map((lt, i) => (
@@ -229,12 +229,12 @@ export default function ForAiAgents() {
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm"
+                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
               >
                 <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border mb-3 ${lt.color}`}>
                   {lt.label}
                 </div>
-                <p className="text-sm text-[#6B7280] leading-relaxed">{lt.desc}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{lt.desc}</p>
                 <code className={`text-[11px] font-mono mt-3 block ${lt.color.split(" ")[0]}`}>{lt.key}</code>
               </motion.div>
             ))}
@@ -246,9 +246,9 @@ export default function ForAiAgents() {
       <section id="endpoints" className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-[#4A26ED] mb-3">Core Endpoints</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-[#111827] tracking-tight">Purpose-built for autonomous workflows</motion.h2>
-            <motion.p variants={fadeUp} custom={2} className="text-[#6B7280] mt-3 max-w-xl mx-auto">Every content licensing operation your agent needs — discovery, acquisition, verification, and proof — maps to a clean REST call.</motion.p>
+            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">Core Endpoints</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Purpose-built for autonomous workflows</motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="text-gray-500 mt-3 max-w-xl mx-auto">Every content licensing operation your agent needs — discovery, acquisition, verification, and proof — maps to a clean REST call.</motion.p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -260,17 +260,17 @@ export default function ForAiAgents() {
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="bg-white rounded-2xl border border-[#E5E7EB] p-7 shadow-sm hover:shadow-md hover:border-[#4A26ED]/20 transition-all group"
+                className="bg-white rounded-2xl border border-gray-200 p-7 shadow-sm hover:shadow-md hover:border-oxford/20 transition-all group"
               >
                 <div className="flex items-start justify-between mb-5">
-                  <div className="w-11 h-11 rounded-xl bg-[#4A26ED]/5 flex items-center justify-center group-hover:bg-[#4A26ED]/10 transition-colors">
-                    <ep.icon size={20} className="text-[#4A26ED]" />
+                  <div className="w-11 h-11 rounded-xl bg-oxford/5 flex items-center justify-center group-hover:bg-oxford/10 transition-colors">
+                    <ep.icon size={20} className="text-oxford" />
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#6B7280] uppercase tracking-wide">{ep.badge}</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wide">{ep.badge}</span>
                 </div>
-                <h3 className="text-base font-bold text-[#111827] mb-1">{ep.name}</h3>
-                <code className="text-xs font-mono text-[#4A26ED]/70 bg-[#4A26ED]/5 px-2 py-0.5 rounded">{ep.path}</code>
-                <p className="text-sm text-[#6B7280] mt-3 leading-relaxed">{ep.description}</p>
+                <h3 className="text-base font-bold text-gray-900 mb-1">{ep.name}</h3>
+                <code className="text-xs font-mono text-oxford/70 bg-oxford/5 px-2 py-0.5 rounded">{ep.path}</code>
+                <p className="text-sm text-gray-500 mt-3 leading-relaxed">{ep.description}</p>
               </motion.div>
             ))}
           </div>
@@ -278,17 +278,17 @@ export default function ForAiAgents() {
       </section>
 
       {/* Code Example — Agent Purchase */}
-      <section className="py-20 lg:py-28 bg-[#040042]">
+      <section className="py-20 lg:py-28 bg-navy-deep">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-12">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-[#A78BFA] mb-3">Quick Start</motion.p>
+            <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3">Quick Start</motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-white tracking-tight">Discover, license, and verify in three calls</motion.h2>
             <motion.p variants={fadeUp} custom={2} className="text-white/40 mt-3 max-w-xl mx-auto">Your agent discovers a publisher's catalog, acquires a license with Stripe or USDC, and gets cryptographic on-chain proof — all programmatically.</motion.p>
           </motion.div>
 
           <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <div className="bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-2xl">
-              <div className="flex items-center gap-2 px-5 py-3 border-b border-[#E2E8F0]">
+            <div className="bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
+              <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-200">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400/60" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
@@ -297,7 +297,7 @@ export default function ForAiAgents() {
                 <span className="text-slate-400 text-xs font-mono ml-3">agent.ts</span>
               </div>
               <pre className="p-4 sm:p-6 overflow-x-auto text-xs sm:text-[13px] leading-relaxed">
-                <code className="text-[#334155] font-mono whitespace-pre block">{AGENT_CODE}</code>
+                <code className="text-slate-700 font-mono whitespace-pre block">{AGENT_CODE}</code>
               </pre>
             </div>
           </motion.div>
@@ -305,19 +305,19 @@ export default function ForAiAgents() {
       </section>
 
       {/* Publisher API */}
-      <section className="py-20 lg:py-28 bg-[#F9FAFB] border-y border-[#E5E7EB]">
+      <section className="py-20 lg:py-28 bg-gray-50 border-y border-gray-200">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-5">
-              <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-full px-3.5 py-1 text-xs font-semibold text-[#4A26ED] uppercase tracking-wider">
+              <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-oxford/5 border border-oxford/15 rounded-full px-3.5 py-1 text-xs font-semibold text-oxford uppercase tracking-wider">
                 <Layers size={13} />
                 Publisher API
               </motion.div>
-              <motion.h2 variants={fadeUp} custom={1} className="text-3xl font-bold text-[#111827] tracking-tight">
+              <motion.h2 variants={fadeUp} custom={1} className="text-3xl font-bold text-gray-900 tracking-tight">
                 Server-to-server integration
               </motion.h2>
-              <motion.p variants={fadeUp} custom={2} className="text-[#6B7280] leading-relaxed">
-                Authenticate with your <code className="text-xs bg-[#F3F4F6] px-1.5 py-0.5 rounded font-mono border border-[#E5E7EB]">X-API-Key</code> header to access your full catalog, run batch purchases, verify keys at scale, and query usage — all server-to-server. Your API key is in Settings → API Keys.
+              <motion.p variants={fadeUp} custom={2} className="text-gray-500 leading-relaxed">
+                Authenticate with your <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded font-mono border border-gray-200">X-API-Key</code> header to access your full catalog, run batch purchases, verify keys at scale, and query usage — all server-to-server. Your API key is in Settings → API Keys.
               </motion.p>
               <motion.div variants={fadeUp} custom={3} className="space-y-2">
                 {[
@@ -328,16 +328,16 @@ export default function ForAiAgents() {
                   { action: "usage", desc: "Query license usage and analytics" },
                 ].map((item) => (
                   <div key={item.action} className="flex items-center gap-3">
-                    <code className="text-xs font-mono text-[#4A26ED] bg-[#4A26ED]/5 px-2 py-0.5 rounded border border-[#4A26ED]/10 shrink-0">{item.action}</code>
-                    <span className="text-sm text-[#6B7280]">{item.desc}</span>
+                    <code className="text-xs font-mono text-oxford bg-oxford/5 px-2 py-0.5 rounded border border-oxford/10 shrink-0">{item.action}</code>
+                    <span className="text-sm text-gray-500">{item.desc}</span>
                   </div>
                 ))}
               </motion.div>
             </motion.div>
 
             <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <div className="bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-lg">
-                <div className="flex items-center gap-2 px-5 py-3 border-b border-[#E2E8F0]">
+              <div className="bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden shadow-lg">
+                <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-200">
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-red-400/60" />
                     <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
@@ -346,7 +346,7 @@ export default function ForAiAgents() {
                   <span className="text-slate-400 text-xs font-mono ml-3">publisher-api.ts</span>
                 </div>
                 <pre className="p-4 sm:p-6 overflow-x-auto text-xs sm:text-[13px] leading-relaxed">
-                  <code className="text-[#334155] font-mono whitespace-pre block">{PUBLISHER_API_CODE}</code>
+                  <code className="text-slate-700 font-mono whitespace-pre block">{PUBLISHER_API_CODE}</code>
                 </pre>
               </div>
             </motion.div>
@@ -359,35 +359,35 @@ export default function ForAiAgents() {
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-5">
-              <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-full px-3.5 py-1 text-xs font-semibold text-[#4A26ED] uppercase tracking-wider">
+              <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 bg-oxford/5 border border-oxford/15 rounded-full px-3.5 py-1 text-xs font-semibold text-oxford uppercase tracking-wider">
                 <Terminal size={13} />
                 MCP Server
               </motion.div>
-              <motion.h2 variants={fadeUp} custom={1} className="text-3xl font-bold text-[#111827] tracking-tight">
+              <motion.h2 variants={fadeUp} custom={1} className="text-3xl font-bold text-gray-900 tracking-tight">
                 Native tool for Claude, Cursor & any MCP client
               </motion.h2>
-              <motion.p variants={fadeUp} custom={2} className="text-[#6B7280] leading-relaxed">
+              <motion.p variants={fadeUp} custom={2} className="text-gray-500 leading-relaxed">
                 Install the Opedd MCP server and your AI assistant gains direct access to content licensing — discovering articles, purchasing licenses, verifying proofs, and browsing the on-chain registry without leaving the conversation.
               </motion.p>
               <motion.div variants={fadeUp} custom={3} className="flex items-center gap-2">
-                <div className="bg-[#F3F4F6] rounded-lg px-4 py-2.5 font-mono text-sm text-[#111827] border border-[#E5E7EB]">
+                <div className="bg-gray-100 rounded-lg px-4 py-2.5 font-mono text-sm text-gray-900 border border-gray-200">
                   npx opedd-mcp
                 </div>
               </motion.div>
               <motion.div variants={fadeUp} custom={4} className="space-y-2 pt-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#9CA3AF] mb-3">5 tools included</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">5 tools included</p>
                 {MCP_TOOLS.map((tool) => (
                   <div key={tool.name} className="flex items-start gap-3">
-                    <code className="text-[11px] font-mono text-[#4A26ED] bg-[#4A26ED]/5 px-2 py-0.5 rounded border border-[#4A26ED]/10 shrink-0 mt-0.5">{tool.name}</code>
-                    <span className="text-sm text-[#6B7280]">{tool.desc}</span>
+                    <code className="text-[11px] font-mono text-oxford bg-oxford/5 px-2 py-0.5 rounded border border-oxford/10 shrink-0 mt-0.5">{tool.name}</code>
+                    <span className="text-sm text-gray-500">{tool.desc}</span>
                   </div>
                 ))}
               </motion.div>
             </motion.div>
 
             <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <div className="bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-lg">
-                <div className="flex items-center gap-2 px-5 py-3 border-b border-[#E2E8F0]">
+              <div className="bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden shadow-lg">
+                <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-200">
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-red-400/60" />
                     <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
@@ -396,7 +396,7 @@ export default function ForAiAgents() {
                   <span className="text-slate-400 text-xs font-mono ml-3">claude_desktop_config.json</span>
                 </div>
                 <pre className="p-4 sm:p-6 overflow-x-auto text-xs sm:text-[13px] leading-relaxed">
-                  <code className="text-[#334155] font-mono whitespace-pre block">{MCP_CONFIG}</code>
+                  <code className="text-slate-700 font-mono whitespace-pre block">{MCP_CONFIG}</code>
                 </pre>
               </div>
             </motion.div>
@@ -405,11 +405,11 @@ export default function ForAiAgents() {
       </section>
 
       {/* On-chain Registry */}
-      <section className="py-16 bg-gradient-to-r from-[#040042] to-[#1a0066]">
+      <section className="py-16 bg-gradient-to-r from-navy-deep to-navy-deep">
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1 space-y-3">
-              <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3.5 py-1 text-xs font-semibold text-[#A78BFA] uppercase tracking-wider">
+              <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3.5 py-1 text-xs font-semibold text-violet-400 uppercase tracking-wider">
                 <Link2 size={13} />
                 On-Chain Registry
               </div>
@@ -418,7 +418,7 @@ export default function ForAiAgents() {
                 Every license Opedd issues — human, AI, archive — is registered on the <span className="text-white/80">OpeddRegistry smart contract</span> deployed on Tempo. Verify any license key on-chain, independently of Opedd's infrastructure.
               </p>
               <div className="flex items-center gap-3 pt-1">
-                <code className="text-xs font-mono text-[#A78BFA] bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg break-all">
+                <code className="text-xs font-mono text-violet-400 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg break-all">
                   0x7c3830c22cb7dd0742f0da38b9f1403aee1f50ad
                 </code>
               </div>
@@ -441,24 +441,24 @@ export default function ForAiAgents() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 lg:py-28 bg-[#F9FAFB] border-t border-[#E5E7EB]">
+      <section className="py-20 lg:py-28 bg-gray-50 border-t border-gray-200">
         <div className="container mx-auto px-4 lg:px-8 max-w-2xl text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="space-y-6">
-            <motion.h2 variants={fadeUp} custom={0} className="text-3xl font-bold text-[#111827] tracking-tight">Start licensing content today</motion.h2>
-            <motion.p variants={fadeUp} custom={1} className="text-[#6B7280]">Read the full API reference, explore all endpoints, and integrate Opedd into your AI pipeline in minutes.</motion.p>
+            <motion.h2 variants={fadeUp} custom={0} className="text-3xl font-bold text-gray-900 tracking-tight">Start licensing content today</motion.h2>
+            <motion.p variants={fadeUp} custom={1} className="text-gray-500">Read the full API reference, explore all endpoints, and integrate Opedd into your AI pipeline in minutes.</motion.p>
             <motion.div variants={fadeUp} custom={2} className="flex items-center justify-center gap-4 pt-2 flex-wrap">
               <a
                 href="https://docs.opedd.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-[#040042] text-white text-sm font-bold hover:bg-[#040042]/90 transition-all"
+                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-navy-deep text-white text-sm font-bold hover:bg-navy-deep/90 transition-all"
               >
                 Full API Documentation
                 <ExternalLink size={15} />
               </a>
               <Link
                 to="/signup"
-                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-[#E5E7EB] text-[#111827] text-sm font-semibold hover:bg-white transition-all"
+                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-gray-200 text-gray-900 text-sm font-semibold hover:bg-white transition-all"
               >
                 Create publisher account
                 <ArrowRight size={15} />

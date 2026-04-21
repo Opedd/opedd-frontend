@@ -76,52 +76,52 @@ export default function Dmca() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <SEO title="DMCA / Copyright Claim" description="Submit a copyright or trademark takedown notice to Opedd." path="/dmca" />
 
-      <div className="px-6 py-5 bg-white border-b border-[#E5E7EB]">
+      <div className="px-6 py-5 bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link to="/"><img src={opeddLogoColor} alt="Opedd" className="h-7" /></Link>
-          <Link to="/" className="text-sm text-[#6B7280] hover:text-[#111827]">Home →</Link>
+          <Link to="/" className="text-sm text-gray-500 hover:text-gray-900">Home →</Link>
         </div>
       </div>
 
       <div className="flex-1 px-4 py-12">
         <div className="max-w-2xl mx-auto">
           {submitted ? (
-            <div className="bg-white border border-[#E5E7EB] rounded-xl p-8 text-center space-y-4">
-              <div className="w-14 h-14 mx-auto rounded-full bg-[#ECFDF5] flex items-center justify-center">
-                <CheckCircle2 className="h-7 w-7 text-[#059669]" />
+            <div className="bg-white border border-gray-200 rounded-xl p-8 text-center space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 flex items-center justify-center">
+                <CheckCircle2 className="h-7 w-7 text-emerald-600" />
               </div>
-              <h1 className="text-xl font-bold text-[#111827]">Claim received</h1>
-              <p className="text-sm text-[#6B7280]">
+              <h1 className="text-xl font-bold text-gray-900">Claim received</h1>
+              <p className="text-sm text-gray-500">
                 Our team will review your submission within 2 business days. A confirmation email has been sent to{" "}
-                <span className="font-medium text-[#111827]">{claimantEmail}</span>.
+                <span className="font-medium text-gray-900">{claimantEmail}</span>.
               </p>
-              <p className="text-xs text-[#9CA3AF]">
-                Reference ID: <code className="bg-[#F3F4F6] px-2 py-1 rounded">{submitted}</code>
+              <p className="text-xs text-gray-400">
+                Reference ID: <code className="bg-gray-100 px-2 py-1 rounded">{submitted}</code>
               </p>
             </div>
           ) : (
             <>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-11 h-11 rounded-xl bg-[#FEF2F2] flex items-center justify-center shrink-0">
-                  <ShieldAlert className="h-5 w-5 text-[#DC2626]" />
+                <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-[#111827]">Copyright / DMCA Claim</h1>
-                  <p className="text-sm text-[#6B7280]">Report content you believe infringes your rights.</p>
+                  <h1 className="text-xl font-bold text-gray-900">Copyright / DMCA Claim</h1>
+                  <p className="text-sm text-gray-500">Report content you believe infringes your rights.</p>
                 </div>
               </div>
 
-              <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-lg p-4 mb-6 text-sm text-[#92400E]">
+              <div className="bg-amber-100 border border-amber-200 rounded-lg p-4 mb-6 text-sm text-amber-800">
                 <p className="font-medium mb-1">Before you file</p>
                 <p>
                   Knowingly submitting a false claim carries legal consequences under DMCA §512(f). Only submit if you hold the rights (or are authorized to act on behalf of the rightsholder).
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="bg-white border border-[#E5E7EB] rounded-xl p-6 space-y-5">
+              <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name">Your full name *</Label>
@@ -171,7 +171,7 @@ export default function Dmca() {
                 <div>
                   <Label htmlFor="url">URL of the infringing content *</Label>
                   <Input id="url" type="url" value={articleUrl} onChange={(e) => setArticleUrl(e.target.value)} required placeholder="https://opedd.com/..." />
-                  <p className="text-xs text-[#9CA3AF] mt-1">Paste the exact Opedd page or article URL.</p>
+                  <p className="text-xs text-gray-400 mt-1">Paste the exact Opedd page or article URL.</p>
                 </div>
 
                 <div>
@@ -184,7 +184,7 @@ export default function Dmca() {
                     rows={5}
                     placeholder="Describe the original work, where it was first published, and how the content on Opedd infringes your rights."
                   />
-                  <p className="text-xs text-[#9CA3AF] mt-1">{description.length}/5000 characters (minimum 30)</p>
+                  <p className="text-xs text-gray-400 mt-1">{description.length}/5000 characters (minimum 30)</p>
                 </div>
 
                 <div>
@@ -206,33 +206,33 @@ export default function Dmca() {
                       </div>
                     ))}
                     {evidenceUrls.length < 10 && (
-                      <Button type="button" variant="ghost" size="sm" onClick={addEvidenceUrl} className="text-[#4A26ED]">
+                      <Button type="button" variant="ghost" size="sm" onClick={addEvidenceUrl} className="text-oxford">
                         <Plus size={14} className="mr-1" /> Add another link
                       </Button>
                     )}
                   </div>
                 </div>
 
-                <div className="border-t border-[#E5E7EB] pt-5">
+                <div className="border-t border-gray-200 pt-5">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <Checkbox
                       checked={swornStatement}
                       onCheckedChange={(v) => setSwornStatement(!!v)}
                       className="mt-1"
                     />
-                    <span className="text-sm text-[#374151] leading-relaxed">
+                    <span className="text-sm text-gray-700 leading-relaxed">
                       <strong>Sworn statement:</strong> I have a good faith belief that the use of the material described above is not authorized by the rightsholder, its agent, or the law. The information in this notification is accurate, and under penalty of perjury I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
                     </span>
                   </label>
                 </div>
 
                 {error && (
-                  <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-lg p-3 text-sm text-[#DC2626]">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">
                     {error}
                   </div>
                 )}
 
-                <Button type="submit" disabled={!canSubmit} className="w-full h-11 bg-[#DC2626] hover:bg-[#B91C1C] text-white">
+                <Button type="submit" disabled={!canSubmit} className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
                   {submitting ? (
                     <><Loader2 size={16} className="mr-2 animate-spin" /> Submitting...</>
                   ) : (
@@ -240,8 +240,8 @@ export default function Dmca() {
                   )}
                 </Button>
 
-                <p className="text-xs text-[#9CA3AF] text-center">
-                  For questions, email <a href="mailto:legal@opedd.com" className="text-[#4A26ED] hover:underline">legal@opedd.com</a>
+                <p className="text-xs text-gray-400 text-center">
+                  For questions, email <a href="mailto:legal@opedd.com" className="text-oxford hover:underline">legal@opedd.com</a>
                 </p>
               </form>
             </>

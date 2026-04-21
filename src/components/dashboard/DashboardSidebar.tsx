@@ -22,8 +22,8 @@ export function DashboardSidebar() {
     <>
       <MobileSidebar />
       
-      <aside className="hidden lg:flex w-[220px] bg-white border-r border-[#E5E7EB] flex-col shrink-0 h-screen sticky top-0 overflow-y-auto">
-        <div className="h-14 flex items-center px-5 border-b border-[#E5E7EB]">
+      <aside className="hidden lg:flex w-[220px] bg-white border-r border-gray-200 flex-col shrink-0 h-screen sticky top-0 overflow-y-auto">
+        <div className="h-14 flex items-center px-5 border-b border-gray-200">
           <img src={opeddLogo} alt="Opedd" className="h-7" />
         </div>
 
@@ -37,8 +37,8 @@ export function DashboardSidebar() {
                 to={item.path}
                 className={`flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-[#EEF0FD] text-[#4A26ED] font-semibold"
-                    : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]"
+                    ? "bg-oxford-light text-oxford font-semibold"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 }`}
               >
                 <Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
@@ -49,12 +49,12 @@ export function DashboardSidebar() {
           {/* Admin link removed — merged into Settings */}
         </nav>
 
-        <div className="p-3 border-t border-[#E5E7EB] space-y-1">
+        <div className="p-3 border-t border-gray-200 space-y-1">
           <a
             href="https://docs.opedd.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6] text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 text-sm font-medium transition-colors"
           >
             <BookOpen size={16} strokeWidth={1.5} />
             Documentation
@@ -62,12 +62,12 @@ export function DashboardSidebar() {
           </a>
           <a
             href="mailto:support@opedd.com"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6] text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 text-sm font-medium transition-colors"
           >
             <Mail size={16} strokeWidth={1.5} />
             Help & Support
           </a>
-          <p className="text-[#9CA3AF] text-xs text-center pt-2">© 2026 Opedd</p>
+          <p className="text-gray-400 text-xs text-center pt-2">© 2026 Opedd</p>
         </div>
       </aside>
     </>

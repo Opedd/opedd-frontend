@@ -17,22 +17,22 @@ const RevenueFlow = () => (
   <div className="mt-10">
     <h2 className="text-lg font-semibold text-foreground mb-4">How you get paid</h2>
     <div className="flex flex-col sm:flex-row items-center gap-3">
-      <div className="flex-1 w-full bg-white border border-[#E5E7EB] rounded-xl p-4 text-center">
+      <div className="flex-1 w-full bg-white border border-gray-200 rounded-xl p-4 text-center">
         <p className="text-sm font-medium text-foreground">Publisher sets price</p>
       </div>
-      <ArrowRight className="w-5 h-5 text-[#4A26ED] flex-shrink-0 rotate-90 sm:rotate-0" />
-      <div className="flex-1 w-full bg-white border border-[#E5E7EB] rounded-xl p-4 text-center">
+      <ArrowRight className="w-5 h-5 text-oxford flex-shrink-0 rotate-90 sm:rotate-0" />
+      <div className="flex-1 w-full bg-white border border-gray-200 rounded-xl p-4 text-center">
         <p className="text-sm font-medium text-foreground">AI lab purchases license</p>
       </div>
-      <ArrowRight className="w-5 h-5 text-[#4A26ED] flex-shrink-0 rotate-90 sm:rotate-0" />
-      <div className="flex-1 w-full bg-white border border-[#E5E7EB] rounded-xl p-4 text-center">
+      <ArrowRight className="w-5 h-5 text-oxford flex-shrink-0 rotate-90 sm:rotate-0" />
+      <div className="flex-1 w-full bg-white border border-gray-200 rounded-xl p-4 text-center">
         <p className="text-sm font-medium text-foreground">Revenue in your Stripe account</p>
       </div>
     </div>
     <div className="mt-6 text-center">
       <Link
         to="/signup"
-        className="inline-flex items-center gap-2 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+        className="inline-flex items-center gap-2 bg-oxford hover:bg-oxford-dark text-white px-6 py-3 rounded-lg font-medium transition-colors"
       >
         Ready to get started? Sign up free →
       </Link>
@@ -60,19 +60,19 @@ const GuideLayout = ({ title, documentTitle, intro, prerequisites, afterSetup, c
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">
               {title}
             </h1>
-            <span className="bg-[#EEF2FF] text-[#4A26ED] text-xs font-medium px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+            <span className="bg-indigo-50 text-oxford text-xs font-medium px-2.5 py-1 rounded-full inline-flex items-center gap-1">
               <Clock className="w-3 h-3" />
               Setup time: ~2 minutes
             </span>
           </div>
 
           {/* A. Why license intro */}
-          <p className="text-[#6B7280] text-[15px] leading-relaxed mb-8">{intro}</p>
+          <p className="text-gray-500 text-[15px] leading-relaxed mb-8">{intro}</p>
 
           {/* B. What you'll need */}
-          <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-5 mb-8">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
             <p className="text-sm font-medium text-foreground mb-1">What you'll need</p>
-            <p className="text-sm text-[#374151] leading-relaxed">{prerequisites}</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{prerequisites}</p>
           </div>
 
           {/* Steps */}
@@ -81,9 +81,9 @@ const GuideLayout = ({ title, documentTitle, intro, prerequisites, afterSetup, c
           </div>
 
           {/* C. What happens after setup */}
-          <div className="mt-8 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl p-5">
+          <div className="mt-8 bg-green-50 border border-green-200 rounded-xl p-5">
             <p className="text-sm font-medium text-foreground mb-1">What happens after setup</p>
-            <p className="text-sm text-[#374151] leading-relaxed">{afterSetup}</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{afterSetup}</p>
           </div>
 
           {/* E. Revenue flow */}
@@ -96,7 +96,7 @@ const GuideLayout = ({ title, documentTitle, intro, prerequisites, afterSetup, c
               Need help?{" "}
               <a
                 href="mailto:support@opedd.com"
-                className="text-[#4A26ED] hover:underline"
+                className="text-oxford hover:underline"
               >
                 support@opedd.com
               </a>

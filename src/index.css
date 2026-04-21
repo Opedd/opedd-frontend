@@ -34,6 +34,17 @@ html {
     --error: 0 84% 60%;
     --info: 217 91% 60%;
 
+    /* === NEW: oxford pale (single token covering close-tint family) === */
+    --oxford-pale: 232 53% 89%;        /* ~#D5D9F2; covers #C7B8F6 / #D5D9F2 / #E0E2F0 */
+
+    /* === EXTERNAL BRANDS (immutable; tokenized for grep cleanliness) === */
+    --google-blue: 217 89% 61%;        /* #4285F4 */
+    --google-green: 137 53% 43%;       /* #34A853 */
+    --google-yellow: 45 97% 51%;       /* #FBBC05 */
+    --google-red: 5 78% 57%;           /* #EA4335 */
+    --wordpress-blue: 202 65% 37%;     /* #21759B */
+    --substack-orange: 17 100% 54%;    /* #FF6719 */
+
     /* === SHADCN TOKENS === */
     --background: 220 14% 97%;
     --foreground: 220 13% 10%;

@@ -27,7 +27,7 @@ const BlogPost = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-gray-50">
       <SEO
         title={`${post.title} | Opedd Blog`}
         description={post.preview}
@@ -75,20 +75,20 @@ const BlogPost = () => {
           </span>
 
           {/* Title */}
-          <h1 className="text-3xl md:text-4xl font-bold text-[#111827] leading-tight mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-6">
             {post.title}
           </h1>
 
           {/* Author line */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-[#4A26ED] flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 rounded-full bg-oxford flex items-center justify-center text-white font-bold text-sm">
               AB
             </div>
             <div>
-              <p className="text-sm font-medium text-[#111827]">
+              <p className="text-sm font-medium text-gray-900">
                 Alexandre Bridi
               </p>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-gray-500">
                 {new Date(post.date).toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
@@ -100,12 +100,12 @@ const BlogPost = () => {
           </div>
 
           {/* Share buttons */}
-          <div className="flex items-center gap-2 mb-10 pb-8 border-b border-[#E5E7EB]">
+          <div className="flex items-center gap-2 mb-10 pb-8 border-b border-gray-200">
             <a
               href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(shareUrl)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm text-[#6B7280] hover:bg-[#F3F4F6] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
             >
               <Twitter className="w-4 h-4" /> Share
             </a>
@@ -113,13 +113,13 @@ const BlogPost = () => {
               href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm text-[#6B7280] hover:bg-[#F3F4F6] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
             >
               <Linkedin className="w-4 h-4" /> Share
             </a>
             <button
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm text-[#6B7280] hover:bg-[#F3F4F6] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
             >
               <LinkIcon className="w-4 h-4" /> Copy link
             </button>
@@ -148,7 +148,7 @@ const BlogPost = () => {
           {/* More posts */}
           {otherPosts.length > 0 && (
             <div className="mt-16">
-              <h3 className="text-xl font-bold text-[#111827] mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">
                 More posts
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -156,7 +156,7 @@ const BlogPost = () => {
                   <Link
                     key={p.slug}
                     to={`/blog/${p.slug}`}
-                    className="group bg-white border border-[#E5E7EB] rounded-xl shadow-sm overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md"
+                    className="group bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md"
                   >
                     <AspectRatio ratio={16 / 9}>
                       <img
@@ -174,7 +174,7 @@ const BlogPost = () => {
                       >
                         {p.category}
                       </span>
-                      <h4 className="text-sm font-semibold text-[#111827] group-hover:text-[#4A26ED] transition-colors line-clamp-2">
+                      <h4 className="text-sm font-semibold text-gray-900 group-hover:text-oxford transition-colors line-clamp-2">
                         {p.title}
                       </h4>
                     </div>

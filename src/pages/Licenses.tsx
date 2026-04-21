@@ -93,10 +93,10 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
   const activeTokens = tokens.filter((t) => !t.revoked_at);
 
   return (
-    <div className="mt-2 border-t border-[#E5E7EB] pt-2">
+    <div className="mt-2 border-t border-gray-200 pt-2">
       <button
         onClick={handleOpen}
-        className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
+        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors"
       >
         <Key size={12} />
         API Keys {activeTokens.length > 0 && `(${activeTokens.length})`}
@@ -107,13 +107,13 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
         <div className="mt-3 space-y-3">
           {/* Just-created token — show once */}
           {justCreated && (
-            <div className="bg-[#ECFDF5] border border-[#10B981]/20 rounded-lg p-3 space-y-2">
-              <p className="text-xs font-semibold text-[#059669]">Token created — copy it now. You won't see it again.</p>
+            <div className="bg-emerald-50 border border-emerald-500/20 rounded-lg p-3 space-y-2">
+              <p className="text-xs font-semibold text-emerald-600">Token created — copy it now. You won't see it again.</p>
               <div className="flex items-center gap-2">
-                <code className="text-xs font-mono text-[#059669] bg-white border border-[#10B981]/20 rounded px-2 py-1 flex-1 truncate">
+                <code className="text-xs font-mono text-emerald-600 bg-white border border-emerald-500/20 rounded px-2 py-1 flex-1 truncate">
                   {justCreated}
                 </code>
-                <button onClick={handleCopyToken} className="shrink-0 text-[#10B981] hover:text-[#059669]">
+                <button onClick={handleCopyToken} className="shrink-0 text-emerald-500 hover:text-emerald-600">
                   {copiedToken ? <Check size={13} /> : <Copy size={13} />}
                 </button>
               </div>
@@ -122,26 +122,26 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
 
           {/* Token list */}
           {loading ? (
-            <div className="flex items-center gap-2 text-xs text-[#9CA3AF]">
+            <div className="flex items-center gap-2 text-xs text-gray-400">
               <Loader2 size={12} className="animate-spin" /> Loading…
             </div>
           ) : activeTokens.length === 0 ? (
-            <p className="text-xs text-[#9CA3AF]">No active API keys.</p>
+            <p className="text-xs text-gray-400">No active API keys.</p>
           ) : (
             <div className="space-y-1.5">
               {activeTokens.map((t) => (
-                <div key={t.id} className="flex items-center gap-2 bg-[#F7F8FA] rounded-lg px-3 py-2">
+                <div key={t.id} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-[#111827] truncate">{t.name}</p>
-                    <code className="text-[10px] font-mono text-[#9CA3AF]">{t.token_preview}</code>
+                    <p className="text-xs font-medium text-gray-900 truncate">{t.name}</p>
+                    <code className="text-[10px] font-mono text-gray-400">{t.token_preview}</code>
                   </div>
-                  <span className="text-[10px] text-[#9CA3AF] shrink-0">
+                  <span className="text-[10px] text-gray-400 shrink-0">
                     {t.last_used_at ? `Used ${new Date(t.last_used_at).toLocaleDateString()}` : "Never used"}
                   </span>
                   <button
                     onClick={() => handleRevoke(t.id)}
                     disabled={revoking === t.id}
-                    className="shrink-0 text-[#9CA3AF] hover:text-[#EF4444] transition-colors disabled:opacity-50"
+                    className="shrink-0 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
                     title="Revoke"
                   >
                     {revoking === t.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
@@ -167,7 +167,7 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
             </div>
           )}
 
-          {error && <p className="text-xs text-[#EF4444]">{error}</p>}
+          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
       )}
     </div>
@@ -214,10 +214,10 @@ function ArchiveWebhook({ licenseKey }: ArchiveWebhookProps) {
   };
 
   return (
-    <div className="mt-2 border-t border-[#E5E7EB] pt-2">
+    <div className="mt-2 border-t border-gray-200 pt-2">
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
+        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors"
       >
         <Webhook size={12} />
         Content Webhook
@@ -227,21 +227,21 @@ function ArchiveWebhook({ licenseKey }: ArchiveWebhookProps) {
       {open && (
         <div className="mt-3 space-y-3">
           {secret ? (
-            <div className="bg-[#ECFDF5] border border-[#10B981]/20 rounded-lg p-3 space-y-2">
-              <p className="text-xs font-semibold text-[#059669]">Webhook registered. Copy your signing secret — it won't be shown again.</p>
+            <div className="bg-emerald-50 border border-emerald-500/20 rounded-lg p-3 space-y-2">
+              <p className="text-xs font-semibold text-emerald-600">Webhook registered. Copy your signing secret — it won't be shown again.</p>
               <div className="flex items-center gap-2">
-                <code className="text-[10px] font-mono text-[#059669] bg-white border border-[#10B981]/20 rounded px-2 py-1 flex-1 truncate">
+                <code className="text-[10px] font-mono text-emerald-600 bg-white border border-emerald-500/20 rounded px-2 py-1 flex-1 truncate">
                   {secret}
                 </code>
-                <button onClick={handleCopySecret} className="shrink-0 text-[#10B981] hover:text-[#059669]">
+                <button onClick={handleCopySecret} className="shrink-0 text-emerald-500 hover:text-emerald-600">
                   {copiedSecret ? <Check size={13} /> : <Copy size={13} />}
                 </button>
               </div>
-              <p className="text-[10px] text-[#6B7280]">Verify incoming requests using the <code className="font-mono">X-Opedd-Signature</code> header with HMAC-SHA256.</p>
+              <p className="text-[10px] text-gray-500">Verify incoming requests using the <code className="font-mono">X-Opedd-Signature</code> header with HMAC-SHA256.</p>
             </div>
           ) : (
             <>
-              <p className="text-xs text-[#6B7280]">Receive a webhook when new content is published under your archive license.</p>
+              <p className="text-xs text-gray-500">Receive a webhook when new content is published under your archive license.</p>
               <div className="flex items-center gap-2">
                 <Input
                   placeholder="https://yourserver.com/webhook"
@@ -256,7 +256,7 @@ function ArchiveWebhook({ licenseKey }: ArchiveWebhookProps) {
               </div>
             </>
           )}
-          {error && <p className="text-xs text-[#EF4444]">{error}</p>}
+          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
       )}
     </div>
@@ -319,35 +319,35 @@ export default function Licenses() {
   const handleCopyKey = (key: string) => { navigator.clipboard.writeText(key); setCopiedKey(key); setTimeout(() => setCopiedKey(null), 1500); };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="px-6 py-5 bg-white border-b border-[#E5E7EB]">
+      <div className="px-6 py-5 bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link to="/"><img src={opeddLogoColor} alt="Opedd" className="h-7" /></Link>
-          <Link to="/login" className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors">Publisher login →</Link>
+          <Link to="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Publisher login →</Link>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="bg-white border border-[#E5E7EB] shadow-sm rounded-xl max-w-[480px] w-full p-8">
+        <div className="bg-white border border-gray-200 shadow-sm rounded-xl max-w-[480px] w-full p-8">
 
           {step === "email" && (
             <div className="space-y-6">
               <div>
-                <div className="w-12 h-12 bg-[#EEF0FD] rounded-xl flex items-center justify-center mb-4">
-                  <ShieldCheck size={24} className="text-[#4A26ED]" />
+                <div className="w-12 h-12 bg-oxford-light rounded-xl flex items-center justify-center mb-4">
+                  <ShieldCheck size={24} className="text-oxford" />
                 </div>
-                <h1 className="text-xl font-bold text-[#111827]">Look up your licenses</h1>
-                <p className="text-sm text-[#6B7280] mt-1">Enter the email address you used to purchase a license.</p>
+                <h1 className="text-xl font-bold text-gray-900">Look up your licenses</h1>
+                <p className="text-sm text-gray-500 mt-1">Enter the email address you used to purchase a license.</p>
               </div>
               <div className="space-y-2">
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendCode()} placeholder="you@company.com" className="pl-10" />
                 </div>
               </div>
-              {error && <p className="text-sm text-[#EF4444]">{error}</p>}
+              {error && <p className="text-sm text-red-500">{error}</p>}
               <Button onClick={handleSendCode} disabled={loading || !email.trim()} className="w-full h-11">
                 {loading ? <><Loader2 size={16} className="mr-2 animate-spin" />Sending…</> : <>Send verification code<ArrowRight size={16} className="ml-2" /></>}
               </Button>
@@ -357,26 +357,26 @@ export default function Licenses() {
           {step === "otp" && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-xl font-bold text-[#111827]">Enter verification code</h1>
-                <p className="text-sm text-[#6B7280] mt-1">We sent a 6-digit code to <strong className="text-[#111827]">{email}</strong></p>
+                <h1 className="text-xl font-bold text-gray-900">Enter verification code</h1>
+                <p className="text-sm text-gray-500 mt-1">We sent a 6-digit code to <strong className="text-gray-900">{email}</strong></p>
               </div>
               <div className="flex justify-center">
                 <InputOTP maxLength={6} value={otp} onChange={setOtp}>
                   <InputOTPGroup>
-                    <InputOTPSlot index={0} className="border-[#E5E7EB] text-[#111827]" />
-                    <InputOTPSlot index={1} className="border-[#E5E7EB] text-[#111827]" />
-                    <InputOTPSlot index={2} className="border-[#E5E7EB] text-[#111827]" />
-                    <InputOTPSlot index={3} className="border-[#E5E7EB] text-[#111827]" />
-                    <InputOTPSlot index={4} className="border-[#E5E7EB] text-[#111827]" />
-                    <InputOTPSlot index={5} className="border-[#E5E7EB] text-[#111827]" />
+                    <InputOTPSlot index={0} className="border-gray-200 text-gray-900" />
+                    <InputOTPSlot index={1} className="border-gray-200 text-gray-900" />
+                    <InputOTPSlot index={2} className="border-gray-200 text-gray-900" />
+                    <InputOTPSlot index={3} className="border-gray-200 text-gray-900" />
+                    <InputOTPSlot index={4} className="border-gray-200 text-gray-900" />
+                    <InputOTPSlot index={5} className="border-gray-200 text-gray-900" />
                   </InputOTPGroup>
                 </InputOTP>
               </div>
-              {error && <p className="text-sm text-[#EF4444] text-center">{error}</p>}
+              {error && <p className="text-sm text-red-500 text-center">{error}</p>}
               <Button onClick={handleVerify} disabled={loading || otp.length < 6} className="w-full h-11">
                 {loading ? <><Loader2 size={16} className="mr-2 animate-spin" />Verifying…</> : "Verify"}
               </Button>
-              <button onClick={() => { setStep("email"); setOtp(""); setError(null); }} className="text-sm text-[#9CA3AF] hover:text-[#6B7280] transition-colors w-full text-center">
+              <button onClick={() => { setStep("email"); setOtp(""); setError(null); }} className="text-sm text-gray-400 hover:text-gray-500 transition-colors w-full text-center">
                 ← Use a different email
               </button>
             </div>
@@ -385,46 +385,46 @@ export default function Licenses() {
           {step === "results" && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-xl font-bold text-[#111827]">Your licenses</h1>
-                <p className="text-sm text-[#6B7280] mt-1">{email}</p>
+                <h1 className="text-xl font-bold text-gray-900">Your licenses</h1>
+                <p className="text-sm text-gray-500 mt-1">{email}</p>
               </div>
 
               {licenses.length === 0 ? (
                 <div className="py-12 text-center">
-                  <FileText size={36} className="text-[#D1D5DB] mx-auto mb-3" />
-                  <p className="text-sm font-medium text-[#374151]">No licenses found for this email.</p>
-                  <p className="text-xs text-[#9CA3AF] mt-1.5 max-w-[320px] mx-auto">
+                  <FileText size={36} className="text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-700">No licenses found for this email.</p>
+                  <p className="text-xs text-gray-400 mt-1.5 max-w-[320px] mx-auto">
                     If you made a purchase, make sure you're using the same email address you used at checkout.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {licenses.map((lic) => (
-                    <div key={lic.license_key} className="bg-[#F7F8FA] border border-[#E5E7EB] rounded-xl p-4 space-y-2">
+                    <div key={lic.license_key} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium text-[#111827] truncate flex-1">{lic.article_title}</p>
-                        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EEF0FD] text-[#4A26ED]">
+                        <p className="text-sm font-medium text-gray-900 truncate flex-1">{lic.article_title}</p>
+                        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-oxford-light text-oxford">
                           {lic.license_type}
                         </span>
                       </div>
-                      {lic.publisher_name && <p className="text-xs text-[#9CA3AF]">{lic.publisher_name}</p>}
+                      {lic.publisher_name && <p className="text-xs text-gray-400">{lic.publisher_name}</p>}
                       <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono text-[#4A26ED] bg-[#EEF0FD] px-2 py-1 rounded flex-1 truncate">
+                        <code className="text-xs font-mono text-oxford bg-oxford-light px-2 py-1 rounded flex-1 truncate">
                           {lic.license_key}
                         </code>
-                        <button onClick={() => handleCopyKey(lic.license_key)} className="text-[#9CA3AF] hover:text-[#111827] transition-colors" title="Copy key">
-                          {copiedKey === lic.license_key ? <Check size={14} className="text-[#10B981]" /> : <Copy size={14} />}
+                        <button onClick={() => handleCopyKey(lic.license_key)} className="text-gray-400 hover:text-gray-900 transition-colors" title="Copy key">
+                          {copiedKey === lic.license_key ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                         </button>
                       </div>
-                      <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
+                      <div className="flex items-center justify-between text-xs text-gray-400">
                         <span>${lic.amount.toFixed(2)}</span>
                         <span>{new Date(lic.created_at).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center gap-3 pt-1">
-                        <Link to={`/verify/${lic.license_key}`} className="text-xs text-[#4A26ED] hover:underline flex items-center gap-1">
+                        <Link to={`/verify/${lic.license_key}`} className="text-xs text-oxford hover:underline flex items-center gap-1">
                           <ExternalLink size={12} /> Verify
                         </Link>
-                        <a href={`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(lic.license_key)}`} target="_blank" className="text-xs text-[#4A26ED] hover:underline flex items-center gap-1">
+                        <a href={`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(lic.license_key)}`} target="_blank" className="text-xs text-oxford hover:underline flex items-center gap-1">
                           <Download size={12} /> Certificate
                         </a>
                       </div>
@@ -437,7 +437,7 @@ export default function Licenses() {
                 </div>
               )}
 
-              <button onClick={() => { setStep("email"); setEmail(""); setOtp(""); setLicenses([]); setError(null); }} className="text-sm text-[#9CA3AF] hover:text-[#6B7280] transition-colors w-full text-center">
+              <button onClick={() => { setStep("email"); setEmail(""); setOtp(""); setLicenses([]); setError(null); }} className="text-sm text-gray-400 hover:text-gray-500 transition-colors w-full text-center">
                 ← Look up a different email
               </button>
             </div>
@@ -447,8 +447,8 @@ export default function Licenses() {
 
       {/* Footer */}
       <div className="px-6 py-4 text-center">
-        <p className="text-xs text-[#9CA3AF]">
-          Powered by <Link to="/" className="text-[#6B7280] hover:text-[#111827] transition-colors">Opedd Protocol</Link>
+        <p className="text-xs text-gray-400">
+          Powered by <Link to="/" className="text-gray-500 hover:text-gray-900 transition-colors">Opedd Protocol</Link>
         </p>
       </div>
     </div>

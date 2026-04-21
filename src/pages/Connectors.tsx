@@ -66,7 +66,7 @@ function CodeBlock({ code }: CodeBlockProps) {
   };
   return (
     <div className="relative">
-      <pre className="bg-[#F1F5F9] border border-[#E2E8F0] text-[#334155] font-mono text-sm rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+      <pre className="bg-slate-100 border border-slate-200 text-slate-700 font-mono text-sm rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
         {code}
       </pre>
       <button
@@ -301,7 +301,7 @@ export default function Connectors() {
       <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Global tab style */}
-          <div className="border-b border-[#E5E7EB]">
+          <div className="border-b border-gray-200">
             <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
               {[
                 { value: "widget", label: "Widget" },
@@ -311,7 +311,7 @@ export default function Connectors() {
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[14px] font-normal tracking-tight text-[#6B7280] transition-colors data-[state=active]:border-[#4A26ED] data-[state=active]:text-[#4A26ED] data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-[#1f2937]"
+                  className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-[14px] font-normal tracking-tight text-gray-500 transition-colors data-[state=active]:border-oxford data-[state=active]:text-oxford data-[state=active]:font-semibold data-[state=active]:bg-transparent data-[state=active]:shadow-none hover:text-gray-800"
                 >
                   {tab.label}
                 </TabsTrigger>
@@ -330,12 +330,12 @@ export default function Connectors() {
           {/* Webhooks Tab */}
           <TabsContent value="webhooks" className="mt-6">
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-5">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
                 {webhookStatus?.configured ? (
                   <>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-[#040042]">Endpoint URL</p>
+                        <p className="text-sm font-medium text-navy-deep">Endpoint URL</p>
                         <p className="text-xs text-slate-500 font-mono mt-1 truncate max-w-md">{webhookStatus.url || "—"}</p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -357,7 +357,7 @@ export default function Connectors() {
                           {isSendingTest ? <Loader2 size={12} className="animate-spin" /> : <Webhook size={12} />}
                           Send Test Event
                         </Button>
-                        <Button variant="outline" size="sm" onClick={handleViewDeliveries} disabled={isLoadingDeliveries} className="h-8 text-xs gap-1.5 border-[#4A26ED]/30 text-[#4A26ED] hover:bg-[#4A26ED]/5">
+                        <Button variant="outline" size="sm" onClick={handleViewDeliveries} disabled={isLoadingDeliveries} className="h-8 text-xs gap-1.5 border-oxford/30 text-oxford hover:bg-oxford/5">
                           {isLoadingDeliveries ? <Loader2 size={12} className="animate-spin" /> : <Eye size={12} />}
                           View Deliveries
                         </Button>
@@ -370,7 +370,7 @@ export default function Connectors() {
                           </AlertDialogTrigger>
                           <AlertDialogContent className="bg-white">
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
+                              <AlertDialogTitle className="flex items-center gap-2 text-navy-deep">
                                 <AlertTriangle size={20} className="text-amber-500" />Remove Webhook?
                               </AlertDialogTitle>
                               <AlertDialogDescription className="text-slate-600">
@@ -391,7 +391,7 @@ export default function Connectors() {
                     {showDeliveries && (
                       <div className="border border-slate-100 rounded-xl overflow-hidden">
                         <div className="bg-slate-50 px-4 py-2 border-b border-slate-100">
-                          <p className="text-xs font-semibold text-[#040042]">Recent Deliveries</p>
+                          <p className="text-xs font-semibold text-navy-deep">Recent Deliveries</p>
                         </div>
                         {isLoadingDeliveries ? (
                           <div className="flex items-center justify-center py-8"><Loader2 size={20} className="animate-spin text-slate-400" /></div>
@@ -408,7 +408,7 @@ export default function Connectors() {
                             </div>
                             {webhookDeliveries.map((d, i) => (
                               <div key={d.id || i} className="grid grid-cols-[1fr_80px_60px_140px_36px] gap-2 items-center px-4 py-2.5 text-xs">
-                                <code className="text-[#040042] font-mono truncate">{d.event_type}</code>
+                                <code className="text-navy-deep font-mono truncate">{d.event_type}</code>
                                 <Badge variant="outline" className={`text-[10px] w-fit ${d.status === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
                                   {d.status === "success" ? "Success" : "Failed"}
                                 </Badge>
@@ -421,7 +421,7 @@ export default function Connectors() {
                                       variant="ghost"
                                       disabled={retryingDeliveryId === d.id}
                                       onClick={() => handleRetryDelivery(d.id)}
-                                      className="h-7 w-7 p-0 text-slate-400 hover:text-[#4A26ED] hover:bg-[#4A26ED]/10"
+                                      className="h-7 w-7 p-0 text-slate-400 hover:text-oxford hover:bg-oxford/10"
                                       title="Retry delivery"
                                     >
                                       {retryingDeliveryId === d.id
@@ -440,18 +440,18 @@ export default function Connectors() {
                 ) : (
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm font-medium text-[#040042] mb-1">Webhook URL</p>
+                      <p className="text-sm font-medium text-navy-deep mb-1">Webhook URL</p>
                       <div className="flex items-center gap-2">
                         <Input
                           value={webhookUrl}
                           onChange={(e) => setWebhookUrl(e.target.value)}
                           placeholder="https://yoursite.com/api/webhooks/opedd"
-                          className="bg-slate-50 border-slate-200 h-11 rounded-lg flex-1 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
+                          className="bg-slate-50 border-slate-200 h-11 rounded-lg flex-1 focus:border-oxford focus:ring-oxford/20"
                         />
                         <Button
                           onClick={handleSaveWebhook}
                           disabled={isSavingWebhook || !webhookUrl.trim()}
-                          className="h-11 px-5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium"
+                          className="h-11 px-5 bg-oxford hover:bg-oxford-dark text-white rounded-lg font-medium"
                         >
                           {isSavingWebhook ? <Loader2 size={14} className="animate-spin" /> : "Save Webhook"}
                         </Button>
@@ -478,7 +478,7 @@ export default function Connectors() {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-white border border-amber-200 rounded-lg px-3 py-2 overflow-hidden">
-                            <code className="text-xs font-mono text-[#040042] truncate block">{webhookSecret}</code>
+                            <code className="text-xs font-mono text-navy-deep truncate block">{webhookSecret}</code>
                           </div>
                           <Button size="sm" variant="outline" onClick={handleCopyWebhookSecret} className="h-9 px-3 border-amber-200 hover:bg-amber-100 rounded-lg">
                             {webhookSecretCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
@@ -505,13 +505,13 @@ export default function Connectors() {
           {/* AI Policy Tab */}
           <TabsContent value="ai-policy" className="mt-6">
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-5">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#4A26ED]/10 flex items-center justify-center flex-shrink-0">
-                    <Shield size={20} className="text-[#4A26ED]" />
+                  <div className="w-10 h-10 rounded-xl bg-oxford/10 flex items-center justify-center flex-shrink-0">
+                    <Shield size={20} className="text-oxford" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-[#040042] text-lg">AI Crawler Defense Policy</h2>
+                    <h2 className="font-bold text-navy-deep text-lg">AI Crawler Defense Policy</h2>
                     <p className="text-sm text-slate-500 mt-1">
                       Automatically blocks 16 AI crawlers (GPTBot, Google-Extended, CCBot, etc.) from indexing your content without a license.
                     </p>
@@ -520,8 +520,8 @@ export default function Connectors() {
 
                 <div>
                   <p className="text-xs font-medium text-slate-500 mb-2">robots.txt snippet</p>
-                  <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-4 overflow-x-auto">
-                    <pre className="text-sm font-mono text-[#334155] whitespace-pre leading-relaxed">{`User-agent: GPTBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /`}</pre>
+                  <div className="bg-slate-100 border border-slate-200 rounded-lg p-4 overflow-x-auto">
+                    <pre className="text-sm font-mono text-slate-700 whitespace-pre leading-relaxed">{`User-agent: GPTBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /`}</pre>
                   </div>
                 </div>
 
@@ -531,7 +531,7 @@ export default function Connectors() {
                       <p className="text-xs font-medium text-slate-500 mb-2">Your AI Policy URL</p>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
-                          <code className="text-xs text-[#040042] font-mono truncate block">
+                          <code className="text-xs text-navy-deep font-mono truncate block">
                             {`${EXT_SUPABASE_URL}/ai-defense-policy?publisher_id=${publisherId}`}
                           </code>
                         </div>
@@ -543,7 +543,7 @@ export default function Connectors() {
                               toast({ title: "Copied", description: "robots.txt URL copied to clipboard." });
                             } catch { toast({ title: "Copy Failed", variant: "destructive" }); }
                           }}
-                          className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0"
+                          className="h-11 px-4 bg-oxford hover:bg-oxford-dark text-white rounded-lg font-medium flex-shrink-0"
                         >
                           <Copy size={14} className="mr-2" />Copy robots.txt URL
                         </Button>
@@ -553,7 +553,7 @@ export default function Connectors() {
                       href={`${EXT_SUPABASE_URL}/ai-defense-policy?publisher_id=${publisherId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4A26ED] hover:underline"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-oxford hover:underline"
                     >
                       View AI Policy →
                     </a>

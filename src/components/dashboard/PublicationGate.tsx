@@ -186,14 +186,14 @@ export function LockedTabContent({ children }: { children?: ReactNode }) {
       <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
         <AlertTriangle size={18} className="text-amber-500" />
       </div>
-      <p className="text-sm font-semibold text-[#111827]">Verify your publication first</p>
-      <p className="text-xs text-[#6B7280] max-w-xs">
+      <p className="text-sm font-semibold text-gray-900">Verify your publication first</p>
+      <p className="text-xs text-gray-500 max-w-xs">
         You need a verified publication to access this feature.
         Go to your Profile tab to complete verification.
       </p>
       <button
         onClick={() => navigate("/settings?tab=profile")}
-        className="mt-1 text-xs font-semibold text-[#4A26ED] hover:underline"
+        className="mt-1 text-xs font-semibold text-oxford hover:underline"
       >
         Go to Profile →
       </button>

@@ -254,10 +254,10 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-[#E8F2FB] shadow-sm overflow-hidden">
-        <div className="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#E8F2FB]">
+      <div className="bg-white rounded-xl border border-blue-50 shadow-sm overflow-hidden">
+        <div className="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-blue-50">
           {/* Left: Control Panel */}
-          <div className="p-6 bg-[#040042] text-white space-y-6">
+          <div className="p-6 bg-navy-deep text-white space-y-6">
             <div>
               <h3 className="text-lg font-bold mb-1">Control Panel</h3>
               <p className="text-sm text-white/60">Customize your licensing widget appearance</p>
@@ -274,7 +274,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                     className={cn(
                       "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold transition-all",
                       widgetMode === m.value
-                        ? "bg-white text-[#040042] shadow-sm"
+                        ? "bg-white text-navy-deep shadow-sm"
                         : "text-white/60 hover:text-white/80"
                     )}
                   >
@@ -311,7 +311,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                     className={cn(
                       "w-10 h-10 rounded-lg transition-all hover:scale-110 active:scale-95",
                       primaryColor === color.value
-                        ? "ring-2 ring-white ring-offset-2 ring-offset-[#040042]"
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-navy-deep"
                         : "ring-1 ring-white/20"
                     )}
                     style={{ backgroundColor: color.value }}
@@ -354,7 +354,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                 min={0}
                 max={24}
                 step={2}
-                className="[&_[role=slider]]:bg-white [&_[role=slider]]:border-white [&_.bg-primary]:bg-[#7C3AED]"
+                className="[&_[role=slider]]:bg-white [&_[role=slider]]:border-white [&_.bg-primary]:bg-violet-600"
               />
               <div className="flex justify-between text-[10px] text-white/40">
                 <span>Square</span>
@@ -367,7 +367,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
               <Label className="text-xs font-bold uppercase tracking-wide text-white/80">Widget Theme</Label>
               <div className="flex items-center justify-between bg-white/10 rounded-lg p-4 border border-white/10">
                 <div className="flex items-center gap-3">
-                  {darkTheme ? <Moon size={18} className="text-[#7C3AED]" /> : <Sun size={18} className="text-amber-400" />}
+                  {darkTheme ? <Moon size={18} className="text-violet-600" /> : <Sun size={18} className="text-amber-400" />}
                   <div>
                     <p className="text-sm font-medium text-white">{darkTheme ? "Dark Mode" : "Light Mode"}</p>
                     <p className="text-[10px] text-white/50">{darkTheme ? "For dark website backgrounds" : "For light website backgrounds"}</p>
@@ -381,8 +381,8 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
           {/* Right: Live Preview */}
           <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100/50 space-y-6">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-bold text-[#040042]">Live Preview</Label>
-              <div className="flex items-center gap-1.5 text-xs text-[#040042]/40">
+              <Label className="text-sm font-bold text-navy-deep">Live Preview</Label>
+              <div className="flex items-center gap-1.5 text-xs text-navy-deep/40">
                 <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                 Updates in real-time
               </div>
@@ -408,26 +408,26 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
       </div>
 
       {/* Embed Code */}
-      <div className="bg-white rounded-xl border border-[#E8F2FB] p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-blue-50 p-6 shadow-sm">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-base font-bold text-[#040042] mb-1">Embed on Your Site</h3>
+            <h3 className="text-base font-bold text-navy-deep mb-1">Embed on Your Site</h3>
             <p className="text-sm text-slate-500">Copy this snippet and paste it into your site's HTML where you want the widget to appear.</p>
           </div>
           <Button
             onClick={handleCopyCode}
             className={cn(
               "h-10 px-5 font-semibold transition-all flex-shrink-0 ml-6",
-              codeCopied ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+              codeCopied ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-oxford hover:bg-oxford-dark text-white"
             )}
           >
             {codeCopied ? <><Check size={15} className="mr-2" />Copied!</> : <><Copy size={15} className="mr-2" />Copy Embed Code</>}
           </Button>
         </div>
-        <pre className="bg-[#F8F9FF] border border-[#E8F2FB] text-slate-700 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
+        <pre className="bg-gray-50 border border-blue-50 text-slate-700 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
           <code>
             <span className="text-slate-400">{"<"}</span>
-            <span className="text-[#7C3AED]">script</span>
+            <span className="text-violet-600">script</span>
             <span className="text-slate-500"> src=</span>
             <span className="text-emerald-600">"https://api.opedd.com/widget"</span>
             {"\n"}
@@ -454,7 +454,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
             <span className="text-slate-400">{">"}</span>
             {"\n"}
             <span className="text-slate-400">{"</"}</span>
-            <span className="text-[#7C3AED]">script</span>
+            <span className="text-violet-600">script</span>
             <span className="text-slate-400">{">"}</span>
           </code>
         </pre>

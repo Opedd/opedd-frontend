@@ -38,9 +38,9 @@ interface LicenseData {
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 border-b border-[#F3F4F6] pb-3 last:border-0 last:pb-0">
-      <span className="text-xs text-[#9CA3AF] uppercase tracking-wider sm:w-36 shrink-0 pt-0.5">{label}</span>
-      <span className="text-sm text-[#111827]">{children}</span>
+    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+      <span className="text-xs text-gray-400 uppercase tracking-wider sm:w-36 shrink-0 pt-0.5">{label}</span>
+      <span className="text-sm text-gray-900">{children}</span>
     </div>
   );
 }
@@ -100,26 +100,26 @@ export default function LicenseVerify() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#4A26ED]" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-oxford" />
       </div>
     );
   }
 
   if (!key) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
-        <div className="px-6 py-5 bg-white border-b border-[#E5E7EB]">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="px-6 py-5 bg-white border-b border-gray-200">
           <img src={opeddLogoColor} alt="Opedd" className="h-7" />
         </div>
         <div className="flex-1 flex items-start justify-center px-4 pt-20 pb-12">
           <div className="w-full max-w-md text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#EEF0FD] text-[#4A26ED] px-4 py-1.5 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-oxford-light text-oxford px-4 py-1.5 text-sm font-medium mb-6">
               <Shield className="h-4 w-4" />
               Verify a License
             </div>
-            <h1 className="text-2xl font-bold text-[#111827] mb-2">License Verification</h1>
-            <p className="text-[#6B7280] text-sm mb-8 max-w-sm mx-auto">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">License Verification</h1>
+            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
               Paste a license key below to verify its authenticity against the Opedd registry.
             </p>
             <div className="flex gap-2">
@@ -135,8 +135,8 @@ export default function LicenseVerify() {
                 Verify
               </Button>
             </div>
-            <p className="text-xs text-[#9CA3AF] mt-10">
-              Powered by <span className="text-[#6B7280] font-medium">Opedd Protocol</span>
+            <p className="text-xs text-gray-400 mt-10">
+              Powered by <span className="text-gray-500 font-medium">Opedd Protocol</span>
             </p>
           </div>
         </div>
@@ -146,17 +146,17 @@ export default function LicenseVerify() {
 
   if (notFound || !data) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
-        <div className="px-6 py-5 bg-white border-b border-[#E5E7EB]">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="px-6 py-5 bg-white border-b border-gray-200">
           <img src={opeddLogoColor} alt="Opedd" className="h-7" />
         </div>
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="w-full max-w-md text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#FEF2F2] text-[#DC2626] px-4 py-1.5 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-red-50 text-red-600 px-4 py-1.5 text-sm font-medium mb-6">
               <AlertTriangle className="h-4 w-4" />
               License Not Found
             </div>
-            <p className="text-[#6B7280] text-sm mb-8 max-w-sm mx-auto">
+            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
               The key you entered does not match any record in the Opedd registry.
             </p>
             <div className="flex gap-2">
@@ -172,8 +172,8 @@ export default function LicenseVerify() {
                 Verify
               </Button>
             </div>
-            <p className="text-xs text-[#9CA3AF] mt-10">
-              Powered by <span className="text-[#6B7280] font-medium">Opedd Protocol</span>
+            <p className="text-xs text-gray-400 mt-10">
+              Powered by <span className="text-gray-500 font-medium">Opedd Protocol</span>
             </p>
           </div>
         </div>
@@ -185,8 +185,8 @@ export default function LicenseVerify() {
   const bp = data.blockchain_proof;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
-      <div className="px-6 py-5 bg-white border-b border-[#E5E7EB]">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="px-6 py-5 bg-white border-b border-gray-200">
         <img src={opeddLogoColor} alt="Opedd" className="h-7" />
       </div>
 
@@ -195,12 +195,12 @@ export default function LicenseVerify() {
           {/* Status Badge */}
           <div className="text-center">
             {isRevoked ? (
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#FEF2F2] text-[#DC2626] px-4 py-1.5 text-sm font-medium">
+              <div className="inline-flex items-center gap-2 rounded-full bg-red-50 text-red-600 px-4 py-1.5 text-sm font-medium">
                 <AlertTriangle className="h-4 w-4" />
                 License Revoked
               </div>
             ) : (
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#ECFDF5] text-[#059669] px-4 py-1.5 text-sm font-medium">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 text-emerald-600 px-4 py-1.5 text-sm font-medium">
                 <Check className="h-4 w-4" />
                 License Verified
               </div>
@@ -209,25 +209,25 @@ export default function LicenseVerify() {
 
           {/* License Key */}
           <div className="text-center">
-            <p className="text-xs text-[#9CA3AF] uppercase tracking-wider mb-2">License Key</p>
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">License Key</p>
             <div className="flex items-center justify-center gap-3">
-              <code className="text-xl md:text-2xl font-mono font-bold text-[#4A26ED] bg-[#EEF0FD] px-4 py-2 rounded-lg tracking-[0.15em] leading-none">
+              <code className="text-xl md:text-2xl font-mono font-bold text-oxford bg-oxford-light px-4 py-2 rounded-lg tracking-[0.15em] leading-none">
                 {data.license_key}
               </code>
-              <button onClick={handleCopyKey} className="p-2 rounded-lg hover:bg-[#F3F4F6] transition-colors text-[#9CA3AF] hover:text-[#111827]">
-                {copiedKey ? <Check className="h-4 w-4 text-[#10B981]" /> : <Copy className="h-4 w-4" />}
+              <button onClick={handleCopyKey} className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-900">
+                {copiedKey ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
           {/* Details Card */}
-          <Card className="border-[#E5E7EB] bg-white shadow-sm">
+          <Card className="border-gray-200 bg-white shadow-sm">
             <CardContent className="p-6 space-y-4">
               <DetailRow label="Content">
                 {data.content.source_url ? (
-                  <a href={data.content.source_url} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline inline-flex items-center gap-1.5 text-[#111827]">
+                  <a href={data.content.source_url} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline inline-flex items-center gap-1.5 text-gray-900">
                     {data.content.title}
-                    <ExternalLink className="h-3.5 w-3.5 text-[#9CA3AF]" />
+                    <ExternalLink className="h-3.5 w-3.5 text-gray-400" />
                   </a>
                 ) : (
                   <span className="font-medium">{data.content.title}</span>
@@ -245,54 +245,54 @@ export default function LicenseVerify() {
           </Card>
 
           {/* Rights */}
-          <div className="rounded-xl border border-[#3B82F6]/20 bg-[#EFF6FF] p-5">
+          <div className="rounded-xl border border-blue-500/20 bg-blue-50 p-5">
             <div className="flex items-start gap-3">
-              <Shield className="h-4 w-4 text-[#3B82F6] mt-0.5 shrink-0" />
+              <Shield className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-[#3B82F6] uppercase tracking-wider font-medium mb-1.5">Rights Summary</p>
-                <p className="text-sm text-[#111827] leading-relaxed">{data.rights}</p>
+                <p className="text-xs text-blue-500 uppercase tracking-wider font-medium mb-1.5">Rights Summary</p>
+                <p className="text-sm text-gray-900 leading-relaxed">{data.rights}</p>
               </div>
             </div>
           </div>
 
           {/* Blockchain Proof */}
           {bp && (
-            <div className="rounded-xl border border-[#4A26ED]/20 bg-[#EEF0FD] p-5 space-y-3">
+            <div className="rounded-xl border border-oxford/20 bg-oxford-light p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <LinkIcon className="h-4 w-4 text-[#4A26ED]" />
-                <p className="text-xs text-[#4A26ED] uppercase tracking-wider font-medium">On-Chain Proof</p>
+                <LinkIcon className="h-4 w-4 text-oxford" />
+                <p className="text-xs text-oxford uppercase tracking-wider font-medium">On-Chain Proof</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${bp.registered ? "bg-[#ECFDF5] text-[#059669]" : "bg-[#F3F4F6] text-[#9CA3AF]"}`}>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${bp.registered ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400"}`}>
                   <Check className="h-3 w-3" />
                   Registered on Tempo
                 </span>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${bp.valid ? "bg-[#ECFDF5] text-[#059669]" : "bg-[#FEF2F2] text-[#DC2626]"}`}>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${bp.valid ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
                   {bp.valid ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
                   {bp.valid ? "Valid" : "Invalid"}
                 </span>
               </div>
               {bp.explorer_url && (
-                <a href={bp.explorer_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-[#4A26ED] hover:underline">
+                <a href={bp.explorer_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-oxford hover:underline">
                   View on Tempo Explorer <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}
               {bp.contract_address && (
-                <p className="text-xs text-[#9CA3AF] font-mono break-all">Contract: {bp.contract_address}</p>
+                <p className="text-xs text-gray-400 font-mono break-all">Contract: {bp.contract_address}</p>
               )}
             </div>
           )}
 
           {/* Machine-Readable License */}
           {data.machine_readable && (
-            <div className="rounded-xl border border-[#10B981]/20 bg-[#ECFDF5] p-5">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-50 p-5">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-[#059669] uppercase tracking-wider font-medium">Machine-Readable License (license.json)</p>
-                <button onClick={handleCopyJson} className="p-1.5 rounded-md hover:bg-[#D1FAE5] transition-colors text-[#059669]/60 hover:text-[#059669]">
+                <p className="text-xs text-emerald-600 uppercase tracking-wider font-medium">Machine-Readable License (license.json)</p>
+                <button onClick={handleCopyJson} className="p-1.5 rounded-md hover:bg-emerald-100 transition-colors text-emerald-600/60 hover:text-emerald-600">
                   {copiedJson ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
               </div>
-              <pre className="text-xs text-[#111827] font-mono overflow-x-auto leading-relaxed bg-white border border-[#E5E7EB] rounded-lg p-4">
+              <pre className="text-xs text-gray-900 font-mono overflow-x-auto leading-relaxed bg-white border border-gray-200 rounded-lg p-4">
                 {JSON.stringify(data.machine_readable, null, 2)}
               </pre>
             </div>
@@ -300,15 +300,15 @@ export default function LicenseVerify() {
 
           {/* Buyer Webhook */}
           {data.license_type === "archive" && data.status === "completed" && (
-            <div className="rounded-xl border border-[#E5E7EB] bg-white p-5 space-y-3 shadow-sm">
-              <p className="text-xs text-[#6B7280] uppercase tracking-wider font-medium">New Article Notifications</p>
-              <p className="text-sm text-[#6B7280]">Register a webhook to receive a POST request whenever a new article is added to your archive coverage.</p>
+            <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 shadow-sm">
+              <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">New Article Notifications</p>
+              <p className="text-sm text-gray-500">Register a webhook to receive a POST request whenever a new article is added to your archive coverage.</p>
               {webhookSecret ? (
                 <div className="space-y-2">
-                  <p className="text-xs text-[#059669] font-medium">Webhook registered. Save this secret — it won't be shown again.</p>
-                  <div className="flex items-center gap-2 bg-[#F7F8FA] border border-[#E5E7EB] rounded-lg p-3">
-                    <code className="text-xs text-[#4A26ED] font-mono flex-1 truncate">{webhookSecret}</code>
-                    <button onClick={() => { navigator.clipboard.writeText(webhookSecret); setCopiedSecret(true); setTimeout(() => setCopiedSecret(false), 2000); }} className="text-[#9CA3AF] hover:text-[#111827] shrink-0">
+                  <p className="text-xs text-emerald-600 font-medium">Webhook registered. Save this secret — it won't be shown again.</p>
+                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <code className="text-xs text-oxford font-mono flex-1 truncate">{webhookSecret}</code>
+                    <button onClick={() => { navigator.clipboard.writeText(webhookSecret); setCopiedSecret(true); setTimeout(() => setCopiedSecret(false), 2000); }} className="text-gray-400 hover:text-gray-900 shrink-0">
                       {copiedSecret ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                   </div>
@@ -336,17 +336,17 @@ export default function LicenseVerify() {
               href={`${EXT_SUPABASE_URL}/certificate?key=${encodeURIComponent(data.license_key)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] px-5 py-2.5 text-sm font-medium text-[#111827] transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-900 transition-colors"
             >
               <Download className="h-4 w-4" />
               Download Certificate
             </a>
             <div className="flex items-center justify-center gap-3">
-              <p className="text-xs text-[#9CA3AF]">
-                Powered by <span className="text-[#6B7280] font-medium">Opedd Protocol</span>
+              <p className="text-xs text-gray-400">
+                Powered by <span className="text-gray-500 font-medium">Opedd Protocol</span>
               </p>
-              <span className="text-[#E5E7EB]">·</span>
-              <a href="mailto:support@opedd.com" className="text-xs text-[#9CA3AF] hover:text-[#6B7280] transition-colors">
+              <span className="text-gray-200">·</span>
+              <a href="mailto:support@opedd.com" className="text-xs text-gray-400 hover:text-gray-500 transition-colors">
                 Help & Support
               </a>
             </div>

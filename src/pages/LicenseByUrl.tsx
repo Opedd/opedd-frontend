@@ -41,24 +41,24 @@ export default function LicenseByUrl() {
   }, [url, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
       <img src={opeddLogoColor} alt="Opedd" className="h-8 mb-10" />
       {loading ? (
-        <Loader2 className="h-8 w-8 animate-spin text-[#4A26ED]" />
+        <Loader2 className="h-8 w-8 animate-spin text-oxford" />
       ) : error ? (
         <div className="text-center space-y-4 max-w-md">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#FEF2F2] text-[#DC2626] px-4 py-1.5 text-sm font-medium">
+          <div className="inline-flex items-center gap-2 rounded-full bg-red-50 text-red-600 px-4 py-1.5 text-sm font-medium">
             <AlertTriangle className="h-4 w-4" />
             Not Found
           </div>
-          <p className="text-[#6B7280] text-sm">{error}</p>
+          <p className="text-gray-500 text-sm">{error}</p>
           <Button onClick={() => navigate("/")} variant="outline">
             Return Home
           </Button>
         </div>
       ) : null}
-      <p className="absolute bottom-6 text-xs text-[#9CA3AF]">
-        Powered by <span className="text-[#6B7280] font-medium">Opedd Protocol</span>
+      <p className="absolute bottom-6 text-xs text-gray-400">
+        Powered by <span className="text-gray-500 font-medium">Opedd Protocol</span>
       </p>
     </div>
   );
