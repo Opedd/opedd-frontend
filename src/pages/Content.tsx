@@ -12,6 +12,7 @@ import {
   ArrowUpDown, Download, Handshake, Upload, ChevronDown,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";

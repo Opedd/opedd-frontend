@@ -6,6 +6,7 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { TransactionReceiptDrawer } from "@/components/dashboard/TransactionReceiptDrawer";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
