@@ -120,7 +120,7 @@ export default function Admin() {
   useDocumentTitle("Admin — Opedd");
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
-  const [tab, setTab] = useState<"overview" | "publishers" | "transactions" | "webhooks">("overview");
+  const [tab, setTab] = useState<"overview" | "publishers" | "transactions" | "webhooks" | "funnel">("overview");
   const [adminChecked, setAdminChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -161,7 +161,7 @@ export default function Admin() {
 
           {/* Tabs */}
           <div className="flex gap-1 mb-6 border-b border-gray-200">
-            {(["overview", "publishers", "transactions", "webhooks"] as const).map((t) => (
+            {(["overview", "publishers", "transactions", "webhooks", "funnel"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -180,6 +180,7 @@ export default function Admin() {
           {tab === "publishers" && <PublishersTab getAccessToken={getAccessToken} />}
           {tab === "transactions" && <TransactionsTab getAccessToken={getAccessToken} toast={toast} />}
           {tab === "webhooks" && <WebhooksTab getAccessToken={getAccessToken} />}
+          {tab === "funnel" && <FunnelTab getAccessToken={getAccessToken} />}
         </div>
       </main>
     </div>
@@ -488,6 +489,93 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+// --------------- Funnel Tab ---------------
+
+type FunnelRow = { step: number; name: string; reached: number };
+interface FunnelPayload {
+  funnel: FunnelRow[];
+  completed: number;
+  total_events: number;
+  since: string;
+}
+
+function FunnelTab({ getAccessToken }: { getAccessToken: () => Promise<string | null> }) {
+  const [data, setData] = useState<FunnelPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+          method: "POST",
+          headers: {
+            apikey: EXT_ANON_KEY,
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "admin_onboarding_funnel" }),
+        });
+        if (!res.ok) throw new Error();
+        const json = await res.json();
+        if (!json?.success || !json?.data) throw new Error();
+        setData(json.data);
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [getAccessToken]);
+
+  if (loading) return <LoadingState />;
+  if (error || !data) {
+    return <p className="text-sm text-[#6B7280]">Failed to load funnel data.</p>;
+  }
+
+  const top = data.funnel[0]?.reached || 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-bold text-navy-deep text-lg">Onboarding Funnel</h2>
+        <p className="text-xs text-[#9CA3AF]">
+          Last 90 days · {data.total_events} events · {data.completed} completed
+        </p>
+      </div>
+      <div className="border border-[#E5E7EB] rounded-xl bg-white p-5 space-y-3">
+        {data.funnel.map((row, idx) => {
+          const pct = top > 0 ? Math.round((row.reached / top) * 100) : 0;
+          const prev = idx > 0 ? data.funnel[idx - 1].reached : null;
+          const dropFromPrev = prev && prev > 0 ? Math.round(((prev - row.reached) / prev) * 100) : null;
+          return (
+            <div key={row.step} className="space-y-1">
+              <div className="flex items-baseline justify-between text-sm">
+                <span className="font-medium text-navy-deep">
+                  {row.step}. {row.name}
+                </span>
+                <span className="text-[#6B7280] text-xs">
+                  {row.reached} publishers
+                  {dropFromPrev !== null && dropFromPrev > 0 && (
+                    <span className="text-amber-600 ml-2">-{dropFromPrev}%</span>
+                  )}
+                </span>
+              </div>
+              <div className="w-full h-2 bg-[#F3F4F6] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-oxford to-plum-magenta rounded-full transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
