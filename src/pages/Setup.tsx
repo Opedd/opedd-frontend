@@ -1305,9 +1305,27 @@ export default function Setup() {
                     </div>
                   ) : (
                     <>
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                        <p className="text-sm text-emerald-700">Your earnings are held safely in escrow until you connect. No money is lost — you can connect Stripe anytime from Settings.</p>
-                      </div>
+                      {profile?.stripe_account_id && profile?.stripe_disabled_reason ? (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                          <AlertTriangle size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-amber-800">Stripe is waiting on one more step</p>
+                            <p className="text-xs text-amber-700 mt-1">
+                              {String(profile.stripe_disabled_reason).startsWith("currently_due:")
+                                ? `Missing: ${String(profile.stripe_disabled_reason)
+                                    .replace("currently_due:", "")
+                                    .split(",")
+                                    .map((r: string) => r.replace(/[._]/g, " "))
+                                    .join(", ")}`
+                                : String(profile.stripe_disabled_reason).replace(/[._]/g, " ")}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                          <p className="text-sm text-emerald-700">Your earnings are held safely in escrow until you connect. No money is lost — you can connect Stripe anytime from Settings.</p>
+                        </div>
+                      )}
 
                       <Button
                         onClick={handleConnectStripe}
@@ -1315,7 +1333,7 @@ export default function Setup() {
                         className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11 rounded-xl font-medium shadow-sm"
                       >
                         {stripeLoading ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Wallet size={16} className="mr-2" />}
-                        Connect Stripe now
+                        {profile?.stripe_account_id && profile?.stripe_disabled_reason ? "Resume Stripe setup" : "Connect Stripe now"}
                       </Button>
                     </>
                   )}
