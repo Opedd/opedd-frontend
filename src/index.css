@@ -34,9 +34,8 @@ html {
     --error: 0 84% 60%;
     --info: 217 91% 60%;
 
-    /* === NEW: oxford pale (close-family tints used in marketing) === */
-    /* Single mid token covering #C7B8F6 / #D5D9F2 / #E0E2F0 / #F0EBFF */
-    --oxford-pale: 240 53% 89%;        /* ~#D5D9F2 */
+    /* === NEW: oxford pale (single token covering close-tint family) === */
+    --oxford-pale: 232 53% 89%;        /* ~#D5D9F2; covers #C7B8F6 / #D5D9F2 / #E0E2F0 */
 
     /* === EXTERNAL BRANDS (immutable; tokenized for grep cleanliness) === */
     --google-blue: 217 89% 61%;        /* #4285F4 */
