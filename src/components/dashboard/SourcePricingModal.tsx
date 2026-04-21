@@ -6,7 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DollarSign, X, Loader2 } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/Spinner";
