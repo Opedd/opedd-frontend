@@ -2,9 +2,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => {
+  const { user, isLoading } = useAuth();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background Image */}
@@ -47,17 +49,37 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex items-center justify-center gap-4 flex-wrap"
           >
-            <Link to="/signup">
-              <Button size="lg" className="h-14 px-8 rounded-xl group bg-oxford hover:bg-oxford-dark text-white">
-                Start for free
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <Link to="/pricing">
-              <Button variant="outline" size="lg" className="h-14 px-8 rounded-xl border-soft-white/30 text-soft-white hover:text-soft-white">
-                View pricing
-              </Button>
-            </Link>
+            {isLoading ? (
+              <div className="h-14 w-[360px]" aria-hidden="true" />
+            ) : user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button size="lg" className="h-14 px-8 rounded-xl group bg-oxford hover:bg-oxford-dark text-white">
+                    Go to dashboard
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/pricing">
+                  <Button variant="outline" size="lg" className="h-14 px-8 rounded-xl border-soft-white/30 text-soft-white hover:text-soft-white">
+                    View pricing
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/signup">
+                  <Button size="lg" className="h-14 px-8 rounded-xl group bg-oxford hover:bg-oxford-dark text-white">
+                    Start for free
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/pricing">
+                  <Button variant="outline" size="lg" className="h-14 px-8 rounded-xl border-soft-white/30 text-soft-white hover:text-soft-white">
+                    View pricing
+                  </Button>
+                </Link>
+              </>
+            )}
           </motion.div>
         </div>
       </div>

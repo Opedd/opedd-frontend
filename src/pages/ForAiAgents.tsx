@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { motion } from "framer-motion";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ArrowRight, ExternalLink, Terminal, Search, ShoppingCart, ShieldCheck,
   Cpu, Globe, BookOpen, Webhook, Layers, Link2,
@@ -158,6 +159,7 @@ const MCP_TOOLS = [
 
 export default function ForAiAgents() {
   useDocumentTitle("For AI Agents — Opedd");
+  const { user, isLoading: authLoading } = useAuth();
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <SEO
@@ -195,13 +197,25 @@ export default function ForAiAgents() {
                 Read the docs
                 <ExternalLink size={15} />
               </a>
-              <a
-                href="#endpoints"
-                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/5 transition-all"
-              >
-                Explore endpoints
-                <ArrowRight size={15} />
-              </a>
+              {authLoading ? (
+                <div className="h-12 w-[180px]" aria-hidden="true" />
+              ) : user ? (
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/5 transition-all"
+                >
+                  Go to dashboard
+                  <ArrowRight size={15} />
+                </Link>
+              ) : (
+                <a
+                  href="#endpoints"
+                  className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-white/20 text-white text-sm font-semibold hover:bg-white/5 transition-all"
+                >
+                  Explore endpoints
+                  <ArrowRight size={15} />
+                </a>
+              )}
             </motion.div>
 
             {/* On-chain callout */}
@@ -456,13 +470,25 @@ export default function ForAiAgents() {
                 Full API Documentation
                 <ExternalLink size={15} />
               </a>
-              <Link
-                to="/signup"
-                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-gray-200 text-gray-900 text-sm font-semibold hover:bg-white transition-all"
-              >
-                Create publisher account
-                <ArrowRight size={15} />
-              </Link>
+              {authLoading ? (
+                <div className="h-12 w-[220px]" aria-hidden="true" />
+              ) : user ? (
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-gray-200 text-gray-900 text-sm font-semibold hover:bg-white transition-all"
+                >
+                  Go to dashboard
+                  <ArrowRight size={15} />
+                </Link>
+              ) : (
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-gray-200 text-gray-900 text-sm font-semibold hover:bg-white transition-all"
+                >
+                  Create publisher account
+                  <ArrowRight size={15} />
+                </Link>
+              )}
             </motion.div>
           </motion.div>
         </div>
