@@ -175,44 +175,46 @@ export default function Insights() {
           </motion.div>
         ) : !fetchError && (
           <>
-            <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
-                <TrendingUp size={18} className="text-oxford mb-3" />
-                <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-gray-900 tracking-tight">${totalRevenue.toFixed(2)}</p>
-                  {periodComparison && periodComparison.previousRevenue > 0 && (
-                    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                      {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-                      {Math.abs(periodComparison.percentChangeRevenue).toFixed(0)}%
-                    </span>
+            {(totalRevenue > 0 || totalTransactions > 0) && (
+              <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
+                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+                  <TrendingUp size={18} className="text-oxford mb-3" />
+                  <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold text-gray-900 tracking-tight">${totalRevenue.toFixed(2)}</p>
+                    {periodComparison && periodComparison.previousRevenue > 0 && (
+                      <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                        {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                        {Math.abs(periodComparison.percentChangeRevenue).toFixed(0)}%
+                      </span>
+                    )}
+                  </div>
+                  {periodComparison && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      vs ${periodComparison.previousRevenue.toFixed(2)} prior period
+                    </p>
                   )}
                 </div>
-                {periodComparison && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    vs ${periodComparison.previousRevenue.toFixed(2)} prior period
-                  </p>
-                )}
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
-                <FileCheck size={18} className="text-oxford mb-3" />
-                <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-gray-900">{totalTransactions}</p>
-                  {periodComparison && periodComparison.previousLicenses > 0 && (
-                    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeLicenses >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                      {periodComparison.percentChangeLicenses >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-                      {Math.abs(periodComparison.percentChangeLicenses).toFixed(0)}%
-                    </span>
+                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+                  <FileCheck size={18} className="text-oxford mb-3" />
+                  <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold text-gray-900">{totalTransactions}</p>
+                    {periodComparison && periodComparison.previousLicenses > 0 && (
+                      <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeLicenses >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                        {periodComparison.percentChangeLicenses >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                        {Math.abs(periodComparison.percentChangeLicenses).toFixed(0)}%
+                      </span>
+                    )}
+                  </div>
+                  {periodComparison && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      vs {periodComparison.previousLicenses} prior period
+                    </p>
                   )}
                 </div>
-                {periodComparison && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    vs {periodComparison.previousLicenses} prior period
-                  </p>
-                )}
-              </div>
-            </motion.div>
+              </motion.div>
+            )}
 
             {chartData.length > 0 && (
               <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
