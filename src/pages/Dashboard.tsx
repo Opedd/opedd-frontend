@@ -225,7 +225,7 @@ export default function Dashboard() {
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
         {/* Pending Earnings Card — only when there's actual revenue or licenses */}
         {!stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0) && (
-          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm" style={{ borderImage: "linear-gradient(135deg, #F59E0B, #D97706) 1" }}>
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm [border-image:linear-gradient(135deg,theme(colors.amber.500),theme(colors.amber.600))_1]">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
