@@ -156,6 +156,10 @@ export default function Dashboard() {
       setContentImported(!!profile?.content_imported);
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
+      setStripeAccountId(profile?.stripe_account_id ?? null);
+      setStripePayoutsEnabled(
+        profile?.stripe_connect ? !!profile.stripe_connect.payouts_enabled : null
+      );
       setSetupComplete(!!profile?.setup_complete);
       // Redirect to setup wizard if setup not complete
       if (!profile?.setup_complete) {
