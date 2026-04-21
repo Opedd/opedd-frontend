@@ -47,9 +47,17 @@ export const TEST_NAME = "E2E Test Publisher";
  * Creates a confirmed (no email verification needed) test user AND a
  * corresponding publishers row (since there is no DB trigger — the app
  * creates the row via the Express backend on first sign-up).
+ *
+ * Optional `verified: true` also inserts a verified content_sources row so
+ * the publisher's PublicationGate opens immediately. Without this, any test
+ * that tries to click into gated surfaces (/licensing pricing toggles,
+ * /content, etc.) is blocked by the pointer-events-none overlay.
+ *
  * Returns the user id, publisher id, and a fresh access token.
  */
-export async function createTestUser(): Promise<{
+export async function createTestUser(
+  opts: { verified?: boolean } = {},
+): Promise<{
   userId: string;
   email: string;
   accessToken: string;
@@ -80,6 +88,24 @@ export async function createTestUser(): Promise<{
     // Clean up auth user before throwing
     await admin.auth.admin.deleteUser(userId);
     throw new Error(`Failed to create publishers row: ${pubError.message}`);
+  }
+
+  // Opt-in: seed a verified content source so PublicationGate opens.
+  // Only needed for tests that interact with gated UI surfaces like
+  // /licensing price toggles.
+  if (opts.verified) {
+    const { error: sourceError } = await admin.from("content_sources").insert({
+      user_id: userId,
+      source_type: "wordpress",
+      url: `https://e2e-verified-${Date.now()}.example.com`,
+      name: "E2E Verified Source",
+      verification_status: "verified",
+      is_active: true,
+    });
+    if (sourceError) {
+      await admin.auth.admin.deleteUser(userId);
+      throw new Error(`Failed to seed verified content_source: ${sourceError.message}`);
+    }
   }
 
   // Sign in to get an access token

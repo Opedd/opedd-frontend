@@ -19,7 +19,10 @@ import { injectAuth, waitForAppReady, dismissModal, assertNoCrash } from "./help
 let user: { userId: string; email: string; password: string };
 
 test.beforeAll(async () => {
-  const created = await createTestUser();
+  // Licensing toggles live behind PublicationGate, which blocks clicks
+  // for unverified publishers. Seed a verified content source so the
+  // gate opens and tests can actually interact with the license types.
+  const created = await createTestUser({ verified: true });
   user = { userId: created.userId, email: created.email, password: TEST_PASSWORD };
 });
 
