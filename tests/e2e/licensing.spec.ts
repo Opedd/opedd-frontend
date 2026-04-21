@@ -108,9 +108,12 @@ test.describe("Licensing — License Type Configuration", () => {
     const isGated = await page.getByText(/verify your publication/i).isVisible().catch(() => false);
     if (isGated) { test.skip(true, "Gated"); return; }
 
-    // Look for AI-related license type text
-    const hasRag = await page.getByText(/AI.*Retrieval|RAG/i).first().isVisible().catch(() => false);
-    expect(hasRag).toBe(true);
+    // Canonical label from src/lib/licenseTypes.ts is "AI Retrieval & Summarization".
+    // Use toBeVisible with explicit timeout so the assertion waits for render
+    // instead of returning synchronously before the page finishes painting.
+    await expect(
+      page.getByText(/AI Retrieval/i).first()
+    ).toBeVisible({ timeout: 5_000 });
   });
 
   test("AI Training license type is visible", async ({ page }) => {
