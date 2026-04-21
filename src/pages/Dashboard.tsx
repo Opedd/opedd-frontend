@@ -273,9 +273,34 @@ export default function Dashboard() {
       headerActions={<></>}
     >
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
-        {/* Pending Earnings Card — only when there's actual revenue or licenses */}
-        {!stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0) && (
-          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm [border-image:linear-gradient(135deg,theme(colors.amber.500),theme(colors.amber.600))_1]">
+        {/* Priority banner — only the highest-priority banner renders. */}
+        {activeBanner === "stripe-kyc" && (
+          <div className="bg-white rounded-xl border-2 border-oxford/40 p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <AlertTriangleIcon size={18} className="text-oxford mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-navy-deep">
+                    Stripe identity verification required
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Your Stripe account is connected but payouts are blocked until you finish identity verification.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={handleConnectStripe}
+                className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
+              >
+                Complete verification →
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {activeBanner === "held-payments" && (
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
@@ -287,18 +312,7 @@ export default function Dashboard() {
               </div>
               <Button
                 size="sm"
-                onClick={async () => {
-                  try {
-                    const token = await getAccessToken();
-                    const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ action: "connect_stripe" }),
-                    });
-                    const json = await res.json();
-                    if (json.url) window.location.href = json.url;
-                  } catch { /* ignore */ }
-                }}
+                onClick={handleConnectStripe}
                 className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
               >
                 Connect Stripe →
@@ -306,23 +320,23 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        {/* Onboarding Checklist */}
-        <OnboardingChecklist
-          contentImported={contentImported}
-          aiLicensingConfigured={aiLicensingConfigured}
-          pricingConfigured={pricingConfigured}
-          stripeConnected={stripeConnected}
-          setupComplete={setupComplete}
-          publisherSlug={publisherSlug}
-          initialAiLicenseTypes={aiLicenseTypes}
-          onRegisterContent={() => navigate("/setup?add=1")}
-          onAiLicensingComplete={() => setAiLicensingConfigured(true)}
-        />
 
-        {/* Verification Pending Banner */}
-        {totalAssets > 0 && !isLoading && (
-          <VerificationPendingBanner />
+        {activeBanner === "verification" && <VerificationPendingBanner />}
+
+        {activeBanner === "onboarding" && (
+          <OnboardingChecklist
+            contentImported={contentImported}
+            aiLicensingConfigured={aiLicensingConfigured}
+            pricingConfigured={pricingConfigured}
+            stripeConnected={stripeConnected}
+            setupComplete={setupComplete}
+            publisherSlug={publisherSlug}
+            initialAiLicenseTypes={aiLicenseTypes}
+            onRegisterContent={() => navigate("/setup?add=1")}
+            onAiLicensingComplete={() => setAiLicensingConfigured(true)}
+          />
         )}
+
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
