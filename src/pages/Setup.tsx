@@ -119,6 +119,7 @@ export default function Setup() {
   const [importDone, setImportDone] = useState(false);
   const [importError, setImportError] = useState(false);
   const [articleCount, setArticleCount] = useState(0);
+  const [importProgress, setImportProgress] = useState<{ processed: number; total: number }>({ processed: 0, total: 0 });
 
   // Step 4 — Sync
   const [syncConfirmed, setSyncConfirmed] = useState(false);
@@ -181,20 +182,46 @@ export default function Setup() {
         toast({ title: "Stripe connection failed", description: "Please try again.", variant: "destructive" });
       }
 
-      // Restore step
-      const saved = localStorage.getItem(`opedd_setup_step_${user.id}`);
-      if (saved) {
-        const s = parseInt(saved, 10);
-        if (s >= 1 && s <= 6) setStep(s);
+      // Restore step — server is source of truth so the wizard resumes
+      // across devices; localStorage is a cache for offline/initial paint.
+      const serverStep = typeof p?.setup_step === "number" ? p.setup_step : null;
+      if (serverStep && serverStep >= 1 && serverStep <= 6) {
+        setStep(serverStep);
+      } else {
+        const saved = localStorage.getItem(`opedd_setup_step_${user.id}`);
+        if (saved) {
+          const s = parseInt(saved, 10);
+          if (s >= 1 && s <= 6) setStep(s);
+        }
       }
       setLoading(false);
     })();
   }, [user, fetchProfile, navigate, searchParams, toast]);
 
-  // Persist step (gated on !loading)
+  // Persist step: cache locally immediately, sync to server in the background.
+  // Server sync is fire-and-forget — the localStorage write already keeps
+  // single-device UX coherent if the server call fails.
   useEffect(() => {
-    if (user && !loading) localStorage.setItem(`opedd_setup_step_${user.id}`, String(step));
-  }, [step, user, loading]);
+    if (!user || loading) return;
+    localStorage.setItem(`opedd_setup_step_${user.id}`, String(step));
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        if (!token) return;
+        await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+          method: "POST",
+          headers: {
+            apikey: EXT_ANON_KEY,
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "update_setup_step", step }),
+        });
+      } catch {
+        // Silent — localStorage cache still protects UX until next load.
+      }
+    })();
+  }, [step, user, loading, getAccessToken]);
 
   // Cleanup poll
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
@@ -399,6 +426,12 @@ export default function Setup() {
       const p = await fetchProfile();
       if (p) {
         setArticleCount(p.article_count || 0);
+        if (p.latest_import) {
+          setImportProgress({
+            processed: p.latest_import.processed || 0,
+            total: p.latest_import.total || 0,
+          });
+        }
         if (p.content_imported) {
           setImportDone(true);
           if (pollRef.current) clearInterval(pollRef.current);
@@ -997,14 +1030,28 @@ export default function Setup() {
                   ) : !importDone ? (
                     <>
                       <div className="w-full h-2 bg-[#EEF0FF] rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED]"
-                          initial={{ width: "10%" }}
-                          animate={{ width: "70%" }}
-                          transition={{ duration: 20, ease: "linear" }}
-                        />
+                        {importProgress.total > 0 ? (
+                          <motion.div
+                            key="determinate"
+                            className="h-full rounded-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED]"
+                            initial={false}
+                            animate={{ width: `${Math.min(99, Math.round((importProgress.processed / importProgress.total) * 100))}%` }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                          />
+                        ) : (
+                          <motion.div
+                            key="indeterminate"
+                            className="h-full w-1/3 rounded-full bg-gradient-to-r from-[#4A26ED] to-[#7C3AED]"
+                            animate={{ x: ["-100%", "300%"] }}
+                            transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
+                          />
+                        )}
                       </div>
-                      <p className="text-xs text-[#6B7280]">Importing your archive — this can take a few minutes for large publications.</p>
+                      <p className="text-xs text-[#6B7280]">
+                        {importProgress.total > 0
+                          ? `Importing your archive — ${importProgress.processed} of ${importProgress.total} articles processed.`
+                          : "Importing your archive — this can take a few minutes for large publications."}
+                      </p>
                     </>
                   ) : (
                     <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 rounded-xl px-4 py-3 border border-emerald-200">

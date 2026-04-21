@@ -103,9 +103,9 @@ function TypeBadge({ type }: { type: string }) {
 
 function PlanBadge({ plan }: { plan: string }) {
   const colors: Record<string, string> = {
-    free: "bg-white/10 text-white/50",
-    pro: "bg-violet-500/10 text-violet-400",
-    enterprise: "bg-[#040042] text-white border border-white/20",
+    free: "bg-[#F3F4F6] text-[#6B7280]",
+    pro: "bg-[#EEF0FD] text-[#4A26ED]",
+    enterprise: "bg-[#FFFBEB] text-[#D97706]",
   };
   return (
     <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${colors[plan] || colors.free}`}>
