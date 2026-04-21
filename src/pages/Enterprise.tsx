@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { copyToClipboard } from "@/lib/clipboard";
 import opeddIcon from "@/assets/opedd-icon.svg";
+import { LICENSE_TYPE_LABELS } from "@/lib/licenseTypes";
 
 /* ─── Static data ─── */
 
@@ -73,24 +74,13 @@ const PRICING_ROWS = [
   },
 ];
 
-const LICENSE_TIERS = [
-  {
-    name: "RAG",
-    desc: "Retrieval-Augmented Generation. Fetch content at inference time for grounded AI responses.",
-  },
-  {
-    name: "Training",
-    desc: "Model fine-tuning and pretraining. Use content in training datasets with full legal coverage.",
-  },
-  {
-    name: "Inference",
-    desc: "Real-time AI outputs. License content that appears in AI-generated responses.",
-  },
-  {
-    name: "Full AI",
-    desc: "All use cases combined. Maximum flexibility for multi-purpose AI platforms.",
-    highlighted: true,
-  },
+// Canonical license tiers — labels and descriptions sourced from
+// src/lib/licenseTypes so marketing matches the rest of the product.
+const LICENSE_TIERS_KEYS: Array<{ key: import("@/lib/licenseTypes").CanonicalLicenseType; highlighted?: boolean }> = [
+  { key: "ai_retrieval" },
+  { key: "ai_training" },
+  { key: "archive", highlighted: true },
+  { key: "corporate" },
 ];
 
 const COMPARISON = [
