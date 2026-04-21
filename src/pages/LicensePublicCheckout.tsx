@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
+import { LICENSE_TYPE_LABELS } from "@/lib/licenseTypes";
 
 interface AssetRow {
   id: string;
@@ -21,14 +22,17 @@ interface AssetRow {
   content_delivery_available?: boolean | null;
 }
 
+// Internal checkout vocabulary maps 1:1 to the canonical license types.
+// 'ai_inference' is the legacy backend token kept for the API payload only;
+// every label shown to buyers reads from LICENSE_TYPE_LABELS.
 type LicenseType = "editorial" | "ai_inference" | "ai_training" | "corporate" | "syndication";
 
 const BASE_LICENSE_TYPE_OPTIONS: { value: LicenseType; label: string }[] = [
-  { value: "editorial",    label: "Editorial License" },
-  { value: "ai_inference", label: "AI / RAG License" },
-  { value: "ai_training",  label: "AI Training License" },
-  { value: "corporate",    label: "Corporate License" },
-  { value: "syndication",  label: "Syndication License" },
+  { value: "editorial",    label: `${LICENSE_TYPE_LABELS.editorial.label} License` },
+  { value: "ai_inference", label: `${LICENSE_TYPE_LABELS.ai_retrieval.label} License` },
+  { value: "ai_training",  label: `${LICENSE_TYPE_LABELS.ai_training.label} License` },
+  { value: "corporate",    label: `${LICENSE_TYPE_LABELS.corporate.label} License` },
+  { value: "syndication",  label: `${LICENSE_TYPE_LABELS.syndication.label} License` },
 ];
 
 const VALID_LICENSE_TYPES = new Set<string>(BASE_LICENSE_TYPE_OPTIONS.map((o) => o.value));
