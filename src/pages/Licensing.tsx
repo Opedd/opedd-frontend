@@ -153,26 +153,32 @@ interface PriceInputProps {
   label: string;
   onChange: (val: number | null) => void;
   disabled?: boolean;
+  hint?: string;
 }
 
-function PriceInput({ value, label, onChange, disabled }: PriceInputProps) {
+function PriceInput({ value, label, onChange, disabled, hint }: PriceInputProps) {
   return (
-    <div className="flex items-center gap-2 mt-2">
-      <span className="text-gray-400 text-sm font-medium">$</span>
-      <Input
-        type="number"
-        min="0"
-        step="1"
-        placeholder="0"
-        value={value ?? ""}
-        disabled={disabled}
-        onChange={(e) => {
-          const v = parseFloat(e.target.value);
-          onChange(isNaN(v) ? null : v);
-        }}
-        className="w-28 h-8 text-sm"
-      />
-      <span className="text-xs text-gray-400">{label}</span>
+    <div className="mt-2">
+      <div className="flex items-center gap-2">
+        <span className="text-gray-400 text-sm font-medium">$</span>
+        <Input
+          type="number"
+          min="0"
+          step="1"
+          placeholder="0"
+          value={value ?? ""}
+          disabled={disabled}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value);
+            onChange(isNaN(v) ? null : v);
+          }}
+          className="w-28 h-8 text-sm"
+        />
+        <span className="text-xs text-gray-400">{label}</span>
+      </div>
+      {hint && !disabled && (
+        <p className="text-[11px] text-gray-500 mt-1 italic">{hint}</p>
+      )}
     </div>
   );
 }
@@ -425,6 +431,7 @@ export default function Licensing() {
           label="/article"
           disabled={!localRules.license_types.editorial.enabled}
           onChange={(v) => updateLicenseType("editorial", { price_per_article: v })}
+          hint="Also sets your default per-article human price."
         />
       ),
     },
@@ -467,6 +474,7 @@ export default function Licensing() {
           label="one-time"
           disabled={!localRules.license_types.ai_training.enabled}
           onChange={(v) => updateLicenseType("ai_training", { price_onetime: v })}
+          hint="Also sets your default per-article AI price."
         />
       ),
     },
