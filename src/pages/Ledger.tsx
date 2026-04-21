@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { decodeText } from "@/lib/utils";
-import { PageLoader } from "@/components/ui/PageLoader";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -325,7 +325,7 @@ export default function Ledger() {
     }
   };
 
-  if (isLoading && transactions.length === 0) return <PageLoader />;
+  if (isLoading && transactions.length === 0) return <DashboardSkeleton />;
 
   return (
     <DashboardLayout title="Ledger" subtitle="License agreements and buyer transactions">

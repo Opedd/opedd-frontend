@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { PageLoader } from "@/components/ui/PageLoader";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog,
@@ -900,7 +900,7 @@ export default function Settings() {
             )}
           </AnimatePresence>
           {isLoading ? (
-            <PageLoader />
+            <DashboardSkeleton />
           ) : (
             <PublicationGate
               isVerified={profile?.publication_verified ?? false}

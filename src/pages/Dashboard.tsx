@@ -7,7 +7,7 @@ import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTria
 import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
-import { PageLoader } from "@/components/ui/PageLoader";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { deriveSlug } from "@/lib/utils";
@@ -219,7 +219,7 @@ export default function Dashboard() {
   useEffect(() => { fetchAdminStats(); }, [fetchAdminStats]);
 
   if (!user) return null;
-  if (hasActivePublication === null || !referralChecked) return <PageLoader />;
+  if (hasActivePublication === null || !referralChecked) return <DashboardSkeleton />;
 
   const showBanner = !setupCompletion.pricingDone || !setupCompletion.widgetDone;
   const licensingUrl = publisherSlug ? `opedd.com/p/${publisherSlug}` : null;
