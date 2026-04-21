@@ -393,13 +393,11 @@ export default function Licenses() {
               </div>
 
               {licenses.length === 0 ? (
-                <div className="py-12 text-center">
-                  <FileText size={36} className="text-gray-300 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-gray-700">No licenses found for this email.</p>
-                  <p className="text-xs text-gray-400 mt-1.5 max-w-[320px] mx-auto">
-                    If you made a purchase, make sure you're using the same email address you used at checkout.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={FileText}
+                  title="No licenses found for this email"
+                  description="If you made a purchase, make sure you're using the same email address you used at checkout."
+                />
               ) : (
                 <div className="space-y-3">
                   {licenses.map((lic) => (

@@ -392,16 +392,13 @@ export default function Ledger() {
         {!fetchError && (
           <motion.div variants={itemVariants}>
                 {transactions.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-gray-200 p-16 shadow-card text-center">
-                    <FileCheck size={40} className="mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">No transactions yet</h3>
-                    <p className="text-sm text-gray-500 max-w-xs mx-auto mb-5">Once buyers license your articles, all transactions will appear here with full details.</p>
-                    <Button
-                      onClick={() => navigate("/content")}
-                      className="bg-oxford hover:bg-oxford-dark text-white font-medium px-5 py-2 rounded-lg"
-                    >
-                      Add your first article
-                    </Button>
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-card">
+                    <EmptyState
+                      icon={FileCheck}
+                      title="No transactions yet"
+                      description="Once buyers license your articles, all transactions will appear here with full details."
+                      action={{ label: "Add your first article", onClick: () => navigate("/content") }}
+                    />
                   </div>
                 ) : (
                   <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">

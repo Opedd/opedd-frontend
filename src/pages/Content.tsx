@@ -424,19 +424,13 @@ export default function Content() {
                 ))}
               </div>
             ) : assets.length === 0 ? (
-              <div className="py-20 text-center">
-                <FileText size={40} className="text-gray-300 mx-auto mb-3" />
-                <p className="text-sm font-bold text-gray-900">No articles yet</p>
-                <p className="text-xs text-gray-400 mt-1">Import your content catalog to start licensing it.</p>
-                <div className="flex items-center justify-center gap-3 mt-5">
-                  <Button variant="default" size="sm" onClick={() => navigate("/setup")}>
-                    <Globe size={14} className="mr-1.5" />Import from Sitemap
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={() => navigate("/setup")}>
-                    <Link2 size={14} className="mr-1.5" />Connect Publication
-                  </Button>
-                </div>
-              </div>
+              <EmptyState
+                icon={FileText}
+                title="No articles yet"
+                description="Import your content catalog to start licensing it."
+                action={{ label: "Import from Sitemap", onClick: () => navigate("/setup") }}
+                secondaryAction={{ label: "Connect Publication", onClick: () => navigate("/setup") }}
+              />
             ) : (
               <table className="w-full min-w-[900px]">
                 <thead>
