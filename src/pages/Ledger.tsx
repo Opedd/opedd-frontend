@@ -33,10 +33,20 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CANONICAL_LICENSE_TYPES,
+  LICENSE_TYPE_LABELS,
+  getLicenseTypeBadgeClass,
+  getLicenseTypeLabel,
+  getLicenseTypeTextColor,
+  normalizeLegacyType,
+  type CanonicalLicenseType,
+} from "@/lib/licenseTypes";
 
 interface Transaction {
   id: string;
-  type: "ai_ingestion" | "human_license" | "archive_license" | "enterprise_license" | "payout";
+  /** Canonical license-type taxonomy. Backend tokens normalized at read time. */
+  type: CanonicalLicenseType;
   description: string;
   amount: number;
   date: string;
