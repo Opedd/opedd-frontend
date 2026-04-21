@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/Spinner";
+import { EmptyState } from "@/components/dashboard/EmptyState";
+import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: string;
