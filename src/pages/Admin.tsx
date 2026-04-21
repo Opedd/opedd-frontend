@@ -6,7 +6,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import {
   Users, DollarSign, Activity, AlertTriangle, Search, Copy, Check,
-  ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown,
+  ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown, PartyPopper,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -289,8 +289,8 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
                 <SortTh label="Name" active={sortKey === "display_name"} dir={sortDir} onClick={() => handleSort("display_name")} />
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Website</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</th>
-                <SortTh label="Articles" active={sortKey === "article_count"} dir={sortDir} onClick={() => handleSort("article_count")} />
-                <SortTh label="Revenue" active={sortKey === "total_revenue"} dir={sortDir} onClick={() => handleSort("total_revenue")} />
+                <SortTh label="Articles" active={sortKey === "article_count"} dir={sortDir} onClick={() => handleSort("article_count")} align="right" />
+                <SortTh label="Revenue" active={sortKey === "total_revenue"} dir={sortDir} onClick={() => handleSort("total_revenue")} align="right" />
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Stripe</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Joined</th>
               </tr>
@@ -303,8 +303,8 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
                   <td className="py-3 px-4 font-medium text-gray-900">{p.display_name || "—"}</td>
                   <td className="py-3 px-4 text-gray-500 truncate max-w-[180px]">{p.website_url || "—"}</td>
                   <td className="py-3 px-4"><PlanBadge plan={p.plan} /></td>
-                  <td className="py-3 px-4 text-gray-900">{p.article_count}</td>
-                  <td className="py-3 px-4 text-gray-900 font-medium">${p.total_revenue.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-gray-900 text-right tabular-nums">{p.article_count.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-gray-900 font-medium text-right tabular-nums">${p.total_revenue.toFixed(2)}</td>
                   <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-gray-300">✗</span>}</td>
                   <td className="py-3 px-4 text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>
@@ -317,10 +317,10 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
   );
 }
 
-function SortTh({ label, active, dir, onClick }: { label: string; active: boolean; dir: string; onClick: () => void }) {
+function SortTh({ label, active, dir, onClick, align = "left" }: { label: string; active: boolean; dir: string; onClick: () => void; align?: "left" | "right" }) {
   return (
-    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide cursor-pointer select-none" onClick={onClick}>
-      <span className="inline-flex items-center gap-1">
+    <th className={`py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide cursor-pointer select-none ${align === "right" ? "text-right" : "text-left"}`} onClick={onClick}>
+      <span className={`inline-flex items-center gap-1 ${align === "right" ? "justify-end w-full" : ""}`}>
         {label}
         <ArrowUpDown size={12} className={active ? "text-navy-deep" : "text-gray-300"} />
       </span>
@@ -376,7 +376,7 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Date</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Buyer</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</th>
+                <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Type</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">License Key</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
@@ -389,7 +389,7 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
                 <tr key={tx.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                   <td className="py-3 px-4 text-gray-500">{new Date(tx.created_at).toLocaleDateString()}</td>
                   <td className="py-3 px-4 text-gray-500">{maskEmail(tx.buyer_email)}</td>
-                  <td className="py-3 px-4 font-medium text-gray-900">${tx.amount.toFixed(2)}</td>
+                  <td className="py-3 px-4 font-medium text-gray-900 text-right tabular-nums">${tx.amount.toFixed(2)}</td>
                   <td className="py-3 px-4"><TypeBadge type={tx.license_type} /></td>
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center gap-1.5">
@@ -458,7 +458,7 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
   if (webhooks.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="text-lg mb-1">🎉</p>
+        <PartyPopper size={28} className="mx-auto text-emerald-500 mb-2" />
         <p className="text-sm font-medium text-gray-500">No failed webhooks</p>
         <p className="text-xs text-gray-400 mt-1">All webhook deliveries are healthy.</p>
       </div>
@@ -473,7 +473,7 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
             <tr className="border-b border-gray-200 bg-gray-50">
               <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Publisher</th>
               <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Event Type</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Attempts</th>
+              <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Attempts</th>
               <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Last Try</th>
               <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
             </tr>
@@ -483,7 +483,7 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
               <tr key={wh.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                 <td className="py-3 px-4 font-medium text-gray-900">{wh.publisher_name}</td>
                 <td className="py-3 px-4 text-gray-500">{wh.event_type}</td>
-                <td className="py-3 px-4 text-gray-900">{wh.attempts}</td>
+                <td className="py-3 px-4 text-gray-900 text-right tabular-nums">{wh.attempts}</td>
                 <td className="py-3 px-4 text-gray-500">{new Date(wh.last_attempt_at).toLocaleString()}</td>
                 <td className="py-3 px-4"><StatusBadge status={wh.status} /></td>
               </tr>

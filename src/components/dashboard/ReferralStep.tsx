@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Loader2, MessageSquare, X } from "lucide-react";
+import { Loader2, MessageSquare, X, Rocket } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -12,7 +12,7 @@ const OPTIONS = [
   { label: "ChatGPT / AI tool", icon: "🤖" },
   { label: "Word of mouth", icon: "🗣️" },
   { label: "Press / Media", icon: "📰" },
-  { label: "Product Hunt", icon: "🚀" },
+  { label: "Product Hunt", icon: <Rocket size={16} /> },
   { label: "Other", icon: "✏️" },
 ];
 

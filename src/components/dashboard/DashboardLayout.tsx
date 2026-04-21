@@ -195,7 +195,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                   : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
               )}
             >
-              <Icon size={16} strokeWidth={active ? 2 : 1.5} />
+              <Icon size={16} strokeWidth={1.5} />
               {item.title}
             </NavLink>
           );
@@ -378,24 +378,6 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                 </div>
               </PopoverContent>
             </Popover>
-
-            {/* Avatar dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button aria-label="Open account menu" className="w-9 h-9 rounded-full bg-oxford flex items-center justify-center hover:ring-2 hover:ring-oxford/20 transition-all">
-                  <span className="text-xs font-bold text-white">{getInitial()}</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white border-gray-200 shadow-lg z-50">
-                <DropdownMenuItem asChild className="cursor-pointer text-sm py-2">
-                  <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-gray-200" />
-                <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); sessionStorage.removeItem("opedd_trial_days"); sessionStorage.removeItem("opedd_trial_dismissed"); logout(); }}>
-                  <LogOut className="mr-2 h-4 w-4" />Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </header>
 
@@ -406,10 +388,10 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             <div className={cn(
               "shrink-0 px-4 py-2.5 flex items-center justify-between gap-4 border-b",
               urgent
-                ? "bg-amber-100 border-amber-200"
+                ? "bg-warning/10 border-warning/20"
                 : "bg-oxford-light border-oxford-pale"
             )}>
-              <p className={cn("text-xs font-medium flex-1", urgent ? "text-amber-800" : "text-oxford")}>
+              <p className={cn("text-xs font-medium flex-1", urgent ? "text-warning" : "text-oxford")}>
                 <span className="font-bold">{trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left on your free trial</span>
                 {" "}— import unlimited articles and explore all features.{urgent ? " Upgrade now to keep full access." : ""}
               </p>
@@ -418,7 +400,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                 className={cn(
                   "shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap border",
                   urgent
-                    ? "border-amber-600 text-amber-800 hover:bg-amber-200"
+                    ? "border-warning/40 text-warning hover:bg-warning/15"
                     : "border-oxford/20 text-oxford hover:bg-oxford/5"
                 )}
               >
@@ -426,7 +408,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               </NavLink>
               <button
                 onClick={() => { sessionStorage.setItem("opedd_trial_dismissed", "1"); setTrialDaysRemaining(null); }}
-                className={cn("shrink-0 p-1 rounded-md transition-colors", urgent ? "text-amber-800/50 hover:text-amber-800 hover:bg-amber-200" : "text-oxford/40 hover:text-oxford hover:bg-oxford/5")}
+                className={cn("shrink-0 p-1 rounded-md transition-colors", urgent ? "text-warning/60 hover:text-warning hover:bg-warning/15" : "text-oxford/40 hover:text-oxford hover:bg-oxford/5")}
                 aria-label="Dismiss trial banner"
               >
                 <X size={14} />

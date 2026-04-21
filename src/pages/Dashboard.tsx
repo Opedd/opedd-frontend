@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail, ArrowUp, ArrowDown, Bot, User as UserIcon, FileText, Tag, UserPlus, Eye, ChevronRight, Handshake } from "lucide-react";
+import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail, ArrowUp, ArrowDown, Bot, User as UserIcon, FileText, Tag, UserPlus, Eye, ChevronRight, Handshake, Coins } from "lucide-react";
 import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
@@ -304,7 +304,8 @@ export default function Dashboard() {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
-                  💰 Pending Earnings: ${totalRevenue.toFixed(2)}
+                  <Coins size={18} className="text-amber-600" />
+                  Pending Earnings: ${totalRevenue.toFixed(2)}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
                   Your earnings are accumulating. Connect your bank to start receiving payouts.
