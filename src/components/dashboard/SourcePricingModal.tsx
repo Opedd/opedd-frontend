@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { DollarSign, X, Loader2 } from "lucide-react";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface SourcePricingModalProps {
   open: boolean;
@@ -132,7 +133,7 @@ export function SourcePricingModal({ open, onOpenChange, sourceId, sourceName, o
             className="w-full h-12 rounded-xl bg-oxford hover:bg-oxford-dark text-white font-semibold text-sm shadow-card shadow-card/25 transition-all active:scale-[0.98] gap-2"
           >
             {isSaving ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Spinner size="md" />
             ) : (
               <DollarSign size={16} />
             )}

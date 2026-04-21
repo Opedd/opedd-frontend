@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { formatUSD, formatInteger } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -270,7 +271,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                 <p className="text-amber-400 text-sm">On-chain registration failed. The license is still valid.</p>
                 {onRetryBlockchain && (
                   <button onClick={handleRetryBlockchain} disabled={retrying} className="flex items-center gap-1.5 text-xs font-medium text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0">
-                    {retrying ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+                    {retrying ? <Spinner size="sm" /> : <RefreshCw size={13} />}
                     {retrying ? "Retrying…" : "Retry"}
                   </button>
                 )}
@@ -323,7 +324,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                     disabled={refunding}
                     className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg gap-2"
                   >
-                    {refunding && <Loader2 size={14} className="animate-spin" />}
+                    {refunding && <Spinner size="sm" />}
                     {refunding ? "Processing…" : "Yes, Refund"}
                   </AlertDialogAction>
                 </AlertDialogFooter>

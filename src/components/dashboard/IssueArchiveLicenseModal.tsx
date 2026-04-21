@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { usePlans, getPlan } from "@/hooks/usePlans";
 import { format } from "date-fns";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface IssueArchiveLicenseModalProps {
   open: boolean;
@@ -184,7 +185,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
       <DialogContent hideCloseButton className="max-w-md p-0 overflow-hidden">
         {planLoading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={24} className="animate-spin text-oxford" />
+            <Spinner size="md" className="text-oxford" />
           </div>
         ) : publisherPlan === "free" ? (
           /* Upgrade wall */
@@ -232,7 +233,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               className="w-full bg-oxford hover:bg-oxford-dark text-white rounded-lg h-11 font-semibold"
             >
               {isUpgrading ? (
-                <><Loader2 size={16} className="mr-2 animate-spin" />Preparing checkout...</>
+                <><Spinner size="md" className="mr-2" />Preparing checkout...</>
               ) : (
                 <><Zap size={16} className="mr-2" />Upgrade to Pro - {proDisplay}/mo</>
               )}
@@ -466,7 +467,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                 className="flex-1 bg-oxford hover:bg-oxford-dark text-white rounded-lg"
               >
                 {isSubmitting ? (
-                  <><Loader2 size={16} className="mr-2 animate-spin" />Issuing...</>
+                  <><Spinner size="md" className="mr-2" />Issuing...</>
                 ) : (
                   <><Handshake size={16} className="mr-2" />Issue Deal</>
                 )}

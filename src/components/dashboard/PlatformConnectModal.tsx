@@ -41,6 +41,7 @@ import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
+import { Spinner } from "@/components/ui/Spinner";
 
 const platformLogos: Record<string, string> = {
   substack: substackLogo,
@@ -459,7 +460,7 @@ export function PlatformConnectModal({
               disabled={isConnecting || !apiKey.trim()}
               className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
-              {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {isConnecting ? <Spinner size="md" className="mr-2" /> : null}
               Validate & Import Archive
             </Button>
           </div>
@@ -502,7 +503,7 @@ export function PlatformConnectModal({
               disabled={isConnecting || !ghostApiKey.trim()}
               className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
-              {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {isConnecting ? <Spinner size="md" className="mr-2" /> : null}
               Validate & Import Archive
             </Button>
           </div>
@@ -522,7 +523,7 @@ export function PlatformConnectModal({
               disabled={isConnecting}
               className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
-              {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {isConnecting ? <Spinner size="md" className="mr-2" /> : null}
               Import Archive
             </Button>
           </div>
@@ -583,7 +584,7 @@ export function PlatformConnectModal({
             >
               {isConnecting ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Loader2 size={14} className="animate-spin" />
+                  <Spinner size="sm" />
                   Registering…
                 </span>
               ) : (
@@ -648,7 +649,7 @@ export function PlatformConnectModal({
           </div>
         ) : verifyResult === "loading" ? (
           <div className="text-center py-8">
-            <Loader2 size={32} className="animate-spin text-oxford mx-auto" />
+            <Spinner size="lg" className="text-oxford mx-auto" />
             <p className="text-sm text-gray-500 mt-3">Checking your publication…</p>
           </div>
         ) : verifyResult === "failed" ? (
