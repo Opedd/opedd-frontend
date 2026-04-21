@@ -7,7 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Suspense, lazy } from "react";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/Spinner";
 import { HelmetProvider } from "react-helmet-async";
 
 // Core dashboard routes — eagerly loaded (always needed after login)
@@ -65,7 +65,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
-    <Loader2 className="h-6 w-6 animate-spin text-oxford" />
+    <Spinner size="md" className="text-oxford" />
   </div>
 );
 

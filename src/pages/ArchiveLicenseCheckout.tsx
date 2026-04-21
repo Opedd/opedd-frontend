@@ -8,6 +8,7 @@ import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
 import { formatUSD } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface PublisherRow {
   id: string;
@@ -107,7 +108,7 @@ export default function ArchiveLicenseCheckout() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-oxford" />
+        <Spinner size="md" className="text-oxford" />
       </div>
     );
   }
@@ -262,7 +263,7 @@ export default function ArchiveLicenseCheckout() {
                 className="w-full h-11 text-sm font-semibold bg-oxford hover:bg-oxford-dark text-white"
               >
                 {submitting ? (
-                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />Redirecting to payment…</>
+                  <><Spinner size="md" className="mr-2" />Redirecting to payment…</>
                 ) : (
                   `Pay ${formatUSD(archivePrice!)}/year · Secure License`
                 )}

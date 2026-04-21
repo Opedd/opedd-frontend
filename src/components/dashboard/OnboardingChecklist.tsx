@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface Props {
   contentImported: boolean;
@@ -287,7 +288,7 @@ export function OnboardingChecklist({
                       className="h-9 px-3 text-xs bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg flex-shrink-0"
                     >
                       {isStripeConnecting ? (
-                        <Loader2 size={12} className="animate-spin" />
+                        <Spinner size="sm" />
                       ) : (
                         <>{step.cta}<ArrowRight size={12} className="ml-1" /></>
                       )}
@@ -355,7 +356,7 @@ export function OnboardingChecklist({
                   disabled={isSavingAi}
                   className="w-full bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg"
                 >
-                  {isSavingAi ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save & Continue"}
+                  {isSavingAi ? <><Spinner size="sm" className="mr-2" />Saving...</> : "Save & Continue"}
                 </Button>
               </div>
             )}

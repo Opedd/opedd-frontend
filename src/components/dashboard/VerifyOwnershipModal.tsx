@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
+import { Spinner } from "@/components/ui/Spinner";
 import {
   Shield,
   X,
@@ -236,7 +237,7 @@ export function VerifyOwnershipModal({
         disabled={isRegenerating}
         className="text-xs text-oxford hover:text-oxford-dark font-medium flex items-center gap-1.5 mx-auto transition-colors disabled:opacity-50"
       >
-        {isRegenerating ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+        {isRegenerating ? <Spinner size="sm" /> : <RefreshCw size={12} />}
         Regenerate Code
       </button>
 
@@ -348,7 +349,7 @@ export function VerifyOwnershipModal({
       <div className="text-center space-y-4 py-4">
         {verifyResult === "loading" && (
           <>
-            <Loader2 size={48} className="animate-spin text-oxford mx-auto" />
+            <Spinner size="lg" className="text-oxford mx-auto" />
             <div>
               <h3 className="text-base font-bold text-navy-deep">Checking your publication…</h3>
               <p className="text-sm text-gray-500 mt-1">We're looking for your verification code.</p>
@@ -393,23 +394,15 @@ export function VerifyOwnershipModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]">
+      <DialogContent className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="bg-navy-deep px-6 py-5 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield size={20} className="text-violet-400" />
-              <div>
-                <h1 className="text-white font-bold text-base leading-tight">Verify Ownership</h1>
-                <p className="text-violet-400 text-sm truncate max-w-[250px]">{source.name}</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <Shield size={20} className="text-violet-400" />
+            <div>
+              <h1 className="text-white font-bold text-base leading-tight">Verify Ownership</h1>
+              <p className="text-violet-400 text-sm truncate max-w-[250px]">{source.name}</p>
             </div>
-            <button
-              onClick={handleClose}
-              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            >
-              <X size={16} className="text-white" />
-            </button>
           </div>
         </div>
 
@@ -473,7 +466,7 @@ export function VerifyOwnershipModal({
 
           {step === 2 && verifyResult === "loading" && (
             <Button disabled className="w-full h-11 bg-slate-200 text-gray-500">
-              <Loader2 size={16} className="animate-spin mr-2" />
+              <Spinner size="md" className="mr-2" />
               Verifying…
             </Button>
           )}

@@ -51,6 +51,7 @@ import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 import mediumLogo from "@/assets/platforms/medium.svg";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface Source {
   id: string;
@@ -310,7 +311,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           disabled={isDetecting || !connectUrl.trim()}
           className="h-11 px-6 bg-oxford hover:bg-oxford-dark text-white font-semibold shrink-0"
         >
-          {isDetecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+          {isDetecting ? <Spinner size="md" className="mr-2" /> : null}
           Connect
         </Button>
       </form>
@@ -322,7 +323,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       <div className="space-y-4">
         {urlInputBar}
         <div className="bg-white rounded-xl border border-gray-200 shadow-card p-12 flex items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-oxford" />
+          <Spinner size="lg" className="text-oxford" />
         </div>
       </div>
     );
@@ -438,7 +439,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       </Badge>
                     ) : isImporting ? (
                       <Badge variant="outline" className="text-[10px] px-2 py-0 bg-blue-50 text-blue-600 border-blue-200 gap-1 flex-shrink-0">
-                        <Loader2 size={8} className="animate-spin" />
+                        <Spinner size="sm" />
                         Importing
                       </Badge>
                     ) : (
@@ -506,7 +507,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
               {/* Import in progress banner for sitemap/enterprise sources */}
               {isImporting && (
                 <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-                  <Loader2 size={14} className="text-blue-500 mt-0.5 flex-shrink-0 animate-spin" />
+                  <Spinner size="sm" className="text-blue-500 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-blue-700">
                     <p className="font-medium">Import in progress</p>
                     <p className="mt-0.5 text-blue-600">
@@ -567,7 +568,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       disabled={isSyncing}
                       className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-navy-deep hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      {isSyncing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                      {isSyncing ? <Spinner size="sm" /> : <RefreshCw size={12} />}
                       Re-sync
                     </button>
 
@@ -661,7 +662,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         open={!!deleteConfirmSource}
         onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
       >
-        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-modal gap-0">
+        <DialogContent className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-modal gap-0">
           <DialogHeader className="space-y-0 mb-5">
             <DialogTitle className="text-lg font-semibold text-navy-deep">Remove Source</DialogTitle>
             <DialogDescription className="text-sm text-navy-deep/50 mt-1.5 leading-relaxed">

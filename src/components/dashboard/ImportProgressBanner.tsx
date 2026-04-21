@@ -3,6 +3,7 @@ import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatInteger } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface ImportRecord {
   status: "queued" | "processing" | "done" | "failed";
@@ -112,7 +113,7 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
 
   return (
     <div className="bg-oxford/5 border border-oxford/15 rounded-xl px-4 py-3 flex items-center gap-4">
-      <Loader2 size={16} className="text-oxford animate-spin flex-shrink-0" />
+      <Spinner size="md" className="text-oxford flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-navy-deep">Importing your archive…</p>
         <p className="text-xs text-gray-500">

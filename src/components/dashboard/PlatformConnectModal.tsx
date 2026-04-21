@@ -18,10 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { copyToClipboard } from "@/lib/clipboard";
 import {
-  X,
   Check,
   Copy,
-  Loader2,
   Upload,
   AlertTriangle,
   ChevronRight,
@@ -41,6 +39,7 @@ import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
+import { Spinner } from "@/components/ui/Spinner";
 
 const platformLogos: Record<string, string> = {
   substack: substackLogo,
@@ -459,7 +458,7 @@ export function PlatformConnectModal({
               disabled={isConnecting || !apiKey.trim()}
               className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
-              {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {isConnecting ? <Spinner size="md" className="mr-2" /> : null}
               Validate & Import Archive
             </Button>
           </div>
@@ -502,7 +501,7 @@ export function PlatformConnectModal({
               disabled={isConnecting || !ghostApiKey.trim()}
               className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
-              {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {isConnecting ? <Spinner size="md" className="mr-2" /> : null}
               Validate & Import Archive
             </Button>
           </div>
@@ -522,7 +521,7 @@ export function PlatformConnectModal({
               disabled={isConnecting}
               className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold"
             >
-              {isConnecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {isConnecting ? <Spinner size="md" className="mr-2" /> : null}
               Import Archive
             </Button>
           </div>
@@ -583,7 +582,7 @@ export function PlatformConnectModal({
             >
               {isConnecting ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Loader2 size={14} className="animate-spin" />
+                  <Spinner size="sm" />
                   Registering…
                 </span>
               ) : (
@@ -648,7 +647,7 @@ export function PlatformConnectModal({
           </div>
         ) : verifyResult === "loading" ? (
           <div className="text-center py-8">
-            <Loader2 size={32} className="animate-spin text-oxford mx-auto" />
+            <Spinner size="lg" className="text-oxford mx-auto" />
             <p className="text-sm text-gray-500 mt-3">Checking your publication…</p>
           </div>
         ) : verifyResult === "failed" ? (
@@ -859,28 +858,19 @@ export function PlatformConnectModal({
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onOpenChange(false); } }}>
       <DialogContent
-        hideCloseButton
         className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="bg-navy-deep px-6 py-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            {platformLogos[platform] ? (
-              <img src={platformLogos[platform]} alt={platform} className="w-6 h-6" />
-            ) : (
-              <Rss size={20} className="text-violet-400" />
-            )}
-            <div>
-              <h1 className="text-white font-bold text-base leading-tight">Connect Publication</h1>
-              <p className="text-violet-400 text-xs truncate max-w-[250px]">{detection.name || url}</p>
-            </div>
+        <div className="bg-navy-deep px-6 py-4 flex items-center gap-3 shrink-0">
+          {platformLogos[platform] ? (
+            <img src={platformLogos[platform]} alt={platform} className="w-6 h-6" />
+          ) : (
+            <Rss size={20} className="text-violet-400" />
+          )}
+          <div>
+            <h1 className="text-white font-bold text-base leading-tight">Connect Publication</h1>
+            <p className="text-violet-400 text-xs truncate max-w-[250px]">{detection.name || url}</p>
           </div>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-          >
-            <X size={16} className="text-white" />
-          </button>
         </div>
 
         {/* Body */}

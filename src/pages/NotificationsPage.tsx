@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/Spinner";
+import { EmptyState } from "@/components/dashboard/EmptyState";
+import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: string;
@@ -80,6 +83,7 @@ function bucketFor(dateStr: string): Bucket {
 export default function NotificationsPage() {
   useDocumentTitle("Notifications — Opedd");
   const { user, getAccessToken } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -196,7 +200,7 @@ export default function NotificationsPage() {
               className="border-gray-200 text-gray-500 hover:text-gray-900 text-sm"
             >
               {isMarkingAll ? (
-                <><Loader2 size={14} className="mr-2 animate-spin" />Marking...</>
+                <><Spinner size="sm" className="mr-2" />Marking...</>
               ) : (
                 <><CheckCheck size={14} className="mr-2" />Mark all read</>
               )}
@@ -227,7 +231,7 @@ export default function NotificationsPage() {
             variants={itemVariants}
             className="bg-white rounded-xl border border-gray-200 p-16 flex items-center justify-center"
           >
-            <Loader2 className="h-6 w-6 animate-spin text-oxford" />
+            <Spinner size="md" className="text-oxford" />
           </motion.div>
         )}
 
@@ -235,19 +239,14 @@ export default function NotificationsPage() {
         {!isLoading && !fetchError && notifications.length === 0 && (
           <motion.div
             variants={itemVariants}
-            className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-card"
+            className="bg-white rounded-xl border border-gray-200 shadow-card"
           >
-            <Bell size={40} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-base font-semibold text-gray-900 mb-1">No notifications yet</h3>
-            <p className="text-sm text-gray-500 max-w-xs mx-auto mb-5">
-              You'll be notified here when buyers license your content, payments are processed, and more.
-            </p>
-            <a
-              href="/licensing"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:underline"
-            >
-              View licensing page →
-            </a>
+            <EmptyState
+              icon={Bell}
+              title="No notifications yet"
+              description="You'll be notified here when buyers license your content, payments are processed, and more."
+              action={{ label: "View licensing page", onClick: () => navigate("/licensing") }}
+            />
           </motion.div>
         )}
 

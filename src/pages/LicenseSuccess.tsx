@@ -8,6 +8,7 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { getLicenseTypeLabel } from "@/lib/licenseTypes";
 import { copyToClipboard } from "@/lib/clipboard";
 import { formatUSD } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface CheckoutData {
   status: "pending" | "completed" | "failed";
@@ -182,7 +183,7 @@ export default function LicenseSuccess() {
               {resent ? (
                 <><Check className="h-3.5 w-3.5 text-emerald-500" /> Sent to {data.buyer_email}</>
               ) : resending ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...</>
+                <><Spinner size="sm" /> Sending...</>
               ) : (
                 <><Send className="h-3.5 w-3.5" /> Resend license to {data.buyer_email}</>
               )}
@@ -200,7 +201,7 @@ export default function LicenseSuccess() {
     return (
       <Shell>
         <div className="text-center">
-          <Loader2 className="h-6 w-6 animate-spin text-oxford mx-auto mb-4" />
+          <Spinner size="md" className="text-oxford mx-auto mb-4" />
           <p className="text-gray-500 text-sm">Confirming your payment...</p>
         </div>
       </Shell>
@@ -311,7 +312,7 @@ export default function LicenseSuccess() {
               {resent ? (
                 <><Check className="h-3.5 w-3.5 text-emerald-500" /> Sent to your email</>
               ) : resending ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...</>
+                <><Spinner size="sm" /> Sending...</>
               ) : (
                 <><Send className="h-3.5 w-3.5" /> Resend to my email</>
               )}

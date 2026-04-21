@@ -12,6 +12,7 @@ import {
   ArrowUpDown, Download, Handshake, Upload, ChevronDown,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 import { formatUSD } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 function getPlatformLogo(url: string | undefined): string | null {
   if (!url) return null;
@@ -284,7 +286,7 @@ export default function Content() {
     );
     if (isSyncing) return (
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-oxford bg-oxford/10 border border-oxford/20 rounded-full px-2.5 py-0.5">
-        <Loader2 size={10} className="animate-spin" />Syncing
+        <Spinner size="sm" />Syncing
       </span>
     );
     if (isFailed) return (
@@ -423,19 +425,13 @@ export default function Content() {
                 ))}
               </div>
             ) : assets.length === 0 ? (
-              <div className="py-20 text-center">
-                <FileText size={40} className="text-gray-300 mx-auto mb-3" />
-                <p className="text-sm font-bold text-gray-900">No articles yet</p>
-                <p className="text-xs text-gray-400 mt-1">Import your content catalog to start licensing it.</p>
-                <div className="flex items-center justify-center gap-3 mt-5">
-                  <Button variant="default" size="sm" onClick={() => navigate("/setup")}>
-                    <Globe size={14} className="mr-1.5" />Import from Sitemap
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={() => navigate("/setup")}>
-                    <Link2 size={14} className="mr-1.5" />Connect Publication
-                  </Button>
-                </div>
-              </div>
+              <EmptyState
+                icon={FileText}
+                title="No articles yet"
+                description="Import your content catalog to start licensing it."
+                action={{ label: "Import from Sitemap", onClick: () => navigate("/setup") }}
+                secondaryAction={{ label: "Connect Publication", onClick: () => navigate("/setup") }}
+              />
             ) : (
               <table className="w-full min-w-[900px]">
                 <thead>
@@ -679,7 +675,7 @@ export default function Content() {
                   }
                 }}
               >
-                {substackImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                {substackImporting ? <Spinner size="md" /> : <Upload size={16} />}
                 {substackImporting ? "Importing…" : "Import"}
               </Button>
             </div>
@@ -789,7 +785,7 @@ export default function Content() {
                           onClick={handleSaveRates} disabled={savingRates}
                           className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-oxford text-white rounded-lg hover:bg-oxford-dark disabled:opacity-50"
                         >
-                          {savingRates ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                          {savingRates ? <Spinner size="sm" /> : <Check size={12} />}
                           Save
                         </button>
                         <button onClick={() => setEditingRates(false)} className="px-4 py-2 text-xs font-medium text-gray-500 hover:text-navy-deep">

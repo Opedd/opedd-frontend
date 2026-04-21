@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/Spinner";
 
 const OPTIONS = [
   { label: "Twitter / X", icon: "𝕏" },
@@ -118,7 +119,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
         >
           {submitting ? (
             <>
-              <Loader2 size={16} className="animate-spin" />
+              <Spinner size="md" />
               Saving…
             </>
           ) : (

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { Spinner } from "@/components/ui/Spinner";
 
 export interface PendingSource {
   id: string;
@@ -111,7 +112,7 @@ export function PublicationGate({
                           className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 disabled:opacity-50 ml-1"
                         >
                           {deletingId === s.id ? (
-                            <Loader2 size={11} className="animate-spin" />
+                            <Spinner size="sm" />
                           ) : (
                             <Trash2 size={11} />
                           )}

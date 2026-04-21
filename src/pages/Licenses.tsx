@@ -9,6 +9,8 @@ import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseType
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { Link } from "react-router-dom";
 import { formatUSD } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 
 interface BuyerToken {
   id: string;
@@ -125,7 +127,7 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
           {/* Token list */}
           {loading ? (
             <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Loader2 size={12} className="animate-spin" /> Loading…
+              <Spinner size="sm" /> Loading…
             </div>
           ) : activeTokens.length === 0 ? (
             <p className="text-xs text-gray-400">No active API keys.</p>
@@ -146,7 +148,7 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
                     className="shrink-0 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
                     title="Revoke"
                   >
-                    {revoking === t.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    {revoking === t.id ? <Spinner size="sm" /> : <Trash2 size={12} />}
                   </button>
                 </div>
               ))}
@@ -164,7 +166,7 @@ function LicenseApiKeys({ email, licenseKey }: LicenseApiKeysProps) {
                 onKeyDown={(e) => e.key === "Enter" && !creating && handleCreate()}
               />
               <Button size="sm" onClick={handleCreate} disabled={creating} className="h-7 px-2 text-xs shrink-0">
-                {creating ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+                {creating ? <Spinner size="sm" /> : <Plus size={11} />}
               </Button>
             </div>
           )}
@@ -253,7 +255,7 @@ function ArchiveWebhook({ licenseKey }: ArchiveWebhookProps) {
                   onKeyDown={(e) => e.key === "Enter" && !saving && handleRegister()}
                 />
                 <Button size="sm" onClick={handleRegister} disabled={saving || !webhookUrl.trim()} className="h-7 px-2 text-xs shrink-0">
-                  {saving ? <Loader2 size={11} className="animate-spin" /> : "Save"}
+                  {saving ? <Spinner size="sm" /> : "Save"}
                 </Button>
               </div>
             </>
@@ -351,7 +353,7 @@ export default function Licenses() {
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button onClick={handleSendCode} disabled={loading || !email.trim()} className="w-full h-11">
-                {loading ? <><Loader2 size={16} className="mr-2 animate-spin" />Sending…</> : <>Send verification code<ArrowRight size={16} className="ml-2" /></>}
+                {loading ? <><Spinner size="md" className="mr-2" />Sending…</> : <>Send verification code<ArrowRight size={16} className="ml-2" /></>}
               </Button>
             </div>
           )}
@@ -376,7 +378,7 @@ export default function Licenses() {
               </div>
               {error && <p className="text-sm text-red-500 text-center">{error}</p>}
               <Button onClick={handleVerify} disabled={loading || otp.length < 6} className="w-full h-11">
-                {loading ? <><Loader2 size={16} className="mr-2 animate-spin" />Verifying…</> : "Verify"}
+                {loading ? <><Spinner size="md" className="mr-2" />Verifying…</> : "Verify"}
               </Button>
               <button onClick={() => { setStep("email"); setOtp(""); setError(null); }} className="text-sm text-gray-400 hover:text-gray-500 transition-colors w-full text-center">
                 ← Use a different email
@@ -392,13 +394,11 @@ export default function Licenses() {
               </div>
 
               {licenses.length === 0 ? (
-                <div className="py-12 text-center">
-                  <FileText size={36} className="text-gray-300 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-gray-700">No licenses found for this email.</p>
-                  <p className="text-xs text-gray-400 mt-1.5 max-w-[320px] mx-auto">
-                    If you made a purchase, make sure you're using the same email address you used at checkout.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={FileText}
+                  title="No licenses found for this email"
+                  description="If you made a purchase, make sure you're using the same email address you used at checkout."
+                />
               ) : (
                 <div className="space-y-3">
                   {licenses.map((lic) => (

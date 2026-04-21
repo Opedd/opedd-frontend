@@ -6,9 +6,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DollarSign, X, Loader2 } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
 import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface SourcePricingModalProps {
   open: boolean;
@@ -60,26 +61,17 @@ export function SourcePricingModal({ open, onOpenChange, sourceId, sourceName, o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-md rounded-xl p-0 overflow-hidden shadow-modal">
+      <DialogContent className="bg-white border-none text-navy-deep sm:max-w-md rounded-xl p-0 overflow-hidden shadow-modal">
         {/* Header */}
         <div className="bg-navy-deep px-6 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                <DollarSign size={20} className="text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="text-white font-bold text-base">Set Default Pricing</h2>
-                <p className="text-white/60 text-sm truncate max-w-[200px]">{sourceName}</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <DollarSign size={20} className="text-emerald-400" />
             </div>
-            <button
-              onClick={() => onOpenChange(false)}
-              aria-label="Close source pricing dialog"
-              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            >
-              <X size={16} className="text-white" />
-            </button>
+            <div>
+              <h2 className="text-white font-bold text-base">Set Default Pricing</h2>
+              <p className="text-white/60 text-sm truncate max-w-[200px]">{sourceName}</p>
+            </div>
           </div>
         </div>
 
@@ -132,7 +124,7 @@ export function SourcePricingModal({ open, onOpenChange, sourceId, sourceName, o
             className="w-full h-12 rounded-xl bg-oxford hover:bg-oxford-dark text-white font-semibold text-sm shadow-card shadow-card/25 transition-all active:scale-[0.98] gap-2"
           >
             {isSaving ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Spinner size="md" />
             ) : (
               <DollarSign size={16} />
             )}

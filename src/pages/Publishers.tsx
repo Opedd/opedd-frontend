@@ -17,6 +17,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useDebounce } from "@/hooks/useDebounce";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface Publisher {
   id: string;
@@ -204,7 +205,7 @@ export default function Publishers() {
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-oxford" />
+              <Spinner size="md" className="text-oxford" />
             </div>
           ) : publishers.length === 0 ? (
             <EmptyState />

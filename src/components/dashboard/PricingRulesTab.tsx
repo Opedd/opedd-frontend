@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Loader2, DollarSign, Info, XCircle } from "lucide-react";
+import { Spinner } from "@/components/ui/Spinner";
 
 export function PricingRulesTab() {
   const { user, getAccessToken } = useAuth();
@@ -135,7 +136,7 @@ export function PricingRulesTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="animate-spin text-oxford" size={24} />
+        <Spinner size="md" className="text-oxford" />
       </div>
     );
   }
@@ -162,7 +163,7 @@ export function PricingRulesTab() {
         </div>
         {isFetchingCategories ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="animate-spin text-oxford" size={20} />
+            <Spinner size="md" className="text-oxford" />
           </div>
         ) : categoryRules.length === 0 ? (
           <div className="text-center py-8">
@@ -271,7 +272,7 @@ export function PricingRulesTab() {
           onClick={handleSave}
           className="bg-oxford hover:bg-oxford-dark text-white px-6"
         >
-          {isSaving ? <><Loader2 size={14} className="mr-2 animate-spin" />Saving...</> : "Save Pricing Rules"}
+          {isSaving ? <><Spinner size="sm" className="mr-2" />Saving...</> : "Save Pricing Rules"}
         </Button>
       </div>
     </div>

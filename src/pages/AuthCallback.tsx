@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ export default function AuthCallback() {
       <div className="bg-white rounded-2xl border border-blue-50 p-8 shadow-sm text-center max-w-sm w-full mx-4">
         {status === "loading" && (
           <>
-            <Loader2 size={40} className="text-oxford animate-spin mx-auto mb-4" />
+            <Spinner size="lg" className="text-oxford mx-auto mb-4" />
             <h2 className="text-lg font-semibold text-navy-deep mb-1">Verifying your email...</h2>
             <p className="text-sm text-navy-deep/60">Please wait a moment</p>
           </>

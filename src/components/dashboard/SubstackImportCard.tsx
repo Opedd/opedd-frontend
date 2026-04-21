@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Loader2, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import substackLogo from "@/assets/platforms/substack.svg";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface SubstackImportCardProps {
   onImportComplete?: () => void;
@@ -118,7 +119,7 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
           disabled={!file || uploading}
           className="h-10 px-5 bg-oxford hover:bg-oxford-dark text-white text-sm font-medium shrink-0"
         >
-          {uploading && <Loader2 size={14} className="animate-spin mr-1.5" />}
+          {uploading && <Spinner size="sm" className="mr-1.5" />}
           Import
         </Button>
       </div>

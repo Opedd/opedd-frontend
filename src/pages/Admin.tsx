@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import {
   Users, DollarSign, Activity, AlertTriangle, Search, Copy, Check,
@@ -13,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 import { formatUSD, formatInteger } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 // --------------- Types ---------------
 
@@ -147,7 +149,7 @@ export default function Admin() {
   }, [getAccessToken]);
 
   if (!adminChecked) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-oxford" size={28} /></div>;
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Spinner size="lg" className="text-oxford" /></div>;
   }
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
@@ -458,11 +460,11 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
 
   if (webhooks.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <PartyPopper size={28} className="mx-auto text-emerald-500 mb-2" />
-        <p className="text-sm font-medium text-gray-500">No failed webhooks</p>
-        <p className="text-xs text-gray-400 mt-1">All webhook deliveries are healthy.</p>
-      </div>
+      <EmptyState
+        icon={PartyPopper}
+        title="No failed webhooks"
+        description="All webhook deliveries are healthy."
+      />
     );
   }
 
@@ -588,7 +590,7 @@ function FunnelTab({ getAccessToken }: { getAccessToken: () => Promise<string | 
 function LoadingState() {
   return (
     <div className="py-16 flex justify-center">
-      <Loader2 size={24} className="animate-spin text-navy-deep" />
+      <Spinner size="md" className="text-navy-deep" />
     </div>
   );
 }

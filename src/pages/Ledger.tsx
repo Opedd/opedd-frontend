@@ -2,10 +2,11 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { decodeText } from "@/lib/utils";
-import { PageLoader } from "@/components/ui/PageLoader";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { TransactionReceiptDrawer } from "@/components/dashboard/TransactionReceiptDrawer";
 import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { formatUSD } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 import {
   CANONICAL_LICENSE_TYPES,
   LICENSE_TYPE_LABELS,
@@ -324,7 +326,7 @@ export default function Ledger() {
     }
   };
 
-  if (isLoading && transactions.length === 0) return <PageLoader />;
+  if (isLoading && transactions.length === 0) return <DashboardSkeleton />;
 
   return (
     <DashboardLayout title="Ledger" subtitle="License agreements and buyer transactions">
@@ -336,7 +338,7 @@ export default function Ledger() {
             <p className="text-sm text-gray-500 mt-0.5">License agreements and buyer transactions</p>
           </div>
           <Button onClick={handleExportCSV} disabled={isExporting || transactions.length === 0} className="bg-oxford hover:bg-oxford-dark text-white font-medium px-4 py-2 rounded-lg">
-            {isExporting ? <><Loader2 size={16} className="mr-2 animate-spin" />Exporting...</> : <><Download size={16} className="mr-2" />Export CSV</>}
+            {isExporting ? <><Spinner size="md" className="mr-2" />Exporting...</> : <><Download size={16} className="mr-2" />Export CSV</>}
           </Button>
         </motion.div>
 
@@ -391,16 +393,13 @@ export default function Ledger() {
         {!fetchError && (
           <motion.div variants={itemVariants}>
                 {transactions.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-gray-200 p-16 shadow-card text-center">
-                    <FileCheck size={40} className="mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">No transactions yet</h3>
-                    <p className="text-sm text-gray-500 max-w-xs mx-auto mb-5">Once buyers license your articles, all transactions will appear here with full details.</p>
-                    <Button
-                      onClick={() => navigate("/content")}
-                      className="bg-oxford hover:bg-oxford-dark text-white font-medium px-5 py-2 rounded-lg"
-                    >
-                      Add your first article
-                    </Button>
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-card">
+                    <EmptyState
+                      icon={FileCheck}
+                      title="No transactions yet"
+                      description="Once buyers license your articles, all transactions will appear here with full details."
+                      action={{ label: "Add your first article", onClick: () => navigate("/content") }}
+                    />
                   </div>
                 ) : (
                   <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
@@ -603,7 +602,7 @@ export default function Ledger() {
                           }}
                           className="border-gray-200 text-gray-500 hover:text-gray-900"
                         >
-                          {isLoading ? <><Loader2 size={14} className="mr-2 animate-spin" />Loading...</> : "Load more"}
+                          {isLoading ? <><Spinner size="sm" className="mr-2" />Loading...</> : "Load more"}
                         </Button>
                       </div>
                     )}
@@ -643,7 +642,7 @@ export default function Ledger() {
               Cancel
             </Button>
             <Button onClick={handleRevoke} disabled={isRevoking} className="bg-red-600 hover:bg-red-700 text-white">
-              {isRevoking ? <><Loader2 size={16} className="mr-2 animate-spin" />Revoking...</> : "Yes, Revoke"}
+              {isRevoking ? <><Spinner size="md" className="mr-2" />Revoking...</> : "Yes, Revoke"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -665,7 +664,7 @@ export default function Ledger() {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setRefundTarget(null)} disabled={isRefunding}>Cancel</Button>
             <Button onClick={handleRefund} disabled={isRefunding} className="bg-amber-600 hover:bg-amber-700 text-white">
-              {isRefunding ? <><Loader2 size={16} className="mr-2 animate-spin" />Refunding...</> : "Yes, Refund"}
+              {isRefunding ? <><Spinner size="md" className="mr-2" />Refunding...</> : "Yes, Refund"}
             </Button>
           </DialogFooter>
         </DialogContent>

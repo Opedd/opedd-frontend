@@ -10,6 +10,7 @@ import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { getLicenseTypeLabel } from "@/lib/licenseTypes";
 import { formatUSD } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface BlockchainProof {
   registered: boolean;
@@ -103,7 +104,7 @@ export default function LicenseVerify() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-oxford" />
+        <Spinner size="md" className="text-oxford" />
       </div>
     );
   }
@@ -325,7 +326,7 @@ export default function LicenseVerify() {
                     className="flex-1 font-mono text-xs"
                   />
                   <Button onClick={handleRegisterWebhook} disabled={webhookLoading || !webhookUrl.trim()} variant="outline" className="shrink-0">
-                    {webhookLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Register"}
+                    {webhookLoading ? <Spinner size="md" /> : "Register"}
                   </Button>
                 </div>
               )}
