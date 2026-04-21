@@ -15,7 +15,7 @@ const mainNavItems = [
 ];
 
 const integrationNavItems = [
-  { title: "Distribution", path: "/connectors", icon: Zap },
+  { title: "Distribution", path: "/distribution", icon: Zap },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 
