@@ -459,8 +459,8 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       const p = (source.platform || "").toLowerCase();
                       const isWebhook = p === "ghost" || p === "beehiiv";
                       return (
-                        <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${isWebhook ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
-                          {isWebhook ? '⚡ Real-time Sync' : '🔄 Scheduled Sync'}
+                        <Badge variant="outline" className={`text-[9px] px-1.5 py-0 inline-flex items-center gap-1 ${isWebhook ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
+                          {isWebhook ? <><Zap size={9} /> Real-time Sync</> : <><RefreshCw size={9} /> Scheduled Sync</>}
                         </Badge>
                       );
                     })()}
@@ -478,7 +478,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                   <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
                     <Rss size={14} className="text-emerald-600 mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-emerald-700 flex-1 min-w-0">
-                      <p className="font-medium">⚡ Real-time Sync Active</p>
+                      <p className="font-medium flex items-center gap-1"><Zap size={12} /> Real-time Sync Active</p>
                       <p className="mt-0.5 text-emerald-600">
                         Add this webhook URL to your {source.platform ? source.platform.charAt(0).toUpperCase() + source.platform.slice(1) : ''} admin to receive instant updates:
                       </p>

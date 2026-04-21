@@ -12,7 +12,7 @@ const OPTIONS = [
   { label: "ChatGPT / AI tool", icon: "🤖" },
   { label: "Word of mouth", icon: "🗣️" },
   { label: "Press / Media", icon: "📰" },
-  { label: "Product Hunt", icon: "🚀" },
+  { label: "Product Hunt", icon: <Rocket size={16} /> },
   { label: "Other", icon: "✏️" },
 ];
 

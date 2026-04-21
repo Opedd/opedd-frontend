@@ -6,7 +6,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import {
   Users, DollarSign, Activity, AlertTriangle, Search, Copy, Check,
-  ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown,
+  ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown, PartyPopper,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
