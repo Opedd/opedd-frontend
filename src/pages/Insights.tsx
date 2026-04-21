@@ -227,7 +227,7 @@ export default function Insights() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#6B7280" }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 12, fill: "#6B7280" }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
-                    <RechartsTooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} formatter={(value: number) => [`$${formatUSD(value)}`, "Revenue"]} />
+                    <RechartsTooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} formatter={(value: number) => [`${formatUSD(value)}`, "Revenue"]} />
                     <Area type="monotone" dataKey="revenue" stroke="#4A26ED" fill="url(#gradRevenue)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>

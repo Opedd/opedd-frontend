@@ -88,7 +88,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
         const err = await res.json().catch(() => ({ error: "Refund failed" }));
         throw new Error(err.error || "Refund failed");
       }
-      toast({ title: "Refund issued", description: `$${formatUSD(transaction.amount)} refunded to ${transaction.licenseeEmail || "buyer"}.` });
+      toast({ title: "Refund issued", description: `${formatUSD(transaction.amount)} refunded to ${transaction.licenseeEmail || "buyer"}.` });
       onTransactionUpdate?.(transaction.id, { status: "refunded" as any });
     } catch (e: any) {
       toast({ title: "Refund failed", description: e.message, variant: "destructive" });

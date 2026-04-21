@@ -244,7 +244,7 @@ export default function Ledger() {
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error?.message || result.error || "Failed to refund");
       setTransactions(prev => prev.map(tx => tx.id === refundTarget.id ? { ...tx, status: "revoked" as const } : tx));
-      toast({ title: "Refund issued", description: `$${formatUSD(refundTarget.amount)} refunded. Buyer notified by email.` });
+      toast({ title: "Refund issued", description: `${formatUSD(refundTarget.amount)} refunded. Buyer notified by email.` });
     } catch (err: any) {
       toast({ title: "Refund failed", description: err.message, variant: "destructive" });
     } finally {

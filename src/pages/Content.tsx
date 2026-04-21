@@ -308,7 +308,7 @@ export default function Content() {
       a.status,
       a.human_price ? `$${a.human_price}` : "",
       a.ai_price ? `$${a.ai_price}` : "",
-      `$${formatUSD((a.total_revenue ?? 0))}`,
+      `${formatUSD((a.total_revenue ?? 0))}`,
     ]);
     const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });

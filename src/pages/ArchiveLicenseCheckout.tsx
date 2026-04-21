@@ -264,7 +264,7 @@ export default function ArchiveLicenseCheckout() {
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin mr-2" />Redirecting to payment…</>
                 ) : (
-                  `Pay $${formatUSD(archivePrice!)}/year · Secure License`
+                  `Pay ${formatUSD(archivePrice!)}/year · Secure License`
                 )}
               </Button>
                 {!canSubmit && !submitting && (

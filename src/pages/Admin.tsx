@@ -220,9 +220,9 @@ function OverviewTab({ getAccessToken }: { getAccessToken: () => Promise<string 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <StatCard label="Total Publishers" value={stats.total_publishers} icon={Users} />
       <StatCard label="Total Transactions" value={stats.total_transactions} icon={Activity} />
-      <StatCard label="Total Revenue" value={`$${formatUSD(stats.total_revenue)}`} icon={DollarSign} />
+      <StatCard label="Total Revenue" value={`${formatUSD(stats.total_revenue)}`} icon={DollarSign} />
       <StatCard label="Transactions Today" value={stats.transactions_today} icon={Activity} />
-      <StatCard label="Revenue Today" value={`$${formatUSD(stats.revenue_today)}`} icon={DollarSign} />
+      <StatCard label="Revenue Today" value={`${formatUSD(stats.revenue_today)}`} icon={DollarSign} />
       <StatCard label="Failed Webhooks (24h)" value={stats.failed_webhooks_24h} icon={AlertTriangle} />
     </div>
   );
