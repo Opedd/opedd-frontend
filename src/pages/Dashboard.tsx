@@ -45,12 +45,16 @@ export default function Dashboard() {
   const [contentImported, setContentImported] = useState(false);
   const [pricingConfigured, setPricingConfigured] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
+  const [stripePayoutsEnabled, setStripePayoutsEnabled] = useState<boolean | null>(null);
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
   const [setupComplete, setSetupComplete] = useState(false);
   const [aiLicensingConfigured, setAiLicensingConfigured] = useState(false);
   const [aiLicenseTypes, setAiLicenseTypes] = useState<{ rag: boolean; training: boolean; inference: boolean } | null>(null);
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasPendingVerification, setHasPendingVerification] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
 
   // Admin stats state
   interface AdminStats {
