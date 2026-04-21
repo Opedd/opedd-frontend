@@ -608,6 +608,12 @@ export default function Dashboard() {
       {needsReferral && (
         <ReferralStep onComplete={() => setNeedsReferral(false)} />
       )}
+
+      <IssueArchiveLicenseModal
+        open={archiveModalOpen}
+        onOpenChange={setArchiveModalOpen}
+        onSuccess={() => { setArchiveModalOpen(false); fetchMetrics(); }}
+      />
     </DashboardLayout>
   );
 }
