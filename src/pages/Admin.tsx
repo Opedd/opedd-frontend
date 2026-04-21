@@ -163,27 +163,25 @@ export default function Admin() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 border-b border-gray-200">
-            {(["overview", "publishers", "transactions", "webhooks", "funnel"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
-                  tab === t
-                    ? "border-navy-deep text-navy-deep"
-                    : "border-transparent text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
+            <TabsList className="mb-6 bg-transparent border-b border-gray-200 rounded-none p-0 h-auto w-full justify-start gap-1">
+              {TABS.map((t) => (
+                <TabsTrigger
+                  key={t}
+                  value={t}
+                  className="capitalize px-4 py-2.5 text-sm font-medium text-gray-500 rounded-none border-b-2 border-transparent data-[state=active]:border-navy-deep data-[state=active]:text-navy-deep data-[state=active]:shadow-none data-[state=active]:bg-transparent hover:text-gray-900 -mb-px"
+                >
+                  {t}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-          {tab === "overview" && <OverviewTab getAccessToken={getAccessToken} />}
-          {tab === "publishers" && <PublishersTab getAccessToken={getAccessToken} />}
-          {tab === "transactions" && <TransactionsTab getAccessToken={getAccessToken} toast={toast} />}
-          {tab === "webhooks" && <WebhooksTab getAccessToken={getAccessToken} />}
-          {tab === "funnel" && <FunnelTab getAccessToken={getAccessToken} />}
+            <TabsContent value="overview" className="mt-0"><OverviewTab getAccessToken={getAccessToken} /></TabsContent>
+            <TabsContent value="publishers" className="mt-0"><PublishersTab getAccessToken={getAccessToken} /></TabsContent>
+            <TabsContent value="transactions" className="mt-0"><TransactionsTab getAccessToken={getAccessToken} toast={toast} /></TabsContent>
+            <TabsContent value="webhooks" className="mt-0"><WebhooksTab getAccessToken={getAccessToken} /></TabsContent>
+            <TabsContent value="funnel" className="mt-0"><FunnelTab getAccessToken={getAccessToken} /></TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
