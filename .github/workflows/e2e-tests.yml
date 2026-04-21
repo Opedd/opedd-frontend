@@ -41,6 +41,22 @@ jobs:
           cache: npm
 
       # ── 3. Dependencies ──────────────────────────────────────────────────────
+      # Pre-check: fail fast with a readable message if package.json and
+      # package-lock.json are out of sync. `npm ci` will fail on the same
+      # condition, but its error log is noisy; this gives one clear line.
+      # Common cause on this repo: Lovable updates package.json without
+      # regenerating the lockfile. Fix: `npm install && git add package-lock.json`
+      # in the SAME commit as the dependency change.
+      - name: Verify package-lock.json matches package.json
+        run: |
+          if ! npm ci --dry-run > /dev/null 2>&1; then
+            echo "::error::package-lock.json is out of sync with package.json."
+            echo "::error::Fix locally: run 'npm install' then commit the updated package-lock.json."
+            echo "::error::Do NOT merge until the lockfile is regenerated in this branch."
+            exit 1
+          fi
+          echo "package-lock.json is in sync with package.json."
+
       - name: Install npm dependencies
         run: npm ci
 
