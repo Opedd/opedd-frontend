@@ -455,9 +455,9 @@ export default function Content() {
                       <span className="flex items-center gap-1">Status <ArrowUpDown size={12} className="text-gray-400" /></span>
                     </th>
                     <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px]">Permission</th>
-                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[90px]">AI Price</th>
-                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-left py-3 px-4 whitespace-nowrap w-[100px] cursor-pointer select-none" onClick={() => toggleSort("revenue")}>
-                      <span className="flex items-center gap-1">Revenue <ArrowUpDown size={12} className="text-gray-400" /></span>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-right py-3 px-4 whitespace-nowrap w-[90px]">AI Price</th>
+                    <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-right py-3 px-4 whitespace-nowrap w-[100px] cursor-pointer select-none" onClick={() => toggleSort("revenue")}>
+                      <span className="flex items-center gap-1 justify-end w-full">Revenue <ArrowUpDown size={12} className="text-gray-400" /></span>
                     </th>
                     <th className="text-xs font-medium text-gray-500 uppercase tracking-wide text-right py-3 px-4 whitespace-nowrap w-[80px]"></th>
                   </tr>
@@ -501,10 +501,10 @@ export default function Content() {
                         <td className="py-3.5 px-4">
                           {asset.human_price ? <span className="text-sm font-medium text-gray-900">${asset.human_price}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 text-right tabular-nums">
                           {asset.ai_price ? <span className="text-sm font-medium text-gray-900">${asset.ai_price}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 text-right tabular-nums">
                           <span className="text-sm text-gray-500">${(asset.total_revenue ?? 0).toFixed(2)}</span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
