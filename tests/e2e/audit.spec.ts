@@ -172,9 +172,12 @@ test.describe("1. Public Pages", () => {
   test("1.9 /integrations and /connectors redirect to /distribution", async ({ page }) => {
     await injectAuth(page);
     await page.goto(`${BASE}/integrations`);
-    await page.waitForURL(`${BASE}/distribution`, { timeout: 10000 });
-    await page.goto(`${BASE}/distribution`);
-    await page.waitForURL(`${BASE}/distribution`, { timeout: 10000 });
+    // /integrations → /distribution (and /connectors → /distribution). With a
+    // fresh test user (setup_complete=false), ProtectedRoute then forwards
+    // /distribution → /setup. Either landing URL proves the chain works.
+    await page.waitForURL(/\/(distribution|setup)$/, { timeout: 10000 });
+    await page.goto(`${BASE}/connectors`);
+    await page.waitForURL(/\/(distribution|setup)$/, { timeout: 10000 });
   });
 });
 
@@ -225,7 +228,8 @@ test.describe("2. Auth Pages", () => {
     await page.fill("input[type='email']", userEmail);
     await page.fill("input[type='password']", TEST_PASSWORD);
     await page.locator("button[type='submit'], button:has-text('Sign in'), button:has-text('Log in')").first().click();
-    await page.waitForURL(`${BASE}/dashboard`, { timeout: 15000 });
+    // Fresh test users (setup_complete=false) land on /setup; seasoned users on /dashboard.
+    await page.waitForURL(/\/(dashboard|setup)$/, { timeout: 15000 });
     await assertNoCrash(page, "Login success");
   });
 });
