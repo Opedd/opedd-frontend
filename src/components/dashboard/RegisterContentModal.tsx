@@ -198,6 +198,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           if (pub.plan) setPublisherPlan(pub.plan);
         }
       } catch {
+        // Profile fetch is best-effort for display only; render with defaults on failure
       }
     })();
   }, [open, user, getAccessToken]);
@@ -271,6 +272,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           if (pubName === 'www') pubName = url.hostname.split('.')[1] || 'Your Publication';
           pubName = pubName.charAt(0).toUpperCase() + pubName.slice(1);
         } catch {
+          // Invalid URL — fall through with the existing pubName default
         }
 
         setFeedPreview({
