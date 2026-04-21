@@ -91,11 +91,11 @@ const App = () => (
                 <Route path="/licensing" element={<ProtectedRoute><Licensing /></ProtectedRoute>} />
                 <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
                 <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
-                <Route path="/connectors" element={<ProtectedRoute><Connectors /></ProtectedRoute>} />
+                <Route path="/distribution" element={<ProtectedRoute><Connectors /></ProtectedRoute>} />
                 <Route path="/payments" element={<Navigate to="/settings?tab=billing" replace />} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                {/* Redirect old routes */}
-                <Route path="/integrations" element={<Navigate to="/connectors" replace />} />
+                <Route path="/connectors" element={<Navigate to="/distribution" replace />} />
+                <Route path="/integrations" element={<Navigate to="/distribution" replace />} />
                 <Route path="/license/success" element={<LicenseSuccess />} />
                 <Route path="/p/:publisherSlug" element={<PublisherLicensingPage />} />
                 <Route path="/l/:id" element={<LicensePublicCheckout />} />

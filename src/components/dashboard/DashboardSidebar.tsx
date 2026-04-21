@@ -11,7 +11,7 @@ const navItems = [
   { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
-  { title: "Distribution", path: "/connectors", icon: Zap },
+  { title: "Distribution", path: "/distribution", icon: Zap },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
 

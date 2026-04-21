@@ -169,10 +169,12 @@ test.describe("1. Public Pages", () => {
     await assertNoCrash(page, "/my-licenses");
   });
 
-  test("1.9 /integrations redirects to /connectors", async ({ page }) => {
+  test("1.9 /integrations and /connectors redirect to /distribution", async ({ page }) => {
     await injectAuth(page);
     await page.goto(`${BASE}/integrations`);
-    await page.waitForURL(`${BASE}/connectors`, { timeout: 10000 });
+    await page.waitForURL(`${BASE}/distribution`, { timeout: 10000 });
+    await page.goto(`${BASE}/distribution`);
+    await page.waitForURL(`${BASE}/distribution`, { timeout: 10000 });
   });
 });
 
@@ -601,18 +603,18 @@ test.describe("9. Settings (/settings)", () => {
 // SECTION 10: CONNECTORS / DISTRIBUTION
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe("10. Distribution (/connectors)", () => {
+test.describe("10. Distribution (/distribution)", () => {
 
   test("10.1 Renders without crash", async ({ page }) => {
     await injectAuth(page);
-    await page.goto(`${BASE}/connectors`);
+    await page.goto(`${BASE}/distribution`);
     await page.waitForLoadState("load");
     await assertNoCrash(page, "Distribution");
   });
 
   test("10.2 Widget tab shows embed code", async ({ page }) => {
     await injectAuth(page);
-    await page.goto(`${BASE}/connectors?tab=widget`);
+    await page.goto(`${BASE}/distribution?tab=widget`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(4000);
     await assertNoCrash(page, "Distribution widget tab");
@@ -620,14 +622,14 @@ test.describe("10. Distribution (/connectors)", () => {
 
   test("10.3 Webhooks tab renders", async ({ page }) => {
     await injectAuth(page);
-    await page.goto(`${BASE}/connectors?tab=webhooks`);
+    await page.goto(`${BASE}/distribution?tab=webhooks`);
     await page.waitForLoadState("load");
     await assertNoCrash(page, "Distribution webhooks tab");
   });
 
   test("10.4 Webhook save with invalid URL", async ({ page }) => {
     await injectAuth(page);
-    await page.goto(`${BASE}/connectors?tab=webhooks`);
+    await page.goto(`${BASE}/distribution?tab=webhooks`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(4000);
     await dismissModal(page);
@@ -646,7 +648,7 @@ test.describe("10. Distribution (/connectors)", () => {
 
   test("10.5 AI Policy tab shows robots.txt snippet", async ({ page }) => {
     await injectAuth(page);
-    await page.goto(`${BASE}/connectors?tab=ai-policy`);
+    await page.goto(`${BASE}/distribution?tab=ai-policy`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(4000);
     await assertNoCrash(page, "Distribution AI policy tab");
@@ -931,7 +933,7 @@ test.describe("19. Workflow Stress Tests", () => {
     await page.waitForURL(/\/(dashboard|setup)/, { timeout: 15_000 }).catch(() => {});
 
     // Rapid-fire navigation — no waits between, just commit state
-    for (const path of ["/content", "/licensing", "/ledger", "/insights", "/connectors", "/settings", "/notifications", "/dashboard"]) {
+    for (const path of ["/content", "/licensing", "/ledger", "/insights", "/distribution", "/settings", "/notifications", "/dashboard"]) {
       await page.goto(`${BASE}${path}`, { waitUntil: "commit" });
     }
     // Final page — wait for DOM only (not networkidle — analytics scripts never idle)

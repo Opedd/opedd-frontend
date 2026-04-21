@@ -447,7 +447,7 @@ export function VerifyOwnershipModal({
                 Done
               </Button>
               <Button
-                onClick={() => { handleClose(); navigate("/connectors"); }}
+                onClick={() => { handleClose(); navigate("/distribution"); }}
                 className="flex-1 h-11 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold gap-2"
               >
                 <Code size={15} />

@@ -7,6 +7,7 @@ Disallow: /content
 Disallow: /insights
 Disallow: /ledger
 Disallow: /connectors
+Disallow: /distribution
 Disallow: /payments
 Disallow: /settings
 Disallow: /onboarding
