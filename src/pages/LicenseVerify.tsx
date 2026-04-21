@@ -241,7 +241,7 @@ export default function LicenseVerify() {
               </DetailRow>
               <DetailRow label="License Type">{getLicenseTypeLabel(data.license_type)}</DetailRow>
               {data.intended_use_label && <DetailRow label="Intended Use">{data.intended_use_label}</DetailRow>}
-              <DetailRow label="Amount">${formatUSD(data.amount)}</DetailRow>
+              <DetailRow label="Amount">{formatUSD(data.amount)}</DetailRow>
               <DetailRow label="Issued">{formatDate(data.issued_at)}</DetailRow>
             </CardContent>
           </Card>

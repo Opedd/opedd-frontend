@@ -182,7 +182,7 @@ export default function Insights() {
                   <TrendingUp size={18} className="text-oxford mb-3" />
                   <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <p className="text-2xl font-bold text-gray-900 tracking-tight">${formatUSD(totalRevenue)}</p>
+                    <p className="text-2xl font-bold text-gray-900 tracking-tight">{formatUSD(totalRevenue)}</p>
                     {periodComparison && periodComparison.previousRevenue > 0 && (
                       <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                         {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
@@ -192,7 +192,7 @@ export default function Insights() {
                   </div>
                   {periodComparison && (
                     <p className="text-xs text-gray-400 mt-1">
-                      vs ${formatUSD(periodComparison.previousRevenue)} prior period
+                      vs {formatUSD(periodComparison.previousRevenue)} prior period
                     </p>
                   )}
                 </div>
@@ -248,7 +248,7 @@ export default function Insights() {
                         <TableRow key={a.id} className="border-gray-100">
                           <TableCell className="font-medium text-gray-900 text-sm max-w-[200px] truncate">{decodeText(a.title)}</TableCell>
                           <TableCell className="text-right text-gray-500 text-sm">{a.count}</TableCell>
-                          <TableCell className="text-right font-bold text-emerald-600 text-sm">${formatUSD(a.revenue)}</TableCell>
+                          <TableCell className="text-right font-bold text-emerald-600 text-sm">{formatUSD(a.revenue)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

@@ -152,7 +152,7 @@ export default function ArchiveLicenseCheckout() {
       <div className="border-t border-white/15 pt-6 mt-auto">
         <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Annual License</p>
         <p className="text-2xl font-semibold text-white mt-1">
-          ${formatUSD(archivePrice!)}<span className="text-base font-normal text-white/60">/year</span>
+          {formatUSD(archivePrice!)}<span className="text-base font-normal text-white/60">/year</span>
         </p>
       </div>
     </div>

@@ -156,7 +156,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Amount</p>
               <p className={`text-3xl font-bold ${transaction.amount > 0 ? "text-emerald-600" : "text-gray-900"}`}>
-                {transaction.amount > 0 ? "+" : ""}${formatUSD(Math.abs(transaction.amount))}
+                {transaction.amount > 0 ? "+" : ""}{formatUSD(Math.abs(transaction.amount))}
               </p>
             </div>
             <div className="text-right">
@@ -313,7 +313,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                     <RefreshCw size={20} className="text-amber-600" />Refund this license?
                   </AlertDialogTitle>
                   <AlertDialogDescription className="text-gray-500">
-                    Refund ${formatUSD(transaction.amount)} to {transaction.licenseeEmail || "the buyer"}? This will revoke the license. This cannot be undone.
+                    Refund {formatUSD(transaction.amount)} to {transaction.licenseeEmail || "the buyer"}? This will revoke the license. This cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

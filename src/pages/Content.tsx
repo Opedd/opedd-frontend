@@ -813,7 +813,7 @@ export default function Content() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-gray-50 rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-gray-900">${formatUSD((selectedAsset.total_revenue ?? 0))}</p>
+                    <p className="text-lg font-bold text-gray-900">{formatUSD((selectedAsset.total_revenue ?? 0))}</p>
                     <p className="text-xs text-gray-400 mt-0.5">Total revenue</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-3 text-center">
