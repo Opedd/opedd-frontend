@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { deriveSlug } from "@/lib/utils";
 import { PublicationGate } from "@/components/dashboard/PublicationGate";
+import { LICENSE_TYPE_LABELS, getLicenseTypeBadgeClass, getLicenseTypeLabel } from "@/lib/licenseTypes";
 
 // --- Interfaces ---
 
@@ -98,14 +99,9 @@ function formatDate(dateStr: string | null): string {
 
 function licenseTypeBadgeVariant(type: string | null): string {
   if (!type) return "secondary";
-  const map: Record<string, string> = {
-    human: "default",
-    ai: "secondary",
-    ai_inference: "secondary",
-    ai_training: "secondary",
-    archive: "outline",
-  };
-  return map[type] ?? "secondary";
+  // Kept for legacy callers; canonical badge classes come from
+  // getLicenseTypeBadgeClass() in src/lib/licenseTypes.ts.
+  return "secondary";
 }
 
 const DEFAULT_PRICING_RULES: PricingRules = {
