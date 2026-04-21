@@ -261,9 +261,6 @@ export default function Settings() {
   const [apiKeyWarning, setApiKeyWarning] = useState(false);
   const [contactForPricing, setContactForPricing] = useState(false);
 
-  // Enterprise revenue (still surfaced on the AI Licensing tab below)
-  const [enterpriseRevenue, setEnterpriseRevenue] = useState<{ total_usd: number; payouts: Array<{ month: string; amount_usd: number; license_id?: string; buyer_org?: string }> } | null>(null);
-
   // Content Taxonomy
   const CATEGORIES = [
     "Finance & Markets", "Technology", "Politics & Policy", "Business",
@@ -304,44 +301,6 @@ export default function Settings() {
   const [billing, setBilling] = useState<"monthly" | "annually">("monthly");
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [checkoutStripePromise, setCheckoutStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
-
-  // Admin tab state
-  interface AdminPublisher {
-    id: string;
-    display_name: string;
-    website_url: string | null;
-    plan: string;
-    article_count: number;
-    total_revenue: number;
-    stripe_connected: boolean;
-    created_at: string;
-  }
-  interface AdminTransaction {
-    id: string;
-    created_at: string;
-    buyer_email: string;
-    amount: number;
-    license_type: string;
-    license_key: string;
-    status: string;
-  }
-  interface AdminFailedWebhook {
-    id: string;
-    publisher_name: string;
-    event_type: string;
-    attempts: number;
-    last_attempt_at: string;
-    status: string;
-  }
-  const [adminPublishers, setAdminPublishers] = useState<AdminPublisher[]>([]);
-  const [adminTxns, setAdminTxns] = useState<AdminTransaction[]>([]);
-  const [adminWebhooks, setAdminWebhooks] = useState<AdminFailedWebhook[]>([]);
-  const [adminLoading, setAdminLoading] = useState(false);
-  const [adminLoaded, setAdminLoaded] = useState(false);
-  const [adminSearch, setAdminSearch] = useState("");
-  const [adminTxPage, setAdminTxPage] = useState(0);
-  const [adminTxHasMore, setAdminTxHasMore] = useState(false);
-  const [copiedLicenseKey, setCopiedLicenseKey] = useState<string | null>(null);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -395,9 +354,6 @@ export default function Settings() {
         setAiAnnualPrice((d as any).ai_annual_price != null ? String((d as any).ai_annual_price) : "");
         setPublisherCategory((d as any).category || "");
         setLogoPreview(d.logo_url || null);
-         if ((d as any).enterprise_revenue) {
-           setEnterpriseRevenue((d as any).enterprise_revenue);
-         }
          if ((d as any).categories) {
            setPublisherCategories((d as any).categories);
          }
@@ -600,36 +556,6 @@ export default function Settings() {
   useEffect(() => {
     if (activeTab === "billing") fetchBillingData();
   }, [activeTab, fetchBillingData]);
-
-  // Admin tab: load publishers, transactions, webhooks
-  const fetchAdminData = useCallback(async () => {
-    if (!isAdmin) return;
-    setAdminLoading(true);
-    try {
-      const token = await getAccessToken();
-      const headers = { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` };
-      const [pubRes, txRes, whRes] = await Promise.all([
-        fetch(`${EXT_SUPABASE_URL}/admin?action=publishers`, { headers }),
-        fetch(`${EXT_SUPABASE_URL}/admin?action=transactions&limit=50&offset=${adminTxPage * 50}`, { headers }),
-        fetch(`${EXT_SUPABASE_URL}/admin?action=failed_webhooks`, { headers }),
-      ]);
-      const [pubJson, txJson, whJson] = await Promise.all([pubRes.json(), txRes.json(), whRes.json()]);
-      setAdminPublishers(pubJson.data?.publishers ?? []);
-      const txRows = txJson.data?.transactions ?? [];
-      setAdminTxns(txRows);
-      setAdminTxHasMore(txRows.length === 50);
-      setAdminWebhooks(whJson.data?.failed_webhooks ?? []);
-    } catch {
-      // silently fail
-    } finally {
-      setAdminLoading(false);
-      setAdminLoaded(true);
-    }
-  }, [isAdmin, getAccessToken, adminTxPage]);
-
-  useEffect(() => {
-    if (activeTab === "admin" && isAdmin && !adminLoaded) fetchAdminData();
-  }, [activeTab, isAdmin, adminLoaded, fetchAdminData]);
 
   // Billing handlers
   const handleConnectStripe = async () => {
