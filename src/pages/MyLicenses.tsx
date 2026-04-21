@@ -142,7 +142,7 @@ export default function MyLicenses() {
           {/* License card result */}
           {license && (
             <div className="mb-8">
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-card space-y-4">
                 {/* Status + type */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={
@@ -247,7 +247,7 @@ export default function MyLicenses() {
           {!license && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Email card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-card">
                 {emailSent ? (
                   <div className="text-center space-y-3 py-2">
                     <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mx-auto">
@@ -297,7 +297,7 @@ export default function MyLicenses() {
               </div>
 
               {/* Key lookup card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-card">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-oxford-light flex items-center justify-center shrink-0">
                     <KeyRound className="h-5 w-5 text-oxford" />

@@ -69,7 +69,7 @@ export default function ForgotPasswordFlow({ onBackToLogin }: ForgotPasswordFlow
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-3 bg-oxford/10 rounded-full blur-md" />
 
           {/* Envelope Body */}
-          <svg viewBox="0 0 120 100" className="w-full h-full drop-shadow-lg" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 120 100" className="w-full h-full drop-shadow-card" xmlns="http://www.w3.org/2000/svg">
             {/* Envelope back */}
             <rect x="8" y="25" width="104" height="68" rx="8" fill="#EDE9FE" stroke="#C4B5FD" strokeWidth="1.5" />
 
@@ -171,7 +171,7 @@ export default function ForgotPasswordFlow({ onBackToLogin }: ForgotPasswordFlow
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-14 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-oxford/30 disabled:opacity-50 transition-all active:scale-[0.98]"
+          className="w-full h-14 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-popover hover:shadow-popover/30 disabled:opacity-50 transition-all active:scale-[0.98]"
         >
           {isLoading ? "Sending..." : "Send Reset Link"}
         </button>

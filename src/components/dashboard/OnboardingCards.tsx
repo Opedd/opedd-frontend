@@ -19,7 +19,7 @@ export function OnboardingCards({ onSyncClick, onRegisterClick, onEnterpriseClic
         {/* Card A: Sync Newsletter/Site */}
         <button
           onClick={onSyncClick}
-          className="group relative bg-white border border-blue-50 rounded-2xl p-6 text-left hover:border-oxford/40 hover:shadow-lg hover:shadow-oxford/5 transition-all duration-300"
+          className="group relative bg-white border border-blue-50 rounded-xl p-6 text-left hover:border-oxford/40 hover:shadow-popover hover:shadow-popover/5 transition-all duration-300"
         >
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-oxford/10 to-violet-600/10 flex items-center justify-center shrink-0 group-hover:from-oxford group-hover:to-violet-600 transition-all">
@@ -40,13 +40,13 @@ export function OnboardingCards({ onSyncClick, onRegisterClick, onEnterpriseClic
               </p>
             </div>
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-oxford/0 to-violet-600/0 group-hover:from-oxford/[0.02] group-hover:to-violet-600/[0.02] transition-all duration-300 pointer-events-none" />
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-oxford/0 to-violet-600/0 group-hover:from-oxford/[0.02] group-hover:to-violet-600/[0.02] transition-all duration-300 pointer-events-none" />
         </button>
 
         {/* Card B: Register Single Work */}
         <button
           onClick={onRegisterClick}
-          className="group relative bg-white border border-blue-50 rounded-2xl p-6 text-left hover:border-teal-400 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300"
+          className="group relative bg-white border border-blue-50 rounded-xl p-6 text-left hover:border-teal-400 hover:shadow-popover hover:shadow-popover-500/5 transition-all duration-300"
         >
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center shrink-0 group-hover:from-teal-500 group-hover:to-emerald-500 transition-all">
@@ -67,13 +67,13 @@ export function OnboardingCards({ onSyncClick, onRegisterClick, onEnterpriseClic
               </p>
             </div>
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-oxford/0 to-violet-600/0 group-hover:from-oxford/[0.02] group-hover:to-violet-600/[0.02] transition-all duration-300 pointer-events-none" />
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-oxford/0 to-violet-600/0 group-hover:from-oxford/[0.02] group-hover:to-violet-600/[0.02] transition-all duration-300 pointer-events-none" />
         </button>
 
         {/* Card C: Bulk / Enterprise */}
         <button
           onClick={onEnterpriseClick}
-          className="group relative bg-white border border-blue-50 rounded-2xl p-6 text-left hover:border-plum-magenta/40 hover:shadow-lg hover:shadow-plum-magenta/5 transition-all duration-300"
+          className="group relative bg-white border border-blue-50 rounded-xl p-6 text-left hover:border-plum-magenta/40 hover:shadow-popover hover:shadow-popover-magenta/5 transition-all duration-300"
         >
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-plum-magenta/10 to-plum-magenta/10 flex items-center justify-center shrink-0 group-hover:from-plum-magenta group-hover:to-plum-magenta transition-all">
@@ -94,7 +94,7 @@ export function OnboardingCards({ onSyncClick, onRegisterClick, onEnterpriseClic
               </p>
             </div>
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-plum-magenta/0 to-plum-magenta/0 group-hover:from-plum-magenta/[0.02] group-hover:to-plum-magenta/[0.02] transition-all duration-300 pointer-events-none" />
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-plum-magenta/0 to-plum-magenta/0 group-hover:from-plum-magenta/[0.02] group-hover:to-plum-magenta/[0.02] transition-all duration-300 pointer-events-none" />
         </button>
       </div>
     </motion.div>

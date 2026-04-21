@@ -20,7 +20,7 @@ export function FloatingPriceBar({ selectedCount, onSetPrices, onClearSelection 
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
         >
-          <div className="bg-navy-deep text-white rounded-2xl px-5 py-3 shadow-2xl shadow-navy-deep/30 flex items-center gap-4 border border-white/10">
+          <div className="bg-navy-deep text-white rounded-xl px-5 py-3 shadow-card shadow-card-deep/30 flex items-center gap-4 border border-white/10">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-oxford flex items-center justify-center text-sm font-bold">
                 {selectedCount}
@@ -34,7 +34,7 @@ export function FloatingPriceBar({ selectedCount, onSetPrices, onClearSelection 
 
             <Button
               onClick={onSetPrices}
-              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white h-9 px-4 rounded-xl text-sm font-semibold gap-2 shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.98]"
+              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white h-9 px-4 rounded-xl text-sm font-semibold gap-2 shadow-card shadow-emerald-500/25 transition-all active:scale-[0.98]"
             >
               <DollarSign size={14} />
               Set Prices for {selectedCount} Item{selectedCount !== 1 ? "s" : ""}

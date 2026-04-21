@@ -7,6 +7,7 @@ import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { getLicenseTypeLabel } from "@/lib/licenseTypes";
 import { copyToClipboard } from "@/lib/clipboard";
+import { formatUSD } from "@/lib/formatNumber";
 
 interface CheckoutData {
   status: "pending" | "completed" | "failed";
@@ -224,7 +225,7 @@ export default function LicenseSuccess() {
   return (
     <Shell>
       <div className="w-full max-w-[520px] space-y-6 animate-fade-in">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-card p-8 space-y-6">
           {/* Status */}
           <div className="text-center">
             <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
@@ -256,7 +257,7 @@ export default function LicenseSuccess() {
             )}
             <DetailRow label="License Type">{licenseTypeLabel}</DetailRow>
             {data?.amount != null && data.amount > 0 && (
-              <DetailRow label="Amount Paid">${data.amount.toFixed(2)}</DetailRow>
+              <DetailRow label="Amount Paid">{formatUSD(data.amount)}</DetailRow>
             )}
           </div>
 

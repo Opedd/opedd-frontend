@@ -71,7 +71,7 @@ function CodeBlock({ code }: CodeBlockProps) {
       </pre>
       <button
         onClick={handleCopy}
-        className="absolute top-2 right-2 inline-flex items-center gap-1 text-xs bg-slate-200 hover:bg-slate-300 text-slate-600 rounded px-2 py-1 transition-colors"
+        className="absolute top-2 right-2 inline-flex items-center gap-1 text-xs bg-slate-200 hover:bg-slate-300 text-gray-600 rounded px-2 py-1 transition-colors"
       >
         {copied ? <Check size={11} /> : <Copy size={11} />}
         {copied ? "Copied" : "Copy"}
@@ -330,13 +330,13 @@ export default function Connectors() {
           {/* Webhooks Tab */}
           <TabsContent value="webhooks" className="mt-6">
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card space-y-5">
                 {webhookStatus?.configured ? (
                   <>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-navy-deep">Endpoint URL</p>
-                        <p className="text-xs text-slate-500 font-mono mt-1 truncate max-w-md">{webhookStatus.url || "—"}</p>
+                        <p className="text-xs text-gray-500 font-mono mt-1 truncate max-w-md">{webhookStatus.url || "—"}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={async () => {
@@ -373,7 +373,7 @@ export default function Connectors() {
                               <AlertDialogTitle className="flex items-center gap-2 text-navy-deep">
                                 <AlertTriangle size={20} className="text-amber-500" />Remove Webhook?
                               </AlertDialogTitle>
-                              <AlertDialogDescription className="text-slate-600">
+                              <AlertDialogDescription className="text-gray-600">
                                 This will permanently remove your webhook endpoint. You'll stop receiving event notifications.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -394,12 +394,12 @@ export default function Connectors() {
                           <p className="text-xs font-semibold text-navy-deep">Recent Deliveries</p>
                         </div>
                         {isLoadingDeliveries ? (
-                          <div className="flex items-center justify-center py-8"><Loader2 size={20} className="animate-spin text-slate-400" /></div>
+                          <div className="flex items-center justify-center py-8"><Loader2 size={20} className="animate-spin text-gray-400" /></div>
                         ) : webhookDeliveries.length === 0 ? (
-                          <div className="text-center py-8 text-sm text-slate-400">No deliveries yet</div>
+                          <div className="text-center py-8 text-sm text-gray-400">No deliveries yet</div>
                         ) : (
                           <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                            <div className="grid grid-cols-[1fr_80px_60px_140px_36px] gap-2 px-4 py-2 text-[10px] uppercase tracking-wide text-slate-400 font-medium border-b border-slate-100">
+                            <div className="grid grid-cols-[1fr_80px_60px_140px_36px] gap-2 px-4 py-2 text-[10px] uppercase tracking-wide text-gray-400 font-medium border-b border-slate-100">
                               <span>Event</span>
                               <span>Status</span>
                               <span>Attempts</span>
@@ -412,8 +412,8 @@ export default function Connectors() {
                                 <Badge variant="outline" className={`text-[10px] w-fit ${d.status === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
                                   {d.status === "success" ? "Success" : "Failed"}
                                 </Badge>
-                                <span className="text-slate-500">{d.attempts ?? "—"}/{d.max_attempts ?? 3}</span>
-                                <span className="text-slate-400">{new Date(d.timestamp).toLocaleString()}</span>
+                                <span className="text-gray-500">{d.attempts ?? "—"}/{d.max_attempts ?? 3}</span>
+                                <span className="text-gray-400">{new Date(d.timestamp).toLocaleString()}</span>
                                 <div className="flex items-center justify-end">
                                   {d.status === "failed" && (
                                     <Button
@@ -421,7 +421,7 @@ export default function Connectors() {
                                       variant="ghost"
                                       disabled={retryingDeliveryId === d.id}
                                       onClick={() => handleRetryDelivery(d.id)}
-                                      className="h-7 w-7 p-0 text-slate-400 hover:text-oxford hover:bg-oxford/10"
+                                      className="h-7 w-7 p-0 text-gray-400 hover:text-oxford hover:bg-oxford/10"
                                       title="Retry delivery"
                                     >
                                       {retryingDeliveryId === d.id
@@ -488,10 +488,10 @@ export default function Connectors() {
                     )}
 
                     <div>
-                      <p className="text-xs font-medium text-slate-500 mb-2">Supported Events</p>
+                      <p className="text-xs font-medium text-gray-500 mb-2">Supported Events</p>
                       <div className="flex flex-wrap gap-1.5">
                         {supportedWebhookEvents.map((evt) => (
-                          <Badge key={evt} variant="outline" className="text-[10px] font-mono bg-slate-50 text-slate-600 border-slate-200">{evt}</Badge>
+                          <Badge key={evt} variant="outline" className="text-[10px] font-mono bg-slate-50 text-gray-600 border-slate-200">{evt}</Badge>
                         ))}
                       </div>
                     </div>
@@ -505,21 +505,21 @@ export default function Connectors() {
           {/* AI Policy Tab */}
           <TabsContent value="ai-policy" className="mt-6">
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card space-y-5">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-oxford/10 flex items-center justify-center flex-shrink-0">
                     <Shield size={20} className="text-oxford" />
                   </div>
                   <div>
                     <h2 className="font-bold text-navy-deep text-lg">AI Crawler Defense Policy</h2>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="text-sm text-gray-500 mt-1">
                       Automatically blocks 16 AI crawlers (GPTBot, Google-Extended, CCBot, etc.) from indexing your content without a license.
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs font-medium text-slate-500 mb-2">robots.txt snippet</p>
+                  <p className="text-xs font-medium text-gray-500 mb-2">robots.txt snippet</p>
                   <div className="bg-slate-100 border border-slate-200 rounded-lg p-4 overflow-x-auto">
                     <pre className="text-sm font-mono text-slate-700 whitespace-pre leading-relaxed">{`User-agent: GPTBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /`}</pre>
                   </div>
@@ -528,7 +528,7 @@ export default function Connectors() {
                 {publisherId && (
                   <div className="space-y-3">
                     <div>
-                      <p className="text-xs font-medium text-slate-500 mb-2">Your AI Policy URL</p>
+                      <p className="text-xs font-medium text-gray-500 mb-2">Your AI Policy URL</p>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
                           <code className="text-xs text-navy-deep font-mono truncate block">
@@ -560,7 +560,7 @@ export default function Connectors() {
                   </div>
                 )}
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-gray-400">
                   Add this URL to your site's robots.txt or use the Opedd WordPress plugin to apply it automatically.
                 </p>
               </div>

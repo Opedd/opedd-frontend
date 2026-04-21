@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import opeddLogo from "@/assets/opedd-logo-inverse.png";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
+import { formatUSD } from "@/lib/formatNumber";
 
 interface PublisherRow {
   id: string;
@@ -151,7 +152,7 @@ export default function ArchiveLicenseCheckout() {
       <div className="border-t border-white/15 pt-6 mt-auto">
         <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Annual License</p>
         <p className="text-2xl font-semibold text-white mt-1">
-          ${archivePrice!.toFixed(2)}<span className="text-base font-normal text-white/60">/year</span>
+          {formatUSD(archivePrice!)}<span className="text-base font-normal text-white/60">/year</span>
         </p>
       </div>
     </div>
@@ -263,13 +264,13 @@ export default function ArchiveLicenseCheckout() {
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin mr-2" />Redirecting to payment…</>
                 ) : (
-                  `Pay $${archivePrice!.toFixed(2)}/year · Secure License`
+                  `Pay ${formatUSD(archivePrice!)}/year · Secure License`
                 )}
               </Button>
                 {!canSubmit && !submitting && (
                   <div
                     role="tooltip"
-                    className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 ease-out pointer-events-none z-10 shadow-lg"
+                    className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 ease-out pointer-events-none z-10 shadow-popover"
                   >
                     {!email ? "Enter your email" : !name.trim() ? "Enter your name" : "Complete all required fields"}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />

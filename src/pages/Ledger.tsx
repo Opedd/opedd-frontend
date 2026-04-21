@@ -33,6 +33,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { formatUSD } from "@/lib/formatNumber";
 import {
   CANONICAL_LICENSE_TYPES,
   LICENSE_TYPE_LABELS,
@@ -243,7 +244,7 @@ export default function Ledger() {
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error?.message || result.error || "Failed to refund");
       setTransactions(prev => prev.map(tx => tx.id === refundTarget.id ? { ...tx, status: "revoked" as const } : tx));
-      toast({ title: "Refund issued", description: `$${refundTarget.amount.toFixed(2)} refunded. Buyer notified by email.` });
+      toast({ title: "Refund issued", description: `${formatUSD(refundTarget.amount)} refunded. Buyer notified by email.` });
     } catch (err: any) {
       toast({ title: "Refund failed", description: err.message, variant: "destructive" });
     } finally {
@@ -349,7 +350,7 @@ export default function Ledger() {
               <Lock size={18} className="text-amber-600 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-amber-800">
-                  {held.length} payment{held.length !== 1 ? "s" : ""} (${heldTotal.toFixed(2)} total) are held in escrow
+                  {held.length} payment{held.length !== 1 ? "s" : ""} ({formatUSD(heldTotal)} total) are held in escrow
                 </p>
                 <p className="text-xs text-amber-700 mt-0.5">Complete your Stripe Connect setup to receive payouts for these licenses.</p>
               </div>
@@ -359,18 +360,18 @@ export default function Ledger() {
         })()}
 
         <motion.div className={`grid grid-cols-1 gap-4 ${metrics.enterpriseLicenses > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`} variants={itemVariants}>
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card">
             <User size={18} className="text-plum-magenta mb-3" />
             <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Human Licenses</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.humanLicenses}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card">
             <Sparkles size={18} className="text-oxford mb-3" />
             <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">AI Licenses</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.aiLicenses}</p>
           </div>
           {metrics.enterpriseLicenses > 0 && (
-            <div className="bg-white rounded-xl border border-emerald-200 p-6 shadow-sm">
+            <div className="bg-white rounded-xl border border-emerald-200 p-6 shadow-card">
               <Shield size={18} className="text-emerald-600 mb-3" />
               <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Enterprise Deals</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.enterpriseLicenses}</p>
@@ -390,7 +391,7 @@ export default function Ledger() {
         {!fetchError && (
           <motion.div variants={itemVariants}>
                 {transactions.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-gray-200 p-16 shadow-sm text-center">
+                  <div className="bg-white rounded-xl border border-gray-200 p-16 shadow-card text-center">
                     <FileCheck size={40} className="mx-auto text-gray-300 mb-4" />
                     <h3 className="text-base font-semibold text-gray-900 mb-1">No transactions yet</h3>
                     <p className="text-sm text-gray-500 max-w-xs mx-auto mb-5">Once buyers license your articles, all transactions will appear here with full details.</p>
@@ -402,7 +403,7 @@ export default function Ledger() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
                       <div className="flex items-center justify-between mb-4">
                         <div>
@@ -508,7 +509,7 @@ export default function Ledger() {
                               </TableCell>
                               <TableCell>{getBuyerTypeBadge(tx)}</TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}</span></TableCell>
-                              <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-gray-500"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
+                              <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-gray-500"}`}>{formatUSD(Math.abs(tx.amount))}</span></TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.date}</span></TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1.5">
@@ -532,7 +533,7 @@ export default function Ledger() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onClick={(e) => e.stopPropagation()}
-                                            className="p-1.5 rounded-md text-gray-400 hover:text-oxford hover:bg-oxford/5 transition-colors"
+                                            className="p-1.5 rounded-lg text-gray-400 hover:text-oxford hover:bg-oxford/5 transition-colors"
                                           >
                                             <ScrollText size={14} />
                                           </a>
@@ -546,7 +547,7 @@ export default function Ledger() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onClick={(e) => e.stopPropagation()}
-                                            className="p-1.5 rounded-md text-gray-400 hover:text-oxford hover:bg-oxford/5 transition-colors"
+                                            className="p-1.5 rounded-lg text-gray-400 hover:text-oxford hover:bg-oxford/5 transition-colors"
                                           >
                                             <Receipt size={14} />
                                           </a>
@@ -559,7 +560,7 @@ export default function Ledger() {
                                             <button
                                               onClick={(e) => { e.stopPropagation(); setRefundTarget(tx); }}
                                               aria-label="Issue refund"
-                                              className="p-1.5 rounded-md text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                                              className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
                                             >
                                               <RotateCcw size={14} />
                                             </button>
@@ -572,7 +573,7 @@ export default function Ledger() {
                                           <button
                                             onClick={(e) => { e.stopPropagation(); setRevokeTarget(tx); }}
                                             aria-label="Revoke license"
-                                            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                           >
                                             <Ban size={14} />
                                           </button>
@@ -656,7 +657,7 @@ export default function Ledger() {
               Issue a refund?
             </DialogTitle>
             <DialogDescription className="text-gray-500">
-              This will refund <strong className="text-gray-900">${refundTarget?.amount.toFixed(2)}</strong> to the buyer and revoke license{" "}
+              This will refund <strong className="text-gray-900">{formatUSD(refundTarget?.amount)}</strong> to the buyer and revoke license{" "}
               <code className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">{refundTarget?.licenseKey}</code>.
               The buyer will be notified by email. This cannot be undone.
             </DialogDescription>

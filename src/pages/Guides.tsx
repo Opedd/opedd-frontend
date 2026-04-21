@@ -62,7 +62,7 @@ const Guides = () => {
               <Link
                 key={p.slug}
                 to={`/guides/${p.slug}`}
-                className="group rounded-xl border border-border bg-card p-6 hover:border-oxford/40 hover:shadow-lg transition-all"
+                className="group rounded-xl border border-border bg-card p-6 hover:border-oxford/40 hover:shadow-popover transition-all"
               >
                 <div className="flex items-center gap-4 mb-3">
                   <img src={p.icon} alt={p.name} className="w-10 h-10" />

@@ -291,13 +291,13 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   // URL input bar — shown always at top
   const urlInputBar = (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-card">
       <form
         onSubmit={(e) => { e.preventDefault(); handleDetectPlatform(); }}
         className="flex items-center gap-3"
       >
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder="https://yourpublication.com or substack URL…"
             value={connectUrl}
@@ -321,7 +321,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     return (
       <div className="space-y-4">
         {urlInputBar}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex items-center justify-center">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-card p-12 flex items-center justify-center">
           <Loader2 size={32} className="animate-spin text-oxford" />
         </div>
       </div>
@@ -333,7 +333,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       <div className="space-y-4">
         {urlInputBar}
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-oxford/10 flex items-center justify-center">
+          <div className="mx-auto w-16 h-16 rounded-xl bg-oxford/10 flex items-center justify-center">
             <Rss size={28} className="text-oxford" />
           </div>
           <div>
@@ -412,7 +412,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           return (
             <div
               key={source.id}
-              className="bg-white rounded-xl border border-blue-50 p-5 hover:shadow-md transition-all"
+              className="bg-white rounded-xl border border-blue-50 p-5 hover:shadow-popover transition-all"
             >
               <div className="flex items-start gap-4">
                 {/* Source logo: show platform logo based on URL detection */}
@@ -422,7 +422,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                       src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(source.feed_url.replace(/^https?:\/\//, '').split('/')[0])}&sz=64`}
                       alt={source.name}
                       className="w-8 h-8 object-contain"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'; }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'; }}
                     />
                   </div>
                 </div>
@@ -587,7 +587,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                     variant="ghost"
                     size="sm"
                     asChild
-                    className="h-8 text-xs gap-1.5 text-slate-400 hover:text-navy-deep hover:bg-transparent"
+                    className="h-8 text-xs gap-1.5 text-gray-400 hover:text-navy-deep hover:bg-transparent"
                   >
                     <a href={source.feed_url.startsWith("http") ? source.feed_url : `https://${source.feed_url}`} target="_blank" rel="noopener noreferrer">
                       <ExternalLink size={12} />
@@ -661,7 +661,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         open={!!deleteConfirmSource}
         onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
       >
-        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-sm gap-0">
+        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-modal gap-0">
           <DialogHeader className="space-y-0 mb-5">
             <DialogTitle className="text-lg font-semibold text-navy-deep">Remove Source</DialogTitle>
             <DialogDescription className="text-sm text-navy-deep/50 mt-1.5 leading-relaxed">

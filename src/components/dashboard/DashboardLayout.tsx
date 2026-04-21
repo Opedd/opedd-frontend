@@ -240,7 +240,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               <ChevronDown size={14} className="text-gray-400 flex-shrink-0" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-48 bg-white border-gray-200 shadow-lg z-50">
+          <DropdownMenuContent align="end" side="top" className="w-48 bg-white border-gray-200 shadow-popover z-50">
             <DropdownMenuItem asChild className="cursor-pointer text-sm py-2">
               <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
             </DropdownMenuItem>
@@ -259,7 +259,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-3 left-3 z-50 lg:hidden w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-sm"
+        className="fixed top-3 left-3 z-50 lg:hidden w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-popover"
         aria-label="Open menu"
       >
         <Menu size={18} className="text-gray-900" />
@@ -330,7 +330,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0 bg-white border-gray-200 shadow-xl rounded-xl z-50">
+              <PopoverContent align="end" className="w-80 p-0 bg-white border-gray-200 shadow-popover rounded-xl z-50">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
                   <h3 className="font-semibold text-sm text-gray-900">Notifications</h3>
                   {unreadCount > 0 && (
@@ -408,7 +408,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               </NavLink>
               <button
                 onClick={() => { sessionStorage.setItem("opedd_trial_dismissed", "1"); setTrialDaysRemaining(null); }}
-                className={cn("shrink-0 p-1 rounded-md transition-colors", urgent ? "text-warning/60 hover:text-warning hover:bg-warning/15" : "text-oxford/40 hover:text-oxford hover:bg-oxford/5")}
+                className={cn("shrink-0 p-1 rounded-lg transition-colors", urgent ? "text-warning/60 hover:text-warning hover:bg-warning/15" : "text-oxford/40 hover:text-oxford hover:bg-oxford/5")}
                 aria-label="Dismiss trial banner"
               >
                 <X size={14} />

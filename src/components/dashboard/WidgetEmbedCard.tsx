@@ -31,14 +31,14 @@ export function WidgetEmbedCard({ publisherId }: { publisherId: string }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-blue-50 p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-blue-50 p-6 shadow-card">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-oxford/10 to-violet-600/10 flex items-center justify-center">
           <Code2 size={16} className="text-oxford" />
         </div>
         <div>
           <h2 className="font-bold text-navy-deep">Widget Embed Code</h2>
-          <p className="text-slate-500 text-xs">Add this script once to your article template. It automatically detects and registers each article — no per-page configuration needed.</p>
+          <p className="text-gray-500 text-xs">Add this script once to your article template. It automatically detects and registers each article — no per-page configuration needed.</p>
         </div>
       </div>
 
@@ -48,10 +48,10 @@ export function WidgetEmbedCard({ publisherId }: { publisherId: string }) {
           <button
             key={m}
             onClick={() => setMode(m)}
-            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+            className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${
               mode === m
-                ? "bg-white text-navy-deep shadow-sm"
-                : "text-slate-500 hover:text-navy-deep"
+                ? "bg-white text-navy-deep shadow-card"
+                : "text-gray-500 hover:text-navy-deep"
             }`}
           >
             {LABELS[m]}
@@ -69,7 +69,7 @@ export function WidgetEmbedCard({ publisherId }: { publisherId: string }) {
         <Button size="sm" onClick={handleCopy} className="h-9 px-4 bg-oxford hover:bg-oxford-dark text-white rounded-lg font-medium transition-all">
           {copied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy snippet</>}
         </Button>
-        <p className="text-xs text-slate-400 max-w-xs text-right">
+        <p className="text-xs text-gray-400 max-w-xs text-right">
           Place this tag at the bottom of your article body in your CMS theme. Requires your Website URL to be set above.
         </p>
       </div>

@@ -1073,11 +1073,11 @@ export default function Settings() {
                                 )}
                               </div>
                               <div>
-                                <label className={`cursor-pointer inline-flex items-center gap-2 h-9 px-4 text-sm font-medium border rounded-lg transition-colors ${isUploadingLogo ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed" : "border-slate-200 bg-transparent text-slate-500 hover:bg-[#040042] hover:text-white hover:border-[#040042]"}`}>
+                                <label className={`cursor-pointer inline-flex items-center gap-2 h-9 px-4 text-sm font-medium border rounded-lg transition-colors ${isUploadingLogo ? "border-slate-200 bg-slate-100 text-gray-400 cursor-not-allowed" : "border-slate-200 bg-transparent text-gray-500 hover:bg-[#040042] hover:text-white hover:border-[#040042]"}`}>
                                   {isUploadingLogo ? <><Loader2 size={14} className="animate-spin" /> Uploading...</> : <><Upload size={14} /> Upload Logo</>}
                                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" disabled={isUploadingLogo} onChange={handleLogoUpload} />
                                 </label>
-                                <p className="text-xs text-slate-400 mt-1.5">Max 2MB. JPG, PNG, or SVG.</p>
+                                <p className="text-xs text-gray-400 mt-1.5">Max 2MB. JPG, PNG, or SVG.</p>
                               </div>
                             </div>
                           </div>
@@ -1090,7 +1090,7 @@ export default function Settings() {
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-[#6B7280]">Email Address</Label>
                               <div className="relative">
-                                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <Input value={profile?.email || user.email || ""} disabled className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 opacity-70 cursor-not-allowed" />
                               </div>
                             </div>
@@ -1098,14 +1098,14 @@ export default function Settings() {
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-[#6B7280]">Website URL</Label>
                             <div className="relative">
-                              <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                              <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                               <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://yoursite.com" className="bg-slate-50 border-slate-200 h-12 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                             </div>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[#040042] font-bold text-sm">Bio</Label>
                             <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself and your work..." className="bg-slate-50 border-slate-200 rounded-lg min-h-[100px] resize-none focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
-                            <p className="text-xs text-slate-400">Displayed on your public licensing page</p>
+                            <p className="text-xs text-gray-400">Displayed on your public licensing page</p>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[#040042] font-bold text-sm">Publication Category</Label>
@@ -1127,20 +1127,20 @@ export default function Settings() {
                               <option value="Entertainment">Entertainment</option>
                               <option value="Other">Other</option>
                             </select>
-                            <p className="text-xs text-slate-400">Used by AI systems to discover and license your content</p>
+                            <p className="text-xs text-gray-400">Used by AI systems to discover and license your content</p>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[#040042] font-bold text-sm">Annual Catalog Price (USD)</Label>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                               <Input type="number" min="0" step="1" value={aiAnnualPrice} onChange={(e) => setAiAnnualPrice(e.target.value)} placeholder="0" className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-7 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                             </div>
-                            <p className="text-xs text-slate-400">Flat annual rate for enterprise AI catalog licensing. Leave blank to auto-calculate from per-article AI price.</p>
+                            <p className="text-xs text-gray-400">Flat annual rate for enterprise AI catalog licensing. Leave blank to auto-calculate from per-article AI price.</p>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-[#6B7280]">Licensing Contact Email</Label>
                             <div className="relative">
-                              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                               <Input
                                 type="email"
                                 value={contactEmail}
@@ -1149,7 +1149,7 @@ export default function Settings() {
                                 className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20"
                               />
                             </div>
-                            <p className="text-xs text-slate-400">Buyers will use this email to contact you about Syndication and custom licenses.</p>
+                            <p className="text-xs text-gray-400">Buyers will use this email to contact you about Syndication and custom licenses.</p>
                           </div>
                         </div>
                       </div>
@@ -1175,7 +1175,7 @@ export default function Settings() {
                       {/* Support: Resend licenses */}
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm space-y-3">
                         <h2 className="font-bold text-[#040042] text-sm">Lost your license email?</h2>
-                        <p className="text-xs text-slate-500">Enter the buyer's email to resend all license keys to their inbox.</p>
+                        <p className="text-xs text-gray-500">Enter the buyer's email to resend all license keys to their inbox.</p>
                         <ResendLicensesForm />
                       </div>
 
@@ -1284,7 +1284,7 @@ export default function Settings() {
                         </div>
                       ) : teamError ? (
                         <div className="flex flex-col items-center justify-center py-16 gap-4">
-                          <p className="text-slate-500 text-sm">Failed to load team data.</p>
+                          <p className="text-gray-500 text-sm">Failed to load team data.</p>
                             <Button
                             onClick={() => { setTeamLoaded(false); setTeamError(false); }}
                             className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg"
@@ -1303,7 +1303,7 @@ export default function Settings() {
                               </div>
                               <div className="flex items-center gap-3">
                                 <div className="flex-1 relative">
-                                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                   <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                                 </div>
                                 <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-semibold">
@@ -1325,24 +1325,24 @@ export default function Settings() {
                                     </div>
                                     <div>
                                       <p className="text-sm font-medium text-[#040042]">{member.email}</p>
-                                      <p className="text-xs text-slate-400">Joined {new Date(member.joined_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</p>
+                                      <p className="text-xs text-gray-400">Joined {new Date(member.joined_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</p>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className={member.role === "owner" ? "bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-medium" : "bg-slate-50 text-slate-600 border-slate-200 font-medium"}>
+                                    <Badge variant="outline" className={member.role === "owner" ? "bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-medium" : "bg-slate-50 text-gray-600 border-slate-200 font-medium"}>
                                       {member.role === "owner" ? "Owner" : "Member"}
                                     </Badge>
                                     {currentUserRole === "owner" && member.role !== "owner" && (
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                          <Button size="sm" variant="ghost" aria-label={`Remove team member ${member.email}`} className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50">
+                                          <Button size="sm" variant="ghost" aria-label={`Remove team member ${member.email}`} className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50">
                                             <Trash2 size={14} />
                                           </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent className="bg-white">
                                           <AlertDialogHeader>
                                             <AlertDialogTitle className="flex items-center gap-2 text-[#040042]"><AlertTriangle size={20} className="text-amber-500" />Remove Team Member?</AlertDialogTitle>
-                                            <AlertDialogDescription className="text-slate-600">This will remove <strong>{member.email}</strong> from your team.</AlertDialogDescription>
+                                            <AlertDialogDescription className="text-gray-600">This will remove <strong>{member.email}</strong> from your team.</AlertDialogDescription>
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
                                             <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
@@ -1357,7 +1357,7 @@ export default function Settings() {
                                 </div>
                               ))}
                               {teamMembers.length === 0 && (
-                                <p className="text-sm text-slate-400 py-4 text-center">No team members yet — invite someone above.</p>
+                                <p className="text-sm text-gray-400 py-4 text-center">No team members yet — invite someone above.</p>
                               )}
                             </div>
                           </div>
@@ -1375,7 +1375,7 @@ export default function Settings() {
                                       </div>
                                       <div>
                                         <p className="text-sm font-medium text-[#040042]">{inv.email}</p>
-                                        <p className="text-xs text-slate-400">
+                                        <p className="text-xs text-gray-400">
                                           Sent {new Date(inv.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                                           {" "}&middot;{" "}
                                           Expires {new Date(inv.expires_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -1383,7 +1383,7 @@ export default function Settings() {
                                       </div>
                                     </div>
                                     {currentUserRole === "owner" && (
-                                      <Button size="sm" variant="ghost" onClick={() => handleCancelInvitation(inv.id)} className="h-8 px-3 text-slate-400 hover:text-red-500 hover:bg-red-50 text-xs">
+                                      <Button size="sm" variant="ghost" onClick={() => handleCancelInvitation(inv.id)} className="h-8 px-3 text-gray-400 hover:text-red-500 hover:bg-red-50 text-xs">
                                         Cancel
                                       </Button>
                                     )}
@@ -1415,7 +1415,7 @@ export default function Settings() {
                               <h2 className="font-bold text-[#040042]">Publisher ID</h2>
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide bg-green-100 text-green-700">Public</span>
                             </div>
-                            <p className="text-slate-500 text-xs">Public identifier — safe to include in HTML and third-party integrations</p>
+                            <p className="text-gray-500 text-xs">Public identifier — safe to include in HTML and third-party integrations</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -1426,7 +1426,7 @@ export default function Settings() {
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>
-                        <p className="text-xs text-slate-400 mt-3">Use this in your widget embed snippet, WordPress plugin, and AI defense policy URL</p>
+                        <p className="text-xs text-gray-400 mt-3">Use this in your widget embed snippet, WordPress plugin, and AI defense policy URL</p>
                       </div>
 
                       {/* Widget Embed Code — moved to Distribution/Widget tab */}
@@ -1466,7 +1466,7 @@ export default function Settings() {
                                 </div>
                               )}
                               <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-gray-500">
                                   <Shield size={12} className="inline mr-1 text-amber-500" />
                                   Keep this key secret. Only use it in server-side code. Regenerating will invalidate the current key.
                                 </p>
@@ -1479,7 +1479,7 @@ export default function Settings() {
                                   <AlertDialogContent className="bg-white">
                                     <AlertDialogHeader>
                                       <AlertDialogTitle className="flex items-center gap-2 text-[#040042]"><AlertTriangle size={20} className="text-amber-500" />Regenerate API Key?</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-slate-600">This will invalidate your current API key immediately. Any integrations using the old key will stop working.</AlertDialogDescription>
+                                      <AlertDialogDescription className="text-gray-600">This will invalidate your current API key immediately. Any integrations using the old key will stop working.</AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
@@ -1491,7 +1491,7 @@ export default function Settings() {
                             </>
                           ) : (
                             <div className="text-center py-4">
-                              <p className="text-sm text-slate-500 mb-3">No API key generated yet.</p>
+                              <p className="text-sm text-gray-500 mb-3">No API key generated yet.</p>
                               <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
                                 {isRegenerating ? <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</> : <><Key size={14} className="mr-2" />Generate API Key</>}
                               </Button>

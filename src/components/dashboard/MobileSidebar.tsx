@@ -30,7 +30,7 @@ export function MobileSidebar() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-3 left-3 z-50 lg:hidden w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-sm"
+        className="fixed top-3 left-3 z-50 lg:hidden w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-card"
         aria-label="Open navigation menu"
       >
         <Menu size={18} className="text-gray-900" />
@@ -56,7 +56,7 @@ export function MobileSidebar() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-y-0 left-0 w-[260px] bg-white border-r border-gray-200 z-50 lg:hidden shadow-xl flex flex-col"
+            className="fixed inset-y-0 left-0 w-[260px] bg-white border-r border-gray-200 z-50 lg:hidden shadow-card flex flex-col"
           >
             <div className="h-14 flex items-center justify-between px-5 border-b border-gray-200">
               <img src={opeddLogo} alt="Opedd" className="h-7" />

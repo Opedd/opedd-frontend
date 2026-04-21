@@ -32,8 +32,8 @@ export class ErrorBoundary extends React.Component<
             <div className="mb-8 flex justify-center">
               <img src={opeddLogoColor} alt="Opedd" className="h-10" />
             </div>
-            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-navy-deep/5">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center">
+            <div className="bg-white rounded-[2rem] p-8 shadow-card border border-navy-deep/5">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-red-50 flex items-center justify-center">
                 <span className="text-2xl">!</span>
               </div>
               <h2 className="text-xl font-bold text-navy-deep mb-2">
@@ -44,7 +44,7 @@ export class ErrorBoundary extends React.Component<
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="w-full h-12 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-oxford/30 transition-all active:scale-[0.98]"
+                className="w-full h-12 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-popover hover:shadow-popover/30 transition-all active:scale-[0.98]"
               >
                 Refresh Page
               </button>

@@ -39,7 +39,7 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
     : "Complete your setup to go fully live";
 
   return (
-    <div className="bg-navy-deep rounded-2xl px-6 py-4 relative">
+    <div className="bg-navy-deep rounded-xl px-6 py-4 relative">
       {/* Dismiss */}
       <button
         onClick={handleDismiss}

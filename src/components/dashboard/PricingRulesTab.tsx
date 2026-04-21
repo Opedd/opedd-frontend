@@ -143,7 +143,7 @@ export function PricingRulesTab() {
   return (
     <div className="space-y-8">
       {/* Category Pricing */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-navy-deep">Category Pricing</h3>
@@ -176,9 +176,9 @@ export function PricingRulesTab() {
               <div key={rule.category} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-sm font-medium text-navy-deep flex-1 capitalize">{rule.category}</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400">Human</span>
+                  <span className="text-xs text-gray-400">Human</span>
                   <div className="relative w-20">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
                     <input
                       type="number" min="0" step="1"
                       value={rule.human}
@@ -188,9 +188,9 @@ export function PricingRulesTab() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400">AI</span>
+                  <span className="text-xs text-gray-400">AI</span>
                   <div className="relative w-20">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
                     <input
                       type="number" min="0" step="1"
                       value={rule.ai}
@@ -206,23 +206,23 @@ export function PricingRulesTab() {
       </div>
 
       {/* URL Exclusion Rules */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
         <div>
           <h3 className="text-base font-semibold text-navy-deep">URL Exclusion Rules</h3>
           <p className="text-sm text-gray-500 mt-0.5">URLs matching these patterns will be skipped during sitemap import and widget auto-registration. Use * as wildcard.</p>
         </div>
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Built-in exclusions (always active)</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Built-in exclusions (always active)</p>
           <div className="flex flex-wrap gap-2">
             {["/about*", "/careers*", "/contact*", "/advertise*", "/privacy*", "/terms*", "/subscribe*", "/tag*", "/author*", "/search*", "/login*", "/rss*"].map(p => (
-              <span key={p} className="px-2 py-1 bg-slate-100 text-slate-500 text-xs rounded-lg font-mono">{p}</span>
+              <span key={p} className="px-2 py-1 bg-slate-100 text-gray-500 text-xs rounded-lg font-mono">{p}</span>
             ))}
           </div>
         </div>
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Your custom exclusions</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your custom exclusions</p>
           {excludedPatterns.length === 0 && (
-            <p className="text-sm text-slate-400 italic">No custom exclusions.</p>
+            <p className="text-sm text-gray-400 italic">No custom exclusions.</p>
           )}
           <div className="flex flex-wrap gap-2">
             {excludedPatterns.map((p, i) => (
@@ -247,7 +247,7 @@ export function PricingRulesTab() {
                   setNewPattern("");
                 }
               }}
-              className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-navy-deep placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-oxford/20"
+              className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-navy-deep placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-oxford/20"
             />
             <Button
               variant="outline"

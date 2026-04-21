@@ -185,7 +185,7 @@ export function OnboardingChecklist({
   if (allDone) {
     if (sessionDismissed) return null;
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card">
         <div className="flex items-center gap-3">
           <PartyPopper size={24} className="text-emerald-500 flex-shrink-0" />
           <div className="flex-1">
@@ -213,7 +213,7 @@ export function OnboardingChecklist({
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card">
       <div className="mb-4">
         <h3 className="text-base font-bold text-gray-900">Get started with Opedd</h3>
         <p className="text-sm text-gray-500 mt-0.5">{completedCount} of {steps.length} steps complete</p>

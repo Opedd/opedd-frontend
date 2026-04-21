@@ -19,7 +19,7 @@ export function MetricCard({ label, value, accentColor = "default" }: MetricCard
   };
 
   return (
-    <div className="bg-white border border-navy-deep/5 p-8 rounded-[2rem] shadow-lg hover:shadow-xl transition-shadow group">
+    <div className="bg-white border border-navy-deep/5 p-8 rounded-[2rem] shadow-popover hover:shadow-popover transition-shadow group">
       <p className="text-navy-deep/50 text-xs font-semibold mb-3 uppercase tracking-widest">
         {label}
       </p>

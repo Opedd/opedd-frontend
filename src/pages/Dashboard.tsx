@@ -24,6 +24,7 @@ import { DbAsset } from "@/types/asset";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
+import { formatUSD } from "@/lib/formatNumber";
 // Sheet imports removed — drawer replaced with /setup navigation
 
 export default function Dashboard() {
@@ -275,7 +276,7 @@ export default function Dashboard() {
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
         {/* Priority banner — only the highest-priority banner renders. */}
         {activeBanner === "stripe-kyc" && (
-          <div className="bg-white rounded-xl border-2 border-oxford/40 p-5 shadow-sm">
+          <div className="bg-white rounded-xl border-2 border-oxford/40 p-5 shadow-card">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-start gap-3 flex-1 min-w-0">
                 <AlertTriangleIcon size={18} className="text-oxford mt-0.5 shrink-0" />
@@ -300,12 +301,12 @@ export default function Dashboard() {
         )}
 
         {activeBanner === "held-payments" && (
-          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm">
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-card">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
                   <Coins size={18} className="text-amber-600" />
-                  Pending Earnings: ${totalRevenue.toFixed(2)}
+                  Pending Earnings: {formatUSD(totalRevenue)}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
                   Your earnings are accumulating. Connect your bank to start receiving payouts.
@@ -341,10 +342,10 @@ export default function Dashboard() {
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card min-h-[120px]">
             <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Articles</p>
             {isLoading ? (
-              <div className="h-8 w-16 bg-gray-100 rounded-md mt-1 animate-pulse" />
+              <div className="h-8 w-16 bg-gray-100 rounded-lg mt-1 animate-pulse" />
             ) : (
               <>
                 <p className="text-2xl font-bold text-gray-900 mt-1">{totalAssets}</p>
@@ -354,14 +355,14 @@ export default function Dashboard() {
               </>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card min-h-[120px]">
             <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Revenue (30d)</p>
             {isLoading ? (
-              <div className="h-8 w-20 bg-gray-100 rounded-md mt-1 animate-pulse" />
+              <div className="h-8 w-20 bg-gray-100 rounded-lg mt-1 animate-pulse" />
             ) : (
               <>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatUSD(totalRevenue)}</p>
                   {periodComparison && periodComparison.previousRevenue > 0 && (
                     <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                       {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
@@ -371,16 +372,16 @@ export default function Dashboard() {
                 </div>
                 {periodComparison && (
                   <p className="text-xs text-gray-400 mt-1">
-                    vs ${periodComparison.previousRevenue.toFixed(2)} previous 30d
+                    vs {formatUSD(periodComparison.previousRevenue)} previous 30d
                   </p>
                 )}
               </>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card min-h-[120px]">
             <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Trend</p>
             {isLoading ? (
-              <div className="h-16 w-full bg-gray-100 rounded-md mt-1 animate-pulse" />
+              <div className="h-16 w-full bg-gray-100 rounded-lg mt-1 animate-pulse" />
             ) : revenueTrend.length > 0 && revenueTrend.some((r) => r.revenue > 0) ? (
               <div className="mt-1 h-16">
                 <ResponsiveContainer width="100%" height="100%">
@@ -430,7 +431,7 @@ export default function Dashboard() {
                 onClick={a.onClick}
                 disabled={a.disabled}
                 aria-label={a.label}
-                className="group flex items-center gap-3 bg-white rounded-xl border border-gray-200 hover:border-oxford/40 hover:shadow-sm shadow-sm transition-all px-4 py-3 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group flex items-center gap-3 bg-white rounded-xl border border-gray-200 hover:border-oxford/40 hover:shadow-popover shadow-popover transition-all px-4 py-3 text-left disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-9 h-9 rounded-lg bg-oxford-light text-oxford flex items-center justify-center shrink-0 group-hover:bg-oxford group-hover:text-white transition-colors">
                   <a.icon size={16} />
@@ -444,7 +445,7 @@ export default function Dashboard() {
 
         {/* Recent Sales (last 5) */}
         {!isLoading && recentSales.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200">
               <h2 className="text-[15px] font-semibold text-gray-900">Recent sales</h2>
               <Link to="/ledger" className="text-xs text-oxford hover:underline font-medium">
@@ -474,7 +475,7 @@ export default function Dashboard() {
                         {sale.buyer_name || sale.buyer_email || "Buyer"} · {ago}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-emerald-600 shrink-0">+${Number(sale.amount).toFixed(2)}</p>
+                    <p className="text-sm font-semibold text-emerald-600 shrink-0">+{formatUSD(Number(sale.amount))}</p>
                   </li>
                 );
               })}
@@ -489,7 +490,7 @@ export default function Dashboard() {
             {adminStatsLoading ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                  <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                     <div className="h-3.5 w-20 bg-gray-100 rounded animate-pulse mb-3" />
                     <div className="h-8 w-16 bg-gray-100 rounded animate-pulse" />
                   </div>
@@ -497,42 +498,42 @@ export default function Dashboard() {
               </div>
             ) : adminStats ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
                     <Users size={14} className="text-gray-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Publishers</p>
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{adminStats.total_publishers}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
                     <Activity size={14} className="text-gray-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Transactions</p>
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{adminStats.total_transactions}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign size={14} className="text-gray-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Platform Revenue</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">${adminStats.total_revenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatUSD(adminStats.total_revenue)}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
                     <Activity size={14} className="text-gray-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Txns Today</p>
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{adminStats.transactions_today}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign size={14} className="text-gray-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Revenue Today</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">${adminStats.revenue_today.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatUSD(adminStats.revenue_today)}</p>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangleIcon size={14} className="text-amber-500" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Failed Webhooks</p>

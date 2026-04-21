@@ -189,18 +189,18 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
         ) : publisherPlan === "free" ? (
           /* Upgrade wall */
           <div className="p-6 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-oxford/10 border border-oxford/20 flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 rounded-xl bg-oxford/10 border border-oxford/20 flex items-center justify-center mx-auto">
               <Handshake size={28} className="text-oxford" />
             </div>
             <div>
               <p className="font-bold text-navy-deep text-lg">Upgrade to Pro</p>
-              <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
+              <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
                 Archive licenses are available on Pro and Enterprise plans. Upgrade now to issue site-wide deals instantly.
               </p>
             </div>
             <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-left space-y-2">
               {["Issue archive & enterprise deals", "Bulk pricing rules", "Priority support"].map(f => (
-                <div key={f} className="flex items-center gap-2 text-sm text-slate-600">
+                <div key={f} className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
                   {f}
                 </div>
@@ -237,7 +237,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                 <><Zap size={16} className="mr-2" />Upgrade to Pro - {proDisplay}/mo</>
               )}
             </Button>
-            <button onClick={handleClose} className="text-sm text-slate-400 hover:text-slate-600 w-full">
+            <button onClick={handleClose} className="text-sm text-gray-400 hover:text-gray-600 w-full">
               Maybe later
             </button>
           </div>
@@ -249,14 +249,14 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                 <CheckCircle2 size={28} className="text-emerald-500" />
               </div>
               <h3 className="font-bold text-navy-deep text-lg">Deal Issued</h3>
-              <p className="text-sm text-slate-500 mt-1">A confirmation email has been sent to {buyerEmail}.</p>
+              <p className="text-sm text-gray-500 mt-1">A confirmation email has been sent to {buyerEmail}.</p>
             </div>
 
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-medium mb-2">License Key</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-2">License Key</p>
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
                 <code className="text-sm font-mono text-navy-deep flex-1 break-all">{issuedKey}</code>
-                <button onClick={handleCopyKey} aria-label="Copy license key" className="text-slate-400 hover:text-oxford transition-colors flex-shrink-0">
+                <button onClick={handleCopyKey} aria-label="Copy license key" className="text-gray-400 hover:text-oxford transition-colors flex-shrink-0">
                   {copiedKey ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Copy size={16} />}
                 </button>
               </div>
@@ -296,7 +296,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                 </div>
                 <div>
                   <h2 className="font-bold text-navy-deep text-base">Issue Enterprise Deal</h2>
-                  <p className="text-sm text-slate-500">Site-wide license covering all content in a date range.</p>
+                  <p className="text-sm text-gray-500">Site-wide license covering all content in a date range.</p>
                 </div>
               </div>
             </div>
@@ -376,7 +376,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
               {/* Date range pill */}
               {dateRangeDisplay && (
                 <div className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-center">
-                  <span className="text-xs font-medium text-slate-500">{dateRangeDisplay}</span>
+                  <span className="text-xs font-medium text-gray-500">{dateRangeDisplay}</span>
                 </div>
               )}
 
@@ -390,7 +390,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                     className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all ${
                       licenseType === "human"
                         ? "bg-plum-magenta/10 border border-plum-magenta/30 text-plum-magenta"
-                        : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+                        : "bg-white border border-slate-200 text-gray-500 hover:bg-slate-50"
                     }`}
                   >
                     Human Republication
@@ -401,7 +401,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                     className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-all ${
                       licenseType === "ai"
                         ? "bg-oxford/10 border border-oxford/30 text-oxford"
-                        : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+                        : "bg-white border border-slate-200 text-gray-500 hover:bg-slate-50"
                     }`}
                   >
                     AI Training
@@ -415,7 +415,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                   Agreed Price (USD) <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
                   <Input
                     id="agreed-price"
                     type="number"
@@ -428,7 +428,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
                     className="border-slate-200 bg-white pl-7 rounded-lg"
                   />
                 </div>
-                <p className="text-xs text-slate-400">Net-30 · Invoice PDF available after issuance</p>
+                <p className="text-xs text-gray-400">Net-30 · Invoice PDF available after issuance</p>
               </div>
 
               {/* Intended use */}

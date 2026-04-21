@@ -35,6 +35,7 @@ import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
+import { formatUSD } from "@/lib/formatNumber";
 
 function getPlatformLogo(url: string | undefined): string | null {
   if (!url) return null;
@@ -307,7 +308,7 @@ export default function Content() {
       a.status,
       a.human_price ? `$${a.human_price}` : "",
       a.ai_price ? `$${a.ai_price}` : "",
-      `$${(a.total_revenue ?? 0).toFixed(2)}`,
+      `${formatUSD((a.total_revenue ?? 0))}`,
     ]);
     const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -370,7 +371,7 @@ export default function Content() {
         {/* Toolbar */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 max-w-sm">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <Input placeholder="Search articles..." value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="pl-9 h-9 text-sm border-slate-200 rounded-lg" />
           </div>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
@@ -407,7 +408,7 @@ export default function Content() {
 
         {/* Table */}
         {!fetchError && (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm overflow-x-auto">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-card overflow-x-auto">
             {isLoading ? (
               <div className="divide-y divide-gray-100">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -505,7 +506,7 @@ export default function Content() {
                           {asset.ai_price ? <span className="text-sm font-medium text-gray-900">${asset.ai_price}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
                         <td className="py-3.5 px-4 text-right tabular-nums">
-                          <span className="text-sm text-gray-500">${(asset.total_revenue ?? 0).toFixed(2)}</span>
+                          <span className="text-sm text-gray-500">{formatUSD((asset.total_revenue ?? 0))}</span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -536,7 +537,7 @@ export default function Content() {
 
         {/* Floating Action Bar */}
         {selectedIds.size > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-2xl">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-card">
             <span className="text-sm font-medium">{selectedIds.size} article{selectedIds.size !== 1 ? "s" : ""} selected</span>
             <Button size="sm" onClick={() => { setBulkPricingOpen(true); setDrawerOpen(false); }} disabled={savingRates} className="h-8 bg-oxford hover:bg-oxford-dark text-white text-xs rounded-lg disabled:opacity-50">Set Prices</Button>
             <button onClick={() => setSelectedIds(new Set())} className="text-xs text-white/60 hover:text-white transition-colors">Clear</button>
@@ -812,7 +813,7 @@ export default function Content() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-gray-50 rounded-xl p-3 text-center">
-                    <p className="text-lg font-bold text-gray-900">${(selectedAsset.total_revenue ?? 0).toFixed(2)}</p>
+                    <p className="text-lg font-bold text-gray-900">{formatUSD((selectedAsset.total_revenue ?? 0))}</p>
                     <p className="text-xs text-gray-400 mt-0.5">Total revenue</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-3 text-center">
