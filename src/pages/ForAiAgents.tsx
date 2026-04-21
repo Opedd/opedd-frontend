@@ -9,6 +9,10 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import {
+  LICENSE_TYPE_LABELS,
+  type CanonicalLicenseType,
+} from "@/lib/licenseTypes";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -63,11 +67,14 @@ const ENDPOINTS = [
   },
 ];
 
-const LICENSE_TYPES = [
-  { key: "human", label: "Human", color: "text-blue-600 bg-blue-50 border-blue-100", desc: "Editorial republication rights. Journalists, researchers, analysts." },
-  { key: "ai_inference", label: "AI Inference", color: "text-violet-600 bg-violet-50 border-violet-100", desc: "RAG pipelines, retrieval-augmented generation, real-time AI context." },
-  { key: "ai", label: "AI Training", color: "text-purple-600 bg-purple-50 border-purple-100", desc: "Model fine-tuning and pre-training datasets. One-time bulk license." },
-  { key: "archive", label: "Archive", color: "text-emerald-600 bg-emerald-50 border-emerald-100", desc: "Full catalog access for a publisher. Time-bounded (valid_from → valid_until)." },
+// Canonical license types — surfaced to AI buyers via the API.
+// Labels and descriptions read from the shared map so marketing copy matches
+// the rest of the product.
+const LICENSE_TYPE_KEYS: CanonicalLicenseType[] = [
+  "editorial",
+  "ai_retrieval",
+  "ai_training",
+  "archive",
 ];
 
 const AGENT_CODE = `// 1. Discover the publisher's catalog
@@ -83,9 +90,9 @@ const license = await fetch(
   {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+      body: JSON.stringify({
       article_id: manifest.articles[0].id,
-      license_type: "ai_inference",   // human | ai_inference | ai | archive
+      license_type: "ai_retrieval",   // editorial | ai_retrieval | ai_training | archive
       buyer_email: "pipeline@yourco.com",
       buyer_name: "RAG Pipeline v2",
       organization: "YourCo AI Labs",
@@ -130,7 +137,7 @@ const batch = await fetch("https://api.opedd.com/api", {
   body: JSON.stringify({
     action: "batch_purchase",
     article_ids: ["id-1", "id-2", "id-3"],
-    license_type: "ai_inference",
+    license_type: "ai_retrieval",
     buyer_email: "pipeline@yourco.com",
   }),
 }).then(r => r.json());`;
@@ -235,23 +242,26 @@ export default function ForAiAgents() {
             <motion.h2 variants={fadeUp} custom={1} className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Four license types, one API</motion.h2>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {LICENSE_TYPES.map((lt, i) => (
-              <motion.div
-                key={lt.key}
-                variants={fadeUp}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
-              >
-                <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border mb-3 ${lt.color}`}>
-                  {lt.label}
-                </div>
-                <p className="text-sm text-gray-500 leading-relaxed">{lt.desc}</p>
-                <code className={`text-[11px] font-mono mt-3 block ${lt.color.split(" ")[0]}`}>{lt.key}</code>
-              </motion.div>
-            ))}
+            {LICENSE_TYPE_KEYS.map((key, i) => {
+              const meta = LICENSE_TYPE_LABELS[key];
+              return (
+                <motion.div
+                  key={key}
+                  variants={fadeUp}
+                  custom={i}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                >
+                  <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold mb-3 ${meta.badgeClass}`}>
+                    {meta.label}
+                  </div>
+                  <p className="text-sm text-gray-500 leading-relaxed">{meta.description}</p>
+                  <code className={`text-[11px] font-mono mt-3 block ${meta.textColor}`}>{key}</code>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
