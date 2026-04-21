@@ -292,14 +292,25 @@ export default function Ledger() {
     }
   };
 
-  const getBuyerTypeBadge = (type: string) => {
-    switch (type) {
-      case "ai_ingestion": return <Badge className="bg-oxford/10 text-oxford border border-oxford/20 hover:bg-oxford/10 font-medium"><Sparkles size={12} className="mr-1" />AI</Badge>;
-      case "human_license": return <Badge className="bg-plum-magenta/10 text-plum-magenta border border-plum-magenta/20 hover:bg-plum-magenta/10 font-medium"><User size={12} className="mr-1" />Human</Badge>;
-      case "archive_license": return <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium"><Archive size={12} className="mr-1" />Archive</Badge>;
-      case "enterprise_license": return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium"><Shield size={12} className="mr-1" />Enterprise</Badge>;
-      default: return <Badge className="bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-100 font-medium">Payout</Badge>;
+  // Badge labels & colors are sourced from the canonical license-type map.
+  // Falls back to the legacy txType when rawLicenseType is missing.
+  const getBuyerTypeBadge = (tx: Transaction) => {
+    const raw = tx.rawLicenseType ?? (
+      tx.type === "ai_ingestion" ? "ai_training"
+      : tx.type === "human_license" ? "editorial"
+      : tx.type === "archive_license" ? "archive"
+      : tx.type === "enterprise_license" ? "corporate"
+      : null
+    );
+    const canonical = normalizeLegacyType(raw);
+    if (!canonical) {
+      return <Badge className="bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-100 font-medium">Payout</Badge>;
     }
+    return (
+      <Badge className={`${LICENSE_TYPE_LABELS[canonical].badgeClass} font-medium`}>
+        {LICENSE_TYPE_LABELS[canonical].shortLabel}
+      </Badge>
+    );
   };
 
   const getStatusBadge = (status: string) => {
