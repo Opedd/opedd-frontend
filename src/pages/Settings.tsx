@@ -107,6 +107,7 @@ interface PublisherProfile {
   transaction_count: number;
   stripe_account_id: string | null;
   stripe_onboarding_complete: boolean;
+  stripe_disabled_reason: string | null;
   stripe_connect: StripeConnect | null;
   webhook_url: string | null;
   webhook: { configured: boolean; url: string } | null;
@@ -946,6 +947,18 @@ export default function Settings() {
                                 ? "Your Stripe payouts are not yet enabled. Complete your Stripe account setup to receive payments."
                                 : "Your Stripe account is connected but payouts are not yet enabled. Complete your Stripe identity verification to receive payments."}
                             </p>
+                            {profile.stripe_disabled_reason && (
+                              <p className="text-xs text-[#6B7280] mt-1.5">
+                                <span className="font-medium text-[#040042]">Stripe says:</span>{" "}
+                                {String(profile.stripe_disabled_reason).startsWith("currently_due:")
+                                  ? `Missing - ${String(profile.stripe_disabled_reason)
+                                      .replace("currently_due:", "")
+                                      .split(",")
+                                      .map((r) => r.replace(/[._]/g, " "))
+                                      .join(", ")}`
+                                  : String(profile.stripe_disabled_reason).replace(/[._]/g, " ")}
+                              </p>
+                            )}
                           </div>
                           <Button
                             size="sm"

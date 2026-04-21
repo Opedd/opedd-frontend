@@ -213,7 +213,7 @@ test.describe("Publisher Dashboard Journey", () => {
   });
 
   test("7. Distribution → Widget tab → shows embed code", async ({ page }) => {
-    await gotoAuth(page, "/connectors");
+    await gotoAuth(page, "/distribution");
     await page.waitForTimeout(4000);
 
     const body = await page.textContent("body");
@@ -231,7 +231,7 @@ test.describe("Publisher Dashboard Journey", () => {
       { label: "Licensing", path: "/licensing" },
       { label: "Ledger", path: "/ledger" },
       { label: "Analytics", path: "/insights" },
-      { label: "Distribution", path: "/connectors" },
+      { label: "Distribution", path: "/distribution" },
       { label: "Settings", path: "/settings" },
     ];
 
