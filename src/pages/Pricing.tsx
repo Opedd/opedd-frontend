@@ -343,25 +343,24 @@ export default function Pricing() {
         </section>
 
         {/* ── Bottom CTA ── */}
-        <section className="py-20 px-6" style={{ backgroundColor: "#F9FAFB" }}>
+        <section className="py-20 px-6 bg-gray-50">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: "#040042" }}>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-navy-deep">
               Start protecting your writing today
             </h2>
-            <p className="text-base mb-10 leading-relaxed" style={{ color: "#6B7280" }}>
+            <p className="text-base mb-10 leading-relaxed text-gray-500">
               Join creators already earning from their content with Opedd.
             </p>
             <button
               onClick={() => navigate("/signup")}
-              className="px-8 py-3 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 hover:shadow-lg"
-              style={{ backgroundColor: "#4A26ED" }}
+              className="px-8 py-3 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 hover:shadow-lg bg-oxford"
             >
               Get started free
             </button>
-            <p className="text-xs mt-8 tracking-wide" style={{ color: "#9CA3AF" }}>
+            <p className="text-xs mt-8 tracking-wide text-gray-400">
               No credit card required · Cancel anytime · Setup in under 5 minutes
             </p>
-            <p className="text-sm mt-6" style={{ color: "#6B7280" }}>
+            <p className="text-sm mt-6 text-gray-500">
               Questions about enterprise pricing?{" "}
               <a href="mailto:support@opedd.com" className="text-oxford hover:underline font-medium">support@opedd.com</a>
             </p>
