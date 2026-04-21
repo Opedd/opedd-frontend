@@ -10,7 +10,7 @@ const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: Library },
   { title: "Licensing", path: "/licensing", icon: Scale },
-  { title: "Buyers", path: "/ledger", icon: Wallet },
+  { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
 ];
 
