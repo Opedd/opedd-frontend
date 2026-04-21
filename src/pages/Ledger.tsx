@@ -427,11 +427,12 @@ export default function Ledger() {
                           </SelectContent>
                         </Select>
                         <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setOffset(0); }}>
-                          <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
+                          <SelectTrigger className="w-[180px] h-9 text-sm border-gray-200 rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="human">Human</SelectItem>
-                            <SelectItem value="ai">AI Training</SelectItem>
+                            {CANONICAL_LICENSE_TYPES.map((k) => (
+                              <SelectItem key={k} value={k}>{LICENSE_TYPE_LABELS[k].label}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -505,7 +506,7 @@ export default function Ledger() {
                                   <span className="text-gray-900 font-medium text-sm truncate max-w-[200px]">{tx.assetTitle ? decodeText(tx.assetTitle) : "—"}</span>
                                 </div>
                               </TableCell>
-                              <TableCell>{getBuyerTypeBadge(tx.type)}</TableCell>
+                              <TableCell>{getBuyerTypeBadge(tx)}</TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}</span></TableCell>
                               <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-gray-500"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.date}</span></TableCell>
