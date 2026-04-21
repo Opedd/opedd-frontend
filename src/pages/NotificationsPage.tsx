@@ -83,6 +83,7 @@ function bucketFor(dateStr: string): Bucket {
 export default function NotificationsPage() {
   useDocumentTitle("Notifications — Opedd");
   const { user, getAccessToken } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
