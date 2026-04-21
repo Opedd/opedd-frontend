@@ -123,6 +123,7 @@ export default function Admin() {
   const { getAccessToken } = useAuth();
   const { toast } = useToast();
   const [tab, setTab] = useState<"overview" | "publishers" | "transactions" | "webhooks" | "funnel">("overview");
+  const TABS = ["overview", "publishers", "transactions", "webhooks", "funnel"] as const;
   const [adminChecked, setAdminChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
