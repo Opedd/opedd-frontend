@@ -111,29 +111,58 @@ function CellValue({ val }: { val: boolean | string }) {
 export default function Enterprise() {
   useDocumentTitle("Enterprise Content Licensing — Opedd");
   const { toast } = useToast();
-  const [stats, setStats] = useState({
-    publishers: "50+",
-    articles: "10,000+",
-    licenses: "500+",
-    proofs: "500+",
-  });
+  type StatsData = {
+    publishers: string;
+    articles: string;
+    licenses: string;
+    proofs: string;
+  };
+  const [statsState, setStatsState] = useState<
+    | { status: "loading" }
+    | { status: "success"; data: StatsData }
+    | { status: "error" }
+  >({ status: "loading" });
 
   useEffect(() => {
+    let cancelled = false;
     fetch(`${EXT_SUPABASE_URL}/functions/v1/registry`, {
       headers: { Authorization: `Bearer ${EXT_ANON_KEY}` },
     })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data) {
-          setStats({
-            publishers: data.publishers_count ? `${data.publishers_count}+` : "50+",
-            articles: data.articles_count ? `${Number(data.articles_count).toLocaleString()}+` : "10,000+",
-            licenses: data.licenses_count ? `${Number(data.licenses_count).toLocaleString()}+` : "500+",
-            proofs: data.events_count ? `${Number(data.events_count).toLocaleString()}+` : "500+",
-          });
-        }
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
       })
-      .catch(() => {});
+      .then((data) => {
+        if (cancelled) return;
+        const publishersN = Number(data?.publishers_count);
+        const articlesN = Number(data?.articles_count);
+        const licensesN = Number(data?.licenses_count);
+        const proofsN = Number(data?.events_count);
+        const allValid =
+          Number.isFinite(publishersN) &&
+          Number.isFinite(articlesN) &&
+          Number.isFinite(licensesN) &&
+          Number.isFinite(proofsN);
+        if (!allValid) {
+          setStatsState({ status: "error" });
+          return;
+        }
+        setStatsState({
+          status: "success",
+          data: {
+            publishers: `${publishersN.toLocaleString()}+`,
+            articles: `${articlesN.toLocaleString()}+`,
+            licenses: `${licensesN.toLocaleString()}+`,
+            proofs: `${proofsN.toLocaleString()}+`,
+          },
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setStatsState({ status: "error" });
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const scrollToSandbox = () =>
@@ -450,26 +479,38 @@ export default function Enterprise() {
       </section>
 
       {/* ══ SOCIAL PROOF / STATS ══ */}
-      <section className="py-20 border-t border-soft-white/10">
-        <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Publishers", value: stats.publishers },
-              { label: "Articles Licensed", value: stats.articles },
-              { label: "Licenses Issued", value: stats.licenses },
-              { label: "On-chain Proofs", value: stats.proofs },
-            ].map((m) => (
-              <div
-                key={m.label}
-                className="bg-soft-white/5 border border-soft-white/10 rounded-2xl p-6 text-center"
-              >
-                <p className="text-2xl md:text-3xl font-bold text-soft-white mb-1">{m.value}</p>
-                <p className="text-xs text-soft-white/40 uppercase tracking-wider font-medium">{m.label}</p>
-              </div>
-            ))}
+      {statsState.status !== "error" && (
+        <section className="py-20 border-t border-soft-white/10">
+          <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {statsState.status === "loading"
+                ? ["Publishers", "Articles Licensed", "Licenses Issued", "On-chain Proofs"].map((label) => (
+                    <div
+                      key={label}
+                      className="bg-soft-white/5 border border-soft-white/10 rounded-2xl p-6 text-center"
+                    >
+                      <div className="h-8 md:h-9 w-20 mx-auto mb-2 rounded bg-soft-white/10 animate-pulse" />
+                      <p className="text-xs text-soft-white/40 uppercase tracking-wider font-medium">{label}</p>
+                    </div>
+                  ))
+                : [
+                    { label: "Publishers", value: statsState.data.publishers },
+                    { label: "Articles Licensed", value: statsState.data.articles },
+                    { label: "Licenses Issued", value: statsState.data.licenses },
+                    { label: "On-chain Proofs", value: statsState.data.proofs },
+                  ].map((m) => (
+                    <div
+                      key={m.label}
+                      className="bg-soft-white/5 border border-soft-white/10 rounded-2xl p-6 text-center"
+                    >
+                      <p className="text-2xl md:text-3xl font-bold text-soft-white mb-1">{m.value}</p>
+                      <p className="text-xs text-soft-white/40 uppercase tracking-wider font-medium">{m.label}</p>
+                    </div>
+                  ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ══ BOTTOM CTA ══ */}
       <section className="py-20 border-t border-soft-white/10">
