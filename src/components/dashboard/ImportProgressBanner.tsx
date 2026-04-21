@@ -114,7 +114,7 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
       <Loader2 size={16} className="text-oxford animate-spin flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-navy-deep">Importing your archive…</p>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-gray-500">
           {record.inserted_count.toLocaleString()} of {record.total_urls.toLocaleString()} articles
           {record.total_urls > 0 && ` · ${etaLabel}`}
         </p>

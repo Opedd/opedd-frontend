@@ -100,7 +100,7 @@ export default function Insights() {
           {/* Metric card skeletons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[0, 1].map(i => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 min-h-[120px] shadow-sm">
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 min-h-[120px] shadow-card">
                 <div className="w-5 h-5 bg-gray-200 rounded animate-pulse mb-3" />
                 <div className="w-24 h-3 bg-gray-200 rounded animate-pulse mb-2" />
                 <div className="w-32 h-7 bg-gray-200 rounded animate-pulse" />
@@ -108,14 +108,14 @@ export default function Insights() {
             ))}
           </div>
           {/* Chart skeleton */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 min-h-[380px]">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-card p-6 min-h-[380px]">
             <div className="w-40 h-5 bg-gray-200 rounded animate-pulse mb-2" />
             <div className="w-48 h-3 bg-gray-200 rounded animate-pulse mb-6" />
             <div className="w-full h-[300px] bg-gray-100 rounded-lg animate-pulse" />
           </div>
           {/* Bottom row skeletons */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-h-[280px]">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden min-h-[280px]">
               <div className="p-5 border-b border-gray-200">
                 <div className="w-28 h-5 bg-gray-200 rounded animate-pulse mb-1" />
                 <div className="w-20 h-3 bg-gray-200 rounded animate-pulse" />
@@ -130,7 +130,7 @@ export default function Insights() {
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 min-h-[280px]">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-card p-6 min-h-[280px]">
               <div className="w-28 h-5 bg-gray-200 rounded animate-pulse mb-1" />
               <div className="w-36 h-3 bg-gray-200 rounded animate-pulse mb-6" />
               <div className="flex items-center justify-center gap-6">
@@ -168,7 +168,7 @@ export default function Insights() {
         )}
 
         {!fetchError && !hasData ? (
-          <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-sm">
+          <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-card">
             <BarChart3 size={40} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-base font-semibold text-gray-900 mb-1">No transactions yet</h3>
             <p className="text-sm text-gray-500 max-w-xs mx-auto">Analytics will appear here once you start receiving licensing transactions.</p>
@@ -177,7 +177,7 @@ export default function Insights() {
           <>
             {(totalRevenue > 0 || totalTransactions > 0) && (
               <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
-                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card min-h-[120px]">
                   <TrendingUp size={18} className="text-oxford mb-3" />
                   <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
                   <div className="flex items-baseline gap-2 mt-1">
@@ -195,7 +195,7 @@ export default function Insights() {
                     </p>
                   )}
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card min-h-[120px]">
                   <FileCheck size={18} className="text-oxford mb-3" />
                   <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
                   <div className="flex items-baseline gap-2 mt-1">
@@ -217,7 +217,7 @@ export default function Insights() {
             )}
 
             {chartData.length > 0 && (
-              <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 shadow-card p-6">
                 <h2 className="font-bold text-gray-900 text-lg mb-1">Revenue Over Time</h2>
                 <p className="text-sm text-gray-500 mb-6">Daily revenue breakdown</p>
                 <ResponsiveContainer width="100%" height={300}>
@@ -234,7 +234,7 @@ export default function Insights() {
             )}
 
             <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-6" variants={itemVariants}>
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
                 <div className="p-5 border-b border-gray-200">
                   <h2 className="font-bold text-gray-900 text-lg">Top Articles</h2>
                   <p className="text-sm text-gray-500">By revenue</p>
@@ -255,7 +255,7 @@ export default function Insights() {
                 ) : <div className="p-8 text-center text-gray-400 text-sm">No articles yet</div>}
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-card p-6">
                 <h2 className="font-bold text-gray-900 text-lg mb-1">License Split</h2>
                 <p className="text-sm text-gray-500 mb-4">Human vs AI licenses</p>
                 {pieData.length > 0 ? (

@@ -53,7 +53,7 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-card">
       <div className="flex items-start gap-3 mb-3">
         <div className="w-10 h-10 rounded-lg bg-substack-orange/10 flex items-center justify-center flex-shrink-0">
           <img src={substackLogo} alt="Substack" className="w-5 h-5" />

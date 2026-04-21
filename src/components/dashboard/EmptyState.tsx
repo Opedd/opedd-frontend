@@ -13,10 +13,10 @@ export function EmptyState({ onAddClick }: EmptyStateProps) {
     >
       {/* Branded illustration placeholder */}
       <div className="relative mb-6">
-        <div className="w-24 h-24 bg-gradient-to-br from-alice-gray to-blue-50 rounded-3xl flex items-center justify-center border border-navy-deep/5 shadow-lg group-hover:scale-110 transition-transform">
+        <div className="w-24 h-24 bg-gradient-to-br from-alice-gray to-blue-50 rounded-3xl flex items-center justify-center border border-navy-deep/5 shadow-card group-hover:scale-110 transition-transform">
           <FileText size={40} className="text-oxford" strokeWidth={1.5} />
         </div>
-        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-plum-magenta rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-plum-magenta rounded-xl flex items-center justify-center shadow-card group-hover:rotate-12 transition-transform">
           <Plus size={20} className="text-white" />
         </div>
       </div>

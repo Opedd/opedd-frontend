@@ -224,7 +224,7 @@ export default function LicenseSuccess() {
   return (
     <Shell>
       <div className="w-full max-w-[520px] space-y-6 animate-fade-in">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-card p-8 space-y-6">
           {/* Status */}
           <div className="text-center">
             <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />

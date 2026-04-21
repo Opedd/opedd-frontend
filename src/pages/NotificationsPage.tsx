@@ -235,7 +235,7 @@ export default function NotificationsPage() {
         {!isLoading && !fetchError && notifications.length === 0 && (
           <motion.div
             variants={itemVariants}
-            className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-sm"
+            className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-card"
           >
             <Bell size={40} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-base font-semibold text-gray-900 mb-1">No notifications yet</h3>
@@ -266,7 +266,7 @@ export default function NotificationsPage() {
                 return (
                   <motion.div key={b} variants={itemVariants} className="space-y-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 px-1">{b}</p>
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
                       {items.map((notif, index) => (
                         <div
                           key={notif.id}

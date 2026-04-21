@@ -33,7 +33,7 @@ const EditorialBreakSection = () => {
           className="max-w-4xl mx-auto"
         >
           {/* Email Client Mockup */}
-          <div className="bg-white rounded-2xl shadow-2xl border border-alice-gray overflow-hidden">
+          <div className="bg-white rounded-xl shadow-card border border-alice-gray overflow-hidden">
             {/* Browser Chrome */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-alice-gray bg-alice-gray/50">
               <div className="flex gap-1.5">
@@ -138,7 +138,7 @@ const EditorialBreakSection = () => {
               description: "Human readers and AI agents pay per use. Secure Rights Ledger tracks every transaction.",
             },
           ].map((item, index) => (
-            <div key={index} className="text-center bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div key={index} className="text-center bg-white rounded-xl p-6 border border-gray-200 shadow-card">
               <span className="text-oxford font-mono text-sm font-bold">{item.step}</span>
               <h4 className="text-xl font-bold text-gray-900 mt-2 mb-3">{item.title}</h4>
               <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>

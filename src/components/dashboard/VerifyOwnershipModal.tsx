@@ -192,7 +192,7 @@ export function VerifyOwnershipModal({
               ? "bg-oxford text-white"
               : s < step
               ? "bg-emerald-500 text-white"
-              : "bg-slate-200 text-slate-500"
+              : "bg-slate-200 text-gray-500"
           }`}>
             {s < step ? <Check size={14} /> : s}
           </div>
@@ -209,14 +209,14 @@ export function VerifyOwnershipModal({
       {stepIndicator}
       <div className="text-center">
         <h3 className="text-base font-bold text-navy-deep">Verify your publication</h3>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           Add this code to your publication so we can confirm ownership.
         </p>
       </div>
 
       {/* Token display */}
       <div className="bg-navy-deep rounded-xl p-5 border border-slate-700">
-        <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2 font-medium">Verification Code</p>
+        <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2 font-medium">Verification Code</p>
         <div className="flex items-center justify-between gap-3">
           <code className="text-2xl md:text-3xl font-mono font-bold text-white tracking-[0.2em] leading-none">
             {displayToken}
@@ -292,7 +292,7 @@ export function VerifyOwnershipModal({
           {/* DNS TXT verification for custom domains */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
             <p className="text-sm font-semibold text-navy-deep">Add a DNS TXT record to your domain</p>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-gray-500 leading-relaxed">
               Log in to your domain registrar (GoDaddy, Cloudflare, Namecheap, etc.) and add the following TXT record. DNS changes typically propagate within 5 minutes.
             </p>
           </div>
@@ -351,7 +351,7 @@ export function VerifyOwnershipModal({
             <Loader2 size={48} className="animate-spin text-oxford mx-auto" />
             <div>
               <h3 className="text-base font-bold text-navy-deep">Checking your publication…</h3>
-              <p className="text-sm text-slate-500 mt-1">We're looking for your verification code.</p>
+              <p className="text-sm text-gray-500 mt-1">We're looking for your verification code.</p>
             </div>
           </>
         )}
@@ -363,12 +363,12 @@ export function VerifyOwnershipModal({
             </div>
             <div>
               <h3 className="text-lg font-bold text-navy-deep">Ownership Verified!</h3>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Your source <strong>{source.name}</strong> is now fully verified and licensing is active.
               </p>
               <div className="mt-4 rounded-lg bg-oxford/5 border border-oxford/15 px-4 py-3 text-left">
                 <p className="text-xs font-semibold text-oxford uppercase tracking-wide mb-1">Next step</p>
-                <p className="text-sm text-slate-600">Embed the Opedd widget on your articles so buyers can license your content directly.</p>
+                <p className="text-sm text-gray-600">Embed the Opedd widget on your articles so buyers can license your content directly.</p>
               </div>
             </div>
           </>
@@ -381,7 +381,7 @@ export function VerifyOwnershipModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-navy-deep">Code not found yet</h3>
-              <p className="text-sm text-slate-500 mt-2 max-w-sm mx-auto">
+              <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
                 We couldn't find the code on your publication yet. Make sure you've saved your changes and the code is visible on your About page. You can try again in a moment.
               </p>
             </div>
@@ -393,7 +393,7 @@ export function VerifyOwnershipModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="bg-navy-deep px-6 py-5 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -472,7 +472,7 @@ export function VerifyOwnershipModal({
           )}
 
           {step === 2 && verifyResult === "loading" && (
-            <Button disabled className="w-full h-11 bg-slate-200 text-slate-500">
+            <Button disabled className="w-full h-11 bg-slate-200 text-gray-500">
               <Loader2 size={16} className="animate-spin mr-2" />
               Verifying…
             </Button>

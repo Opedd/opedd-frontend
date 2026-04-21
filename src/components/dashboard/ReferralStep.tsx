@@ -65,7 +65,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30">
-      <div className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 w-full max-w-md mx-4 space-y-6">
+      <div className="relative bg-white rounded-xl border border-slate-200 shadow-card p-8 w-full max-w-md mx-4 space-y-6">
         <button
           onClick={handleSkip}
           className="absolute top-4 right-4 w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 flex items-center justify-center transition-colors active:scale-95"
@@ -78,7 +78,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
             <MessageSquare size={24} className="text-oxford" />
           </div>
           <h3 className="text-xl font-bold text-navy-deep">How did you hear about Opedd?</h3>
-          <p className="text-sm text-slate-500 mt-1">This helps us understand how publishers find us.</p>
+          <p className="text-sm text-gray-500 mt-1">This helps us understand how publishers find us.</p>
         </div>
 
         {/* Options grid */}
@@ -90,7 +90,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
               className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left text-sm font-medium transition-all ${
                 selected === opt.label
                   ? "border-oxford bg-oxford/5 text-navy-deep ring-2 ring-oxford/20"
-                  : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  : "border-slate-200 text-gray-600 hover:border-slate-300 hover:bg-slate-50"
               }`}
             >
               <span className="text-base flex-shrink-0">{opt.icon}</span>
@@ -114,7 +114,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
         <button
           onClick={handleSubmit}
           disabled={!selected || submitting}
-          className="w-full bg-gradient-to-r from-oxford to-violet-600 text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-lg"
+          className="w-full bg-gradient-to-r from-oxford to-violet-600 text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-popover"
         >
           {submitting ? (
             <>

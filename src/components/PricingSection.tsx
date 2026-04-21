@@ -108,7 +108,7 @@ const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className={`relative rounded-2xl p-8 ${
+              className={`relative rounded-xl p-8 ${
                 tier.popular
                   ? "bg-white/5 border-2 border-oxford shadow-[0_0_40px_rgba(74,38,237,0.15)]"
                   : "bg-white/5 border border-white/20"
@@ -185,7 +185,7 @@ const PricingSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden"
+          className="bg-white/5 rounded-xl border border-white/10 overflow-hidden"
         >
           <div className="p-6 border-b border-soft-white/10">
             <h3 className="text-2xl font-bold text-soft-white">

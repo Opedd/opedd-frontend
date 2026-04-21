@@ -331,7 +331,7 @@ export default function Licenses() {
 
       {/* Content */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl max-w-[480px] w-full p-8">
+        <div className="bg-white border border-gray-200 shadow-card rounded-xl max-w-[480px] w-full p-8">
 
           {step === "email" && (
             <div className="space-y-6">

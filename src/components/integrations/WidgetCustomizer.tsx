@@ -254,7 +254,7 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-blue-50 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-blue-50 shadow-card overflow-hidden">
         <div className="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-blue-50">
           {/* Left: Control Panel */}
           <div className="p-6 bg-navy-deep text-white space-y-6">
@@ -272,9 +272,9 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
                     key={m.value}
                     onClick={() => setWidgetMode(m.value)}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold transition-all",
+                      "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all",
                       widgetMode === m.value
-                        ? "bg-white text-navy-deep shadow-sm"
+                        ? "bg-white text-navy-deep shadow-card"
                         : "text-white/60 hover:text-white/80"
                     )}
                   >
@@ -408,11 +408,11 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
       </div>
 
       {/* Embed Code */}
-      <div className="bg-white rounded-xl border border-blue-50 p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-blue-50 p-6 shadow-card">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-navy-deep mb-1">Embed on Your Site</h3>
-            <p className="text-sm text-slate-500">Copy this snippet and paste it into your site's HTML where you want the widget to appear.</p>
+            <p className="text-sm text-gray-500">Copy this snippet and paste it into your site's HTML where you want the widget to appear.</p>
           </div>
           <Button
             onClick={handleCopyCode}
@@ -426,36 +426,36 @@ export function WidgetCustomizer({ publisherId }: WidgetCustomizerProps) {
         </div>
         <pre className="bg-gray-50 border border-blue-50 text-slate-700 p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
           <code>
-            <span className="text-slate-400">{"<"}</span>
+            <span className="text-gray-400">{"<"}</span>
             <span className="text-violet-600">script</span>
-            <span className="text-slate-500"> src=</span>
+            <span className="text-gray-500"> src=</span>
             <span className="text-emerald-600">"https://api.opedd.com/widget"</span>
             {"\n"}
-            <span className="text-slate-500">  data-publisher-id=</span>
+            <span className="text-gray-500">  data-publisher-id=</span>
             <span className="text-emerald-600">"{publisherId}"</span>
             {"\n"}
-            <span className="text-slate-500">  data-mode=</span>
+            <span className="text-gray-500">  data-mode=</span>
             <span className="text-amber-600">"{widgetMode}"</span>
             {"\n"}
-            <span className="text-slate-500">  data-color=</span>
+            <span className="text-gray-500">  data-color=</span>
             <span className="text-amber-600">"{primaryColor}"</span>
             {"\n"}
-            <span className="text-slate-500">  data-radius=</span>
+            <span className="text-gray-500">  data-radius=</span>
             <span className="text-amber-600">"{borderRadius[0]}"</span>
             {"\n"}
-            <span className="text-slate-500">  data-theme=</span>
+            <span className="text-gray-500">  data-theme=</span>
             <span className="text-amber-600">"{darkTheme ? "dark" : "light"}"</span>
             {"\n"}
-            <span className="text-slate-500">  data-text=</span>
+            <span className="text-gray-500">  data-text=</span>
             <span className="text-amber-600">"{labelText}"</span>
             {"\n"}
-            <span className="text-slate-500">  data-frontend-url=</span>
+            <span className="text-gray-500">  data-frontend-url=</span>
             <span className="text-amber-600">"{typeof window !== "undefined" ? window.location.origin : ""}"</span>
-            <span className="text-slate-400">{">"}</span>
+            <span className="text-gray-400">{">"}</span>
             {"\n"}
-            <span className="text-slate-400">{"</"}</span>
+            <span className="text-gray-400">{"</"}</span>
             <span className="text-violet-600">script</span>
-            <span className="text-slate-400">{">"}</span>
+            <span className="text-gray-400">{">"}</span>
           </code>
         </pre>
       </div>

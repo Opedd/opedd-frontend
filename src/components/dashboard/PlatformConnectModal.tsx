@@ -284,14 +284,14 @@ export function PlatformConnectModal({
                     ? "bg-oxford text-white"
                     : isDone
                     ? "bg-emerald-500 text-white"
-                    : "bg-slate-200 text-slate-500"
+                    : "bg-slate-200 text-gray-500"
                 }`}
               >
                 {isDone ? <Check size={14} /> : stepNum}
               </div>
               <span
                 className={`text-xs font-medium hidden sm:inline ${
-                  isActive ? "text-navy-deep" : "text-slate-400"
+                  isActive ? "text-navy-deep" : "text-gray-400"
                 }`}
               >
                 {label}
@@ -355,7 +355,7 @@ export function PlatformConnectModal({
                     style={{ width: `${Math.max(progress, 5)}%` }}
                   />
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-gray-500">
                   {archiveJob?.processed_count || 0} / {archiveJob?.total_count || "?"} articles processed
                 </p>
               </div>
@@ -408,7 +408,7 @@ export function PlatformConnectModal({
 
         {detection.confidence === "low" && (
           <div className="space-y-2">
-            <p className="text-xs text-slate-500">We couldn't auto-detect your platform — you can correct it below:</p>
+            <p className="text-xs text-gray-500">We couldn't auto-detect your platform — you can correct it below:</p>
             <Select value={platform} onValueChange={(v) => setSelectedPlatform(v as DetectionResult["platform"])}>
               <SelectTrigger className="h-10">
                 <SelectValue />
@@ -448,7 +448,7 @@ export function PlatformConnectModal({
               <Lock size={12} className="shrink-0 mt-0.5" />
               Read-only access — we can only read your posts, never publish, edit, or send anything on your behalf. You can revoke this key from your Beehiiv dashboard at any time.
             </p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-gray-400 leading-relaxed">
               Find these in Beehiiv Settings → API. Your Publication ID is in the URL of your dashboard.
             </p>
             <p className="text-xs text-gray-500 leading-relaxed">
@@ -491,7 +491,7 @@ export function PlatformConnectModal({
               <Lock size={12} className="shrink-0 mt-0.5" />
               Read-only access — we can only read your posts, never publish, edit, or send anything on your behalf. You can revoke this key from your Ghost dashboard at any time.
             </p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-gray-400 leading-relaxed">
               In Ghost Admin → Settings → Integrations → Add Custom Integration → copy Content API Key.
             </p>
             <p className="text-xs text-gray-500 leading-relaxed">
@@ -558,7 +558,7 @@ export function PlatformConnectModal({
               <p className="text-sm font-medium text-navy-deep/70">
                 {platform === "substack" ? "Drop your Substack export ZIP here" : "Drop your content export file here"}
               </p>
-              <p className="text-xs text-slate-400 mt-1">ZIP files accepted</p>
+              <p className="text-xs text-gray-400 mt-1">ZIP files accepted</p>
             </div>
 
             {platform === "substack" && (
@@ -572,7 +572,7 @@ export function PlatformConnectModal({
                 <div className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-slate-400">or</span>
+                <span className="bg-white px-3 text-gray-400">or</span>
               </div>
             </div>
 
@@ -627,7 +627,7 @@ export function PlatformConnectModal({
         <div className="text-center">
           <Shield size={28} className="text-oxford mx-auto mb-2" />
           <h3 className="text-base font-bold text-navy-deep">Verify Ownership</h3>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Prove you own this publication to activate licensing.
           </p>
         </div>
@@ -639,7 +639,7 @@ export function PlatformConnectModal({
             </div>
             <div>
               <h3 className="text-lg font-bold text-navy-deep">Verified!</h3>
-              <p className="text-sm text-slate-500 mt-1">Your publication ownership has been confirmed.</p>
+              <p className="text-sm text-gray-500 mt-1">Your publication ownership has been confirmed.</p>
             </div>
             <Button onClick={() => setStep(3)} className="w-full h-11 bg-oxford hover:bg-oxford-dark text-white font-semibold">
               Continue
@@ -649,14 +649,14 @@ export function PlatformConnectModal({
         ) : verifyResult === "loading" ? (
           <div className="text-center py-8">
             <Loader2 size={32} className="animate-spin text-oxford mx-auto" />
-            <p className="text-sm text-slate-500 mt-3">Checking your publication…</p>
+            <p className="text-sm text-gray-500 mt-3">Checking your publication…</p>
           </div>
         ) : verifyResult === "failed" ? (
           <div className="text-center space-y-4 py-4">
             <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
               <AlertTriangle size={36} className="text-amber-600" />
             </div>
-            <p className="text-sm text-slate-500">We couldn't verify ownership yet. Make sure you've saved your changes.</p>
+            <p className="text-sm text-gray-500">We couldn't verify ownership yet. Make sure you've saved your changes.</p>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => { onOpenChange(false); onComplete(); }} className="flex-1 h-11">
                 Verify Later
@@ -677,7 +677,7 @@ export function PlatformConnectModal({
                   </p>
                 </div>
                 <div className="bg-navy-deep rounded-xl p-4">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2 font-medium">Verification Code</p>
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2 font-medium">Verification Code</p>
                   <div className="flex items-center justify-between gap-3">
                     <code className="text-lg font-mono font-bold text-white tracking-[0.15em]">{token}</code>
                     <button
@@ -694,7 +694,7 @@ export function PlatformConnectModal({
               <div className="space-y-3">
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                   <p className="text-sm font-semibold text-navy-deep">Add a DNS TXT record</p>
-                  <p className="text-xs text-slate-500 mt-1">DNS changes can take up to 48 hours to propagate.</p>
+                  <p className="text-xs text-gray-500 mt-1">DNS changes can take up to 48 hours to propagate.</p>
                 </div>
                 {[
                   { label: "Type", value: "TXT" },
@@ -750,7 +750,7 @@ export function PlatformConnectModal({
         <div className="text-center">
           <Rss size={28} className="text-oxford mx-auto mb-2" />
           <h3 className="text-base font-bold text-navy-deep">Connect New Content</h3>
-          <p className="text-sm text-slate-500 mt-1">Set up forward sync so new posts arrive automatically.</p>
+          <p className="text-sm text-gray-500 mt-1">Set up forward sync so new posts arrive automatically.</p>
         </div>
 
         {platform === "beehiiv" && (
@@ -769,10 +769,10 @@ export function PlatformConnectModal({
           <div className="space-y-3">
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
               <p className="text-sm font-semibold text-navy-deep">Set up a Ghost webhook for real-time sync</p>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-gray-500 leading-relaxed">
                 Go to Ghost Admin → Settings → Integrations → Your Integration → Add webhook.
               </p>
-              <ul className="text-xs text-slate-500 space-y-1 list-disc pl-4">
+              <ul className="text-xs text-gray-500 space-y-1 list-disc pl-4">
                 <li>Event: <strong>Post published</strong></li>
                 <li>Target URL:</li>
               </ul>
@@ -785,7 +785,7 @@ export function PlatformConnectModal({
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">Or skip — we'll sync via email instead.</p>
+            <p className="text-xs text-gray-400">Or skip — we'll sync via email instead.</p>
           </div>
         )}
 
@@ -828,7 +828,7 @@ export function PlatformConnectModal({
           </p>
 
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-gray-500 leading-relaxed">
               {platform === "substack" && (
                 <>Go to <strong>Substack Settings → Subscribers → Add subscriber</strong> → paste email → Comp subscription.</>
               )}
@@ -860,7 +860,7 @@ export function PlatformConnectModal({
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onOpenChange(false); } }}>
       <DialogContent
         hideCloseButton
-        className="bg-white border-none text-navy-deep sm:max-w-lg rounded-2xl p-0 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+        className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]"
       >
         {/* Header */}
         <div className="bg-navy-deep px-6 py-4 flex items-center justify-between shrink-0">

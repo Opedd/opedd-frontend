@@ -12,13 +12,13 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
   const inputBg = dark ? "bg-[hsl(210,100%,99%,0.08)]" : "bg-white";
   const inputBorder = dark ? "border-[hsl(210,100%,99%,0.15)]" : "border-slate-200";
   const inputText = dark ? "text-[hsl(210,100%,99%)]" : "text-[hsl(244,100%,8%)]";
-  const cardShadow = dark ? "shadow-[0_8px_32px_hsl(244,100%,5%,0.5)]" : "shadow-lg";
+  const cardShadow = dark ? "shadow-[0_8px_32px_hsl(244,100%,5%,0.5)]" : "shadow-card";
   const priceBg = dark ? "bg-[hsl(244,50%,18%)]" : "bg-[hsl(210,100%,97%)]";
   const priceActive = "bg-gradient-to-r from-[hsl(245,83%,54%)] to-[hsl(245,83%,62%)] text-white";
   const statBg = dark ? "bg-[hsl(244,50%,18%,0.6)]" : "bg-[hsl(210,100%,97%)]";
 
   return (
-    <div className={`w-[360px] rounded-2xl ${bg} border ${border} ${cardShadow} overflow-hidden`}>
+    <div className={`w-[360px] rounded-xl ${bg} border ${border} ${cardShadow} overflow-hidden`}>
       {/* Header */}
       <div className={`flex items-center gap-2.5 px-5 pt-4 pb-3 border-b ${border}`}>
         <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${dark ? "" : "bg-navy-deep p-1"}`}>
@@ -66,11 +66,11 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
       {/* Buyer Form */}
       <div className="px-5 space-y-2.5 mb-4">
         <div className="flex gap-2">
-          <input placeholder="First name" className={`flex-1 h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-slate-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
-          <input placeholder="Last name" className={`flex-1 h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-slate-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
+          <input placeholder="First name" className={`flex-1 h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-gray-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
+          <input placeholder="Last name" className={`flex-1 h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-gray-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
         </div>
-        <input placeholder="Email address" className={`w-full h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-slate-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
-        <input placeholder="Company / Organization" className={`w-full h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-slate-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
+        <input placeholder="Email address" className={`w-full h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-gray-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
+        <input placeholder="Company / Organization" className={`w-full h-9 rounded-lg border ${inputBorder} ${inputBg} ${inputText} px-3 text-xs placeholder:text-gray-400 outline-none focus:ring-1 focus:ring-[hsl(245,83%,54%)]`} readOnly />
         
         <label className={`flex items-center gap-2 cursor-pointer ${textMuted} text-xs`} onClick={() => setIsIndividual(!isIndividual)}>
           <div className={`w-4 h-4 rounded border ${isIndividual ? "bg-[hsl(245,83%,54%)] border-[hsl(245,83%,54%)]" : inputBorder} flex items-center justify-center transition-colors`}>
@@ -106,7 +106,7 @@ const WidgetCompact = ({ dark = false }: { dark?: boolean }) => {
   const border = dark ? "border-[hsl(210,100%,99%,0.12)]" : "border-[hsl(210,100%,97%)]";
   const text = dark ? "text-[hsl(210,100%,99%)]" : "text-[hsl(244,100%,8%)]";
   const textMuted = dark ? "text-[hsl(210,60%,80%)]" : "text-[hsl(244,100%,8%,0.5)]";
-  const shadow = dark ? "shadow-[0_4px_16px_hsl(244,100%,5%,0.4)]" : "shadow-md";
+  const shadow = dark ? "shadow-[0_4px_16px_hsl(244,100%,5%,0.4)]" : "shadow-card";
 
   return (
     <div className={`w-[360px] rounded-xl ${bg} border ${border} ${shadow} px-4 py-3 flex items-center gap-3`}>
@@ -128,7 +128,7 @@ const WidgetBadge = ({ dark = false }: { dark?: boolean }) => {
   const border = dark ? "border-[hsl(210,100%,99%,0.12)]" : "border-[hsl(210,100%,97%)]";
   const text = dark ? "text-[hsl(210,100%,99%)]" : "text-[hsl(244,100%,8%)]";
   const textMuted = dark ? "text-[hsl(210,60%,80%)]" : "text-[hsl(244,100%,8%,0.5)]";
-  const shadow = dark ? "shadow-[0_2px_8px_hsl(244,100%,5%,0.3)]" : "shadow-sm";
+  const shadow = dark ? "shadow-[0_2px_8px_hsl(244,100%,5%,0.3)]" : "shadow-card";
 
   return (
     <div className={`inline-flex items-center gap-2 rounded-full ${bg} border ${border} ${shadow} pl-2 pr-3 py-1.5`}>

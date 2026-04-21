@@ -60,7 +60,7 @@ export function SourcePricingModal({ open, onOpenChange, sourceId, sourceName, o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-md rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-md rounded-xl p-0 overflow-hidden shadow-modal">
         {/* Header */}
         <div className="bg-navy-deep px-6 py-5">
           <div className="flex items-center justify-between">
@@ -129,7 +129,7 @@ export function SourcePricingModal({ open, onOpenChange, sourceId, sourceName, o
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full h-12 rounded-xl bg-oxford hover:bg-oxford-dark text-white font-semibold text-sm shadow-lg shadow-oxford/25 transition-all active:scale-[0.98] gap-2"
+            className="w-full h-12 rounded-xl bg-oxford hover:bg-oxford-dark text-white font-semibold text-sm shadow-card shadow-card/25 transition-all active:scale-[0.98] gap-2"
           >
             {isSaving ? (
               <Loader2 size={16} className="animate-spin" />

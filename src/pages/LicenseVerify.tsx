@@ -222,7 +222,7 @@ export default function LicenseVerify() {
           </div>
 
           {/* Details Card */}
-          <Card className="border-gray-200 bg-white shadow-sm">
+          <Card className="border-gray-200 bg-white shadow-card">
             <CardContent className="p-6 space-y-4">
               <DetailRow label="Content">
                 {data.content.source_url ? (
@@ -289,7 +289,7 @@ export default function LicenseVerify() {
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-50 p-5">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-emerald-600 uppercase tracking-wider font-medium">Machine-Readable License (license.json)</p>
-                <button onClick={handleCopyJson} className="p-1.5 rounded-md hover:bg-emerald-100 transition-colors text-emerald-600/60 hover:text-emerald-600">
+                <button onClick={handleCopyJson} className="p-1.5 rounded-lg hover:bg-emerald-100 transition-colors text-emerald-600/60 hover:text-emerald-600">
                   {copiedJson ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
               </div>
@@ -301,7 +301,7 @@ export default function LicenseVerify() {
 
           {/* Buyer Webhook */}
           {data.license_type === "archive" && data.status === "completed" && (
-            <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 shadow-sm">
+            <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 shadow-card">
               <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">New Article Notifications</p>
               <p className="text-sm text-gray-500">Register a webhook to receive a POST request whenever a new article is added to your archive coverage.</p>
               {webhookSecret ? (
