@@ -100,6 +100,7 @@ export default function LicensePublicCheckout() {
   const [contactSending, setContactSending] = useState(false);
   const [publisherPricingRules, setPublisherPricingRules] = useState<any>(null);
   const [stripeOnboardingComplete, setStripeOnboardingComplete] = useState<boolean | null>(null);
+  const [publisherInfo, setPublisherInfo] = useState<{ name: string; logo_url: string | null; website_url: string | null } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -120,7 +121,7 @@ export default function LicensePublicCheckout() {
           if (row.publisher_id) {
             try {
               const pubRes = await fetch(
-                `${EXT_SUPABASE_REST}/rest/v1/publishers?select=contact_for_pricing,pricing_rules,stripe_onboarding_complete&id=eq.${row.publisher_id}&limit=1`,
+                `${EXT_SUPABASE_REST}/rest/v1/publishers_public?select=name,logo_url,website_url,contact_for_pricing,pricing_rules,stripe_onboarding_complete&id=eq.${row.publisher_id}&limit=1`,
                 { headers: { apikey: EXT_ANON_KEY, Accept: "application/json" } }
               );
               const pubRows = await pubRes.json();
@@ -128,6 +129,11 @@ export default function LicensePublicCheckout() {
                 setContactForPricing(!!pubRows[0].contact_for_pricing);
                 setPublisherPricingRules(pubRows[0].pricing_rules ?? null);
                 setStripeOnboardingComplete(!!pubRows[0].stripe_onboarding_complete);
+                setPublisherInfo({
+                  name: pubRows[0].name || "",
+                  logo_url: pubRows[0].logo_url || null,
+                  website_url: pubRows[0].website_url || null,
+                });
               }
             } catch { /* ignore */ }
           }
@@ -231,6 +237,37 @@ export default function LicensePublicCheckout() {
     <div className={mobile ? "bg-[#4A26ED] px-5 py-8 text-white" : ""}>
       {!mobile && (
         <img src={opeddLogo} alt="Opedd" className="h-7 mb-12" />
+      )}
+
+      {publisherInfo && publisherInfo.name && (
+        <div className="flex items-center gap-2.5 mb-5">
+          {publisherInfo.logo_url ? (
+            <img
+              src={publisherInfo.logo_url}
+              alt={publisherInfo.name}
+              className="h-7 w-7 rounded-full object-cover border border-white/10 flex-shrink-0"
+            />
+          ) : (
+            <div className="h-7 w-7 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/70 text-xs font-semibold flex-shrink-0">
+              {publisherInfo.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="flex items-baseline gap-1.5 min-w-0">
+            <span className="text-white/50 text-xs">Licensed by</span>
+            {publisherInfo.website_url ? (
+              <a
+                href={publisherInfo.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white text-sm font-medium hover:underline truncate"
+              >
+                {publisherInfo.name}
+              </a>
+            ) : (
+              <span className="text-white text-sm font-medium truncate">{publisherInfo.name}</span>
+            )}
+          </div>
+        </div>
       )}
 
       {isVerified && (
