@@ -41,7 +41,7 @@ export function DashboardSidebar() {
                     : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 }`}
               >
-                <Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
+                <Icon size={16} strokeWidth={1.5} />
                 <span>{item.title}</span>
               </NavLink>
             );

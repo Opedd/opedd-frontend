@@ -458,7 +458,7 @@ function WebhooksTab({ getAccessToken }: { getAccessToken: () => Promise<string 
   if (webhooks.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="text-lg mb-1">🎉</p>
+        <PartyPopper size={28} className="mx-auto text-emerald-500 mb-2" />
         <p className="text-sm font-medium text-gray-500">No failed webhooks</p>
         <p className="text-xs text-gray-400 mt-1">All webhook deliveries are healthy.</p>
       </div>

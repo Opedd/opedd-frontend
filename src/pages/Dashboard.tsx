@@ -304,7 +304,8 @@ export default function Dashboard() {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
-                  💰 Pending Earnings: ${totalRevenue.toFixed(2)}
+                  <Coins size={18} className="text-amber-600" />
+                  Pending Earnings: ${totalRevenue.toFixed(2)}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
                   Your earnings are accumulating. Connect your bank to start receiving payouts.
