@@ -290,6 +290,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
           >
             <button
               onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
               className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center"
             >
               <X size={16} className="text-gray-500" />
@@ -322,7 +323,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             {headerActions}
             <Popover open={bellOpen} onOpenChange={setBellOpen}>
               <PopoverTrigger asChild>
-                <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <button aria-label={!notificationsLoading && unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <Bell size={16} className={cn("text-gray-500 transition-opacity", notificationsLoading && "animate-pulse opacity-40")} />
                   {!notificationsLoading && unreadCount > 0 && (
                     <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
@@ -381,7 +382,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
             {/* Avatar dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-9 h-9 rounded-full bg-oxford flex items-center justify-center hover:ring-2 hover:ring-oxford/20 transition-all">
+                <button aria-label="Open account menu" className="w-9 h-9 rounded-full bg-oxford flex items-center justify-center hover:ring-2 hover:ring-oxford/20 transition-all">
                   <span className="text-xs font-bold text-white">{getInitial()}</span>
                 </button>
               </DropdownMenuTrigger>

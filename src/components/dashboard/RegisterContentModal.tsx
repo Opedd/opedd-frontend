@@ -977,7 +977,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     <p className="text-[#A78BFA] text-sm truncate max-w-[250px]">{vSourceName}</p>
                   </div>
                 </div>
-                <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                <button onClick={handleClose} aria-label="Close verify ownership dialog" className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                   <X size={16} className="text-white" />
                 </button>
               </div>
@@ -1030,7 +1030,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <div className="p-3">
                     <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
                       <code className="text-xs text-emerald-400 font-mono truncate">{visibleCode}</code>
-                      <button onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }} className="text-white/60 hover:text-white flex-shrink-0">
+                      <button onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }} aria-label="Copy visible verification code" className="text-white/60 hover:text-white flex-shrink-0">
                         {copiedInlineCode === "visible" ? <Check size={12} /> : <Copy size={12} />}
                       </button>
                     </div>
@@ -1047,7 +1047,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     <div className="p-3">
                       <div className="bg-[#040042] rounded-lg p-3 flex items-center justify-between gap-3">
                         <code className="text-xs text-emerald-400 font-mono truncate">{metaCode}</code>
-                        <button onClick={() => { navigator.clipboard.writeText(metaCode); setCopiedInlineCode("meta"); setTimeout(() => setCopiedInlineCode("none"), 2000); }} className="text-white/60 hover:text-white flex-shrink-0">
+                        <button onClick={() => { navigator.clipboard.writeText(metaCode); setCopiedInlineCode("meta"); setTimeout(() => setCopiedInlineCode("none"), 2000); }} aria-label="Copy verification meta tag" className="text-white/60 hover:text-white flex-shrink-0">
                           {copiedInlineCode === "meta" ? <Check size={12} /> : <Copy size={12} />}
                         </button>
                       </div>
@@ -1107,7 +1107,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     <p className="text-[#040042]/60 text-sm">Select your publishing platform</p>
                   </div>
                 </div>
-                <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+                <button onClick={handleClose} aria-label="Close sync publication dialog" className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
                   <X size={16} className="text-[#040042]/60" />
                 </button>
               </div>
@@ -1182,6 +1182,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => { setPubStep("select"); setPubPlatform(null); }}
+                  aria-label="Back to platform picker"
                   className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
                 >
                   <ArrowLeft size={16} className="text-[#040042]/60" />
@@ -1197,7 +1198,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <p className="text-[#040042]/60 text-sm">Connect your content source</p>
                 </div>
               </div>
-              <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+              <button onClick={handleClose} aria-label="Close import dialog" className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
                 <X size={16} className="text-[#040042]/60" />
               </button>
             </div>
@@ -1698,6 +1699,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               </div>
               <button
                 onClick={handleClose}
+                aria-label="Close register single work dialog"
                 className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
               >
                 <X size={16} className="text-[#040042]/60" />
@@ -1786,6 +1788,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                             e.stopPropagation();
                             setUploadedFile(null);
                           }}
+                          aria-label={`Remove uploaded file ${uploadedFile.name}`}
                           className="text-slate-400 hover:text-slate-600"
                         >
                           <X size={16} />
@@ -1965,7 +1968,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <p className="text-white/60 text-sm">Bulk import your entire content archive</p>
                 </div>
               </div>
-              <button onClick={handleClose} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+              <button onClick={handleClose} aria-label="Close enterprise registration dialog" className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                 <X size={16} className="text-white" />
               </button>
             </div>
@@ -2077,7 +2080,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 <h1 className="text-[#040042] font-bold text-lg leading-tight">Register Content</h1>
                 <p className="text-slate-500 text-sm">Choose how you want to protect your work</p>
               </div>
-              <button onClick={handleClose} className="text-slate-400 hover:text-[#040042] transition-colors">
+              <button onClick={handleClose} aria-label="Close register content picker" className="text-slate-400 hover:text-[#040042] transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -2162,6 +2165,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </div>
             <button
               onClick={handleClose}
+              aria-label="Close registration complete dialog"
               className="text-slate-400 hover:text-[#040042] transition-colors"
             >
               <X size={20} />

@@ -394,7 +394,7 @@ function TransactionsTab({ getAccessToken, toast }: { getAccessToken: () => Prom
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center gap-1.5">
                       <code className="text-xs font-mono text-gray-500">{truncateKey(tx.license_key)}</code>
-                      <button onClick={() => handleCopy(tx.license_key)} className="text-gray-400 hover:text-navy-deep transition-colors">
+                      <button onClick={() => handleCopy(tx.license_key)} aria-label="Copy license key" className="text-gray-400 hover:text-navy-deep transition-colors">
                         {copiedKey === tx.license_key ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                       </button>
                     </span>

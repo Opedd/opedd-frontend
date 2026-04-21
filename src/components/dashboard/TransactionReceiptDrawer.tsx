@@ -211,7 +211,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">License Key</p>
                 <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                   <code className="text-sm font-mono text-gray-900 flex-1 truncate">{transaction.licenseKey}</code>
-                  <button onClick={handleCopyLicenseKey} className="text-gray-400 hover:text-oxford transition-colors flex-shrink-0">
+                  <button onClick={handleCopyLicenseKey} aria-label="Copy license key" className="text-gray-400 hover:text-oxford transition-colors flex-shrink-0">
                     {copiedKey ? <CheckCircle2 size={16} className="text-emerald-500" /> : <Copy size={16} />}
                   </button>
                 </div>
@@ -256,7 +256,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
                 <p className="text-xs text-white/60 uppercase tracking-wider font-medium mb-2">Transaction Hash</p>
                 <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
                   <code className="text-emerald-400 text-sm font-mono flex-1 truncate">{transaction.blockchainTxHash}</code>
-                  <button onClick={handleCopyHash} className="text-white/70 hover:text-white transition-colors">{copiedHash ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}</button>
+                  <button onClick={handleCopyHash} aria-label="Copy transaction hash" className="text-white/70 hover:text-white transition-colors">{copiedHash ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}</button>
                 </div>
                 {transaction.blockchainStatus === "confirmed" && (
                   <p className="text-xs text-emerald-400 mt-2">Confirmed on Tempo</p>

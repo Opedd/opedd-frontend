@@ -228,7 +228,7 @@ export function PricingRulesTab() {
             {excludedPatterns.map((p, i) => (
               <span key={i} className="flex items-center gap-1.5 px-2 py-1 bg-oxford/5 border border-oxford/15 text-oxford text-xs rounded-lg font-mono">
                 {p}
-                <button onClick={() => setExcludedPatterns(prev => prev.filter((_, j) => j !== i))} className="hover:text-red-500">
+                <button onClick={() => setExcludedPatterns(prev => prev.filter((_, j) => j !== i))} aria-label={`Remove exclusion pattern ${p}`} className="hover:text-red-500">
                   <XCircle size={12} />
                 </button>
               </span>
