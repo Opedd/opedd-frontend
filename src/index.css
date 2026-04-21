@@ -26,21 +26,19 @@ html {
     /* === DASHBOARD TOKENS === */
     --bg-page: 220 14% 97%;
     --bg-card: 0 0% 100%;
-    --text-primary: 220 13% 10%;       /* #111827 */
-    --text-secondary: 220 9% 46%;      /* #6B7280 */
-    --text-muted: 220 9% 64%;          /* #9CA3AF (renamed from shadcn 'muted' to avoid alias) */
-    --success: 160 84% 39%;            /* #059669 */
-    --success-bright: 160 84% 39%;     /* #10B981 — close enough; tweaked below */
-    --warning: 38 92% 50%;             /* #F59E0B */
-    --warning-dark: 32 95% 44%;        /* #D97706 */
-    --error: 0 73% 50%;                /* #DC2626 */
-    --error-bright: 0 84% 60%;         /* #EF4444 */
-    --info: 217 91% 60%;               /* #3B82F6 */
+    --text-primary: 220 13% 10%;
+    --text-secondary: 220 9% 46%;
+    --text-muted: 220 9% 64%;
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --error: 0 84% 60%;
+    --info: 217 91% 60%;
 
     /* === NEW: oxford pale (close-family tints used in marketing) === */
-    --oxford-pale: 234 50% 86%;        /* avg of #C7B8F6 / #D5D9F2 / #E0E2F0 */
+    /* Single mid token covering #C7B8F6 / #D5D9F2 / #E0E2F0 / #F0EBFF */
+    --oxford-pale: 240 53% 89%;        /* ~#D5D9F2 */
 
-    /* === EXTERNAL BRANDS (immutable; here for grep cleanliness only) === */
+    /* === EXTERNAL BRANDS (immutable; tokenized for grep cleanliness) === */
     --google-blue: 217 89% 61%;        /* #4285F4 */
     --google-green: 137 53% 43%;       /* #34A853 */
     --google-yellow: 45 97% 51%;       /* #FBBC05 */
