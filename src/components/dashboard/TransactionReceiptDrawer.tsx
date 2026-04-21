@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+import { getLicenseTypeLabel, getLicenseTypeTextColor } from "@/lib/licenseTypes";
 import {
   Sparkles, User, FileText, ExternalLink, Copy, CheckCircle2,
   Link2, Shield, Bot, Cpu, Hash, Download, Building2, Briefcase,
@@ -109,22 +110,30 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
     }
   };
 
+  // Map legacy transaction types to canonical license types for label/color lookup.
+  // 'payout' is not a license — it stays distinct.
+  const canonicalKey =
+    transaction.type === "ai_ingestion" ? "ai_training" :
+    transaction.type === "human_license" ? "editorial" :
+    transaction.type === "archive_license" ? "archive" :
+    transaction.type === "enterprise_license" ? "corporate" :
+    null;
+
   const getTypeIcon = () => {
+    if (transaction.type === "payout") return <FileText className="text-gray-900" size={20} />;
+    const colorClass = canonicalKey ? getLicenseTypeTextColor(canonicalKey) : "text-gray-900";
     switch (transaction.type) {
-      case "ai_ingestion": return <Sparkles className="text-oxford" size={20} />;
-      case "human_license": return <User className="text-plum-magenta" size={20} />;
-      case "archive_license": return <Archive className="text-amber-600" size={20} />;
-      case "payout": return <FileText className="text-gray-900" size={20} />;
+      case "ai_ingestion": return <Sparkles className={colorClass} size={20} />;
+      case "human_license": return <User className={colorClass} size={20} />;
+      case "archive_license": return <Archive className={colorClass} size={20} />;
+      case "enterprise_license": return <Briefcase className={colorClass} size={20} />;
+      default: return <FileText className="text-gray-900" size={20} />;
     }
   };
 
   const getTypeLabel = () => {
-    switch (transaction.type) {
-      case "ai_ingestion": return "AI Ingestion License";
-      case "human_license": return "Human Republication License";
-      case "archive_license": return "Archive License";
-      case "payout": return "Payout to Bank";
-    }
+    if (transaction.type === "payout") return "Payout to Bank";
+    return canonicalKey ? `${getLicenseTypeLabel(canonicalKey)} License` : "License";
   };
 
   return (
