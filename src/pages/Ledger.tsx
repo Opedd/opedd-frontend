@@ -33,10 +33,21 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CANONICAL_LICENSE_TYPES,
+  LICENSE_TYPE_LABELS,
+  getLicenseTypeBadgeClass,
+  getLicenseTypeLabel,
+  getLicenseTypeTextColor,
+  normalizeLegacyType,
+  type CanonicalLicenseType,
+} from "@/lib/licenseTypes";
 
 interface Transaction {
   id: string;
   type: "ai_ingestion" | "human_license" | "archive_license" | "enterprise_license" | "payout";
+  /** Raw backend license_type token, used to look up canonical label/badge. */
+  rawLicenseType?: string;
   description: string;
   amount: number;
   date: string;
@@ -138,14 +149,15 @@ export default function Ledger() {
           return {
             id: tx.id,
             type: txType,
-            description: isEnterprise ? "Enterprise License" : isArchive ? "Archive License" : isAI ? "AI Training License" : "Human Republication License",
+            rawLicenseType: tx.license_type,
+            description: isEnterprise ? "Corporate License" : isArchive ? "Archive License" : isAI ? "AI Training License" : "Editorial License",
             amount: Number(tx.amount), date: new Date(tx.created_at).toISOString().split("T")[0],
             status: mapStatus(tx.status),
-            assetTitle: tx.asset_title || (isArchive ? "Archive License" : isEnterprise ? "Enterprise License" : "Unknown Asset"),
+            assetTitle: tx.asset_title || (isArchive ? "Archive License" : isEnterprise ? "Corporate License" : "Unknown Asset"),
             assetId: tx.article_id, licenseeEmail: tx.buyer_email, licenseKey: tx.license_key,
             buyerName: tx.buyer_name, buyerOrganization: tx.buyer_organization,
             intendedUse: tx.intended_use, validFrom: tx.valid_from, validUntil: tx.valid_until,
-            licenseTerms: isEnterprise ? "Annual enterprise catalog license — auto-renewing." : isArchive ? "Site-wide archive license." : isAI ? "Non-exclusive license for AI model training." : "Single-use republication license.",
+            licenseTerms: isEnterprise ? "Annual corporate catalog license — auto-renewing." : isArchive ? "Site-wide archive license." : isAI ? "Non-exclusive license for AI model training." : "Single-use editorial republication license.",
             blockchainTxHash: tx.blockchain_tx_hash || null,
             blockchainStatus: tx.blockchain_status || null,
             paymentHeld: tx.payment_held || false,
@@ -280,14 +292,25 @@ export default function Ledger() {
     }
   };
 
-  const getBuyerTypeBadge = (type: string) => {
-    switch (type) {
-      case "ai_ingestion": return <Badge className="bg-oxford/10 text-oxford border border-oxford/20 hover:bg-oxford/10 font-medium"><Sparkles size={12} className="mr-1" />AI</Badge>;
-      case "human_license": return <Badge className="bg-plum-magenta/10 text-plum-magenta border border-plum-magenta/20 hover:bg-plum-magenta/10 font-medium"><User size={12} className="mr-1" />Human</Badge>;
-      case "archive_license": return <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 font-medium"><Archive size={12} className="mr-1" />Archive</Badge>;
-      case "enterprise_license": return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-50 font-medium"><Shield size={12} className="mr-1" />Enterprise</Badge>;
-      default: return <Badge className="bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-100 font-medium">Payout</Badge>;
+  // Badge labels & colors are sourced from the canonical license-type map.
+  // Falls back to the legacy txType when rawLicenseType is missing.
+  const getBuyerTypeBadge = (tx: Transaction) => {
+    const raw = tx.rawLicenseType ?? (
+      tx.type === "ai_ingestion" ? "ai_training"
+      : tx.type === "human_license" ? "editorial"
+      : tx.type === "archive_license" ? "archive"
+      : tx.type === "enterprise_license" ? "corporate"
+      : null
+    );
+    const canonical = normalizeLegacyType(raw);
+    if (!canonical) {
+      return <Badge className="bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-100 font-medium">Payout</Badge>;
     }
+    return (
+      <Badge className={`${LICENSE_TYPE_LABELS[canonical].badgeClass} font-medium`}>
+        {LICENSE_TYPE_LABELS[canonical].shortLabel}
+      </Badge>
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -404,11 +427,12 @@ export default function Ledger() {
                           </SelectContent>
                         </Select>
                         <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setOffset(0); }}>
-                          <SelectTrigger className="w-[140px] h-9 text-sm border-gray-200 rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
+                          <SelectTrigger className="w-[180px] h-9 text-sm border-gray-200 rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="human">Human</SelectItem>
-                            <SelectItem value="ai">AI Training</SelectItem>
+                            {CANONICAL_LICENSE_TYPES.map((k) => (
+                              <SelectItem key={k} value={k}>{LICENSE_TYPE_LABELS[k].label}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -482,7 +506,7 @@ export default function Ledger() {
                                   <span className="text-gray-900 font-medium text-sm truncate max-w-[200px]">{tx.assetTitle ? decodeText(tx.assetTitle) : "—"}</span>
                                 </div>
                               </TableCell>
-                              <TableCell>{getBuyerTypeBadge(tx.type)}</TableCell>
+                              <TableCell>{getBuyerTypeBadge(tx)}</TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.licenseeEmail ? tx.licenseeEmail.split("@")[0] + "..." : "Anonymous"}</span></TableCell>
                               <TableCell><span className={`font-bold tabular-nums ${tx.amount > 0 ? "text-emerald-600" : "text-gray-500"}`}>${Math.abs(tx.amount).toFixed(2)}</span></TableCell>
                               <TableCell><span className="text-gray-500 text-sm">{tx.date}</span></TableCell>

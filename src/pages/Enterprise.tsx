@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { copyToClipboard } from "@/lib/clipboard";
 import opeddIcon from "@/assets/opedd-icon.svg";
+import { LICENSE_TYPE_LABELS } from "@/lib/licenseTypes";
 
 /* ─── Static data ─── */
 
@@ -73,24 +74,13 @@ const PRICING_ROWS = [
   },
 ];
 
-const LICENSE_TIERS = [
-  {
-    name: "RAG",
-    desc: "Retrieval-Augmented Generation. Fetch content at inference time for grounded AI responses.",
-  },
-  {
-    name: "Training",
-    desc: "Model fine-tuning and pretraining. Use content in training datasets with full legal coverage.",
-  },
-  {
-    name: "Inference",
-    desc: "Real-time AI outputs. License content that appears in AI-generated responses.",
-  },
-  {
-    name: "Full AI",
-    desc: "All use cases combined. Maximum flexibility for multi-purpose AI platforms.",
-    highlighted: true,
-  },
+// Canonical license tiers — labels and descriptions sourced from
+// src/lib/licenseTypes so marketing matches the rest of the product.
+const LICENSE_TIERS_KEYS: Array<{ key: import("@/lib/licenseTypes").CanonicalLicenseType; highlighted?: boolean }> = [
+  { key: "ai_retrieval" },
+  { key: "ai_training" },
+  { key: "archive", highlighted: true },
+  { key: "corporate" },
 ];
 
 const COMPARISON = [
@@ -363,19 +353,22 @@ export default function Enterprise() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {LICENSE_TIERS.map((tier) => (
-              <div
-                key={tier.name}
-                className={`rounded-2xl border p-6 ${
-                  tier.highlighted
-                    ? "border-oxford bg-oxford/10"
-                    : "border-soft-white/10 bg-soft-white/5"
-                }`}
-              >
-                <h3 className="font-bold text-lg text-soft-white mb-2">{tier.name}</h3>
-                <p className="text-xs text-soft-white/50 leading-relaxed">{tier.desc}</p>
-              </div>
-            ))}
+            {LICENSE_TIERS_KEYS.map((tier) => {
+              const meta = LICENSE_TYPE_LABELS[tier.key];
+              return (
+                <div
+                  key={tier.key}
+                  className={`rounded-2xl border p-6 ${
+                    tier.highlighted
+                      ? "border-oxford bg-oxford/10"
+                      : "border-soft-white/10 bg-soft-white/5"
+                  }`}
+                >
+                  <h3 className="font-bold text-lg text-soft-white mb-2">{meta.label}</h3>
+                  <p className="text-xs text-soft-white/50 leading-relaxed">{meta.description}</p>
+                </div>
+              );
+            })}
           </div>
           <p className="text-xs text-soft-white/40 mt-6 text-center max-w-2xl mx-auto">
             Publishers opt into tiers individually. Your license only covers publishers who've enabled your tier.
