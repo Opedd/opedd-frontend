@@ -10,6 +10,7 @@ import opeddLogoColor from "@/assets/opedd-logo.png";
 import { Link } from "react-router-dom";
 import { formatUSD } from "@/lib/formatNumber";
 import { Spinner } from "@/components/ui/Spinner";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 
 interface BuyerToken {
   id: string;
