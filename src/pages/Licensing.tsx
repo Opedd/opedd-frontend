@@ -418,8 +418,8 @@ export default function Licensing() {
   }> = [
     {
       key: "editorial",
-      icon: <FileText size={18} className="text-indigo-500" />,
-      label: "Editorial use",
+      icon: <FileText size={18} className={LICENSE_TYPE_LABELS.editorial.textColor} />,
+      label: LICENSE_TYPE_LABELS.editorial.label,
       description: "Reuse in articles, reports, and analysis",
       priceFields: (
         <PriceInput
@@ -433,8 +433,8 @@ export default function Licensing() {
     },
     {
       key: "archive",
-      icon: <Archive size={18} className="text-blue-500" />,
-      label: "Archive",
+      icon: <Archive size={18} className={LICENSE_TYPE_LABELS.archive.textColor} />,
+      label: LICENSE_TYPE_LABELS.archive.label,
       description: "Full catalog access — all articles",
       priceFields: (
         <PriceInput
@@ -447,8 +447,8 @@ export default function Licensing() {
     },
     {
       key: "ai_retrieval",
-      icon: <Cpu size={18} className="text-violet-500" />,
-      label: "AI Retrieval & Summarization",
+      icon: <Cpu size={18} className={LICENSE_TYPE_LABELS.ai_retrieval.textColor} />,
+      label: LICENSE_TYPE_LABELS.ai_retrieval.label,
       description: "AI systems retrieve, summarize, and serve your content in real-time (RAG, chatbots, enterprise search)",
       priceFields: (
         <PriceInput
@@ -461,8 +461,8 @@ export default function Licensing() {
     },
     {
       key: "ai_training",
-      icon: <Brain size={18} className="text-purple-500" />,
-      label: "AI Training",
+      icon: <Brain size={18} className={LICENSE_TYPE_LABELS.ai_training.textColor} />,
+      label: LICENSE_TYPE_LABELS.ai_training.label,
       description: "License for model training & fine-tuning",
       priceFields: (
         <PriceInput
@@ -476,8 +476,8 @@ export default function Licensing() {
     },
     {
       key: "corporate",
-      icon: <Building2 size={18} className="text-slate-500" />,
-      label: "Corporate blanket",
+      icon: <Building2 size={18} className={LICENSE_TYPE_LABELS.corporate.textColor} />,
+      label: LICENSE_TYPE_LABELS.corporate.label,
       description: "Internal enterprise-wide reuse",
       priceFields: (
         <PriceInput
@@ -490,8 +490,8 @@ export default function Licensing() {
     },
     {
       key: "syndication",
-      icon: <Share2 size={18} className="text-teal-500" />,
-      label: "Syndication",
+      icon: <Share2 size={18} className={LICENSE_TYPE_LABELS.syndication.textColor} />,
+      label: LICENSE_TYPE_LABELS.syndication.label,
       description: "Aggregators and platforms redistribute your content to their enterprise clients. Includes AI summarization rights.",
       priceFields: localRules.license_types.syndication.enabled ? (
         <div className="mt-2 space-y-2">
