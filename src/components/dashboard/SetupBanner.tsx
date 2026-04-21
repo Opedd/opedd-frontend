@@ -39,7 +39,7 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
     : "Complete your setup to go fully live";
 
   return (
-    <div className="bg-[#040042] rounded-2xl px-6 py-4 relative">
+    <div className="bg-navy-deep rounded-2xl px-6 py-4 relative">
       {/* Dismiss */}
       <button
         onClick={handleDismiss}
@@ -50,7 +50,7 @@ export function SetupBanner({ pricingDone, widgetDone, onSetPricing, onEmbedWidg
 
       {/* Title */}
       <div className="flex items-center gap-2 mb-1">
-        <Zap size={16} className="text-[#A78BFA] flex-shrink-0" />
+        <Zap size={16} className="text-violet-400 flex-shrink-0" />
         <span className="text-white font-semibold text-sm">Your publication is verified and live</span>
       </div>
       <p className="text-white/50 text-sm mb-3 ml-[28px]">{subtitle}</p>

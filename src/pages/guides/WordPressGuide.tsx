@@ -2,7 +2,7 @@ import GuideLayout from "./GuideLayout";
 
 const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
   <div className="flex gap-4 mb-6">
-    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#4A26ED] text-white flex items-center justify-center text-sm font-bold">
+    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-oxford text-white flex items-center justify-center text-sm font-bold">
       {n}
     </div>
     <div className="pt-1 text-foreground text-[15px] leading-relaxed">{children}</div>
@@ -19,7 +19,7 @@ const WordPressGuide = () => (
   >
     <Step n={1}>
       Download the <strong>Opedd Widget plugin</strong> —{" "}
-      <a href="/wordpress/opedd-widget.zip" className="text-[#4A26ED] hover:underline">
+      <a href="/wordpress/opedd-widget.zip" className="text-oxford hover:underline">
         opedd-widget.zip
       </a>
     </Step>

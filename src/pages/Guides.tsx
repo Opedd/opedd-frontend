@@ -62,11 +62,11 @@ const Guides = () => {
               <Link
                 key={p.slug}
                 to={`/guides/${p.slug}`}
-                className="group rounded-xl border border-border bg-card p-6 hover:border-[#4A26ED]/40 hover:shadow-lg transition-all"
+                className="group rounded-xl border border-border bg-card p-6 hover:border-oxford/40 hover:shadow-lg transition-all"
               >
                 <div className="flex items-center gap-4 mb-3">
                   <img src={p.icon} alt={p.name} className="w-10 h-10" />
-                  <h2 className="text-xl font-semibold text-foreground group-hover:text-[#4A26ED] transition-colors">
+                  <h2 className="text-xl font-semibold text-foreground group-hover:text-oxford transition-colors">
                     {p.name}
                   </h2>
                 </div>
@@ -79,7 +79,7 @@ const Guides = () => {
             <p className="text-muted-foreground mb-4">Ready to get started?</p>
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="inline-flex items-center gap-2 bg-oxford hover:bg-oxford-dark text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               Sign up free →
             </Link>

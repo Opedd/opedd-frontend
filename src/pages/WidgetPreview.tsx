@@ -21,7 +21,7 @@ const WidgetCard = ({ dark = false }: { dark?: boolean }) => {
     <div className={`w-[360px] rounded-2xl ${bg} border ${border} ${cardShadow} overflow-hidden`}>
       {/* Header */}
       <div className={`flex items-center gap-2.5 px-5 pt-4 pb-3 border-b ${border}`}>
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${dark ? "" : "bg-[#040042] p-1"}`}>
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${dark ? "" : "bg-navy-deep p-1"}`}>
           <img src={opeddIcon} alt="Opedd" className="w-full h-full object-contain" />
         </div>
         <span className={`text-[11px] font-semibold tracking-[0.08em] uppercase ${textMuted}`}>Opedd License</span>

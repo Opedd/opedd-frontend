@@ -291,7 +291,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
   // URL input bar — shown always at top
   const urlInputBar = (
-    <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       <form
         onSubmit={(e) => { e.preventDefault(); handleDetectPlatform(); }}
         className="flex items-center gap-3"
@@ -308,7 +308,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         <Button
           type="submit"
           disabled={isDetecting || !connectUrl.trim()}
-          className="h-11 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white font-semibold shrink-0"
+          className="h-11 px-6 bg-oxford hover:bg-oxford-dark text-white font-semibold shrink-0"
         >
           {isDetecting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
           Connect
@@ -321,8 +321,8 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     return (
       <div className="space-y-4">
         {urlInputBar}
-        <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-12 flex items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-[#4A26ED]" />
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-oxford" />
         </div>
       </div>
     );
@@ -332,13 +332,13 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     return (
       <div className="space-y-4">
         {urlInputBar}
-        <div className="bg-white rounded-xl border border-[#E5E7EB] p-12 text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-[#4A26ED]/10 flex items-center justify-center">
-            <Rss size={28} className="text-[#4A26ED]" />
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-oxford/10 flex items-center justify-center">
+            <Rss size={28} className="text-oxford" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#040042]">No Content Sources</h3>
-            <p className="text-sm text-[#040042]/60 mt-1 max-w-sm mx-auto">
+            <h3 className="text-lg font-bold text-navy-deep">No Content Sources</h3>
+            <p className="text-sm text-navy-deep/60 mt-1 max-w-sm mx-auto">
               Enter your publication URL above to connect and start importing content.
             </p>
           </div>
@@ -382,7 +382,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
       {/* Summary Bar */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-[#040042]/50">
+        <p className="text-sm text-navy-deep/50">
           {sources.length} Source{sources.length !== 1 ? "s" : ""} · {totalArticles} Total Article{totalArticles !== 1 ? "s" : ""}
         </p>
       </div>
@@ -412,7 +412,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
           return (
             <div
               key={source.id}
-              className="bg-white rounded-xl border border-[#E8F2FB] p-5 hover:shadow-md transition-all"
+              className="bg-white rounded-xl border border-blue-50 p-5 hover:shadow-md transition-all"
             >
               <div className="flex items-start gap-4">
                 {/* Source logo: show platform logo based on URL detection */}
@@ -430,7 +430,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-[#040042] text-sm truncate">{source.name}</h3>
+                    <h3 className="font-semibold text-navy-deep text-sm truncate">{source.name}</h3>
                     {isVerified ? (
                       <Badge variant="outline" className="text-[10px] px-2 py-0 bg-emerald-50 text-emerald-700 border-emerald-200 gap-1 flex-shrink-0">
                         <ShieldCheck size={8} />
@@ -442,14 +442,14 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         Importing
                       </Badge>
                     ) : (
-                     <Badge variant="outline" className="text-[10px] px-2 py-0 bg-[#4A26ED]/5 text-[#4A26ED] border-[#4A26ED]/20 gap-1 flex-shrink-0">
+                     <Badge variant="outline" className="text-[10px] px-2 py-0 bg-oxford/5 text-oxford border-oxford/20 gap-1 flex-shrink-0">
                          <Clock size={8} />
                          Pending
                        </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-[#040042]/50 truncate">{source.feed_url}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-[#040042]/40">
+                  <p className="text-xs text-navy-deep/50 truncate">{source.feed_url}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-navy-deep/40">
                     <span className="font-medium">{source.article_count || 0} articles</span>
                     {source.last_synced_at && (
                       <span>Synced {getRelativeTime(source.last_synced_at)}</span>
@@ -518,12 +518,12 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
               {/* Verification banner for pending sources */}
               {isPending && isNewsletterFeed && (
-                <div className="mt-3 bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-lg p-3">
+                <div className="mt-3 bg-oxford/5 border border-oxford/15 rounded-lg p-3">
                   <div className="flex items-start gap-2">
-                    <ShieldCheck size={14} className="text-[#4A26ED] mt-0.5 flex-shrink-0" />
+                    <ShieldCheck size={14} className="text-oxford mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-[#040042]">Verify ownership to activate licensing</p>
-                      <p className="text-[11px] text-[#040042]/50 mt-0.5">Add the verification code to your site, then click verify.</p>
+                      <p className="text-xs font-medium text-navy-deep">Verify ownership to activate licensing</p>
+                      <p className="text-[11px] text-navy-deep/50 mt-0.5">Add the verification code to your site, then click verify.</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-2.5">
@@ -533,7 +533,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         ...source,
                         verification_token: tokenLookup[source.id] || source.verification_token || null,
                       })}
-                      className="h-7 text-xs gap-1.5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg"
+                      className="h-7 text-xs gap-1.5 bg-oxford hover:bg-oxford-dark text-white rounded-lg"
                     >
                       <ShieldCheck size={12} />
                       Verify Ownership
@@ -543,7 +543,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                         ...source,
                         verification_token: tokenLookup[source.id] || source.verification_token || null,
                       })}
-                      className="text-xs text-[#4A26ED] hover:text-[#3B1ED1] font-medium underline underline-offset-2"
+                      className="text-xs text-oxford hover:text-oxford-dark font-medium underline underline-offset-2"
                     >
                       View Code
                     </button>
@@ -552,20 +552,20 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
               )}
 
               {/* Actions */}
-              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#E8F2FB]">
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-blue-50">
                 {/* Verify or Re-sync based on status */}
                 {isImporting ? (
                   <span className="text-[11px] text-blue-500 font-medium">Import in progress…</span>
                 ) : isPending && isNewsletterFeed ? (
-                  <span className="text-[11px] text-[#4A26ED] font-medium">Pending verification</span>
+                  <span className="text-[11px] text-oxford font-medium">Pending verification</span>
                 ) : isPending ? (
-                  <span className="text-[11px] text-[#040042]/40 font-medium">Processing</span>
+                  <span className="text-[11px] text-navy-deep/40 font-medium">Processing</span>
                 ) : (
                   <>
                     <button
                       onClick={() => handleResync(source)}
                       disabled={isSyncing}
-                      className="flex items-center gap-1.5 text-xs font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-navy-deep hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {isSyncing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
                       Re-sync
@@ -573,7 +573,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
 
                     <button
                       onClick={() => setPricingSource(source)}
-                      className="flex items-center gap-1.5 text-xs font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-navy-deep hover:underline transition-colors"
                     >
                       <DollarSign size={12} />
                       Set Pricing
@@ -587,7 +587,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                     variant="ghost"
                     size="sm"
                     asChild
-                    className="h-8 text-xs gap-1.5 text-slate-400 hover:text-[#040042] hover:bg-transparent"
+                    className="h-8 text-xs gap-1.5 text-slate-400 hover:text-navy-deep hover:bg-transparent"
                   >
                     <a href={source.feed_url.startsWith("http") ? source.feed_url : `https://${source.feed_url}`} target="_blank" rel="noopener noreferrer">
                       <ExternalLink size={12} />
@@ -660,30 +660,30 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
         open={!!deleteConfirmSource}
         onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
       >
-        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-sm gap-0">
           <DialogHeader className="space-y-0 mb-5">
-            <DialogTitle className="text-lg font-semibold text-[#040042]">Remove Source</DialogTitle>
-            <DialogDescription className="text-sm text-[#040042]/50 mt-1.5 leading-relaxed">
-              This will permanently disconnect <span className="font-semibold text-[#040042]">{deleteConfirmSource?.name}</span> and remove all synced articles from your library. This action cannot be undone.
+            <DialogTitle className="text-lg font-semibold text-navy-deep">Remove Source</DialogTitle>
+            <DialogDescription className="text-sm text-navy-deep/50 mt-1.5 leading-relaxed">
+              This will permanently disconnect <span className="font-semibold text-navy-deep">{deleteConfirmSource?.name}</span> and remove all synced articles from your library. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2 mb-6">
-            <label className="text-xs font-medium text-[#040042]/50">
-              Type <span className="font-mono font-semibold text-[#040042]">{deleteConfirmSource?.name}</span> to confirm
+            <label className="text-xs font-medium text-navy-deep/50">
+              Type <span className="font-mono font-semibold text-navy-deep">{deleteConfirmSource?.name}</span> to confirm
             </label>
             <Input
               value={deleteConfirmInput}
               onChange={(e) => setDeleteConfirmInput(e.target.value)}
               placeholder={deleteConfirmSource?.name}
-              className="bg-white border-slate-200 focus:border-[#4A26ED]/40 focus:ring-[#4A26ED]/10 h-10 rounded-lg text-sm"
+              className="bg-white border-slate-200 focus:border-oxford/40 focus:ring-oxford/10 h-10 rounded-lg text-sm"
             />
           </div>
 
           <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
             <button
               onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
-              className="text-sm font-medium text-[#6b7280] hover:text-[#040042] hover:underline transition-colors px-4 h-9 flex items-center"
+              className="text-sm font-medium text-gray-500 hover:text-navy-deep hover:underline transition-colors px-4 h-9 flex items-center"
             >
               Cancel
             </button>
@@ -696,7 +696,7 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
                   setDeleteConfirmInput("");
                 }
               }}
-              className="bg-[#EF4444] hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
+              className="bg-red-500 hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
             >
               <Trash2 size={14} className="mr-1.5" />
               Remove Source

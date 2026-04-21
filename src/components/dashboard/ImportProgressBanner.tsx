@@ -110,18 +110,18 @@ export function ImportProgressBanner({ onComplete }: { onComplete?: () => void }
     : `~${etaMinutes} minute${etaMinutes !== 1 ? "s" : ""} remaining`;
 
   return (
-    <div className="bg-[#4A26ED]/5 border border-[#4A26ED]/15 rounded-xl px-4 py-3 flex items-center gap-4">
-      <Loader2 size={16} className="text-[#4A26ED] animate-spin flex-shrink-0" />
+    <div className="bg-oxford/5 border border-oxford/15 rounded-xl px-4 py-3 flex items-center gap-4">
+      <Loader2 size={16} className="text-oxford animate-spin flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[#040042]">Importing your archive…</p>
+        <p className="text-sm font-medium text-navy-deep">Importing your archive…</p>
         <p className="text-xs text-slate-500">
           {record.inserted_count.toLocaleString()} of {record.total_urls.toLocaleString()} articles
           {record.total_urls > 0 && ` · ${etaLabel}`}
         </p>
       </div>
-      <div className="w-32 h-1.5 rounded-full bg-[#4A26ED]/20 flex-shrink-0 overflow-hidden">
+      <div className="w-32 h-1.5 rounded-full bg-oxford/20 flex-shrink-0 overflow-hidden">
         <div
-          className="h-full rounded-full bg-[#4A26ED] transition-all duration-500"
+          className="h-full rounded-full bg-oxford transition-all duration-500"
           style={{ width: `${Math.min(100, progress)}%` }}
         />
       </div>

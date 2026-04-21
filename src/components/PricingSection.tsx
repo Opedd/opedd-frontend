@@ -110,7 +110,7 @@ const PricingSection = () => {
               viewport={{ once: true }}
               className={`relative rounded-2xl p-8 ${
                 tier.popular
-                  ? "bg-white/5 border-2 border-[#4A26ED] shadow-[0_0_40px_rgba(74,38,237,0.15)]"
+                  ? "bg-white/5 border-2 border-oxford shadow-[0_0_40px_rgba(74,38,237,0.15)]"
                   : "bg-white/5 border border-white/20"
               }`}
             >
@@ -126,7 +126,7 @@ const PricingSection = () => {
                 <div
                   className={`inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4 ${
                     tier.popular
-                      ? "bg-[#4A26ED]/20 text-[#A78BFA]"
+                      ? "bg-oxford/20 text-violet-400"
                       : "bg-white/10 text-white/60"
                   }`}
                 >

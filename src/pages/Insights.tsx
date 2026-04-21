@@ -100,44 +100,44 @@ export default function Insights() {
           {/* Metric card skeletons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[0, 1].map(i => (
-              <div key={i} className="bg-white rounded-xl border border-[#E5E7EB] p-6 min-h-[120px] shadow-sm">
-                <div className="w-5 h-5 bg-[#E5E7EB] rounded animate-pulse mb-3" />
-                <div className="w-24 h-3 bg-[#E5E7EB] rounded animate-pulse mb-2" />
-                <div className="w-32 h-7 bg-[#E5E7EB] rounded animate-pulse" />
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 min-h-[120px] shadow-sm">
+                <div className="w-5 h-5 bg-gray-200 rounded animate-pulse mb-3" />
+                <div className="w-24 h-3 bg-gray-200 rounded animate-pulse mb-2" />
+                <div className="w-32 h-7 bg-gray-200 rounded animate-pulse" />
               </div>
             ))}
           </div>
           {/* Chart skeleton */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6 min-h-[380px]">
-            <div className="w-40 h-5 bg-[#E5E7EB] rounded animate-pulse mb-2" />
-            <div className="w-48 h-3 bg-[#E5E7EB] rounded animate-pulse mb-6" />
-            <div className="w-full h-[300px] bg-[#F3F4F6] rounded-lg animate-pulse" />
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 min-h-[380px]">
+            <div className="w-40 h-5 bg-gray-200 rounded animate-pulse mb-2" />
+            <div className="w-48 h-3 bg-gray-200 rounded animate-pulse mb-6" />
+            <div className="w-full h-[300px] bg-gray-100 rounded-lg animate-pulse" />
           </div>
           {/* Bottom row skeletons */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden min-h-[280px]">
-              <div className="p-5 border-b border-[#E5E7EB]">
-                <div className="w-28 h-5 bg-[#E5E7EB] rounded animate-pulse mb-1" />
-                <div className="w-20 h-3 bg-[#E5E7EB] rounded animate-pulse" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-h-[280px]">
+              <div className="p-5 border-b border-gray-200">
+                <div className="w-28 h-5 bg-gray-200 rounded animate-pulse mb-1" />
+                <div className="w-20 h-3 bg-gray-200 rounded animate-pulse" />
               </div>
-              <div className="divide-y divide-[#F3F4F6]">
+              <div className="divide-y divide-gray-100">
                 {[0, 1, 2, 3, 4].map(i => (
                   <div key={i} className="flex items-center gap-4 px-5 py-3">
-                    <div className="flex-1 h-4 bg-[#F3F4F6] rounded animate-pulse" style={{ maxWidth: `${60 + (i % 3) * 10}%` }} />
-                    <div className="w-12 h-4 bg-[#F3F4F6] rounded animate-pulse" />
-                    <div className="w-16 h-4 bg-[#F3F4F6] rounded animate-pulse" />
+                    <div className="flex-1 h-4 bg-gray-100 rounded animate-pulse" style={{ maxWidth: `${60 + (i % 3) * 10}%` }} />
+                    <div className="w-12 h-4 bg-gray-100 rounded animate-pulse" />
+                    <div className="w-16 h-4 bg-gray-100 rounded animate-pulse" />
                   </div>
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6 min-h-[280px]">
-              <div className="w-28 h-5 bg-[#E5E7EB] rounded animate-pulse mb-1" />
-              <div className="w-36 h-3 bg-[#E5E7EB] rounded animate-pulse mb-6" />
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 min-h-[280px]">
+              <div className="w-28 h-5 bg-gray-200 rounded animate-pulse mb-1" />
+              <div className="w-36 h-3 bg-gray-200 rounded animate-pulse mb-6" />
               <div className="flex items-center justify-center gap-6">
-                <div className="w-[160px] h-[160px] bg-[#F3F4F6] rounded-full animate-pulse" />
+                <div className="w-[160px] h-[160px] bg-gray-100 rounded-full animate-pulse" />
                 <div className="space-y-3">
-                  <div className="w-24 h-4 bg-[#F3F4F6] rounded animate-pulse" />
-                  <div className="w-20 h-4 bg-[#F3F4F6] rounded animate-pulse" />
+                  <div className="w-24 h-4 bg-gray-100 rounded animate-pulse" />
+                  <div className="w-20 h-4 bg-gray-100 rounded animate-pulse" />
                 </div>
               </div>
             </div>
@@ -160,27 +160,27 @@ export default function Insights() {
 
         {/* Error state */}
         {fetchError && (
-          <div className="bg-white rounded-xl border border-[#DC2626]/30 p-6 flex items-center gap-3">
-            <AlertTriangle size={20} className="text-[#DC2626] flex-shrink-0" />
-            <p className="text-sm font-medium text-[#DC2626] flex-1">Failed to load analytics.</p>
-            <button onClick={fetchInsights} className="text-sm font-semibold text-[#4A26ED] hover:underline">Try again</button>
+          <div className="bg-white rounded-xl border border-red-600/30 p-6 flex items-center gap-3">
+            <AlertTriangle size={20} className="text-red-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-red-600 flex-1">Failed to load analytics.</p>
+            <button onClick={fetchInsights} className="text-sm font-semibold text-oxford hover:underline">Try again</button>
           </div>
         )}
 
         {!fetchError && !hasData ? (
-          <motion.div variants={itemVariants} className="bg-white rounded-xl border border-[#E5E7EB] p-16 text-center shadow-sm">
-            <BarChart3 size={40} className="mx-auto text-[#D1D5DB] mb-4" />
-            <h3 className="text-base font-semibold text-[#111827] mb-1">No transactions yet</h3>
-            <p className="text-sm text-[#6B7280] max-w-xs mx-auto">Analytics will appear here once you start receiving licensing transactions.</p>
+          <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-sm">
+            <BarChart3 size={40} className="mx-auto text-gray-300 mb-4" />
+            <h3 className="text-base font-semibold text-gray-900 mb-1">No transactions yet</h3>
+            <p className="text-sm text-gray-500 max-w-xs mx-auto">Analytics will appear here once you start receiving licensing transactions.</p>
           </motion.div>
         ) : !fetchError && (
           <>
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-4" variants={itemVariants}>
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
-                <TrendingUp size={18} className="text-[#4A26ED] mb-3" />
-                <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+                <TrendingUp size={18} className="text-oxford mb-3" />
+                <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Revenue</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-[#111827] tracking-tight">${totalRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900 tracking-tight">${totalRevenue.toFixed(2)}</p>
                   {periodComparison && periodComparison.previousRevenue > 0 && (
                     <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeRevenue >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                       {periodComparison.percentChangeRevenue >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
@@ -189,16 +189,16 @@ export default function Insights() {
                   )}
                 </div>
                 {periodComparison && (
-                  <p className="text-xs text-[#9CA3AF] mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     vs ${periodComparison.previousRevenue.toFixed(2)} prior period
                   </p>
                 )}
               </div>
-              <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm min-h-[120px]">
-                <FileCheck size={18} className="text-[#4A26ED] mb-3" />
-                <p className="text-[#6B7280] text-xs font-medium uppercase tracking-wider">Total Transactions</p>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[120px]">
+                <FileCheck size={18} className="text-oxford mb-3" />
+                <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total Transactions</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-[#111827]">{totalTransactions}</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalTransactions}</p>
                   {periodComparison && periodComparison.previousLicenses > 0 && (
                     <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${periodComparison.percentChangeLicenses >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                       {periodComparison.percentChangeLicenses >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
@@ -207,7 +207,7 @@ export default function Insights() {
                   )}
                 </div>
                 {periodComparison && (
-                  <p className="text-xs text-[#9CA3AF] mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     vs {periodComparison.previousLicenses} prior period
                   </p>
                 )}
@@ -215,9 +215,9 @@ export default function Insights() {
             </motion.div>
 
             {chartData.length > 0 && (
-              <motion.div variants={itemVariants} className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6">
-                <h2 className="font-bold text-[#111827] text-lg mb-1">Revenue Over Time</h2>
-                <p className="text-sm text-[#6B7280] mb-6">Daily revenue breakdown</p>
+              <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <h2 className="font-bold text-gray-900 text-lg mb-1">Revenue Over Time</h2>
+                <p className="text-sm text-gray-500 mb-6">Daily revenue breakdown</p>
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={chartData}>
                     <defs><linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#4A26ED" stopOpacity={0.3} /><stop offset="95%" stopColor="#4A26ED" stopOpacity={0} /></linearGradient></defs>
@@ -232,30 +232,30 @@ export default function Insights() {
             )}
 
             <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-6" variants={itemVariants}>
-              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-[#E5E7EB]">
-                  <h2 className="font-bold text-[#111827] text-lg">Top Articles</h2>
-                  <p className="text-sm text-[#6B7280]">By revenue</p>
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-gray-200">
+                  <h2 className="font-bold text-gray-900 text-lg">Top Articles</h2>
+                  <p className="text-sm text-gray-500">By revenue</p>
                 </div>
                 {topArticles.length > 0 ? (
                   <Table>
-                    <TableHeader><TableRow className="bg-[#F9FAFB] border-[#E5E7EB]"><TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider">Title</TableHead><TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider text-right">Licenses</TableHead><TableHead className="text-[#6B7280] text-xs font-semibold uppercase tracking-wider text-right">Revenue</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow className="bg-gray-50 border-gray-200"><TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Title</TableHead><TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Licenses</TableHead><TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Revenue</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {topArticles.map((a) => (
-                        <TableRow key={a.id} className="border-[#F3F4F6]">
-                          <TableCell className="font-medium text-[#111827] text-sm max-w-[200px] truncate">{decodeText(a.title)}</TableCell>
-                          <TableCell className="text-right text-[#6B7280] text-sm">{a.count}</TableCell>
+                        <TableRow key={a.id} className="border-gray-100">
+                          <TableCell className="font-medium text-gray-900 text-sm max-w-[200px] truncate">{decodeText(a.title)}</TableCell>
+                          <TableCell className="text-right text-gray-500 text-sm">{a.count}</TableCell>
                           <TableCell className="text-right font-bold text-emerald-600 text-sm">${a.revenue.toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                ) : <div className="p-8 text-center text-[#9CA3AF] text-sm">No articles yet</div>}
+                ) : <div className="p-8 text-center text-gray-400 text-sm">No articles yet</div>}
               </div>
 
-              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-6">
-                <h2 className="font-bold text-[#111827] text-lg mb-1">License Split</h2>
-                <p className="text-sm text-[#6B7280] mb-4">Human vs AI licenses</p>
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <h2 className="font-bold text-gray-900 text-lg mb-1">License Split</h2>
+                <p className="text-sm text-gray-500 mb-4">Human vs AI licenses</p>
                 {pieData.length > 0 ? (
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                     <div className="w-full max-w-[200px] h-[200px]">
@@ -264,11 +264,11 @@ export default function Insights() {
                       </ResponsiveContainer>
                     </div>
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#D1009A]" /><span className="text-sm text-[#111827]">Human: <strong>{licenseTypeSplit.human}</strong></span></div>
-                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#4A26ED]" /><span className="text-sm text-[#111827]">AI: <strong>{licenseTypeSplit.ai}</strong></span></div>
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-plum-magenta" /><span className="text-sm text-gray-900">Human: <strong>{licenseTypeSplit.human}</strong></span></div>
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-oxford" /><span className="text-sm text-gray-900">AI: <strong>{licenseTypeSplit.ai}</strong></span></div>
                     </div>
                   </div>
-                ) : <div className="text-center py-8 text-[#9CA3AF] text-sm">No license data yet</div>}
+                ) : <div className="text-center py-8 text-gray-400 text-sm">No license data yet</div>}
               </div>
             </motion.div>
           </>

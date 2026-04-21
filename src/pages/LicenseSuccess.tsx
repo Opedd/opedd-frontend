@@ -21,17 +21,17 @@ interface CheckoutData {
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 border-b border-[#F3F4F6] pb-3 last:border-0 last:pb-0">
-      <span className="text-xs text-[#9CA3AF] uppercase tracking-wider sm:w-36 shrink-0 pt-0.5">{label}</span>
-      <span className="text-sm text-[#111827]">{children}</span>
+    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-0 border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+      <span className="text-xs text-gray-400 uppercase tracking-wider sm:w-36 shrink-0 pt-0.5">{label}</span>
+      <span className="text-sm text-gray-900">{children}</span>
     </div>
   );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
-      <div className="px-6 py-5 bg-white border-b border-[#E5E7EB]">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="px-6 py-5 bg-white border-b border-gray-200">
         <Link to="/">
           <img src={opeddLogoColor} alt="Opedd" className="h-7" />
         </Link>
@@ -41,11 +41,11 @@ function Shell({ children }: { children: React.ReactNode }) {
       </div>
       <div className="text-center pb-6">
         <div className="flex items-center justify-center gap-3">
-          <p className="text-xs text-[#9CA3AF]">
-            Powered by <span className="text-[#6B7280] font-medium">Opedd Protocol</span>
+          <p className="text-xs text-gray-400">
+            Powered by <span className="text-gray-500 font-medium">Opedd Protocol</span>
           </p>
-          <span className="text-[#E5E7EB]">·</span>
-          <a href="mailto:support@opedd.com" className="text-xs text-[#9CA3AF] hover:text-[#6B7280] transition-colors">
+          <span className="text-gray-200">·</span>
+          <a href="mailto:support@opedd.com" className="text-xs text-gray-400 hover:text-gray-500 transition-colors">
             Help & Support
           </a>
         </div>
@@ -152,12 +152,12 @@ export default function LicenseSuccess() {
     return (
       <Shell>
         <div className="w-full max-w-md text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#FEF2F2] text-[#DC2626] px-4 py-1.5 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-red-50 text-red-600 px-4 py-1.5 text-sm font-medium mb-6">
             <XCircle className="h-4 w-4" />
             No Session Found
           </div>
-          <p className="text-[#6B7280] text-sm mb-6">No checkout session found. Please try purchasing again.</p>
-          <Link to="/" className="text-sm text-[#4A26ED] hover:underline">← Return to Opedd</Link>
+          <p className="text-gray-500 text-sm mb-6">No checkout session found. Please try purchasing again.</p>
+          <Link to="/" className="text-sm text-oxford hover:underline">← Return to Opedd</Link>
         </div>
       </Shell>
     );
@@ -167,22 +167,22 @@ export default function LicenseSuccess() {
     return (
       <Shell>
         <div className="w-full max-w-md text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#FFFBEB] text-[#D97706] px-4 py-1.5 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 text-amber-600 px-4 py-1.5 text-sm font-medium mb-6">
             <Mail className="h-4 w-4" />
             Processing
           </div>
-          <h1 className="text-2xl font-bold text-[#111827] mb-2">This is taking longer than expected</h1>
-          <p className="text-[#6B7280] text-sm mb-6 max-w-sm mx-auto">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">This is taking longer than expected</h1>
+          <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
             Your license key will arrive by email shortly. If you don't receive it within 10 minutes, use the resend option below.
           </p>
           {data?.buyer_email && (
             <button
               onClick={handleResend}
               disabled={resending || resent}
-              className="inline-flex items-center gap-1.5 text-sm text-[#4A26ED] hover:underline disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-sm text-oxford hover:underline disabled:opacity-50"
             >
               {resent ? (
-                <><Check className="h-3.5 w-3.5 text-[#10B981]" /> Sent to {data.buyer_email}</>
+                <><Check className="h-3.5 w-3.5 text-emerald-500" /> Sent to {data.buyer_email}</>
               ) : resending ? (
                 <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...</>
               ) : (
@@ -191,7 +191,7 @@ export default function LicenseSuccess() {
             </button>
           )}
           {sessionId && (
-            <p className="text-xs text-[#9CA3AF] mt-4">Session: {sessionId}</p>
+            <p className="text-xs text-gray-400 mt-4">Session: {sessionId}</p>
           )}
         </div>
       </Shell>
@@ -202,8 +202,8 @@ export default function LicenseSuccess() {
     return (
       <Shell>
         <div className="text-center">
-          <Loader2 className="h-6 w-6 animate-spin text-[#4A26ED] mx-auto mb-4" />
-          <p className="text-[#6B7280] text-sm">Confirming your payment...</p>
+          <Loader2 className="h-6 w-6 animate-spin text-oxford mx-auto mb-4" />
+          <p className="text-gray-500 text-sm">Confirming your payment...</p>
         </div>
       </Shell>
     );
@@ -213,12 +213,12 @@ export default function LicenseSuccess() {
     return (
       <Shell>
         <div className="w-full max-w-md text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#FEF2F2] text-[#DC2626] px-4 py-1.5 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-red-50 text-red-600 px-4 py-1.5 text-sm font-medium mb-6">
             <XCircle className="h-4 w-4" />
             Payment Failed
           </div>
-          <p className="text-[#6B7280] text-sm mb-6">Your payment could not be processed. Please try again or contact support.</p>
-          <Link to="/" className="text-sm text-[#4A26ED] hover:underline">← Return to Opedd</Link>
+          <p className="text-gray-500 text-sm mb-6">Your payment could not be processed. Please try again or contact support.</p>
+          <Link to="/" className="text-sm text-oxford hover:underline">← Return to Opedd</Link>
         </div>
       </Shell>
     );
@@ -227,25 +227,25 @@ export default function LicenseSuccess() {
   return (
     <Shell>
       <div className="w-full max-w-[520px] space-y-6 animate-fade-in">
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-8 space-y-6">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
           {/* Status */}
           <div className="text-center">
-            <CheckCircle2 className="h-12 w-12 text-[#10B981] mx-auto mb-3" />
-            <h1 className="text-2xl font-bold text-[#111827]">License Issued</h1>
+            <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
+            <h1 className="text-2xl font-bold text-gray-900">License Issued</h1>
             {data?.buyer_email && (
-              <p className="text-sm text-[#6B7280] mt-1">Sent to {data.buyer_email}</p>
+              <p className="text-sm text-gray-500 mt-1">Sent to {data.buyer_email}</p>
             )}
           </div>
 
           {/* License Key */}
           <div className="text-center">
-            <p className="text-xs text-[#9CA3AF] uppercase tracking-wider mb-2">License Key</p>
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">License Key</p>
             <div className="flex items-center justify-center gap-3">
-              <code className="text-xl md:text-2xl font-mono font-bold text-[#4A26ED] bg-[#EEF0FD] px-4 py-2 rounded-lg tracking-[0.15em] leading-none select-all">
+              <code className="text-xl md:text-2xl font-mono font-bold text-oxford bg-oxford-light px-4 py-2 rounded-lg tracking-[0.15em] leading-none select-all">
                 {data?.license_key}
               </code>
-              <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-[#F3F4F6] transition-colors text-[#9CA3AF] hover:text-[#111827]">
-                {copied ? <Check className="h-4 w-4 text-[#10B981]" /> : <Copy className="h-4 w-4" />}
+              <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-900">
+                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
               </button>
             </div>
           </div>
@@ -268,7 +268,7 @@ export default function LicenseSuccess() {
             <div className="flex flex-col items-center gap-3 pt-2">
               <Link
                 to={`/verify/${encodeURIComponent(data.license_key)}`}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4A26ED] hover:bg-[#3B1ED1] text-white px-6 py-2.5 text-sm font-medium transition-colors w-full"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-oxford hover:bg-oxford-dark text-white px-6 py-2.5 text-sm font-medium transition-colors w-full"
               >
                 <Shield className="h-4 w-4" />
                 Verify License
@@ -277,7 +277,7 @@ export default function LicenseSuccess() {
                 href={`${EXT_SUPABASE_URL}/invoice?key=${encodeURIComponent(data.license_key)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] px-6 py-2.5 text-sm font-medium text-[#111827] transition-colors w-full"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-900 transition-colors w-full"
               >
                 <Download className="h-4 w-4" />
                 Download Invoice
@@ -288,14 +288,14 @@ export default function LicenseSuccess() {
 
           {/* Buyer Portal CTA for AI/Archive licenses */}
           {(data?.license_type === "ai" || data?.license_type === "ai_inference" || data?.license_type === "archive") && (
-            <div className="bg-[#EEF0FD] border border-[#C7B8F6] rounded-xl p-5 space-y-2">
-              <h3 className="text-sm font-semibold text-[#111827]">Access Content Programmatically</h3>
-              <p className="text-sm text-[#6B7280]">
+            <div className="bg-oxford-light border border-oxford-pale rounded-xl p-5 space-y-2">
+              <h3 className="text-sm font-semibold text-gray-900">Access Content Programmatically</h3>
+              <p className="text-sm text-gray-500">
                 To retrieve article content via API for AI pipelines or RAG, you need a <code className="font-mono text-xs bg-white/60 px-1 py-0.5 rounded">bk_live_</code> access token. Go to your license dashboard to generate one.
               </p>
               <Link
                 to="/licenses"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4A26ED] hover:underline mt-1"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-oxford hover:underline mt-1"
               >
                 View My Licenses →
               </Link>
@@ -308,10 +308,10 @@ export default function LicenseSuccess() {
             <button
               onClick={handleResend}
               disabled={resending || resent}
-              className="inline-flex items-center gap-1.5 text-sm text-[#9CA3AF] hover:text-[#6B7280] transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-500 transition-colors disabled:opacity-50"
             >
               {resent ? (
-                <><Check className="h-3.5 w-3.5 text-[#10B981]" /> Sent to your email</>
+                <><Check className="h-3.5 w-3.5 text-emerald-500" /> Sent to your email</>
               ) : resending ? (
                 <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...</>
               ) : (

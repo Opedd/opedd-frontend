@@ -27,24 +27,24 @@ export class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#F2F9FF] flex items-center justify-center p-6">
+        <div className="min-h-screen bg-alice-gray flex items-center justify-center p-6">
           <div className="w-full max-w-md text-center">
             <div className="mb-8 flex justify-center">
               <img src={opeddLogoColor} alt="Opedd" className="h-10" />
             </div>
-            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-[#040042]/5">
+            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-navy-deep/5">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center">
                 <span className="text-2xl">!</span>
               </div>
-              <h2 className="text-xl font-bold text-[#040042] mb-2">
+              <h2 className="text-xl font-bold text-navy-deep mb-2">
                 Something went wrong
               </h2>
-              <p className="text-[#040042]/60 text-sm mb-6">
+              <p className="text-navy-deep/60 text-sm mb-6">
                 An unexpected error occurred. Please try refreshing the page.
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="w-full h-12 bg-gradient-to-r from-[#4A26ED] to-[#7C3AED] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#4A26ED]/30 transition-all active:scale-[0.98]"
+                className="w-full h-12 bg-gradient-to-r from-oxford to-violet-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-oxford/30 transition-all active:scale-[0.98]"
               >
                 Refresh Page
               </button>

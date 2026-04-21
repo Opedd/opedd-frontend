@@ -54,7 +54,7 @@ export default function Publishers() {
   }, [publishers, debouncedSearch]);
 
   return (
-    <div className="min-h-screen bg-[#040042] text-white">
+    <div className="min-h-screen bg-navy-deep text-white">
       <SEO
         title="Publisher Directory — Opedd"
         description="Browse verified publishers licensing their content through Opedd."
@@ -83,13 +83,13 @@ export default function Publishers() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search publishers…"
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 focus-visible:ring-[#4A26ED]/40 focus-visible:border-[#4A26ED]"
+              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 focus-visible:ring-oxford/40 focus-visible:border-oxford"
             />
           </div>
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-[#4A26ED]" />
+              <Loader2 className="h-6 w-6 animate-spin text-oxford" />
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/50 py-20">
@@ -102,7 +102,7 @@ export default function Publishers() {
               {filtered.map((pub) => (
                 <div
                   key={pub.id}
-                  className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 flex flex-col justify-between hover:border-[#4A26ED]/40 transition-colors"
+                  className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 flex flex-col justify-between hover:border-oxford/40 transition-colors"
                 >
                   <div>
                     <div className="flex items-start gap-3 mb-3">
@@ -113,8 +113,8 @@ export default function Publishers() {
                           className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-[#4A26ED]/20 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-[#4A26ED]">
+                        <div className="w-10 h-10 rounded-lg bg-oxford/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-oxford">
                             {pub.name.charAt(0)}
                           </span>
                         </div>
@@ -164,7 +164,7 @@ export default function Publishers() {
                       <a href={pub.website_url} target="_blank" rel="noopener noreferrer">
                         <Button
                           size="sm"
-                          className="w-full bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
+                          className="w-full bg-oxford hover:bg-oxford-dark text-white"
                         >
                           Visit Site
                           <ExternalLink className="h-3.5 w-3.5 ml-1.5" />

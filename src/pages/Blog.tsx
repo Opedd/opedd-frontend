@@ -14,7 +14,7 @@ const Blog = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-gray-50">
       <SEO
         title="Blog — Opedd"
         description="Insights on content licensing, publisher monetization, and the future of AI-powered media."
@@ -42,7 +42,7 @@ const Blog = () => {
             <Link
               key={post.slug}
               to={`/blog/${post.slug}`}
-              className="group bg-white border border-[#E5E7EB] rounded-xl shadow-sm overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md"
+              className="group bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md"
             >
               <AspectRatio ratio={16 / 9} className="relative">
                 <img
@@ -62,10 +62,10 @@ const Blog = () => {
                 >
                   {post.category}
                 </span>
-                <h2 className="text-lg font-semibold text-[#111827] mb-2 group-hover:text-[#4A26ED] transition-colors line-clamp-2">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-oxford transition-colors line-clamp-2">
                   {post.title}
                 </h2>
-                <p className="text-sm text-[#6B7280] mb-3">
+                <p className="text-sm text-gray-500 mb-3">
                   {new Date(post.date).toLocaleDateString("en-US", {
                     month: "long",
                     day: "numeric",
@@ -73,10 +73,10 @@ const Blog = () => {
                   })}{" "}
                   · {post.readingTime}
                 </p>
-                <p className="text-sm text-[#6B7280] line-clamp-2 mb-4">
+                <p className="text-sm text-gray-500 line-clamp-2 mb-4">
                   {post.preview}
                 </p>
-                <span className="text-sm font-medium text-[#4A26ED]">
+                <span className="text-sm font-medium text-oxford">
                   Read more →
                 </span>
               </div>

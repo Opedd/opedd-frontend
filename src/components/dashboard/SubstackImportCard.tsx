@@ -53,15 +53,15 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-10 h-10 rounded-lg bg-[#FF6719]/10 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-substack-orange/10 flex items-center justify-center flex-shrink-0">
           <img src={substackLogo} alt="Substack" className="w-5 h-5" />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-[#040042]">Import from Substack</h3>
-          <p className="text-xs text-[#6B7280] mt-0.5">
-            Upload your Substack <code className="font-mono text-[10px] bg-[#F3F4F6] px-1 py-0.5 rounded">posts.csv</code> export to import your article catalog.
+          <h3 className="text-sm font-semibold text-navy-deep">Import from Substack</h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Upload your Substack <code className="font-mono text-[10px] bg-gray-100 px-1 py-0.5 rounded">posts.csv</code> export to import your article catalog.
           </p>
         </div>
       </div>
@@ -69,17 +69,17 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
       {/* Collapsible instructions */}
       <button
         onClick={() => setInstructionsOpen(!instructionsOpen)}
-        className="flex items-center gap-1.5 text-xs font-medium text-[#4A26ED] hover:text-[#3B1ED1] mb-3 transition-colors"
+        className="flex items-center gap-1.5 text-xs font-medium text-oxford hover:text-oxford-dark mb-3 transition-colors"
       >
         {instructionsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         How to get your CSV
       </button>
       {instructionsOpen && (
-        <div className="bg-[#F9FAFB] rounded-lg p-3 mb-3 space-y-1.5">
-          <ol className="text-xs text-[#374151] space-y-1 list-decimal list-inside">
+        <div className="bg-gray-50 rounded-lg p-3 mb-3 space-y-1.5">
+          <ol className="text-xs text-gray-700 space-y-1 list-decimal list-inside">
             <li>Go to <span className="font-medium">substack.com → Settings → Export data</span></li>
             <li>Download the ZIP file</li>
-            <li>Open the ZIP and find <code className="font-mono text-[10px] bg-white px-1 py-0.5 rounded border border-[#E5E7EB]">posts.csv</code></li>
+            <li>Open the ZIP and find <code className="font-mono text-[10px] bg-white px-1 py-0.5 rounded border border-gray-200">posts.csv</code></li>
             <li>Upload it here</li>
           </ol>
         </div>
@@ -108,7 +108,7 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
-          <div className="flex items-center gap-2 h-10 px-3 border border-[#E5E7EB] rounded-lg bg-white text-sm text-[#6B7280] cursor-pointer hover:border-[#4A26ED]/30 transition-colors">
+          <div className="flex items-center gap-2 h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm text-gray-500 cursor-pointer hover:border-oxford/30 transition-colors">
             <Upload size={14} className="flex-shrink-0" />
             <span className="truncate">{file ? file.name : "Choose posts.csv"}</span>
           </div>
@@ -116,7 +116,7 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
         <Button
           onClick={handleImport}
           disabled={!file || uploading}
-          className="h-10 px-5 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white text-sm font-medium shrink-0"
+          className="h-10 px-5 bg-oxford hover:bg-oxford-dark text-white text-sm font-medium shrink-0"
         >
           {uploading && <Loader2 size={14} className="animate-spin mr-1.5" />}
           Import

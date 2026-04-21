@@ -99,13 +99,13 @@ export default function Pricing() {
           <div className="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-full">
             <button
               onClick={() => setBilling("monthly")}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billing === "monthly" ? "bg-white shadow-sm text-[#040042]" : "text-[#6B7280]"}`}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billing === "monthly" ? "bg-white shadow-sm text-navy-deep" : "text-gray-500"}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBilling("annually")}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billing === "annually" ? "bg-white shadow-sm text-[#040042]" : "text-[#6B7280]"}`}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billing === "annually" ? "bg-white shadow-sm text-navy-deep" : "text-gray-500"}`}
             >
               Annually
             </button>
@@ -368,7 +368,7 @@ export default function Pricing() {
             </p>
             <p className="text-sm mt-6" style={{ color: "#6B7280" }}>
               Questions about enterprise pricing?{" "}
-              <a href="mailto:support@opedd.com" className="text-[#4A26ED] hover:underline font-medium">support@opedd.com</a>
+              <a href="mailto:support@opedd.com" className="text-oxford hover:underline font-medium">support@opedd.com</a>
             </p>
           </div>
         </section>
@@ -379,7 +379,7 @@ export default function Pricing() {
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => { setCheckoutClientSecret(null); setCheckoutStripePromise(null); }}
-                className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] transition-colors"
+                className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-navy-deep transition-colors"
               >
                 <X size={16} />
               </button>
