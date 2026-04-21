@@ -182,7 +182,7 @@ export function IssueArchiveLicenseModal({ open, onOpenChange, onSuccess }: Issu
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent hideCloseButton className="max-w-md p-0 overflow-hidden">
+      <DialogContent className="max-w-md p-0 overflow-hidden">
         {planLoading ? (
           <div className="flex items-center justify-center py-16">
             <Spinner size="md" className="text-oxford" />

@@ -72,26 +72,17 @@ export function BulkPricingModal({ open, onOpenChange, selectedIds, onSuccess }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent hideCloseButton className="bg-white border-none text-navy-deep sm:max-w-md rounded-xl p-0 overflow-hidden shadow-modal">
+      <DialogContent className="bg-white border-none text-navy-deep sm:max-w-md rounded-xl p-0 overflow-hidden shadow-modal">
         {/* Header */}
         <div className="bg-navy-deep px-6 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                <DollarSign size={20} className="text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="text-white font-bold text-base">Set License Prices</h2>
-                <p className="text-white/60 text-sm">{selectedIds.length} item{selectedIds.length !== 1 ? "s" : ""} selected</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <DollarSign size={20} className="text-emerald-400" />
             </div>
-            <button
-              onClick={() => onOpenChange(false)}
-              aria-label="Close bulk pricing dialog"
-              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            >
-              <X size={16} className="text-white" />
-            </button>
+            <div>
+              <h2 className="text-white font-bold text-base">Set License Prices</h2>
+              <p className="text-white/60 text-sm">{selectedIds.length} item{selectedIds.length !== 1 ? "s" : ""} selected</p>
+            </div>
           </div>
         </div>
 

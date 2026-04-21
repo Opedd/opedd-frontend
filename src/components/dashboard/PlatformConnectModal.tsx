@@ -860,28 +860,19 @@ export function PlatformConnectModal({
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onOpenChange(false); } }}>
       <DialogContent
-        hideCloseButton
         className="bg-white border-none text-navy-deep sm:max-w-lg rounded-xl p-0 overflow-hidden shadow-modal flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="bg-navy-deep px-6 py-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            {platformLogos[platform] ? (
-              <img src={platformLogos[platform]} alt={platform} className="w-6 h-6" />
-            ) : (
-              <Rss size={20} className="text-violet-400" />
-            )}
-            <div>
-              <h1 className="text-white font-bold text-base leading-tight">Connect Publication</h1>
-              <p className="text-violet-400 text-xs truncate max-w-[250px]">{detection.name || url}</p>
-            </div>
+        <div className="bg-navy-deep px-6 py-4 flex items-center gap-3 shrink-0">
+          {platformLogos[platform] ? (
+            <img src={platformLogos[platform]} alt={platform} className="w-6 h-6" />
+          ) : (
+            <Rss size={20} className="text-violet-400" />
+          )}
+          <div>
+            <h1 className="text-white font-bold text-base leading-tight">Connect Publication</h1>
+            <p className="text-violet-400 text-xs truncate max-w-[250px]">{detection.name || url}</p>
           </div>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-          >
-            <X size={16} className="text-white" />
-          </button>
         </div>
 
         {/* Body */}
