@@ -407,6 +407,40 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Quick Actions strip — only after onboarding, with content */}
+        {showQuickActions && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { icon: Handshake, label: "Issue archive license", onClick: () => setArchiveModalOpen(true) },
+              { icon: Tag, label: "Update pricing", onClick: () => navigate("/licensing") },
+              { icon: UserPlus, label: "Invite team", onClick: () => navigate("/settings?tab=team") },
+              {
+                icon: Eye,
+                label: "View public page",
+                onClick: () => {
+                  if (licensingHref) window.open(licensingHref, "_blank", "noreferrer");
+                  else navigate("/settings");
+                },
+                disabled: !licensingHref,
+              },
+            ].map((a) => (
+              <button
+                key={a.label}
+                onClick={a.onClick}
+                disabled={a.disabled}
+                aria-label={a.label}
+                className="group flex items-center gap-3 bg-white rounded-xl border border-gray-200 hover:border-oxford/40 hover:shadow-sm shadow-sm transition-all px-4 py-3 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="w-9 h-9 rounded-lg bg-oxford-light text-oxford flex items-center justify-center shrink-0 group-hover:bg-oxford group-hover:text-white transition-colors">
+                  <a.icon size={16} />
+                </div>
+                <span className="text-sm font-medium text-gray-900 flex-1 min-w-0 truncate">{a.label}</span>
+                <ChevronRight size={14} className="text-gray-400 shrink-0 group-hover:text-oxford transition-colors" />
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Recent Sales (last 5) */}
         {!isLoading && recentSales.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
