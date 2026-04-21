@@ -3,7 +3,8 @@ import * as Sentry from "@sentry/react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail, ArrowUp, ArrowDown, Bot, User as UserIcon } from "lucide-react";
+import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail, ArrowUp, ArrowDown, Bot, User as UserIcon, FileText, Tag, UserPlus, Eye, ChevronRight, Handshake } from "lucide-react";
+import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
 import { PageLoader } from "@/components/ui/PageLoader";
@@ -44,12 +45,16 @@ export default function Dashboard() {
   const [contentImported, setContentImported] = useState(false);
   const [pricingConfigured, setPricingConfigured] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
+  const [stripePayoutsEnabled, setStripePayoutsEnabled] = useState<boolean | null>(null);
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
   const [setupComplete, setSetupComplete] = useState(false);
   const [aiLicensingConfigured, setAiLicensingConfigured] = useState(false);
   const [aiLicenseTypes, setAiLicenseTypes] = useState<{ rag: boolean; training: boolean; inference: boolean } | null>(null);
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasPendingVerification, setHasPendingVerification] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
 
   // Admin stats state
   interface AdminStats {
@@ -89,8 +94,15 @@ export default function Dashboard() {
         .eq("user_id", user.id)
         .in("sync_status", ["active", "protected"]);
       setHasActivePublication((count ?? 0) > 0);
+      const { count: pendingCount } = await (supabase as any)
+        .from("content_sources")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("sync_status", "pending");
+      setHasPendingVerification((pendingCount ?? 0) > 0);
     } catch {
       setHasActivePublication(false);
+      setHasPendingVerification(false);
     }
   }, [user]);
 
@@ -151,6 +163,10 @@ export default function Dashboard() {
       setContentImported(!!profile?.content_imported);
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
+      setStripeAccountId(profile?.stripe_account_id ?? null);
+      setStripePayoutsEnabled(
+        profile?.stripe_connect ? !!profile.stripe_connect.payouts_enabled : null
+      );
       setSetupComplete(!!profile?.setup_complete);
       // Redirect to setup wizard if setup not complete
       if (!profile?.setup_complete) {
@@ -208,6 +224,40 @@ export default function Dashboard() {
   const licensingUrl = publisherSlug ? `opedd.com/p/${publisherSlug}` : null;
   const licensingHref = publisherSlug ? `https://opedd.com/p/${publisherSlug}` : null;
 
+  // Priority banner: only the highest-priority banner renders.
+  // 1. Stripe KYC pending (account exists but payouts disabled)
+  // 2. Held Payments warning (revenue accruing but Stripe not connected)
+  // 3. Verification Pending (a publication is pending verification)
+  // 4. Onboarding Checklist (setup not complete)
+  // 5. Pending Earnings card (already covered by #2 — kept distinct for the case
+  //    where revenue is 0 but admin chooses to show. In MVP, #2 supersedes.)
+  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | "onboarding" | null;
+  const activeBanner: BannerKind = (() => {
+    const stripeKycPending =
+      !!stripeAccountId && (!stripeConnected || stripePayoutsEnabled === false);
+    if (stripeKycPending) return "stripe-kyc";
+    const heldPayments = !stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0);
+    if (heldPayments) return "held-payments";
+    if (totalAssets > 0 && !isLoading && hasPendingVerification) return "verification";
+    if (!setupComplete) return "onboarding";
+    return null;
+  })();
+
+  const showQuickActions = setupComplete && totalAssets > 0;
+
+  const handleConnectStripe = async () => {
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action: "connect_stripe" }),
+      });
+      const json = await res.json();
+      if (json.url) window.location.href = json.url;
+    } catch { /* ignore */ }
+  };
+
   const handleCopyUrl = async () => {
     if (!licensingHref) return;
     try {
@@ -223,9 +273,34 @@ export default function Dashboard() {
       headerActions={<></>}
     >
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
-        {/* Pending Earnings Card — only when there's actual revenue or licenses */}
-        {!stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0) && (
-          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm [border-image:linear-gradient(135deg,theme(colors.amber.500),theme(colors.amber.600))_1]">
+        {/* Priority banner — only the highest-priority banner renders. */}
+        {activeBanner === "stripe-kyc" && (
+          <div className="bg-white rounded-xl border-2 border-oxford/40 p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <AlertTriangleIcon size={18} className="text-oxford mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-navy-deep">
+                    Stripe identity verification required
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Your Stripe account is connected but payouts are blocked until you finish identity verification.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={handleConnectStripe}
+                className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
+              >
+                Complete verification →
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {activeBanner === "held-payments" && (
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-lg font-bold text-navy-deep flex items-center gap-2">
@@ -237,18 +312,7 @@ export default function Dashboard() {
               </div>
               <Button
                 size="sm"
-                onClick={async () => {
-                  try {
-                    const token = await getAccessToken();
-                    const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ action: "connect_stripe" }),
-                    });
-                    const json = await res.json();
-                    if (json.url) window.location.href = json.url;
-                  } catch { /* ignore */ }
-                }}
+                onClick={handleConnectStripe}
                 className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
               >
                 Connect Stripe →
@@ -256,23 +320,23 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        {/* Onboarding Checklist */}
-        <OnboardingChecklist
-          contentImported={contentImported}
-          aiLicensingConfigured={aiLicensingConfigured}
-          pricingConfigured={pricingConfigured}
-          stripeConnected={stripeConnected}
-          setupComplete={setupComplete}
-          publisherSlug={publisherSlug}
-          initialAiLicenseTypes={aiLicenseTypes}
-          onRegisterContent={() => navigate("/setup?add=1")}
-          onAiLicensingComplete={() => setAiLicensingConfigured(true)}
-        />
 
-        {/* Verification Pending Banner */}
-        {totalAssets > 0 && !isLoading && (
-          <VerificationPendingBanner />
+        {activeBanner === "verification" && <VerificationPendingBanner />}
+
+        {activeBanner === "onboarding" && (
+          <OnboardingChecklist
+            contentImported={contentImported}
+            aiLicensingConfigured={aiLicensingConfigured}
+            pricingConfigured={pricingConfigured}
+            stripeConnected={stripeConnected}
+            setupComplete={setupComplete}
+            publisherSlug={publisherSlug}
+            initialAiLicenseTypes={aiLicenseTypes}
+            onRegisterContent={() => navigate("/setup?add=1")}
+            onAiLicensingComplete={() => setAiLicensingConfigured(true)}
+          />
         )}
+
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -342,6 +406,40 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* Quick Actions strip — only after onboarding, with content */}
+        {showQuickActions && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { icon: Handshake, label: "Issue archive license", onClick: () => setArchiveModalOpen(true) },
+              { icon: Tag, label: "Update pricing", onClick: () => navigate("/licensing") },
+              { icon: UserPlus, label: "Invite team", onClick: () => navigate("/settings?tab=team") },
+              {
+                icon: Eye,
+                label: "View public page",
+                onClick: () => {
+                  if (licensingHref) window.open(licensingHref, "_blank", "noreferrer");
+                  else navigate("/settings");
+                },
+                disabled: !licensingHref,
+              },
+            ].map((a) => (
+              <button
+                key={a.label}
+                onClick={a.onClick}
+                disabled={a.disabled}
+                aria-label={a.label}
+                className="group flex items-center gap-3 bg-white rounded-xl border border-gray-200 hover:border-oxford/40 hover:shadow-sm shadow-sm transition-all px-4 py-3 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="w-9 h-9 rounded-lg bg-oxford-light text-oxford flex items-center justify-center shrink-0 group-hover:bg-oxford group-hover:text-white transition-colors">
+                  <a.icon size={16} />
+                </div>
+                <span className="text-sm font-medium text-gray-900 flex-1 min-w-0 truncate">{a.label}</span>
+                <ChevronRight size={14} className="text-gray-400 shrink-0 group-hover:text-oxford transition-colors" />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Recent Sales (last 5) */}
         {!isLoading && recentSales.length > 0 && (
@@ -510,6 +608,12 @@ export default function Dashboard() {
       {needsReferral && (
         <ReferralStep onComplete={() => setNeedsReferral(false)} />
       )}
+
+      <IssueArchiveLicenseModal
+        open={archiveModalOpen}
+        onOpenChange={setArchiveModalOpen}
+        onSuccess={() => { setArchiveModalOpen(false); fetchMetrics(); }}
+      />
     </DashboardLayout>
   );
 }
