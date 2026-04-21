@@ -10,6 +10,7 @@ import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import SEO from "@/components/SEO";
+import { LEGAL_METADATA, formatLegalDate } from "@/lib/legalMetadata";
 
 type ClaimType = "copyright" | "trademark" | "other";
 
