@@ -47,9 +47,17 @@ export const TEST_NAME = "E2E Test Publisher";
  * Creates a confirmed (no email verification needed) test user AND a
  * corresponding publishers row (since there is no DB trigger — the app
  * creates the row via the Express backend on first sign-up).
+ *
+ * Optional `verified: true` also inserts a verified content_sources row so
+ * the publisher's PublicationGate opens immediately. Without this, any test
+ * that tries to click into gated surfaces (/licensing pricing toggles,
+ * /content, etc.) is blocked by the pointer-events-none overlay.
+ *
  * Returns the user id, publisher id, and a fresh access token.
  */
-export async function createTestUser(): Promise<{
+export async function createTestUser(
+  opts: { verified?: boolean } = {},
+): Promise<{
   userId: string;
   email: string;
   accessToken: string;
@@ -71,15 +79,40 @@ export async function createTestUser(): Promise<{
   const userId = data.user.id;
 
   // No DB trigger exists — create the publishers row directly with the service-role client
-  const { error: pubError } = await admin.from("publishers").insert({
+  // When verified: true, the publisher is treated as fully-onboarded —
+  // setup_complete is set so ProtectedRoute doesn't redirect to /setup,
+  // and a verified content_sources row is seeded so PublicationGate opens.
+  // Together these let gated-surface tests (like /licensing toggles)
+  // actually reach the UI instead of bouncing through onboarding.
+  const publisherInsert: Record<string, unknown> = {
     user_id: userId,
     name: TEST_NAME,
-  });
+  };
+  if (opts.verified) {
+    publisherInsert.setup_complete = true;
+  }
+
+  const { error: pubError } = await admin.from("publishers").insert(publisherInsert);
 
   if (pubError) {
     // Clean up auth user before throwing
     await admin.auth.admin.deleteUser(userId);
     throw new Error(`Failed to create publishers row: ${pubError.message}`);
+  }
+
+  if (opts.verified) {
+    const { error: sourceError } = await admin.from("content_sources").insert({
+      user_id: userId,
+      source_type: "wordpress",
+      url: `https://e2e-verified-${Date.now()}.example.com`,
+      name: "E2E Verified Source",
+      verification_status: "verified",
+      is_active: true,
+    });
+    if (sourceError) {
+      await admin.auth.admin.deleteUser(userId);
+      throw new Error(`Failed to seed verified content_source: ${sourceError.message}`);
+    }
   }
 
   // Sign in to get an access token

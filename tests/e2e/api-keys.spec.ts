@@ -21,7 +21,7 @@ import { injectAuth, waitForAppReady, dismissModal, assertNoCrash } from "./help
 let user: { userId: string; email: string; password: string };
 
 test.beforeAll(async () => {
-  const created = await createTestUser();
+  const created = await createTestUser({ verified: true });
   user = { userId: created.userId, email: created.email, password: TEST_PASSWORD };
 });
 
@@ -92,7 +92,7 @@ test.describe("API Keys — Publisher ID", () => {
     const isGated = await page.getByText(/verify your publication/i).isVisible().catch(() => false);
     if (isGated) { test.skip(true, "Gated"); return; }
 
-    await expect(page.getByText("Public")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Public", { exact: true })).toBeVisible({ timeout: 5_000 });
   });
 
   test("Publisher ID value is displayed in a code block", async ({ page }) => {
@@ -139,8 +139,8 @@ test.describe("API Keys — API Key Section", () => {
     const isGated = await page.getByText(/verify your publication/i).isVisible().catch(() => false);
     if (isGated) { test.skip(true, "Gated"); return; }
 
-    await expect(page.getByText("API Key")).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByText("Secret")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole("heading", { name: "API Key" })).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Secret", { exact: true })).toBeVisible({ timeout: 5_000 });
   });
 
   test("API key is displayed masked (with dots) or Generate button exists", async ({ page }) => {
