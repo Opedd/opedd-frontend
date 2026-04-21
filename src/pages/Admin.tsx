@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, Loader2, ShieldAlert, ArrowUpDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 
