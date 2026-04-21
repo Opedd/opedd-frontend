@@ -353,19 +353,22 @@ export default function Enterprise() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {LICENSE_TIERS.map((tier) => (
-              <div
-                key={tier.name}
-                className={`rounded-2xl border p-6 ${
-                  tier.highlighted
-                    ? "border-oxford bg-oxford/10"
-                    : "border-soft-white/10 bg-soft-white/5"
-                }`}
-              >
-                <h3 className="font-bold text-lg text-soft-white mb-2">{tier.name}</h3>
-                <p className="text-xs text-soft-white/50 leading-relaxed">{tier.desc}</p>
-              </div>
-            ))}
+            {LICENSE_TIERS_KEYS.map((tier) => {
+              const meta = LICENSE_TYPE_LABELS[tier.key];
+              return (
+                <div
+                  key={tier.key}
+                  className={`rounded-2xl border p-6 ${
+                    tier.highlighted
+                      ? "border-oxford bg-oxford/10"
+                      : "border-soft-white/10 bg-soft-white/5"
+                  }`}
+                >
+                  <h3 className="font-bold text-lg text-soft-white mb-2">{meta.label}</h3>
+                  <p className="text-xs text-soft-white/50 leading-relaxed">{meta.description}</p>
+                </div>
+              );
+            })}
           </div>
           <p className="text-xs text-soft-white/40 mt-6 text-center max-w-2xl mx-auto">
             Publishers opt into tiers individually. Your license only covers publishers who've enabled your tier.
