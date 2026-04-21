@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface Notification {
   id: string;
@@ -196,7 +197,7 @@ export default function NotificationsPage() {
               className="border-gray-200 text-gray-500 hover:text-gray-900 text-sm"
             >
               {isMarkingAll ? (
-                <><Loader2 size={14} className="mr-2 animate-spin" />Marking...</>
+                <><Spinner size="sm" className="mr-2" />Marking...</>
               ) : (
                 <><CheckCheck size={14} className="mr-2" />Mark all read</>
               )}
@@ -227,7 +228,7 @@ export default function NotificationsPage() {
             variants={itemVariants}
             className="bg-white rounded-xl border border-gray-200 p-16 flex items-center justify-center"
           >
-            <Loader2 className="h-6 w-6 animate-spin text-oxford" />
+            <Spinner size="md" className="text-oxford" />
           </motion.div>
         )}
 

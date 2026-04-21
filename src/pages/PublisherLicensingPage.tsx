@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { Spinner } from "@/components/ui/Spinner";
 
 // --- Interfaces ---
 
@@ -657,7 +658,7 @@ export default function PublisherLicensingPage() {
             </div>
           ) : publisher.article_count > 0 && articles.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
-              <Loader2 size={24} className="animate-spin mx-auto mb-2" />
+              <Spinner size="md" className="mx-auto mb-2" />
               <p className="font-medium text-gray-600">Catalog importing…</p>
               <p className="text-sm mt-1">Articles are being indexed. Check back soon.</p>
             </div>
@@ -728,7 +729,7 @@ export default function PublisherLicensingPage() {
               >
                 {loadingMore ? (
                   <>
-                    <Loader2 size={14} className="animate-spin mr-2" />
+                    <Spinner size="sm" className="mr-2" />
                     Loading…
                   </>
                 ) : (
@@ -790,7 +791,7 @@ export default function PublisherLicensingPage() {
               className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
             >
               {archiveSubmitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin mr-2" />Redirecting to payment…</>
+                <><Spinner size="md" className="mr-2" />Redirecting to payment…</>
               ) : (
                 `Pay $${publisher.pricing_rules?.license_types?.archive?.price_annual}/year · Secure License`
               )}

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import opeddLogoColor from "@/assets/opedd-logo.png";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface InviteInfo {
   email: string;
@@ -210,7 +211,7 @@ export default function AcceptInvite() {
           {/* Loading */}
           {status === "loading" && (
             <div className="text-center py-8 space-y-4">
-              <Loader2 size={32} className="text-oxford animate-spin mx-auto" />
+              <Spinner size="lg" className="text-oxford mx-auto" />
               <p className="text-navy-deep/60 text-sm">Loading invitation...</p>
             </div>
           )}
@@ -304,7 +305,7 @@ export default function AcceptInvite() {
                   >
                     {status === "submitting" ? (
                       <span className="flex items-center justify-center gap-2">
-                        <Loader2 size={18} className="animate-spin" />
+                        <Spinner size="md" />
                         Creating account...
                       </span>
                     ) : (

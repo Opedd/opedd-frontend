@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 import { formatUSD, formatInteger } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 // --------------- Types ---------------
 
@@ -147,7 +148,7 @@ export default function Admin() {
   }, [getAccessToken]);
 
   if (!adminChecked) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-oxford" size={28} /></div>;
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Spinner size="lg" className="text-oxford" /></div>;
   }
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
@@ -588,7 +589,7 @@ function FunnelTab({ getAccessToken }: { getAccessToken: () => Promise<string | 
 function LoadingState() {
   return (
     <div className="py-16 flex justify-center">
-      <Loader2 size={24} className="animate-spin text-navy-deep" />
+      <Spinner size="md" className="text-navy-deep" />
     </div>
   );
 }

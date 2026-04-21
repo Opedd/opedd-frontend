@@ -11,6 +11,7 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import SEO from "@/components/SEO";
 import { LEGAL_METADATA, formatLegalDate } from "@/lib/legalMetadata";
+import { Spinner } from "@/components/ui/Spinner";
 
 type ClaimType = "copyright" | "trademark" | "other";
 
@@ -240,7 +241,7 @@ export default function Dmca() {
 
                 <Button type="submit" disabled={!canSubmit} className="w-full h-11 bg-red-600 hover:bg-red-700 text-white">
                   {submitting ? (
-                    <><Loader2 size={16} className="mr-2 animate-spin" /> Submitting...</>
+                    <><Spinner size="md" className="mr-2" /> Submitting...</>
                   ) : (
                     "Submit claim"
                   )}

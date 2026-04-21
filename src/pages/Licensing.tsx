@@ -33,6 +33,7 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { deriveSlug } from "@/lib/utils";
 import { PublicationGate } from "@/components/dashboard/PublicationGate";
 import { LICENSE_TYPE_LABELS, getLicenseTypeBadgeClass, getLicenseTypeLabel } from "@/lib/licenseTypes";
+import { Spinner } from "@/components/ui/Spinner";
 
 // --- Interfaces ---
 
@@ -748,7 +749,7 @@ export default function Licensing() {
                 disabled={saving}
                 className="gap-2 bg-oxford hover:bg-oxford-dark text-white"
               >
-                {saving && <Loader2 size={14} className="animate-spin" />}
+                {saving && <Spinner size="sm" />}
                 Save changes
               </Button>
             </div>

@@ -83,6 +83,7 @@ import { useToast } from "@/hooks/use-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { PublicationGate, LockedTabContent } from "@/components/dashboard/PublicationGate";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface StripeConnect {
   connected: boolean;
@@ -183,7 +184,7 @@ function ResendLicensesForm() {
         onClick={handleResend}
         className="flex-shrink-0 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white"
       >
-        {sending ? <Loader2 size={14} className="animate-spin" /> : "Resend All Licenses"}
+        {sending ? <Spinner size="sm" /> : "Resend All Licenses"}
       </Button>
     </div>
   );
@@ -1074,7 +1075,7 @@ export default function Settings() {
                               </div>
                               <div>
                                 <label className={`cursor-pointer inline-flex items-center gap-2 h-9 px-4 text-sm font-medium border rounded-lg transition-colors ${isUploadingLogo ? "border-slate-200 bg-slate-100 text-gray-400 cursor-not-allowed" : "border-slate-200 bg-transparent text-gray-500 hover:bg-[#040042] hover:text-white hover:border-[#040042]"}`}>
-                                  {isUploadingLogo ? <><Loader2 size={14} className="animate-spin" /> Uploading...</> : <><Upload size={14} /> Upload Logo</>}
+                                  {isUploadingLogo ? <><Spinner size="sm" /> Uploading...</> : <><Upload size={14} /> Upload Logo</>}
                                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" disabled={isUploadingLogo} onChange={handleLogoUpload} />
                                 </label>
                                 <p className="text-xs text-gray-400 mt-1.5">Max 2MB. JPG, PNG, or SVG.</p>
@@ -1181,7 +1182,7 @@ export default function Settings() {
 
                       {/* Save Button */}
                       <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
-                        {isSaving ? <><Loader2 size={16} className="animate-spin mr-2" />Saving...</> : "Save Changes"}
+                        {isSaving ? <><Spinner size="md" className="mr-2" />Saving...</> : "Save Changes"}
                       </Button>
 
                     </motion.div>
@@ -1280,7 +1281,7 @@ export default function Settings() {
                       {isGated ? <LockedTabContent /> : <>
                       {isLoadingTeam ? (
                         <div className="flex items-center justify-center py-20">
-                          <Loader2 className="animate-spin text-[#4A26ED]" size={32} />
+                          <Spinner size="lg" className="text-[#4A26ED]" />
                         </div>
                       ) : teamError ? (
                         <div className="flex flex-col items-center justify-center py-16 gap-4">
@@ -1307,7 +1308,7 @@ export default function Settings() {
                                   <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
                                 </div>
                                 <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-semibold">
-                                  {isInviting ? <><Loader2 size={14} className="mr-2 animate-spin" />Sending...</> : <><Send size={14} className="mr-2" />Send Invite</>}
+                                  {isInviting ? <><Spinner size="sm" className="mr-2" />Sending...</> : <><Send size={14} className="mr-2" />Send Invite</>}
                                 </Button>
                               </div>
                             </div>
@@ -1347,7 +1348,7 @@ export default function Settings() {
                                           <AlertDialogFooter>
                                             <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
                                             <AlertDialogAction onClick={() => handleRemoveMember(member.id)} disabled={removingMemberId === member.id} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">
-                                              {removingMemberId === member.id ? <><Loader2 size={14} className="animate-spin mr-2" />Removing...</> : "Remove Member"}
+                                              {removingMemberId === member.id ? <><Spinner size="sm" className="mr-2" />Removing...</> : "Remove Member"}
                                             </AlertDialogAction>
                                           </AlertDialogFooter>
                                         </AlertDialogContent>
@@ -1493,7 +1494,7 @@ export default function Settings() {
                             <div className="text-center py-4">
                               <p className="text-sm text-gray-500 mb-3">No API key generated yet.</p>
                               <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
-                                {isRegenerating ? <><Loader2 size={14} className="mr-2 animate-spin" />Generating...</> : <><Key size={14} className="mr-2" />Generate API Key</>}
+                                {isRegenerating ? <><Spinner size="sm" className="mr-2" />Generating...</> : <><Key size={14} className="mr-2" />Generate API Key</>}
                               </Button>
                             </div>
                           )}
@@ -1604,7 +1605,7 @@ export default function Settings() {
                 }
               }}
             >
-              {isCancelling ? <><Loader2 size={14} className="mr-2 animate-spin" />Cancelling...</> : "Confirm Cancellation"}
+              {isCancelling ? <><Spinner size="sm" className="mr-2" />Cancelling...</> : "Confirm Cancellation"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1668,7 +1669,7 @@ export default function Settings() {
               }}
               className="bg-[#EF4444] hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
             >
-              {isDeleting ? <><Loader2 size={14} className="mr-2 animate-spin" />Deleting...</> : "Delete My Account"}
+              {isDeleting ? <><Spinner size="sm" className="mr-2" />Deleting...</> : "Delete My Account"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -36,6 +36,7 @@ import ghostLogo from "@/assets/platforms/ghost.svg";
 import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 import { formatUSD } from "@/lib/formatNumber";
+import { Spinner } from "@/components/ui/Spinner";
 
 function getPlatformLogo(url: string | undefined): string | null {
   if (!url) return null;
@@ -284,7 +285,7 @@ export default function Content() {
     );
     if (isSyncing) return (
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-oxford bg-oxford/10 border border-oxford/20 rounded-full px-2.5 py-0.5">
-        <Loader2 size={10} className="animate-spin" />Syncing
+        <Spinner size="sm" />Syncing
       </span>
     );
     if (isFailed) return (
@@ -679,7 +680,7 @@ export default function Content() {
                   }
                 }}
               >
-                {substackImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                {substackImporting ? <Spinner size="md" /> : <Upload size={16} />}
                 {substackImporting ? "Importing…" : "Import"}
               </Button>
             </div>
@@ -789,7 +790,7 @@ export default function Content() {
                           onClick={handleSaveRates} disabled={savingRates}
                           className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-oxford text-white rounded-lg hover:bg-oxford-dark disabled:opacity-50"
                         >
-                          {savingRates ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                          {savingRates ? <Spinner size="sm" /> : <Check size={12} />}
                           Save
                         </button>
                         <button onClick={() => setEditingRates(false)} className="px-4 py-2 text-xs font-medium text-gray-500 hover:text-navy-deep">

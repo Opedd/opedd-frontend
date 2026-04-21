@@ -45,6 +45,7 @@ import { useToast } from "@/hooks/use-toast";
 import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
 import { WidgetEmbedCard } from "@/components/dashboard/WidgetEmbedCard";
 import { PublicationGate } from "@/components/dashboard/PublicationGate";
+import { Spinner } from "@/components/ui/Spinner";
 
 function deriveDomain(websiteUrl: string | null): string {
   if (!websiteUrl) return "";
@@ -354,17 +355,17 @@ export default function Connectors() {
                             setIsSendingTest(false);
                           }
                         }} disabled={isSendingTest} className="h-8 text-xs gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-                          {isSendingTest ? <Loader2 size={12} className="animate-spin" /> : <Webhook size={12} />}
+                          {isSendingTest ? <Spinner size="sm" /> : <Webhook size={12} />}
                           Send Test Event
                         </Button>
                         <Button variant="outline" size="sm" onClick={handleViewDeliveries} disabled={isLoadingDeliveries} className="h-8 text-xs gap-1.5 border-oxford/30 text-oxford hover:bg-oxford/5">
-                          {isLoadingDeliveries ? <Loader2 size={12} className="animate-spin" /> : <Eye size={12} />}
+                          {isLoadingDeliveries ? <Spinner size="sm" /> : <Eye size={12} />}
                           View Deliveries
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" size="sm" disabled={isRemovingWebhook} className="h-8 text-xs gap-1.5 border-red-200 text-red-600 hover:bg-red-50">
-                              {isRemovingWebhook ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                              {isRemovingWebhook ? <Spinner size="sm" /> : <Trash2 size={12} />}
                               Remove
                             </Button>
                           </AlertDialogTrigger>
@@ -394,7 +395,7 @@ export default function Connectors() {
                           <p className="text-xs font-semibold text-navy-deep">Recent Deliveries</p>
                         </div>
                         {isLoadingDeliveries ? (
-                          <div className="flex items-center justify-center py-8"><Loader2 size={20} className="animate-spin text-gray-400" /></div>
+                          <div className="flex items-center justify-center py-8"><Spinner size="md" className="text-gray-400" /></div>
                         ) : webhookDeliveries.length === 0 ? (
                           <div className="text-center py-8 text-sm text-gray-400">No deliveries yet</div>
                         ) : (
@@ -425,7 +426,7 @@ export default function Connectors() {
                                       title="Retry delivery"
                                     >
                                       {retryingDeliveryId === d.id
-                                        ? <Loader2 size={12} className="animate-spin" />
+                                        ? <Spinner size="sm" />
                                         : <RotateCcw size={12} />}
                                     </Button>
                                   )}
@@ -453,7 +454,7 @@ export default function Connectors() {
                           disabled={isSavingWebhook || !webhookUrl.trim()}
                           className="h-11 px-5 bg-oxford hover:bg-oxford-dark text-white rounded-lg font-medium"
                         >
-                          {isSavingWebhook ? <Loader2 size={14} className="animate-spin" /> : "Save Webhook"}
+                          {isSavingWebhook ? <Spinner size="sm" /> : "Save Webhook"}
                         </Button>
                       </div>
                     </div>

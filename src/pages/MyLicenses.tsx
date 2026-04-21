@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
 import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface LicenseData {
   license_key: string;
@@ -286,7 +287,7 @@ export default function MyLicenses() {
                       {emailError && <p className="text-sm text-red-500">{emailError}</p>}
                       <Button type="submit" disabled={emailLoading || !email.trim()} className="w-full h-10">
                         {emailLoading ? (
-                          <><Loader2 className="h-4 w-4 animate-spin mr-2" />Sending…</>
+                          <><Spinner size="md" className="mr-2" />Sending…</>
                         ) : (
                           "Send"
                         )}
@@ -319,7 +320,7 @@ export default function MyLicenses() {
                   {keyError && <p className="text-sm text-red-500">{keyError}</p>}
                   <Button type="submit" disabled={keyLoading || !licenseKey.trim()} className="w-full h-10">
                     {keyLoading ? (
-                      <><Loader2 className="h-4 w-4 animate-spin mr-2" />Looking up…</>
+                      <><Spinner size="md" className="mr-2" />Looking up…</>
                     ) : (
                       <><Search className="h-4 w-4 mr-2" />Look up</>
                     )}
