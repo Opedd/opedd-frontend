@@ -452,9 +452,12 @@ test("10 · UX: dashboard shows a loading state while data is fetched, not a fro
 
   await loginAndGoto(page, "/dashboard");
 
-  // The app must NOT show a blank/frozen screen — either a loader or content
+  // The app must NOT show a blank/frozen screen — either a loader or content.
+  // Loaders in this app: Spinner (animate-spin), DashboardSkeleton (animate-pulse),
+  // PageLoader ([data-testid='page-loader']), or native progressbar role.
   const hasLoader = await page.getByRole("progressbar").isVisible().catch(() => false) ||
-    await page.locator(".animate-spin").isVisible().catch(() => false) ||
+    await page.locator(".animate-spin").first().isVisible().catch(() => false) ||
+    await page.locator(".animate-pulse").first().isVisible().catch(() => false) ||
     await page.locator("[data-testid='page-loader']").isVisible().catch(() => false);
 
   // The dashboard renders one of several views depending on setup state.
