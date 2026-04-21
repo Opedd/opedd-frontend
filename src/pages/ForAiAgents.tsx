@@ -239,7 +239,7 @@ export default function ForAiAgents() {
         <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-10">
             <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold uppercase tracking-widest text-oxford mb-3">License Types</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Four license types, one API</motion.h2>
+            <motion.h2 variants={fadeUp} custom={1} className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Core license types, one API</motion.h2>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {LICENSE_TYPE_KEYS.map((key, i) => {
