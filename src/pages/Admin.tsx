@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 
 // --------------- Types ---------------
 
@@ -93,10 +94,10 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function TypeBadge({ type }: { type: string }) {
-  const isAi = type.toLowerCase() === "ai";
+  // Canonical labels + colors — sourced from src/lib/licenseTypes.
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${isAi ? "bg-violet-500/10 text-violet-400" : "bg-sky-500/10 text-sky-400"}`}>
-      {type}
+    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${getLicenseTypeBadgeClass(type)}`}>
+      {getLicenseTypeLabel(type, "short")}
     </span>
   );
 }

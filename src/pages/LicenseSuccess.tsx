@@ -5,6 +5,7 @@ import { Check, Copy, Shield, Loader2, XCircle, Download, Mail, Send, CheckCircl
 import { Card, CardContent } from "@/components/ui/card";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { getLicenseTypeLabel } from "@/lib/licenseTypes";
 import { copyToClipboard } from "@/lib/clipboard";
 
 interface CheckoutData {
@@ -141,12 +142,8 @@ export default function LicenseSuccess() {
     finally { setResending(false); }
   };
 
-  const licenseTypeLabel =
-    data?.license_type === "ai" ? "AI Training License" :
-    data?.license_type === "ai_inference" ? "AI Inference / RAG License" :
-    data?.license_type === "archive" ? "Archive License" :
-    data?.license_type === "syndication" ? "Syndication License" :
-    "Editorial License";
+  // Canonical labels — sourced from src/lib/licenseTypes (handles legacy tokens).
+  const licenseTypeLabel = `${getLicenseTypeLabel(data?.license_type ?? "editorial")} License`;
 
   if (!sessionId && !loading) {
     return (

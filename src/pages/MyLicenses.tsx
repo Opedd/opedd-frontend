@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import opeddLogoColor from "@/assets/opedd-logo.png";
 import { EXT_SUPABASE_URL, EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
+import { getLicenseTypeLabel, getLicenseTypeBadgeClass } from "@/lib/licenseTypes";
 
 interface LicenseData {
   license_key: string;
@@ -109,16 +110,8 @@ export default function MyLicenses() {
     setTimeout(() => setCopiedKey(false), 2000);
   };
 
-  const licenseTypeLabel = (type: string) => {
-    const map: Record<string, string> = {
-      human_license: "Human",
-      ai_ingestion: "AI",
-      ai_inference: "AI Inference",
-      archive_license: "Archive",
-      enterprise_license: "Enterprise",
-    };
-    return map[type] || type;
-  };
+  // Canonical labels — sourced from src/lib/licenseTypes (handles legacy tokens).
+  const licenseTypeLabel = (type: string) => getLicenseTypeLabel(type);
 
   const isRevoked = license?.status === "revoked";
 
@@ -163,7 +156,7 @@ export default function MyLicenses() {
                       <><ShieldCheck size={12} className="mr-1" />Active</>
                     )}
                   </Badge>
-                  <Badge className="bg-oxford-light text-oxford border-transparent hover:bg-oxford-light">
+                  <Badge className={getLicenseTypeBadgeClass(license.license_type)}>
                     {licenseTypeLabel(license.license_type)}
                   </Badge>
                 </div>
