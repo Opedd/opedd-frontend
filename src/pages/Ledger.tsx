@@ -45,8 +45,9 @@ import {
 
 interface Transaction {
   id: string;
-  /** Canonical license-type taxonomy. Backend tokens normalized at read time. */
-  type: CanonicalLicenseType;
+  type: "ai_ingestion" | "human_license" | "archive_license" | "enterprise_license" | "payout";
+  /** Raw backend license_type token, used to look up canonical label/badge. */
+  rawLicenseType?: string;
   description: string;
   amount: number;
   date: string;
