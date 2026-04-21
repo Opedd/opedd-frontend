@@ -506,7 +506,7 @@ export default function Content() {
                           {asset.ai_price ? <span className="text-sm font-medium text-gray-900">${asset.ai_price}</span> : <span className="text-sm text-gray-300">—</span>}
                         </td>
                         <td className="py-3.5 px-4 text-right tabular-nums">
-                          <span className="text-sm text-gray-500">${formatUSD((asset.total_revenue ?? 0))}</span>
+                          <span className="text-sm text-gray-500">{formatUSD((asset.total_revenue ?? 0))}</span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -257,7 +257,7 @@ export default function LicenseSuccess() {
             )}
             <DetailRow label="License Type">{licenseTypeLabel}</DetailRow>
             {data?.amount != null && data.amount > 0 && (
-              <DetailRow label="Amount Paid">${formatUSD(data.amount)}</DetailRow>
+              <DetailRow label="Amount Paid">{formatUSD(data.amount)}</DetailRow>
             )}
           </div>
 

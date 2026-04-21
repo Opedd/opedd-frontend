@@ -419,7 +419,7 @@ export default function Licenses() {
                         </button>
                       </div>
                       <div className="flex items-center justify-between text-xs text-gray-400">
-                        <span>${formatUSD(lic.amount)}</span>
+                        <span>{formatUSD(lic.amount)}</span>
                         <span>{new Date(lic.created_at).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center gap-3 pt-1">
