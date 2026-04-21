@@ -68,7 +68,7 @@ test.describe("Licensing — Page Load", () => {
 });
 
 test.describe("Licensing — License Type Configuration", () => {
-  test("Editorial use license type is visible", async ({ page }) => {
+  test("Editorial license type is visible", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToLicensing(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
@@ -82,7 +82,7 @@ test.describe("Licensing — License Type Configuration", () => {
       return;
     }
 
-    await expect(page.getByText("Editorial use")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Editorial", { exact: true })).toBeVisible({ timeout: 5_000 });
   });
 
   test("Archive license type is visible", async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe("Licensing — License Type Configuration", () => {
     await expect(page.getByText("AI Training")).toBeVisible({ timeout: 5_000 });
   });
 
-  test("Corporate blanket license type is visible", async ({ page }) => {
+  test("Corporate license type is visible", async ({ page }) => {
     test.setTimeout(20_000);
     const ok = await goToLicensing(page);
     if (!ok) { test.skip(true, "Redirected to setup"); return; }
@@ -136,7 +136,7 @@ test.describe("Licensing — License Type Configuration", () => {
     const isGated = await page.getByText(/verify your publication/i).isVisible().catch(() => false);
     if (isGated) { test.skip(true, "Gated"); return; }
 
-    await expect(page.getByText("Corporate blanket")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Corporate", { exact: true })).toBeVisible({ timeout: 5_000 });
   });
 
   test("Syndication license type is visible", async ({ page }) => {

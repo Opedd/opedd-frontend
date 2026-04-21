@@ -79,10 +79,20 @@ export async function createTestUser(
   const userId = data.user.id;
 
   // No DB trigger exists — create the publishers row directly with the service-role client
-  const { error: pubError } = await admin.from("publishers").insert({
+  // When verified: true, the publisher is treated as fully-onboarded —
+  // setup_complete is set so ProtectedRoute doesn't redirect to /setup,
+  // and a verified content_sources row is seeded so PublicationGate opens.
+  // Together these let gated-surface tests (like /licensing toggles)
+  // actually reach the UI instead of bouncing through onboarding.
+  const publisherInsert: Record<string, unknown> = {
     user_id: userId,
     name: TEST_NAME,
-  });
+  };
+  if (opts.verified) {
+    publisherInsert.setup_complete = true;
+  }
+
+  const { error: pubError } = await admin.from("publishers").insert(publisherInsert);
 
   if (pubError) {
     // Clean up auth user before throwing
@@ -90,9 +100,6 @@ export async function createTestUser(
     throw new Error(`Failed to create publishers row: ${pubError.message}`);
   }
 
-  // Opt-in: seed a verified content source so PublicationGate opens.
-  // Only needed for tests that interact with gated UI surfaces like
-  // /licensing price toggles.
   if (opts.verified) {
     const { error: sourceError } = await admin.from("content_sources").insert({
       user_id: userId,
