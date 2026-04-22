@@ -1350,52 +1350,6 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     ) : (
                       <>Import content<ArrowRight size={16} /></>
                     )}
-          footer={
-            !isSitemapImporting ? (
-              <div className="space-y-2">
-                {(pubPlatform === "substack" || pubPlatform === "beehiiv") && (
-                  <Button
-                    onClick={handleRssImport}
-                    disabled={!pubDomainInput.trim() || isConnecting}
-                    className="w-full h-11"
-                  >
-                    {isConnecting ? (
-                      <><Spinner size="sm" />Importing...</>
-                    ) : (
-                      <><Globe size={16} />Import content</>
-                    )}
-                  </Button>
-                )}
-
-                {pubPlatform === "ghost" && !useRssFallback && (
-                  <>
-                    <Button
-                      onClick={handleGhostImport}
-                      disabled={!pubDomainInput.trim() || isSitemapImporting}
-                      className="w-full h-11"
-                    >
-                      <Sparkles size={16} />
-                      Import Full Archive (Sitemap)
-                    </Button>
-                    <button
-                      onClick={() => setUseRssFallback(true)}
-                      className="w-full text-center text-sm text-gray-500 hover:text-oxford transition-colors py-1"
-                    >
-                      Use feed import instead
-                    </button>
-                  </>
-                )}
-                {pubPlatform === "ghost" && useRssFallback && (
-                  <Button
-                    onClick={handleRssImport}
-                    disabled={!pubDomainInput.trim() || isConnecting}
-                    className="w-full h-11"
-                  >
-                    {isConnecting ? (
-                      <><Spinner size="sm" />Importing...</>
-                    ) : (
-                      <><Globe size={16} />Import content</>
-                    )}
                   </Button>
                 )}
 
@@ -1404,17 +1358,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     <Button
                       onClick={handleWordpressImport}
                       disabled={!pubDomainInput.trim() || isDetectingFeeds || isSitemapImporting}
-                      className="w-full h-11"
+                      className="w-full h-12"
                     >
                       {isDetectingFeeds ? (
-                        <><Spinner size="sm" />Detecting sitemap...</>
+                        <><Spinner size="sm" />Detecting sitemap…</>
                       ) : (
-                        <><Sparkles size={16} />Import Full Archive (Sitemap)</>
+                        <>Import full archive<ArrowRight size={16} /></>
                       )}
                     </Button>
                     <button
                       onClick={() => setUseRssFallback(true)}
-                      className="w-full text-center text-sm text-gray-500 hover:text-oxford transition-colors py-1"
+                      className="w-full text-center text-xs text-gray-400 hover:text-foreground transition-colors py-1.5"
                     >
                       Use feed import instead
                     </button>
@@ -1424,12 +1378,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleRssImport}
                     disabled={!pubDomainInput.trim() || isConnecting}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isConnecting ? (
-                      <><Spinner size="sm" />Importing...</>
+                      <><Spinner size="sm" />Importing…</>
                     ) : (
-                      <><Globe size={16} />Import content</>
+                      <>Import content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
@@ -1438,12 +1392,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleOtherDetect}
                     disabled={!pubDomainInput.trim() || isDetectingFeeds}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isDetectingFeeds ? (
-                      <><Spinner size="sm" />Detecting feeds...</>
+                      <><Spinner size="sm" />Detecting feeds…</>
                     ) : (
-                      <><Globe size={16} />Detect Feeds</>
+                      <>Find my content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
@@ -1451,18 +1405,18 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleOtherConfirmImport}
                     disabled={isConnecting || isSitemapImporting}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isConnecting || isSitemapImporting ? (
-                      <><Spinner size="sm" />Importing...</>
+                      <><Spinner size="sm" />Importing…</>
                     ) : (
-                      <><Sparkles size={16} />Import Content</>
+                      <>Import content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
                 {pubPlatform === "other" && detectedFeeds && !selectedFeedUrl && detectedFeeds.sitemap_urls.length === 0 && detectedFeeds.rss_urls.length === 0 && (
-                  <Button onClick={handleClose} variant="outline" className="w-full h-11">
-                    Skip for now →
+                  <Button onClick={handleClose} variant="outline" className="w-full h-12">
+                    Skip for now
                   </Button>
                 )}
               </div>
