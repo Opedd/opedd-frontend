@@ -1874,47 +1874,44 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               placeholder="https://theinformation.com/sitemap.xml"
               className="h-11 rounded-lg"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Usually found at <code className="bg-[#F1F5F9] border border-[#E2E8F0] text-[#334155] font-mono px-1.5 py-0.5 rounded">yoursite.com/sitemap.xml</code> — imports up to 2,000 articles from your archive.
+            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+              Usually found at <span className="font-mono text-[11px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">yoursite.com/sitemap.xml</span>. We'll import up to 2,000 articles.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-foreground">Human License Price ($)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={enterpriseHumanPrice}
-                onChange={(e) => setEnterpriseHumanPrice(e.target.value)}
-                placeholder="5.00"
-                className="h-11 rounded-lg"
-              />
+          <div className="grid grid-cols-2 gap-4 pt-1">
+            <div className="space-y-2">
+              <Label className="text-[13px] font-normal text-gray-600">Human license</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={enterpriseHumanPrice}
+                  onChange={(e) => setEnterpriseHumanPrice(e.target.value)}
+                  placeholder="5.00"
+                  className="h-11 pl-7 rounded-lg"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-foreground">
-                AI License Price ($) <span className="text-gray-400 font-normal">optional</span>
+            <div className="space-y-2">
+              <Label className="text-[13px] font-normal text-gray-600">
+                AI license <span className="text-gray-400">· optional</span>
               </Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={enterpriseAiPrice}
-                onChange={(e) => setEnterpriseAiPrice(e.target.value)}
-                placeholder="—"
-                className="h-11 rounded-lg"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={enterpriseAiPrice}
+                  onChange={(e) => setEnterpriseAiPrice(e.target.value)}
+                  placeholder="—"
+                  className="h-11 pl-7 rounded-lg"
+                />
+              </div>
             </div>
-          </div>
-
-          <div className="bg-oxford/5 border border-oxford/15 rounded-lg p-4 text-sm text-foreground/70 space-y-1">
-            <p className="font-medium text-foreground">How it works</p>
-            <ol className="list-decimal list-inside space-y-0.5 text-xs">
-              <li>We import your full article archive from your sitemap (up to 2,000 articles)</li>
-              <li>You add a small verification tag to your website's &lt;head&gt;</li>
-              <li>Licensing goes live across all your content</li>
-            </ol>
           </div>
         </RegisterContentSubView>
       </DialogShell>
