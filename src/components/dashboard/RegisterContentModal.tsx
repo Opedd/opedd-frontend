@@ -62,6 +62,7 @@ type ModalView = "choice" | "publication" | "single" | "enterprise" | "success";
 
 function RegisterContentSubView({
   title,
+  eyebrow,
   description,
   children,
   footer,
@@ -69,6 +70,7 @@ function RegisterContentSubView({
   onBack,
 }: {
   title: string;
+  eyebrow?: ReactNode;
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -77,31 +79,76 @@ function RegisterContentSubView({
 }) {
   return (
     <div className="flex flex-col max-h-[90vh]">
-      <div className="px-6 pt-6 pb-4 flex-shrink-0">
-        <div className="flex items-start gap-3">
-          {showBack && onBack && (
-            <button
-              onClick={onBack}
-              aria-label="Back"
-              className="-ml-1 mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-foreground transition-colors flex-shrink-0"
-            >
-              <ArrowLeft size={16} />
-            </button>
-          )}
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-foreground leading-tight">{title}</h2>
-            {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
-          </div>
-        </div>
+      <div className="px-8 pt-8 pb-6 flex-shrink-0">
+        {showBack && onBack && (
+          <button
+            onClick={onBack}
+            aria-label="Back"
+            className="-ml-1 mb-4 inline-flex h-8 items-center gap-1.5 rounded-lg pl-1 pr-2 text-xs font-medium text-gray-500 hover:text-foreground transition-colors"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </button>
+        )}
+        {eyebrow && <div className="mb-3">{eyebrow}</div>}
+        <h2 className="text-[22px] font-semibold text-foreground leading-tight tracking-[-0.01em]">{title}</h2>
+        {description && (
+          <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[44ch]">{description}</p>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-5">{children}</div>
+      <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-6">{children}</div>
 
       {footer && (
-        <div className="flex-shrink-0 px-6 py-4 bg-white border-t border-gray-200">
+        <div className="flex-shrink-0 px-8 py-5 bg-white border-t border-gray-100">
           {footer}
         </div>
       )}
+    </div>
+  );
+}
+
+// Premium code surface — warm near-black, generous padding, monospace
+function CodeSurface({
+  code,
+  onCopy,
+  copied,
+  ariaLabel,
+  multiline = false,
+}: {
+  code: string;
+  onCopy: () => void;
+  copied: boolean;
+  ariaLabel: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="group relative rounded-xl bg-[#0F0E1A] border border-[#1F1D33] overflow-hidden">
+      <div className={`px-5 py-4 ${multiline ? "pr-24" : "pr-20"}`}>
+        <code className={`text-[13px] text-[#E4E2F5] font-mono leading-relaxed ${multiline ? "break-all block" : "truncate block"}`}>
+          {code}
+        </code>
+      </div>
+      <button
+        onClick={onCopy}
+        aria-label={ariaLabel}
+        className="absolute top-2.5 right-2.5 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11px] font-medium text-[#A8A4C7] bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+      >
+        {copied ? (
+          <><Check size={12} /> Copied</>
+        ) : (
+          <><Copy size={12} /> Copy</>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// Quiet inline note — replaces traffic-light amber boxes
+function InlineNote({ children }: { children: ReactNode }) {
+  return (
+    <div className="border-l-2 border-gray-200 pl-3 py-0.5">
+      <p className="text-xs text-gray-500 leading-relaxed italic">{children}</p>
     </div>
   );
 }
@@ -916,11 +963,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     onHumanChange: (v: string) => void;
     onAiChange: (v: string) => void;
   }) => (
-    <div className="space-y-3 pt-2 border-t border-gray-100">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">License Pricing</p>
-      <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-3 pt-5 border-t border-gray-100">
+      <div className="flex items-baseline justify-between">
+        <p className="text-sm font-medium text-foreground">What's it worth?</p>
+        <p className="text-xs text-gray-400">Set per article — change anytime</p>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">Human price (USD)</Label>
+          <Label className="text-xs text-gray-500 font-normal">Human reader</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <Input
@@ -930,14 +980,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               value={humanValue}
               onChange={(e) => onHumanChange(e.target.value)}
               placeholder="5.00"
-              className="h-10 pl-7 rounded-lg"
+              className="h-11 pl-7 rounded-lg text-base"
             />
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">
-            AI price (USD) <span className="text-gray-400 font-normal">optional</span>
-          </Label>
+          <Label className="text-xs text-gray-500 font-normal">AI / training</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <Input
@@ -947,7 +995,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               value={aiValue}
               onChange={(e) => onAiChange(e.target.value)}
               placeholder="25.00"
-              className="h-10 pl-7 rounded-lg"
+              className="h-11 pl-7 rounded-lg text-base"
             />
           </div>
         </div>
@@ -957,15 +1005,15 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   const DialogShell = ({
     children,
-    wide = false,
+    size = "default",
   }: {
     children: ReactNode;
-    wide?: boolean;
+    size?: "default" | "wide" | "hero";
   }) => (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         className={`p-0 overflow-hidden rounded-xl shadow-modal ${
-          wide ? "sm:max-w-2xl" : "sm:max-w-xl"
+          size === "hero" ? "sm:max-w-[640px]" : size === "wide" ? "sm:max-w-2xl" : "sm:max-w-xl"
         }`}
       >
         {children}
@@ -992,148 +1040,179 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
       if (inlineVerifyResult === "success") {
         return (
-          <DialogShell>
+          <DialogShell size="hero">
             <RegisterContentSubView
-              title="Ownership Verified!"
+              title="You're verified."
               footer={
                 <Button
                   onClick={() => { handleClose(); navigate("/content"); }}
-                  className="w-full h-11"
+                  className="w-full h-12 text-sm"
                 >
-                  Go to Content Library
-                  <ArrowRight size={16} className="ml-2" />
+                  Take me to my library
+                  <ArrowRight size={16} />
                 </Button>
               }
             >
-              <div className="text-center space-y-4 py-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
-                  <CheckCircle size={28} className="text-emerald-600" />
+              <div className="flex flex-col items-center text-center pt-4 pb-6">
+                <div className="relative w-20 h-20 mb-6 animate-scale-in">
+                  <svg viewBox="0 0 80 80" className="w-full h-full">
+                    <circle cx="40" cy="40" r="38" fill="none" stroke="hsl(var(--success))" strokeWidth="1.5" opacity="0.25" />
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="hsl(var(--success))" strokeWidth="1.5" />
+                    <path
+                      d="M28 41 L36 49 L53 32"
+                      fill="none"
+                      stroke="hsl(var(--success))"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray="48"
+                      strokeDashoffset="48"
+                      className="animate-draw-check"
+                    />
+                  </svg>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">
-                    <strong className="text-foreground">{vSourceName}</strong> is verified — licensing is now active for your content.
+                <p className="text-base text-foreground leading-relaxed max-w-[36ch] animate-rise-in">
+                  <span className="font-semibold">{vSourceName}</span> is yours. Licensing is live across your content.
+                </p>
+                {vCount > 0 && (
+                  <p className="text-xs text-gray-400 mt-3 animate-rise-in" style={{ animationDelay: "0.1s" }}>
+                    {vCount} articles imported and ready.
                   </p>
-                  {vCount > 0 && (
-                    <p className="text-xs text-gray-400 mt-1.5">
-                      {vCount} articles imported and ready for licensing.
-                    </p>
-                  )}
-                </div>
+                )}
               </div>
             </RegisterContentSubView>
           </DialogShell>
         );
       }
 
+      const platformLogo = PLATFORM_LOGOS[vPlatform as keyof typeof PLATFORM_LOGOS];
+
       return (
-        <DialogShell>
+        <DialogShell size="hero">
           <RegisterContentSubView
-            title="Verify your publication"
-            description={`Add the code below to prove you own ${vSourceName}. This unlocks licensing for your content.`}
+            eyebrow={
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                {platformLogo && (
+                  <img src={platformLogo} alt="" className="w-4 h-4 object-contain opacity-70" />
+                )}
+                <span className="font-medium uppercase tracking-[0.12em] text-[10px]">
+                  Verifying {vSourceName}
+                </span>
+              </div>
+            }
+            title="One last step."
+            description="Add this code to your site so we know it's really you. Takes about a minute."
             footer={
               <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
-                <Button variant="outline" onClick={handleClose} className="sm:flex-1 h-11">
-                  Verify Later
+                <Button variant="outline" onClick={handleClose} className="sm:flex-1 h-12">
+                  Verify later
                 </Button>
                 <Button
                   onClick={handleInlineVerify}
                   disabled={inlineVerifyResult === "loading"}
-                  className="sm:flex-1 h-11"
+                  className="sm:flex-1 h-12"
                 >
                   {inlineVerifyResult === "loading" ? (
-                    <><Spinner size="sm" />Verifying…</>
+                    <><Spinner size="sm" />Checking…</>
                   ) : inlineVerifyResult === "failed" ? (
-                    <><RefreshCw size={16} />Try Again</>
+                    <><RefreshCw size={16} />Check again</>
                   ) : (
-                    <>I've Added It <ArrowRight size={16} /></>
+                    <>I've added it<ArrowRight size={16} /></>
                   )}
                 </Button>
               </div>
             }
           >
-            {vCount > 0 && (
-              <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3">
-                <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
-                <p className="text-sm text-emerald-800 font-medium">
-                  {vCount} new articles imported · {verificationState?.updatedCount ?? 0} already existed
-                </p>
+            {/* HERO: the verification code */}
+            <div className="-mx-2 sm:mx-0 rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-gray-200 px-6 py-8 sm:py-10">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 text-center mb-4 font-medium">
+                Your verification code
+              </p>
+              <div className="flex items-center justify-center">
+                <code className="text-[28px] sm:text-[34px] font-mono font-semibold text-foreground tracking-[0.18em] leading-none select-all">
+                  {vToken}
+                </code>
               </div>
-            )}
-
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
-              <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-medium">Verification Code</p>
-              <div className="flex items-center justify-between gap-3">
-                <code className="text-xl md:text-2xl font-mono font-bold text-foreground tracking-[0.2em] leading-none">{vToken}</code>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }}
-                  className="h-9 px-3 flex-shrink-0"
+              <div className="flex justify-center mt-5">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(vToken);
+                    setCopiedInlineCode("visible");
+                    setTimeout(() => setCopiedInlineCode("none"), 2000);
+                  }}
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-foreground transition-all active:scale-95"
                 >
-                  {copiedInlineCode === "visible" ? <><Check size={14} />Copied</> : <><Copy size={14} />Copy</>}
-                </Button>
+                  {copiedInlineCode === "visible" ? (
+                    <><Check size={13} /> Copied to clipboard</>
+                  ) : (
+                    <><Copy size={13} /> Copy code</>
+                  )}
+                </button>
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            {vCount > 0 && (
+              <p className="text-xs text-gray-500 text-center -mt-1">
+                <span className="text-foreground font-medium">{vCount}</span> new articles imported
+                {(verificationState?.updatedCount ?? 0) > 0 && (
+                  <> · {verificationState?.updatedCount} already on file</>
+                )}
+              </p>
+            )}
+
+            {/* Where to put it */}
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.12em] text-gray-400 font-medium">Where to put it</p>
               <p className="text-sm text-foreground leading-relaxed">{vInstructions}</p>
             </div>
 
-            <div className="space-y-3">
-              <div className="rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-                  <Badge variant="outline" className="text-[10px] px-2 py-0 bg-oxford/10 text-oxford border-oxford/20 font-semibold">
-                    {noMetaTag ? "Code" : "Option A"}
-                  </Badge>
-                  <span className="text-xs font-semibold text-foreground">Visible text — About / Bio</span>
+            {/* Two paths — quietly labeled, no A/B badges */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-sm font-medium text-foreground">Paste this in your bio</p>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-400">Easiest</span>
                 </div>
-                <div className="p-3">
-                  <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3 flex items-center justify-between gap-3">
-                    <code className="text-xs text-[#334155] font-mono truncate">{visibleCode}</code>
-                    <button
-                      onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }}
-                      aria-label="Copy visible verification code"
-                      className="text-gray-500 hover:text-foreground flex-shrink-0"
-                    >
-                      {copiedInlineCode === "visible" ? <Check size={12} /> : <Copy size={12} />}
-                    </button>
-                  </div>
-                </div>
+                <CodeSurface
+                  code={visibleCode}
+                  copied={copiedInlineCode === "visible"}
+                  onCopy={() => {
+                    navigator.clipboard.writeText(visibleCode);
+                    setCopiedInlineCode("visible");
+                    setTimeout(() => setCopiedInlineCode("none"), 2000);
+                  }}
+                  ariaLabel="Copy visible verification code"
+                />
               </div>
 
               {!noMetaTag && (
-                <div className="rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-                    <Badge variant="outline" className="text-[10px] px-2 py-0 bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold">Option B</Badge>
-                    <span className="text-xs font-semibold text-foreground">
-                      Hidden — Meta Tag
-                      {isWordPress && <span className="text-gray-400 font-normal ml-1">(or install plugin)</span>}
-                    </span>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-sm font-medium text-foreground">
+                      Or add a meta tag
+                      {isWordPress && <span className="text-gray-400 font-normal ml-1.5 text-xs">— or install our plugin</span>}
+                    </p>
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400">Hidden</span>
                   </div>
-                  <div className="p-3">
-                    <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3 flex items-center justify-between gap-3">
-                      <code className="text-xs text-[#334155] font-mono truncate">{metaCode}</code>
-                      <button
-                        onClick={() => { navigator.clipboard.writeText(metaCode); setCopiedInlineCode("meta"); setTimeout(() => setCopiedInlineCode("none"), 2000); }}
-                        aria-label="Copy verification meta tag"
-                        className="text-gray-500 hover:text-foreground flex-shrink-0"
-                      >
-                        {copiedInlineCode === "meta" ? <Check size={12} /> : <Copy size={12} />}
-                      </button>
-                    </div>
-                    {isWordPress && (
-                      <p className="text-xs text-gray-500 mt-2">WordPress users can also use the <span className="text-oxford">Opedd plugin</span> for automatic verification.</p>
-                    )}
-                  </div>
+                  <CodeSurface
+                    code={metaCode}
+                    copied={copiedInlineCode === "meta"}
+                    onCopy={() => {
+                      navigator.clipboard.writeText(metaCode);
+                      setCopiedInlineCode("meta");
+                      setTimeout(() => setCopiedInlineCode("none"), 2000);
+                    }}
+                    ariaLabel="Copy verification meta tag"
+                    multiline
+                  />
                 </div>
               )}
             </div>
 
             {inlineVerifyResult === "failed" && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">Code not found yet. Make sure you've saved your changes, then try again.</p>
-              </div>
+              <InlineNote>
+                Couldn't find the code yet. Double-check that you saved your changes, then try again.
+              </InlineNote>
             )}
           </RegisterContentSubView>
         </DialogShell>
@@ -1144,52 +1223,52 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       return (
         <DialogShell>
           <RegisterContentSubView
-            title="Sync Publication"
-            description="Select your publishing platform — we'll recommend the best import method."
+            title="Where do you publish?"
+            description="Pick your platform — we'll find the best way to bring your work in."
             footer={
               feedUrl.trim() ? (
                 <Button
                   onClick={handlePublicationSync}
                   disabled={isSubmitting || isConnecting || !feedUrl.trim()}
-                  className="w-full h-11"
+                  className="w-full h-12"
                 >
                   {isConnecting ? (
-                    <><Spinner size="sm" />Connecting...</>
+                    <><Spinner size="sm" />Connecting…</>
                   ) : (
-                    <><Shield size={16} />Sync & Protect Content</>
+                    <><Shield size={16} />Sync & protect</>
                   )}
                 </Button>
               ) : undefined
             }
           >
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               {platformIcons.map((platform) => (
                 <button
                   key={platform.name}
                   onClick={() => handlePlatformSelect(platform.platformKey)}
-                  className="flex flex-col items-center gap-2 py-4 px-2 rounded-xl bg-white border border-gray-200 hover:border-oxford hover:shadow-card transition-all duration-200 group cursor-pointer min-h-[88px]"
+                  className="flex flex-col items-center gap-3 py-5 px-2 rounded-xl bg-white border border-gray-200 hover:border-foreground/30 hover:bg-gray-50/50 transition-all duration-200 group cursor-pointer min-h-[100px]"
                 >
-                  <div className="w-9 h-9 flex items-center justify-center">
+                  <div className="w-8 h-8 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all">
                     {platform.logo ? (
                       <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
                     ) : (
-                      <Globe size={26} className="text-gray-400 group-hover:text-oxford transition-colors" />
+                      <Globe size={24} className="text-gray-400 group-hover:text-foreground transition-colors" strokeWidth={1.5} />
                     )}
                   </div>
-                  <span className="text-xs text-foreground font-semibold leading-tight text-center">{platform.name}</span>
+                  <span className="text-[13px] text-foreground font-medium leading-tight text-center">{platform.name}</span>
                 </button>
               ))}
             </div>
 
-            <div className="pt-4 border-t border-gray-100 space-y-2">
-              <Label className="text-sm font-medium text-foreground">Or paste a feed URL directly</Label>
+            <div className="pt-2 space-y-2">
+              <Label className="text-xs text-gray-500 font-normal">Or paste a feed URL directly</Label>
               <div className="relative">
-                <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+                <Globe size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" strokeWidth={1.5} />
                 <Input
                   value={feedUrl}
                   onChange={(e) => setFeedUrl(e.target.value)}
-                  placeholder="https://yourname.substack.com/feed"
-                  className="h-11 pl-10 rounded-lg"
+                  placeholder="yourname.substack.com/feed"
+                  className="h-12 pl-10 rounded-lg text-sm bg-gray-50/50 border-gray-200 focus-visible:bg-white"
                 />
               </div>
             </div>
@@ -1198,18 +1277,31 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       );
     }
 
-    const platformTitle =
-      pubPlatform === "substack" ? "Substack Import"
-      : pubPlatform === "beehiiv" ? "Beehiiv Import"
-      : pubPlatform === "ghost" ? "Ghost Import"
-      : pubPlatform === "wordpress" ? "WordPress Import"
-      : "Import Content";
+    const platformMeta: Record<string, { name: string; logo: string | null; greeting: string }> = {
+      substack: { name: "Substack", logo: PLATFORM_LOGOS.substack, greeting: "Bring your Substack home." },
+      beehiiv: { name: "beehiiv", logo: PLATFORM_LOGOS.beehiiv, greeting: "Connect your beehiiv newsletter." },
+      ghost: { name: "Ghost", logo: PLATFORM_LOGOS.ghost, greeting: "Pull your Ghost archive in." },
+      wordpress: { name: "WordPress", logo: PLATFORM_LOGOS.wordpress, greeting: "Import your WordPress site." },
+      other: { name: "your site", logo: null, greeting: "Let's find your content." },
+    };
+    const meta = platformMeta[pubPlatform || "other"];
 
     return (
       <DialogShell>
         <RegisterContentSubView
-          title={platformTitle}
-          description="Connect your content source"
+          eyebrow={
+            <div className="flex items-center gap-2 text-xs">
+              {meta.logo ? (
+                <img src={meta.logo} alt="" className="w-4 h-4 object-contain" />
+              ) : (
+                <Globe size={14} className="text-gray-400" strokeWidth={1.5} />
+              )}
+              <span className="font-medium uppercase tracking-[0.12em] text-[10px] text-gray-500">
+                {meta.name}
+              </span>
+            </div>
+          }
+          title={meta.greeting}
           showBack
           onBack={() => { setPubStep("select"); setPubPlatform(null); }}
           footer={
@@ -1219,12 +1311,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleRssImport}
                     disabled={!pubDomainInput.trim() || isConnecting}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isConnecting ? (
-                      <><Spinner size="sm" />Importing...</>
+                      <><Spinner size="sm" />Importing…</>
                     ) : (
-                      <><Globe size={16} />Import content</>
+                      <>Import content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
@@ -1234,14 +1326,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     <Button
                       onClick={handleGhostImport}
                       disabled={!pubDomainInput.trim() || isSitemapImporting}
-                      className="w-full h-11"
+                      className="w-full h-12"
                     >
-                      <Sparkles size={16} />
-                      Import Full Archive (Sitemap)
+                      Import full archive
+                      <ArrowRight size={16} />
                     </Button>
                     <button
                       onClick={() => setUseRssFallback(true)}
-                      className="w-full text-center text-sm text-gray-500 hover:text-oxford transition-colors py-1"
+                      className="w-full text-center text-xs text-gray-400 hover:text-foreground transition-colors py-1.5"
                     >
                       Use feed import instead
                     </button>
@@ -1251,12 +1343,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleRssImport}
                     disabled={!pubDomainInput.trim() || isConnecting}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isConnecting ? (
-                      <><Spinner size="sm" />Importing...</>
+                      <><Spinner size="sm" />Importing…</>
                     ) : (
-                      <><Globe size={16} />Import content</>
+                      <>Import content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
@@ -1266,17 +1358,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     <Button
                       onClick={handleWordpressImport}
                       disabled={!pubDomainInput.trim() || isDetectingFeeds || isSitemapImporting}
-                      className="w-full h-11"
+                      className="w-full h-12"
                     >
                       {isDetectingFeeds ? (
-                        <><Spinner size="sm" />Detecting sitemap...</>
+                        <><Spinner size="sm" />Detecting sitemap…</>
                       ) : (
-                        <><Sparkles size={16} />Import Full Archive (Sitemap)</>
+                        <>Import full archive<ArrowRight size={16} /></>
                       )}
                     </Button>
                     <button
                       onClick={() => setUseRssFallback(true)}
-                      className="w-full text-center text-sm text-gray-500 hover:text-oxford transition-colors py-1"
+                      className="w-full text-center text-xs text-gray-400 hover:text-foreground transition-colors py-1.5"
                     >
                       Use feed import instead
                     </button>
@@ -1286,12 +1378,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleRssImport}
                     disabled={!pubDomainInput.trim() || isConnecting}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isConnecting ? (
-                      <><Spinner size="sm" />Importing...</>
+                      <><Spinner size="sm" />Importing…</>
                     ) : (
-                      <><Globe size={16} />Import content</>
+                      <>Import content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
@@ -1300,12 +1392,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleOtherDetect}
                     disabled={!pubDomainInput.trim() || isDetectingFeeds}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isDetectingFeeds ? (
-                      <><Spinner size="sm" />Detecting feeds...</>
+                      <><Spinner size="sm" />Detecting feeds…</>
                     ) : (
-                      <><Globe size={16} />Detect Feeds</>
+                      <>Find my content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
@@ -1313,18 +1405,18 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   <Button
                     onClick={handleOtherConfirmImport}
                     disabled={isConnecting || isSitemapImporting}
-                    className="w-full h-11"
+                    className="w-full h-12"
                   >
                     {isConnecting || isSitemapImporting ? (
-                      <><Spinner size="sm" />Importing...</>
+                      <><Spinner size="sm" />Importing…</>
                     ) : (
-                      <><Sparkles size={16} />Import Content</>
+                      <>Import content<ArrowRight size={16} /></>
                     )}
                   </Button>
                 )}
                 {pubPlatform === "other" && detectedFeeds && !selectedFeedUrl && detectedFeeds.sitemap_urls.length === 0 && detectedFeeds.rss_urls.length === 0 && (
-                  <Button onClick={handleClose} variant="outline" className="w-full h-11">
-                    Skip for now →
+                  <Button onClick={handleClose} variant="outline" className="w-full h-12">
+                    Skip for now
                   </Button>
                 )}
               </div>
@@ -1334,21 +1426,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "substack" && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Substack URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your Substack URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yourpublication.substack.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Don't include https:// — just the domain</p>
               </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
-                  Substack doesn't expose a full archive. We'll import your latest articles. New articles will auto-register when readers visit them via the widget.
-                </p>
-              </div>
+              <InlineNote>
+                Substack doesn't expose a full archive — we'll bring in your latest articles, and new ones will register automatically as readers arrive.
+              </InlineNote>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
           )}
@@ -1356,40 +1444,32 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "beehiiv" && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Beehiiv URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your beehiiv URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yourpublication.beehiiv.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Don't include https:// — just the domain</p>
               </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
-                  Beehiiv doesn't expose a full archive. We'll import your latest articles. New articles will auto-register when readers visit them via the widget.
-                </p>
-              </div>
+              <InlineNote>
+                beehiiv doesn't expose a full archive — we'll bring in your latest articles, and new ones will register automatically as readers arrive.
+              </InlineNote>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
           )}
 
           {pubPlatform === "ghost" && !useRssFallback && (
             <>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
-                <CheckCircle2 size={12} />
-                Recommended: Full archive import
-              </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Ghost site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your Ghost site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Don't include https:// — just the domain</p>
+                <p className="text-xs text-gray-400 mt-1.5">We'll pull your full archive from your sitemap.</p>
               </div>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
@@ -1398,39 +1478,32 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "ghost" && useRssFallback && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Ghost site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your Ghost site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
               </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
-                  Feed import will capture your latest ~50 articles. For a full archive, go back and use sitemap import.
-                </p>
-              </div>
+              <InlineNote>
+                Feed import will capture your latest ~50 articles. Go back to use sitemap for the full archive.
+              </InlineNote>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
           )}
 
           {pubPlatform === "wordpress" && !useRssFallback && (
             <>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
-                <CheckCircle2 size={12} />
-                Recommended: Full archive import
-              </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your WordPress site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your WordPress site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">WordPress sitemaps can contain your full article archive (thousands of articles).</p>
+                <p className="text-xs text-gray-400 mt-1.5">Sitemaps can hold thousands of articles — we'll bring them all in.</p>
               </div>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
@@ -1439,12 +1512,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "wordpress" && useRssFallback && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your WordPress site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your WordPress site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
               </div>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
@@ -1767,7 +1840,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     };
 
     return (
-      <DialogShell wide>
+      <DialogShell size="wide">
         <RegisterContentSubView
           title="Register Media Organisation"
           description="Bulk import your entire content archive"
