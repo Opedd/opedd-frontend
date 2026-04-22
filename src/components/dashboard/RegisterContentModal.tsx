@@ -963,11 +963,14 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     onHumanChange: (v: string) => void;
     onAiChange: (v: string) => void;
   }) => (
-    <div className="space-y-3 pt-2 border-t border-gray-100">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">License Pricing</p>
-      <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-3 pt-5 border-t border-gray-100">
+      <div className="flex items-baseline justify-between">
+        <p className="text-sm font-medium text-foreground">What's it worth?</p>
+        <p className="text-xs text-gray-400">Set per article — change anytime</p>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">Human price (USD)</Label>
+          <Label className="text-xs text-gray-500 font-normal">Human reader</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <Input
@@ -977,14 +980,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               value={humanValue}
               onChange={(e) => onHumanChange(e.target.value)}
               placeholder="5.00"
-              className="h-10 pl-7 rounded-lg"
+              className="h-11 pl-7 rounded-lg text-base"
             />
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">
-            AI price (USD) <span className="text-gray-400 font-normal">optional</span>
-          </Label>
+          <Label className="text-xs text-gray-500 font-normal">AI / training</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <Input
@@ -994,7 +995,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               value={aiValue}
               onChange={(e) => onAiChange(e.target.value)}
               placeholder="25.00"
-              className="h-10 pl-7 rounded-lg"
+              className="h-11 pl-7 rounded-lg text-base"
             />
           </div>
         </div>
@@ -1004,15 +1005,15 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
   const DialogShell = ({
     children,
-    wide = false,
+    size = "default",
   }: {
     children: ReactNode;
-    wide?: boolean;
+    size?: "default" | "wide" | "hero";
   }) => (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         className={`p-0 overflow-hidden rounded-xl shadow-modal ${
-          wide ? "sm:max-w-2xl" : "sm:max-w-xl"
+          size === "hero" ? "sm:max-w-[640px]" : size === "wide" ? "sm:max-w-2xl" : "sm:max-w-xl"
         }`}
       >
         {children}
