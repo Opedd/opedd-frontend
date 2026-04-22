@@ -1579,12 +1579,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     </div>
                   )}
                   {detectedFeeds.sitemap_urls.length === 0 && detectedFeeds.rss_urls.length === 0 && (
-                    <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                      <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-700">
-                        No feeds detected. Articles will auto-register when readers visit them via the widget.
-                      </p>
-                    </div>
+                    <InlineNote>
+                      No feeds detected — articles will auto-register when readers visit them via the widget.
+                    </InlineNote>
                   )}
                 </div>
               )}
