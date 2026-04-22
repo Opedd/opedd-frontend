@@ -62,6 +62,7 @@ type ModalView = "choice" | "publication" | "single" | "enterprise" | "success";
 
 function RegisterContentSubView({
   title,
+  eyebrow,
   description,
   children,
   footer,
@@ -69,6 +70,7 @@ function RegisterContentSubView({
   onBack,
 }: {
   title: string;
+  eyebrow?: ReactNode;
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -77,31 +79,76 @@ function RegisterContentSubView({
 }) {
   return (
     <div className="flex flex-col max-h-[90vh]">
-      <div className="px-6 pt-6 pb-4 flex-shrink-0">
-        <div className="flex items-start gap-3">
-          {showBack && onBack && (
-            <button
-              onClick={onBack}
-              aria-label="Back"
-              className="-ml-1 mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-foreground transition-colors flex-shrink-0"
-            >
-              <ArrowLeft size={16} />
-            </button>
-          )}
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-foreground leading-tight">{title}</h2>
-            {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
-          </div>
-        </div>
+      <div className="px-8 pt-8 pb-6 flex-shrink-0">
+        {showBack && onBack && (
+          <button
+            onClick={onBack}
+            aria-label="Back"
+            className="-ml-1 mb-4 inline-flex h-8 items-center gap-1.5 rounded-lg pl-1 pr-2 text-xs font-medium text-gray-500 hover:text-foreground transition-colors"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </button>
+        )}
+        {eyebrow && <div className="mb-3">{eyebrow}</div>}
+        <h2 className="text-[22px] font-semibold text-foreground leading-tight tracking-[-0.01em]">{title}</h2>
+        {description && (
+          <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[44ch]">{description}</p>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-5">{children}</div>
+      <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-6">{children}</div>
 
       {footer && (
-        <div className="flex-shrink-0 px-6 py-4 bg-white border-t border-gray-200">
+        <div className="flex-shrink-0 px-8 py-5 bg-white border-t border-gray-100">
           {footer}
         </div>
       )}
+    </div>
+  );
+}
+
+// Premium code surface — warm near-black, generous padding, monospace
+function CodeSurface({
+  code,
+  onCopy,
+  copied,
+  ariaLabel,
+  multiline = false,
+}: {
+  code: string;
+  onCopy: () => void;
+  copied: boolean;
+  ariaLabel: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="group relative rounded-xl bg-[#0F0E1A] border border-[#1F1D33] overflow-hidden">
+      <div className={`px-5 py-4 ${multiline ? "pr-24" : "pr-20"}`}>
+        <code className={`text-[13px] text-[#E4E2F5] font-mono leading-relaxed ${multiline ? "break-all block" : "truncate block"}`}>
+          {code}
+        </code>
+      </div>
+      <button
+        onClick={onCopy}
+        aria-label={ariaLabel}
+        className="absolute top-2.5 right-2.5 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11px] font-medium text-[#A8A4C7] bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+      >
+        {copied ? (
+          <><Check size={12} /> Copied</>
+        ) : (
+          <><Copy size={12} /> Copy</>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// Quiet inline note — replaces traffic-light amber boxes
+function InlineNote({ children }: { children: ReactNode }) {
+  return (
+    <div className="border-l-2 border-gray-200 pl-3 py-0.5">
+      <p className="text-xs text-gray-500 leading-relaxed italic">{children}</p>
     </div>
   );
 }
