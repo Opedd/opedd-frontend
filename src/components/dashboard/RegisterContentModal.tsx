@@ -1223,52 +1223,52 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       return (
         <DialogShell>
           <RegisterContentSubView
-            title="Sync Publication"
-            description="Select your publishing platform — we'll recommend the best import method."
+            title="Where do you publish?"
+            description="Pick your platform — we'll find the best way to bring your work in."
             footer={
               feedUrl.trim() ? (
                 <Button
                   onClick={handlePublicationSync}
                   disabled={isSubmitting || isConnecting || !feedUrl.trim()}
-                  className="w-full h-11"
+                  className="w-full h-12"
                 >
                   {isConnecting ? (
-                    <><Spinner size="sm" />Connecting...</>
+                    <><Spinner size="sm" />Connecting…</>
                   ) : (
-                    <><Shield size={16} />Sync & Protect Content</>
+                    <><Shield size={16} />Sync & protect</>
                   )}
                 </Button>
               ) : undefined
             }
           >
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               {platformIcons.map((platform) => (
                 <button
                   key={platform.name}
                   onClick={() => handlePlatformSelect(platform.platformKey)}
-                  className="flex flex-col items-center gap-2 py-4 px-2 rounded-xl bg-white border border-gray-200 hover:border-oxford hover:shadow-card transition-all duration-200 group cursor-pointer min-h-[88px]"
+                  className="flex flex-col items-center gap-3 py-5 px-2 rounded-xl bg-white border border-gray-200 hover:border-foreground/30 hover:bg-gray-50/50 transition-all duration-200 group cursor-pointer min-h-[100px]"
                 >
-                  <div className="w-9 h-9 flex items-center justify-center">
+                  <div className="w-8 h-8 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all">
                     {platform.logo ? (
                       <img src={platform.logo} alt={platform.name} className="w-full h-full object-contain" />
                     ) : (
-                      <Globe size={26} className="text-gray-400 group-hover:text-oxford transition-colors" />
+                      <Globe size={24} className="text-gray-400 group-hover:text-foreground transition-colors" strokeWidth={1.5} />
                     )}
                   </div>
-                  <span className="text-xs text-foreground font-semibold leading-tight text-center">{platform.name}</span>
+                  <span className="text-[13px] text-foreground font-medium leading-tight text-center">{platform.name}</span>
                 </button>
               ))}
             </div>
 
-            <div className="pt-4 border-t border-gray-100 space-y-2">
-              <Label className="text-sm font-medium text-foreground">Or paste a feed URL directly</Label>
+            <div className="pt-2 space-y-2">
+              <Label className="text-xs text-gray-500 font-normal">Or paste a feed URL directly</Label>
               <div className="relative">
-                <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+                <Globe size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" strokeWidth={1.5} />
                 <Input
                   value={feedUrl}
                   onChange={(e) => setFeedUrl(e.target.value)}
-                  placeholder="https://yourname.substack.com/feed"
-                  className="h-11 pl-10 rounded-lg"
+                  placeholder="yourname.substack.com/feed"
+                  className="h-12 pl-10 rounded-lg text-sm bg-gray-50/50 border-gray-200 focus-visible:bg-white"
                 />
               </div>
             </div>
