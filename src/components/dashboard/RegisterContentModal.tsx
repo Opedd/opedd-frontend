@@ -1733,17 +1733,16 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </Tabs>
           </div>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <Shield size={16} className="text-oxford" />
-              <span className="text-sm font-semibold text-foreground">License Fees</span>
+          <div className="space-y-4 pt-2">
+            <div>
+              <p className="text-[13px] text-gray-500 leading-relaxed">What's it worth to license?</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Human Republication *</Label>
+            <div className="grid grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label className="text-[13px] font-normal text-gray-600">Human republication</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
                   <Input
                     type="number"
                     value={humanPrice}
@@ -1756,12 +1755,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">
-                  AI Ingestion <span className="text-gray-400 font-normal">(optional)</span>
+              <div className="space-y-2">
+                <Label className="text-[13px] font-normal text-gray-600">
+                  AI ingestion <span className="text-gray-400">· optional</span>
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
                   <Input
                     type="number"
                     value={aiPrice}
