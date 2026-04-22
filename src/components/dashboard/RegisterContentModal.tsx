@@ -1426,21 +1426,17 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "substack" && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Substack URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your Substack URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yourpublication.substack.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Don't include https:// — just the domain</p>
               </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
-                  Substack doesn't expose a full archive. We'll import your latest articles. New articles will auto-register when readers visit them via the widget.
-                </p>
-              </div>
+              <InlineNote>
+                Substack doesn't expose a full archive — we'll bring in your latest articles, and new ones will register automatically as readers arrive.
+              </InlineNote>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
           )}
@@ -1448,40 +1444,32 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "beehiiv" && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Beehiiv URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your beehiiv URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yourpublication.beehiiv.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Don't include https:// — just the domain</p>
               </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
-                  Beehiiv doesn't expose a full archive. We'll import your latest articles. New articles will auto-register when readers visit them via the widget.
-                </p>
-              </div>
+              <InlineNote>
+                beehiiv doesn't expose a full archive — we'll bring in your latest articles, and new ones will register automatically as readers arrive.
+              </InlineNote>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
           )}
 
           {pubPlatform === "ghost" && !useRssFallback && (
             <>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
-                <CheckCircle2 size={12} />
-                Recommended: Full archive import
-              </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Ghost site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your Ghost site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Don't include https:// — just the domain</p>
+                <p className="text-xs text-gray-400 mt-1.5">We'll pull your full archive from your sitemap.</p>
               </div>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
@@ -1490,39 +1478,32 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "ghost" && useRssFallback && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your Ghost site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your Ghost site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
               </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
-                  Feed import will capture your latest ~50 articles. For a full archive, go back and use sitemap import.
-                </p>
-              </div>
+              <InlineNote>
+                Feed import will capture your latest ~50 articles. Go back to use sitemap for the full archive.
+              </InlineNote>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
           )}
 
           {pubPlatform === "wordpress" && !useRssFallback && (
             <>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
-                <CheckCircle2 size={12} />
-                Recommended: Full archive import
-              </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your WordPress site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your WordPress site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">WordPress sitemaps can contain your full article archive (thousands of articles).</p>
+                <p className="text-xs text-gray-400 mt-1.5">Sitemaps can hold thousands of articles — we'll bring them all in.</p>
               </div>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
             </>
@@ -1531,12 +1512,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
           {pubPlatform === "wordpress" && useRssFallback && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Enter your WordPress site URL</Label>
+                <Label className="text-xs text-gray-500 font-normal">Your WordPress site URL</Label>
                 <Input
                   value={pubDomainInput}
                   onChange={(e) => setPubDomainInput(e.target.value)}
                   placeholder="yoursite.com"
-                  className="h-11 rounded-lg"
+                  className="h-12 rounded-lg text-sm"
                 />
               </div>
               <PricingRow humanValue={pubHumanPrice} aiValue={pubAiPrice} onHumanChange={setPubHumanPrice} onAiChange={setPubAiPrice} />
