@@ -1993,84 +1993,77 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   }
 
   return (
-    <DialogShell>
+    <DialogShell size="wide">
       <RegisterContentSubView
-        title="Registration Complete"
-        description="Your content is now protected"
+        title="You're live."
+        description="Your content is protected. Here's everything you need to start collecting."
         footer={
           <Button onClick={handleClose} className="w-full h-11">
             Done
           </Button>
         }
       >
-        <div className="flex justify-center pt-2">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-            <CheckCircle size={28} className="text-emerald-600" />
+        {/* Hero affirmation — animated draw-check, generous space */}
+        <div className="flex flex-col items-center pt-2 pb-4">
+          <div className="relative w-20 h-20 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center animate-scale-in">
+            <svg
+              className="w-10 h-10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 12.5l5 5 9-11"
+                className="text-foreground"
+                strokeDasharray="48"
+                style={{ animation: "draw-check 0.5s 0.2s cubic-bezier(0.65, 0, 0.45, 1) forwards", strokeDashoffset: 48 }}
+              />
+            </svg>
           </div>
         </div>
 
         <Tabs defaultValue="widget" className="w-full">
-          <TabsList className="w-full bg-gray-100 p-1 rounded-lg h-11">
+          <TabsList className="w-full bg-gray-100 p-1 rounded-lg h-10">
             <TabsTrigger
               value="widget"
-              className="flex-1 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
+              className="flex-1 rounded-md text-[13px] font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
             >
-              <Code size={14} />
-              Embed Widget
+              Embed widget
             </TabsTrigger>
             <TabsTrigger
               value="link"
-              className="flex-1 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
+              className="flex-1 rounded-md text-[13px] font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
             >
-              <Link2 size={14} />
-              Direct Pay Link
+              Direct pay link
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="widget" className="mt-4">
-            <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-4 relative">
-              <code className="text-xs text-[#334155] font-mono break-all leading-relaxed">
-                {widgetCode}
-              </code>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => handleCopy(widgetCode, "widget")}
-                className="absolute top-2 right-2 h-8 px-3 text-xs"
-              >
-                {copiedWidget ? (
-                  <><Check size={12} />Copied</>
-                ) : (
-                  <><Clipboard size={12} />Copy</>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Add this script tag to your website to enable licensing
+          <TabsContent value="widget" className="mt-4 space-y-2.5">
+            <CodeSurface
+              code={widgetCode}
+              onCopy={() => handleCopy(widgetCode, "widget")}
+              copied={copiedWidget}
+              ariaLabel="Copy widget embed code"
+              multiline
+            />
+            <p className="text-xs text-gray-500 px-1">
+              Paste anywhere in your site's <span className="font-mono text-gray-600">&lt;head&gt;</span> or before <span className="font-mono text-gray-600">&lt;/body&gt;</span>.
             </p>
           </TabsContent>
 
-          <TabsContent value="link" className="mt-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3">
-              <div className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2.5 overflow-hidden">
-                <code className="text-sm text-[#334155] font-mono truncate block">
-                  {directPayLink}
-                </code>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => handleCopy(directPayLink, "link")}
-                className="h-9 px-4 text-xs flex-shrink-0"
-              >
-                {copiedLink ? (
-                  <><Check size={12} />Copied</>
-                ) : (
-                  <><Clipboard size={12} />Copy</>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Share this link to accept payments directly
+          <TabsContent value="link" className="mt-4 space-y-2.5">
+            <CodeSurface
+              code={directPayLink}
+              onCopy={() => handleCopy(directPayLink, "link")}
+              copied={copiedLink}
+              ariaLabel="Copy direct pay link"
+            />
+            <p className="text-xs text-gray-500 px-1">
+              Share this anywhere — email, social, your bio. Buyers pay you directly.
             </p>
           </TabsContent>
         </Tabs>
