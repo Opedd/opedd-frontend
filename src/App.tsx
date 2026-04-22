@@ -53,6 +53,7 @@ const MyLicenses = lazy(() => import("./pages/MyLicenses"));
 
 // Lazy-loaded: infrequent dashboard routes
 const Setup = lazy(() => import("./pages/Setup"));
+const Welcome = lazy(() => import("./pages/Welcome"));
 const Connectors = lazy(() => import("./pages/Connectors"));
 
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
@@ -104,7 +105,8 @@ const App = () => (
                 <Route path="/verify/:key" element={<LicenseVerify />} />
                 <Route path="/widget-preview" element={<WidgetPreview />} />
                 <Route path="/setup" element={<ProtectedRoute><Setup /></ProtectedRoute>} />
-                
+                <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+
                 <Route path="/invite/:token" element={<AcceptInvite />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />

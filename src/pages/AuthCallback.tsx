@@ -22,16 +22,18 @@ export default function AuthCallback() {
           if (session) {
             setStatus("success");
             const isNewUser = !!(window.location.href.includes("type=signup") || window.location.href.includes("confirmation_token"));
-            setTimeout(() => navigate(isNewUser ? "/onboarding" : "/dashboard", { replace: true }), 1500);
+            setTimeout(() => navigate(isNewUser ? "/welcome" : "/dashboard", { replace: true }), 1500);
             return;
           }
           throw error;
         }
 
         setStatus("success");
-        // Redirect new users (no prior session) to onboarding; returning users to dashboard
+        // New signups land on /welcome (referral capture); returning users go direct to dashboard.
+        // /welcome itself self-redirects to /dashboard if welcome_completed_at is already set,
+        // so this is safe even if the URL params are missed and every user hits /welcome.
         const isNewUser = !!(window.location.href.includes("type=signup") || window.location.href.includes("confirmation_token"));
-        setTimeout(() => navigate(isNewUser ? "/onboarding" : "/dashboard", { replace: true }), 1500);
+        setTimeout(() => navigate(isNewUser ? "/welcome" : "/dashboard", { replace: true }), 1500);
       } catch (err) {
         console.error("[AuthCallback] Error:", err);
         setErrorMsg(err instanceof Error ? err.message : "Verification failed");

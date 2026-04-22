@@ -50,7 +50,9 @@ export default function Signup() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         clearInterval(interval);
-        window.location.href = "/dashboard";
+        // New users go through /welcome — referral capture + sets
+        // welcome_completed_at so the gate closes after this trip.
+        window.location.href = "/welcome";
       }
     }, 3000);
     return () => clearInterval(interval);
@@ -97,7 +99,7 @@ export default function Signup() {
         toast({ title: "Account Created", description: "Please check your email to verify your account" });
       } else if (data.session) {
         toast({ title: "Welcome!", description: "Your account has been created successfully" });
-        window.location.href = "/dashboard";
+        window.location.href = "/welcome";
       }
     } catch (error) {
       toast({ title: "Signup Failed", description: error instanceof Error ? error.message : "An error occurred", variant: "destructive" });

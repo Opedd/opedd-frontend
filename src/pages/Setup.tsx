@@ -699,10 +699,19 @@ export default function Setup() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Logo */}
+      {/* Logo + escape hatch */}
       <div className="bg-white border-b border-[#E5E7EB]">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <img src={opeddLogoColor} alt="Opedd" className="h-7 w-auto" />
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#040042] transition-colors"
+            aria-label="Exit setup and return to dashboard"
+          >
+            <ArrowLeft size={14} />
+            Back to dashboard
+          </button>
         </div>
       </div>
 
