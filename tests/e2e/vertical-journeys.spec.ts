@@ -283,16 +283,16 @@ test.describe.serial("Vertical Journey — Beehiiv", () => {
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(3000);
 
-    // New users may be redirected to /setup — that's expected behavior
-    const url = page.url();
-    if (url.includes("/setup")) {
-      // Redirected to setup — verify wizard loads (this IS the onboarding)
-      await expect(page.getByText("Where do you publish?")).toBeVisible({ timeout: 10_000 });
-    } else {
-      // On dashboard — verify checklist
-      await expect(page.getByText("Import your content")).toBeVisible({ timeout: 10_000 });
-      await expect(page.getByText("Enable AI Licensing")).toBeVisible();
-    }
+    // Phase A (2026-04-22) removed the force-redirect — publishers now stay
+    // on /dashboard with the OnboardingChecklist banner. The coach-mark tour
+    // may render a dark overlay on first visit; text under the overlay is
+    // still in the DOM and toBeVisible() returns true (backdrop doesn't set
+    // display:none).
+    expect(page.url()).toContain("/dashboard");
+    await expect(page.getByText("Import your content").first()).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByText("Enable AI Licensing").first()).toBeVisible();
     await assertNoCrash(page, "Beehiiv /dashboard");
   });
 

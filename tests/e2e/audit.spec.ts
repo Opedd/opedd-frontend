@@ -272,20 +272,46 @@ test.describe("3. Dashboard", () => {
     }
   });
 
-  test("3.4 Register Content button opens drawer", async ({ page }) => {
+  test("3.4 Register Content button routes to /setup wizard", async ({ page }) => {
+    // Phase A (2026-04-22): Register Content no longer opens a drawer; it
+    // navigates to /setup?add=1 which renders the Setup wizard. The previous
+    // version of this test short-circuited on /setup redirect and was a false
+    // positive (see memory: "the audit test thinks it's testing the modal
+    // drawer, but the modal doesn't exist").
     await injectAuth(page);
     await page.goto(`${BASE}/dashboard`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(5000);
+    await dismissModal(page);
+
+    // A fresh publisher may already be on /setup if the route was persisted;
+    // if so the button isn't on screen — just confirm the wizard loaded.
     if (page.url().includes("/setup")) {
-      await assertNoCrash(page, "Setup wizard (register content flow)");
+      await expect(page.getByText("Where do you publish?")).toBeVisible({ timeout: 10_000 });
       return;
     }
-    await dismissModal(page);
-    await page.locator("button:has-text('Register content')").first().click();
-    await page.waitForTimeout(500);
-    await assertNoCrash(page, "Dashboard register drawer");
-    await expect(page.locator("text=Register your content")).toBeVisible();
+
+    // Otherwise from dashboard: clicking "Import Content" (the OnboardingChecklist
+    // CTA, the actual primary "register content" affordance) routes to /setup?add=1.
+    const ctaSelectors = [
+      "button:has-text('Import Content')",
+      "button:has-text('Register content')",
+      "button:has-text('Register Content')",
+    ];
+    let clicked = false;
+    for (const sel of ctaSelectors) {
+      const el = page.locator(sel).first();
+      if (await el.isVisible({ timeout: 1_000 }).catch(() => false)) {
+        await el.click();
+        clicked = true;
+        break;
+      }
+    }
+    expect(clicked, "Expected a Register/Import Content button on dashboard").toBe(true);
+
+    await page.waitForURL(/\/setup/, { timeout: 10_000 });
+    await expect(page.getByText("Where do you publish?")).toBeVisible({ timeout: 10_000 });
+    await assertNoCrash(page, "Setup wizard after Register Content click");
   });
 
   test("3.5 Dashboard metrics show (Licensed Works, Total Revenue)", async ({ page }) => {
