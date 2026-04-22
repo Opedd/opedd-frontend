@@ -1673,12 +1673,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
+                  className={`border border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
                     isDragOver
-                      ? "border-oxford bg-oxford/5"
+                      ? "border-foreground bg-gray-50"
                       : uploadedFile
-                      ? "border-emerald-300 bg-emerald-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-foreground/40 bg-gray-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   onClick={() => document.getElementById('file-upload')?.click()}
                 >
@@ -1691,24 +1691,24 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   />
                   {uploadedFile ? (
                     <div className="flex items-center justify-center gap-3">
-                      <File size={20} className="text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-700">{uploadedFile.name}</span>
+                      <File size={18} className="text-foreground" />
+                      <span className="text-sm font-medium text-foreground">{uploadedFile.name}</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setUploadedFile(null);
                         }}
                         aria-label={`Remove uploaded file ${uploadedFile.name}`}
-                        className="text-gray-400 hover:text-gray-500"
+                        className="text-gray-400 hover:text-foreground transition-colors"
                       >
                         <X size={16} />
                       </button>
                     </div>
                   ) : (
                     <>
-                      <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-foreground">Drop a file here or click to upload</p>
-                      <p className="text-xs text-gray-400 mt-1">PDF, DOCX, or TXT</p>
+                      <Upload size={22} className="mx-auto text-gray-400 mb-3" strokeWidth={1.75} />
+                      <p className="text-sm text-foreground">Drop a file here, or click to browse</p>
+                      <p className="text-xs text-gray-400 mt-1.5">PDF, DOCX, or TXT</p>
                     </>
                   )}
                 </div>
