@@ -1579,12 +1579,9 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                     </div>
                   )}
                   {detectedFeeds.sitemap_urls.length === 0 && detectedFeeds.rss_urls.length === 0 && (
-                    <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                      <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-700">
-                        No feeds detected. Articles will auto-register when readers visit them via the widget.
-                      </p>
-                    </div>
+                    <InlineNote>
+                      No feeds detected — articles will auto-register when readers visit them via the widget.
+                    </InlineNote>
                   )}
                 </div>
               )}
@@ -1676,12 +1673,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
+                  className={`border border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
                     isDragOver
-                      ? "border-oxford bg-oxford/5"
+                      ? "border-foreground bg-gray-50"
                       : uploadedFile
-                      ? "border-emerald-300 bg-emerald-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-foreground/40 bg-gray-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   onClick={() => document.getElementById('file-upload')?.click()}
                 >
@@ -1694,24 +1691,24 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                   />
                   {uploadedFile ? (
                     <div className="flex items-center justify-center gap-3">
-                      <File size={20} className="text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-700">{uploadedFile.name}</span>
+                      <File size={18} className="text-foreground" />
+                      <span className="text-sm font-medium text-foreground">{uploadedFile.name}</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setUploadedFile(null);
                         }}
                         aria-label={`Remove uploaded file ${uploadedFile.name}`}
-                        className="text-gray-400 hover:text-gray-500"
+                        className="text-gray-400 hover:text-foreground transition-colors"
                       >
                         <X size={16} />
                       </button>
                     </div>
                   ) : (
                     <>
-                      <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-foreground">Drop a file here or click to upload</p>
-                      <p className="text-xs text-gray-400 mt-1">PDF, DOCX, or TXT</p>
+                      <Upload size={22} className="mx-auto text-gray-400 mb-3" strokeWidth={1.75} />
+                      <p className="text-sm text-foreground">Drop a file here, or click to browse</p>
+                      <p className="text-xs text-gray-400 mt-1.5">PDF, DOCX, or TXT</p>
                     </>
                   )}
                 </div>
@@ -1736,17 +1733,16 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
             </Tabs>
           </div>
 
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <Shield size={16} className="text-oxford" />
-              <span className="text-sm font-semibold text-foreground">License Fees</span>
+          <div className="space-y-4 pt-2">
+            <div>
+              <p className="text-[13px] text-gray-500 leading-relaxed">What's it worth to license?</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Human Republication *</Label>
+            <div className="grid grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label className="text-[13px] font-normal text-gray-600">Human republication</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
                   <Input
                     type="number"
                     value={humanPrice}
@@ -1759,12 +1755,12 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">
-                  AI Ingestion <span className="text-gray-400 font-normal">(optional)</span>
+              <div className="space-y-2">
+                <Label className="text-[13px] font-normal text-gray-600">
+                  AI ingestion <span className="text-gray-400">· optional</span>
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
                   <Input
                     type="number"
                     value={aiPrice}
@@ -1878,47 +1874,44 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
               placeholder="https://theinformation.com/sitemap.xml"
               className="h-11 rounded-lg"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Usually found at <code className="bg-[#F1F5F9] border border-[#E2E8F0] text-[#334155] font-mono px-1.5 py-0.5 rounded">yoursite.com/sitemap.xml</code> — imports up to 2,000 articles from your archive.
+            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+              Usually found at <span className="font-mono text-[11px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">yoursite.com/sitemap.xml</span>. We'll import up to 2,000 articles.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-foreground">Human License Price ($)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={enterpriseHumanPrice}
-                onChange={(e) => setEnterpriseHumanPrice(e.target.value)}
-                placeholder="5.00"
-                className="h-11 rounded-lg"
-              />
+          <div className="grid grid-cols-2 gap-4 pt-1">
+            <div className="space-y-2">
+              <Label className="text-[13px] font-normal text-gray-600">Human license</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={enterpriseHumanPrice}
+                  onChange={(e) => setEnterpriseHumanPrice(e.target.value)}
+                  placeholder="5.00"
+                  className="h-11 pl-7 rounded-lg"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-foreground">
-                AI License Price ($) <span className="text-gray-400 font-normal">optional</span>
+            <div className="space-y-2">
+              <Label className="text-[13px] font-normal text-gray-600">
+                AI license <span className="text-gray-400">· optional</span>
               </Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={enterpriseAiPrice}
-                onChange={(e) => setEnterpriseAiPrice(e.target.value)}
-                placeholder="—"
-                className="h-11 rounded-lg"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-sm">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={enterpriseAiPrice}
+                  onChange={(e) => setEnterpriseAiPrice(e.target.value)}
+                  placeholder="—"
+                  className="h-11 pl-7 rounded-lg"
+                />
+              </div>
             </div>
-          </div>
-
-          <div className="bg-oxford/5 border border-oxford/15 rounded-lg p-4 text-sm text-foreground/70 space-y-1">
-            <p className="font-medium text-foreground">How it works</p>
-            <ol className="list-decimal list-inside space-y-0.5 text-xs">
-              <li>We import your full article archive from your sitemap (up to 2,000 articles)</li>
-              <li>You add a small verification tag to your website's &lt;head&gt;</li>
-              <li>Licensing goes live across all your content</li>
-            </ol>
           </div>
         </RegisterContentSubView>
       </DialogShell>
@@ -1929,55 +1922,63 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     return (
       <DialogShell>
         <RegisterContentSubView
-          title="Register Content"
-          description="Choose how you want to protect your work"
+          title="Register your content"
+          description="Three ways to bring your work onto Opedd. Most publishers start by syncing their newsletter."
         >
-          <div className="space-y-3">
+          <div className="space-y-2.5">
+            {/* Primary path — visually elevated, no badge */}
             <button
               onClick={() => setView("publication")}
-              className="group w-full bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-oxford hover:shadow-card transition-all duration-200"
+              className="group w-full bg-white border border-gray-300 rounded-xl p-6 text-left hover:border-foreground hover:shadow-card transition-all duration-200"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-lg bg-oxford/10 flex items-center justify-center shrink-0 group-hover:bg-oxford transition-colors">
-                  <Link2 size={20} className="text-oxford group-hover:text-white transition-colors" />
+              <div className="flex items-start gap-5">
+                <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0">
+                  <Link2 size={18} className="text-white" strokeWidth={2.25} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-foreground font-semibold text-sm">Sync Newsletter / Site</h3>
-                  <p className="text-gray-500 text-xs mt-0.5">Automatically import and protect every new post via API or sitemap.</p>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <h3 className="text-foreground font-semibold text-[15px] tracking-tight">Sync a publication</h3>
+                  <p className="text-gray-500 text-[13px] mt-1 leading-relaxed">
+                    Connect your newsletter or site. Every new post gets protected automatically.
+                  </p>
                 </div>
-                <ArrowRight size={16} className="text-oxford opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight size={16} className="text-foreground mt-1.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
               </div>
             </button>
 
+            {/* Secondary paths — quieter, monochrome */}
             <button
               onClick={() => setView("single")}
-              className="group w-full bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-oxford hover:shadow-card transition-all duration-200"
+              className="group w-full bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-gray-400 hover:shadow-card transition-all duration-200"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 transition-colors">
-                  <FileUp size={20} className="text-emerald-600 group-hover:text-white transition-colors" />
+              <div className="flex items-start gap-5">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-900 transition-colors">
+                  <FileUp size={18} className="text-gray-500 group-hover:text-white transition-colors" strokeWidth={2} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-foreground font-semibold text-sm">Register Single Work</h3>
-                  <p className="text-gray-500 text-xs mt-0.5">Protect a one-off article, op-ed, or research paper.</p>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <h3 className="text-foreground font-semibold text-[15px] tracking-tight">Register a single work</h3>
+                  <p className="text-gray-500 text-[13px] mt-1 leading-relaxed">
+                    A one-off article, op-ed, or research paper.
+                  </p>
                 </div>
-                <ArrowRight size={16} className="text-oxford opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight size={16} className="text-foreground mt-1.5 opacity-0 group-hover:opacity-60 transition-all shrink-0" />
               </div>
             </button>
 
             <button
               onClick={() => setView("enterprise")}
-              className="group w-full bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-plum-magenta hover:shadow-card transition-all duration-200"
+              className="group w-full bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-gray-400 hover:shadow-card transition-all duration-200"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-lg bg-plum-magenta/10 flex items-center justify-center shrink-0 group-hover:bg-plum-magenta transition-colors">
-                  <Globe size={20} className="text-plum-magenta group-hover:text-white transition-colors" />
+              <div className="flex items-start gap-5">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-900 transition-colors">
+                  <Globe size={18} className="text-gray-500 group-hover:text-white transition-colors" strokeWidth={2} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-foreground font-semibold text-sm">Bulk / Enterprise</h3>
-                  <p className="text-gray-500 text-xs mt-0.5">Add multiple feeds, sitemaps, and tag them by vertical.</p>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <h3 className="text-foreground font-semibold text-[15px] tracking-tight">Bulk import an archive</h3>
+                  <p className="text-gray-500 text-[13px] mt-1 leading-relaxed">
+                    For media organisations with thousands of articles.
+                  </p>
                 </div>
-                <ArrowRight size={16} className="text-plum-magenta opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight size={16} className="text-foreground mt-1.5 opacity-0 group-hover:opacity-60 transition-all shrink-0" />
               </div>
             </button>
           </div>
@@ -1992,84 +1993,77 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
   }
 
   return (
-    <DialogShell>
+    <DialogShell size="wide">
       <RegisterContentSubView
-        title="Registration Complete"
-        description="Your content is now protected"
+        title="You're live."
+        description="Your content is protected. Here's everything you need to start collecting."
         footer={
           <Button onClick={handleClose} className="w-full h-11">
             Done
           </Button>
         }
       >
-        <div className="flex justify-center pt-2">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-            <CheckCircle size={28} className="text-emerald-600" />
+        {/* Hero affirmation — animated draw-check, generous space */}
+        <div className="flex flex-col items-center pt-2 pb-4">
+          <div className="relative w-20 h-20 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center animate-scale-in">
+            <svg
+              className="w-10 h-10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 12.5l5 5 9-11"
+                className="text-foreground"
+                strokeDasharray="48"
+                style={{ animation: "draw-check 0.5s 0.2s cubic-bezier(0.65, 0, 0.45, 1) forwards", strokeDashoffset: 48 }}
+              />
+            </svg>
           </div>
         </div>
 
         <Tabs defaultValue="widget" className="w-full">
-          <TabsList className="w-full bg-gray-100 p-1 rounded-lg h-11">
+          <TabsList className="w-full bg-gray-100 p-1 rounded-lg h-10">
             <TabsTrigger
               value="widget"
-              className="flex-1 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
+              className="flex-1 rounded-md text-[13px] font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
             >
-              <Code size={14} />
-              Embed Widget
+              Embed widget
             </TabsTrigger>
             <TabsTrigger
               value="link"
-              className="flex-1 rounded-lg text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
+              className="flex-1 rounded-md text-[13px] font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-card"
             >
-              <Link2 size={14} />
-              Direct Pay Link
+              Direct pay link
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="widget" className="mt-4">
-            <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-4 relative">
-              <code className="text-xs text-[#334155] font-mono break-all leading-relaxed">
-                {widgetCode}
-              </code>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => handleCopy(widgetCode, "widget")}
-                className="absolute top-2 right-2 h-8 px-3 text-xs"
-              >
-                {copiedWidget ? (
-                  <><Check size={12} />Copied</>
-                ) : (
-                  <><Clipboard size={12} />Copy</>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Add this script tag to your website to enable licensing
+          <TabsContent value="widget" className="mt-4 space-y-2.5">
+            <CodeSurface
+              code={widgetCode}
+              onCopy={() => handleCopy(widgetCode, "widget")}
+              copied={copiedWidget}
+              ariaLabel="Copy widget embed code"
+              multiline
+            />
+            <p className="text-xs text-gray-500 px-1">
+              Paste anywhere in your site's <span className="font-mono text-gray-600">&lt;head&gt;</span> or before <span className="font-mono text-gray-600">&lt;/body&gt;</span>.
             </p>
           </TabsContent>
 
-          <TabsContent value="link" className="mt-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3">
-              <div className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg px-3 py-2.5 overflow-hidden">
-                <code className="text-sm text-[#334155] font-mono truncate block">
-                  {directPayLink}
-                </code>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => handleCopy(directPayLink, "link")}
-                className="h-9 px-4 text-xs flex-shrink-0"
-              >
-                {copiedLink ? (
-                  <><Check size={12} />Copied</>
-                ) : (
-                  <><Clipboard size={12} />Copy</>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Share this link to accept payments directly
+          <TabsContent value="link" className="mt-4 space-y-2.5">
+            <CodeSurface
+              code={directPayLink}
+              onCopy={() => handleCopy(directPayLink, "link")}
+              copied={copiedLink}
+              ariaLabel="Copy direct pay link"
+            />
+            <p className="text-xs text-gray-500 px-1">
+              Share this anywhere — email, social, your bio. Buyers pay you directly.
             </p>
           </TabsContent>
         </Tabs>
