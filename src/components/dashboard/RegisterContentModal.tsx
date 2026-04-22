@@ -1040,148 +1040,179 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
 
       if (inlineVerifyResult === "success") {
         return (
-          <DialogShell>
+          <DialogShell size="hero">
             <RegisterContentSubView
-              title="Ownership Verified!"
+              title="You're verified."
               footer={
                 <Button
                   onClick={() => { handleClose(); navigate("/content"); }}
-                  className="w-full h-11"
+                  className="w-full h-12 text-sm"
                 >
-                  Go to Content Library
-                  <ArrowRight size={16} className="ml-2" />
+                  Take me to my library
+                  <ArrowRight size={16} />
                 </Button>
               }
             >
-              <div className="text-center space-y-4 py-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
-                  <CheckCircle size={28} className="text-emerald-600" />
+              <div className="flex flex-col items-center text-center pt-4 pb-6">
+                <div className="relative w-20 h-20 mb-6 animate-scale-in">
+                  <svg viewBox="0 0 80 80" className="w-full h-full">
+                    <circle cx="40" cy="40" r="38" fill="none" stroke="hsl(var(--success))" strokeWidth="1.5" opacity="0.25" />
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="hsl(var(--success))" strokeWidth="1.5" />
+                    <path
+                      d="M28 41 L36 49 L53 32"
+                      fill="none"
+                      stroke="hsl(var(--success))"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray="48"
+                      strokeDashoffset="48"
+                      className="animate-draw-check"
+                    />
+                  </svg>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">
-                    <strong className="text-foreground">{vSourceName}</strong> is verified — licensing is now active for your content.
+                <p className="text-base text-foreground leading-relaxed max-w-[36ch] animate-rise-in">
+                  <span className="font-semibold">{vSourceName}</span> is yours. Licensing is live across your content.
+                </p>
+                {vCount > 0 && (
+                  <p className="text-xs text-gray-400 mt-3 animate-rise-in" style={{ animationDelay: "0.1s" }}>
+                    {vCount} articles imported and ready.
                   </p>
-                  {vCount > 0 && (
-                    <p className="text-xs text-gray-400 mt-1.5">
-                      {vCount} articles imported and ready for licensing.
-                    </p>
-                  )}
-                </div>
+                )}
               </div>
             </RegisterContentSubView>
           </DialogShell>
         );
       }
 
+      const platformLogo = PLATFORM_LOGOS[vPlatform as keyof typeof PLATFORM_LOGOS];
+
       return (
-        <DialogShell>
+        <DialogShell size="hero">
           <RegisterContentSubView
-            title="Verify your publication"
-            description={`Add the code below to prove you own ${vSourceName}. This unlocks licensing for your content.`}
+            eyebrow={
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                {platformLogo && (
+                  <img src={platformLogo} alt="" className="w-4 h-4 object-contain opacity-70" />
+                )}
+                <span className="font-medium uppercase tracking-[0.12em] text-[10px]">
+                  Verifying {vSourceName}
+                </span>
+              </div>
+            }
+            title="One last step."
+            description="Add this code to your site so we know it's really you. Takes about a minute."
             footer={
               <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
-                <Button variant="outline" onClick={handleClose} className="sm:flex-1 h-11">
-                  Verify Later
+                <Button variant="outline" onClick={handleClose} className="sm:flex-1 h-12">
+                  Verify later
                 </Button>
                 <Button
                   onClick={handleInlineVerify}
                   disabled={inlineVerifyResult === "loading"}
-                  className="sm:flex-1 h-11"
+                  className="sm:flex-1 h-12"
                 >
                   {inlineVerifyResult === "loading" ? (
-                    <><Spinner size="sm" />Verifying…</>
+                    <><Spinner size="sm" />Checking…</>
                   ) : inlineVerifyResult === "failed" ? (
-                    <><RefreshCw size={16} />Try Again</>
+                    <><RefreshCw size={16} />Check again</>
                   ) : (
-                    <>I've Added It <ArrowRight size={16} /></>
+                    <>I've added it<ArrowRight size={16} /></>
                   )}
                 </Button>
               </div>
             }
           >
-            {vCount > 0 && (
-              <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3">
-                <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
-                <p className="text-sm text-emerald-800 font-medium">
-                  {vCount} new articles imported · {verificationState?.updatedCount ?? 0} already existed
-                </p>
+            {/* HERO: the verification code */}
+            <div className="-mx-2 sm:mx-0 rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-gray-200 px-6 py-8 sm:py-10">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 text-center mb-4 font-medium">
+                Your verification code
+              </p>
+              <div className="flex items-center justify-center">
+                <code className="text-[28px] sm:text-[34px] font-mono font-semibold text-foreground tracking-[0.18em] leading-none select-all">
+                  {vToken}
+                </code>
               </div>
-            )}
-
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
-              <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2 font-medium">Verification Code</p>
-              <div className="flex items-center justify-between gap-3">
-                <code className="text-xl md:text-2xl font-mono font-bold text-foreground tracking-[0.2em] leading-none">{vToken}</code>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }}
-                  className="h-9 px-3 flex-shrink-0"
+              <div className="flex justify-center mt-5">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(vToken);
+                    setCopiedInlineCode("visible");
+                    setTimeout(() => setCopiedInlineCode("none"), 2000);
+                  }}
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-foreground transition-all active:scale-95"
                 >
-                  {copiedInlineCode === "visible" ? <><Check size={14} />Copied</> : <><Copy size={14} />Copy</>}
-                </Button>
+                  {copiedInlineCode === "visible" ? (
+                    <><Check size={13} /> Copied to clipboard</>
+                  ) : (
+                    <><Copy size={13} /> Copy code</>
+                  )}
+                </button>
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            {vCount > 0 && (
+              <p className="text-xs text-gray-500 text-center -mt-1">
+                <span className="text-foreground font-medium">{vCount}</span> new articles imported
+                {(verificationState?.updatedCount ?? 0) > 0 && (
+                  <> · {verificationState?.updatedCount} already on file</>
+                )}
+              </p>
+            )}
+
+            {/* Where to put it */}
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.12em] text-gray-400 font-medium">Where to put it</p>
               <p className="text-sm text-foreground leading-relaxed">{vInstructions}</p>
             </div>
 
-            <div className="space-y-3">
-              <div className="rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-                  <Badge variant="outline" className="text-[10px] px-2 py-0 bg-oxford/10 text-oxford border-oxford/20 font-semibold">
-                    {noMetaTag ? "Code" : "Option A"}
-                  </Badge>
-                  <span className="text-xs font-semibold text-foreground">Visible text — About / Bio</span>
+            {/* Two paths — quietly labeled, no A/B badges */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-sm font-medium text-foreground">Paste this in your bio</p>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-400">Easiest</span>
                 </div>
-                <div className="p-3">
-                  <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3 flex items-center justify-between gap-3">
-                    <code className="text-xs text-[#334155] font-mono truncate">{visibleCode}</code>
-                    <button
-                      onClick={() => { navigator.clipboard.writeText(visibleCode); setCopiedInlineCode("visible"); setTimeout(() => setCopiedInlineCode("none"), 2000); }}
-                      aria-label="Copy visible verification code"
-                      className="text-gray-500 hover:text-foreground flex-shrink-0"
-                    >
-                      {copiedInlineCode === "visible" ? <Check size={12} /> : <Copy size={12} />}
-                    </button>
-                  </div>
-                </div>
+                <CodeSurface
+                  code={visibleCode}
+                  copied={copiedInlineCode === "visible"}
+                  onCopy={() => {
+                    navigator.clipboard.writeText(visibleCode);
+                    setCopiedInlineCode("visible");
+                    setTimeout(() => setCopiedInlineCode("none"), 2000);
+                  }}
+                  ariaLabel="Copy visible verification code"
+                />
               </div>
 
               {!noMetaTag && (
-                <div className="rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-                    <Badge variant="outline" className="text-[10px] px-2 py-0 bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold">Option B</Badge>
-                    <span className="text-xs font-semibold text-foreground">
-                      Hidden — Meta Tag
-                      {isWordPress && <span className="text-gray-400 font-normal ml-1">(or install plugin)</span>}
-                    </span>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-sm font-medium text-foreground">
+                      Or add a meta tag
+                      {isWordPress && <span className="text-gray-400 font-normal ml-1.5 text-xs">— or install our plugin</span>}
+                    </p>
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400">Hidden</span>
                   </div>
-                  <div className="p-3">
-                    <div className="bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg p-3 flex items-center justify-between gap-3">
-                      <code className="text-xs text-[#334155] font-mono truncate">{metaCode}</code>
-                      <button
-                        onClick={() => { navigator.clipboard.writeText(metaCode); setCopiedInlineCode("meta"); setTimeout(() => setCopiedInlineCode("none"), 2000); }}
-                        aria-label="Copy verification meta tag"
-                        className="text-gray-500 hover:text-foreground flex-shrink-0"
-                      >
-                        {copiedInlineCode === "meta" ? <Check size={12} /> : <Copy size={12} />}
-                      </button>
-                    </div>
-                    {isWordPress && (
-                      <p className="text-xs text-gray-500 mt-2">WordPress users can also use the <span className="text-oxford">Opedd plugin</span> for automatic verification.</p>
-                    )}
-                  </div>
+                  <CodeSurface
+                    code={metaCode}
+                    copied={copiedInlineCode === "meta"}
+                    onCopy={() => {
+                      navigator.clipboard.writeText(metaCode);
+                      setCopiedInlineCode("meta");
+                      setTimeout(() => setCopiedInlineCode("none"), 2000);
+                    }}
+                    ariaLabel="Copy verification meta tag"
+                    multiline
+                  />
                 </div>
               )}
             </div>
 
             {inlineVerifyResult === "failed" && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2">
-                <AlertCircle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">Code not found yet. Make sure you've saved your changes, then try again.</p>
-              </div>
+              <InlineNote>
+                Couldn't find the code yet. Double-check that you saved your changes, then try again.
+              </InlineNote>
             )}
           </RegisterContentSubView>
         </DialogShell>
