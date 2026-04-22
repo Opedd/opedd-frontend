@@ -1846,7 +1846,7 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     };
 
     return (
-      <DialogShell wide>
+      <DialogShell size="wide">
         <RegisterContentSubView
           title="Register Media Organisation"
           description="Bulk import your entire content archive"
