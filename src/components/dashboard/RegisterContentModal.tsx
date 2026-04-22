@@ -1926,55 +1926,63 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
     return (
       <DialogShell>
         <RegisterContentSubView
-          title="Register Content"
-          description="Choose how you want to protect your work"
+          title="Register your content"
+          description="Three ways to bring your work onto Opedd. Most publishers start by syncing their newsletter."
         >
-          <div className="space-y-3">
+          <div className="space-y-2.5">
+            {/* Primary path — visually elevated, no badge */}
             <button
               onClick={() => setView("publication")}
-              className="group w-full bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-oxford hover:shadow-card transition-all duration-200"
+              className="group w-full bg-white border border-gray-300 rounded-xl p-6 text-left hover:border-foreground hover:shadow-card transition-all duration-200"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-lg bg-oxford/10 flex items-center justify-center shrink-0 group-hover:bg-oxford transition-colors">
-                  <Link2 size={20} className="text-oxford group-hover:text-white transition-colors" />
+              <div className="flex items-start gap-5">
+                <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0">
+                  <Link2 size={18} className="text-white" strokeWidth={2.25} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-foreground font-semibold text-sm">Sync Newsletter / Site</h3>
-                  <p className="text-gray-500 text-xs mt-0.5">Automatically import and protect every new post via API or sitemap.</p>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <h3 className="text-foreground font-semibold text-[15px] tracking-tight">Sync a publication</h3>
+                  <p className="text-gray-500 text-[13px] mt-1 leading-relaxed">
+                    Connect your newsletter or site. Every new post gets protected automatically.
+                  </p>
                 </div>
-                <ArrowRight size={16} className="text-oxford opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight size={16} className="text-foreground mt-1.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
               </div>
             </button>
 
+            {/* Secondary paths — quieter, monochrome */}
             <button
               onClick={() => setView("single")}
-              className="group w-full bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-oxford hover:shadow-card transition-all duration-200"
+              className="group w-full bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-gray-400 hover:shadow-card transition-all duration-200"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 transition-colors">
-                  <FileUp size={20} className="text-emerald-600 group-hover:text-white transition-colors" />
+              <div className="flex items-start gap-5">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-900 transition-colors">
+                  <FileUp size={18} className="text-gray-500 group-hover:text-white transition-colors" strokeWidth={2} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-foreground font-semibold text-sm">Register Single Work</h3>
-                  <p className="text-gray-500 text-xs mt-0.5">Protect a one-off article, op-ed, or research paper.</p>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <h3 className="text-foreground font-semibold text-[15px] tracking-tight">Register a single work</h3>
+                  <p className="text-gray-500 text-[13px] mt-1 leading-relaxed">
+                    A one-off article, op-ed, or research paper.
+                  </p>
                 </div>
-                <ArrowRight size={16} className="text-oxford opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight size={16} className="text-foreground mt-1.5 opacity-0 group-hover:opacity-60 transition-all shrink-0" />
               </div>
             </button>
 
             <button
               onClick={() => setView("enterprise")}
-              className="group w-full bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-plum-magenta hover:shadow-card transition-all duration-200"
+              className="group w-full bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-gray-400 hover:shadow-card transition-all duration-200"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-lg bg-plum-magenta/10 flex items-center justify-center shrink-0 group-hover:bg-plum-magenta transition-colors">
-                  <Globe size={20} className="text-plum-magenta group-hover:text-white transition-colors" />
+              <div className="flex items-start gap-5">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-gray-900 transition-colors">
+                  <Globe size={18} className="text-gray-500 group-hover:text-white transition-colors" strokeWidth={2} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-foreground font-semibold text-sm">Bulk / Enterprise</h3>
-                  <p className="text-gray-500 text-xs mt-0.5">Add multiple feeds, sitemaps, and tag them by vertical.</p>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <h3 className="text-foreground font-semibold text-[15px] tracking-tight">Bulk import an archive</h3>
+                  <p className="text-gray-500 text-[13px] mt-1 leading-relaxed">
+                    For media organisations with thousands of articles.
+                  </p>
                 </div>
-                <ArrowRight size={16} className="text-plum-magenta opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                <ArrowRight size={16} className="text-foreground mt-1.5 opacity-0 group-hover:opacity-60 transition-all shrink-0" />
               </div>
             </button>
           </div>
