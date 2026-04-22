@@ -1,22 +1,15 @@
-name: E2E Gatekeeper + Deploy
+name: Quick Checks + Deploy
 
-# Triggers: every push to main, every PR targeting main, and manual dispatch.
+# Triggers: every push to main and every PR targeting main.
 # Vercel git integration is DISABLED — this workflow is the sole deployment path.
 #
-# Split into three jobs:
-#   1. quick-checks — typecheck + lint + unit tests. Always runs (PR or main).
-#      Fast (~2–3 min). Catches the regressions the slow suite catches 80% of
-#      the time at a fraction of the cost.
-#   2. e2e         — full Playwright suite against prod Supabase. Runs on:
-#                      - push to main (to gate the deploy),
-#                      - PRs labeled `run-e2e` (opt-in safety net),
-#                      - manual workflow_dispatch.
-#                    Skipped by default on PRs to keep iteration fast.
-#   3. deploy      — Vercel production deploy. Runs only on push to main, and
-#                    only if quick-checks + e2e both pass.
+# The full Playwright E2E suite was scrapped on 2026-04-22 after a passing
+# suite let 7 first-signup bugs slip to prod. Tests will be rebuilt later,
+# after manual QA validates each flow (see memory:
+# project_e2e_tests_scrapped.md for the philosophy + restoration guide).
 #
-# To run the full E2E suite on a PR: add the `run-e2e` label to the PR, then
-# re-run the workflow (Actions tab → latest run → "Re-run all jobs").
+# Current gate: typecheck + lint + unit tests. Fast (~2-3 min). Deploy to
+# Vercel runs automatically on push to main if the gate passes.
 on:
   push:
     branches: [main]
@@ -24,13 +17,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Cancel any in-progress run for the same branch/PR when a new commit arrives.
 concurrency:
   group: e2e-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ── Fast gate — always runs ─────────────────────────────────────────────────
   quick-checks:
     name: Typecheck + Lint + Unit Tests
     runs-on: ubuntu-latest
@@ -54,7 +45,6 @@ jobs:
           if ! npm ci --dry-run > /dev/null 2>&1; then
             echo "::error::package-lock.json is out of sync with package.json."
             echo "::error::Fix locally: run 'npm install' then commit the updated package-lock.json."
-            echo "::error::Do NOT merge until the lockfile is regenerated in this branch."
             exit 1
           fi
           echo "package-lock.json is in sync with package.json."
@@ -71,69 +61,10 @@ jobs:
       - name: Unit tests
         run: npm test
 
-  # ── Full Playwright suite — opt-in on PRs, always on main ──────────────────
-  e2e:
-    name: Playwright E2E Suite
-    needs: quick-checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    if: >-
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-e2e'))
-
-    env:
-      SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-      PLAYWRIGHT_BASE_URL:  http://localhost:8080
-      CI: true
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Install Playwright + Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Start Vite preview server
-        run: |
-          npm run preview -- --port 8080 --host &
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:8080 > /dev/null && echo "Server ready" && break
-            echo "Waiting for server... ($i/30)"
-            sleep 1
-          done
-
-      - name: Run Playwright E2E tests
-        run: npm run test:e2e
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-${{ github.run_id }}
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-  # ── Vercel deploy — only on push to main, only if both gates pass ──────────
   deploy:
     name: Deploy to Vercel (production)
     runs-on: ubuntu-latest
-    needs: [quick-checks, e2e]
+    needs: quick-checks
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
