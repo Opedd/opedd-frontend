@@ -16,8 +16,8 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 // PublicationSetupFlow removed — "Add content" now routes to /setup
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { CoachMarks } from "@/components/dashboard/CoachMarks";
 import { VerificationPendingBanner } from "@/components/dashboard/VerificationPendingBanner";
-import { ReferralStep } from "@/components/dashboard/ReferralStep";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
@@ -75,9 +75,11 @@ export default function Dashboard() {
   const [setupDismissed, setSetupDismissed] = useState(false);
   // addPubDrawerOpen removed — now routes to /setup
 
-  // Referral step state
-  const [referralChecked, setReferralChecked] = useState(false);
-  const [needsReferral, setNeedsReferral] = useState(false);
+  // Profile-loaded gate (replaces the old referralChecked loading flag)
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  // Timestamp of the dashboard coach-mark tour dismissal. `null` = tour not yet
+  // seen, which triggers the CoachMarks component to render on first paint.
+  const [tourCompletedAt, setTourCompletedAt] = useState<string | null>(null);
 
   // Track incomplete setup steps for banner
   const [setupCompletion, setSetupCompletion] = useState<{ pricingDone: boolean; widgetDone: boolean }>({
@@ -147,10 +149,12 @@ export default function Dashboard() {
     );
   }
 
-  // Fetch publisher profile — referral check + all checklist completion state
-  const checkReferral = useCallback(async () => {
+  // Fetch publisher profile — populates checklist + sidebar state. No longer
+  // force-redirects to /setup: publishers can explore the dashboard with a
+  // pending publication. The "finish setup" banner below nudges them back.
+  // Referral capture lives on /welcome; this page no longer prompts for it.
+  const loadProfile = useCallback(async () => {
     if (!user) return;
-    const skipReferralCheck = !!localStorage.getItem("opedd_referral_done");
     try {
       const token = await getAccessToken();
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
@@ -169,33 +173,20 @@ export default function Dashboard() {
         profile?.stripe_connect ? !!profile.stripe_connect.payouts_enabled : null
       );
       setSetupComplete(!!profile?.setup_complete);
-      // Redirect to setup wizard if setup not complete
-      if (!profile?.setup_complete) {
-        navigate("/setup", { replace: true });
-        return;
-      }
+      setTourCompletedAt(profile?.tour_completed_at ?? null);
       setAiLicensingConfigured(!!profile?.ai_license_types);
       setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
       setIsAdmin(!!profile?.is_admin);
-      if (!skipReferralCheck) {
-        const hasReferral = !!profile?.referral_source;
-        if (hasReferral) localStorage.setItem("opedd_referral_done", "1");
-        setNeedsReferral(!hasReferral);
-      } else {
-        setNeedsReferral(false);
-      }
-    } catch {
-      setNeedsReferral(false);
     } finally {
-      setReferralChecked(true);
+      setProfileLoaded(true);
     }
   }, [user, getAccessToken]);
 
   // Fetch all dashboard data in parallel (not sequentially)
   useEffect(() => {
-    Promise.all([checkPublications(), fetchMetrics(), checkReferral()]);
-  }, [checkPublications, fetchMetrics, checkReferral]);
+    Promise.all([checkPublications(), fetchMetrics(), loadProfile()]);
+  }, [checkPublications, fetchMetrics, loadProfile]);
 
   // Fetch admin stats
   const fetchAdminStats = useCallback(async () => {
@@ -219,7 +210,7 @@ export default function Dashboard() {
   useEffect(() => { fetchAdminStats(); }, [fetchAdminStats]);
 
   if (!user) return null;
-  if (hasActivePublication === null || !referralChecked) return <DashboardSkeleton />;
+  if (hasActivePublication === null || !profileLoaded) return <DashboardSkeleton />;
 
   const showBanner = !setupCompletion.pricingDone || !setupCompletion.widgetDone;
   const licensingUrl = publisherSlug ? `opedd.com/p/${publisherSlug}` : null;
@@ -326,7 +317,8 @@ export default function Dashboard() {
         {activeBanner === "verification" && <VerificationPendingBanner />}
 
         {activeBanner === "onboarding" && (
-          <OnboardingChecklist
+          <div data-tour-target="onboarding-checklist">
+            <OnboardingChecklist
             contentImported={contentImported}
             aiLicensingConfigured={aiLicensingConfigured}
             pricingConfigured={pricingConfigured}
@@ -337,6 +329,7 @@ export default function Dashboard() {
             onRegisterContent={() => navigate("/setup?add=1")}
             onAiLicensingComplete={() => setAiLicensingConfigured(true)}
           />
+          </div>
         )}
 
 
@@ -607,15 +600,15 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {needsReferral && (
-        <ReferralStep onComplete={() => setNeedsReferral(false)} />
-      )}
-
       <IssueArchiveLicenseModal
         open={archiveModalOpen}
         onOpenChange={setArchiveModalOpen}
         onSuccess={() => { setArchiveModalOpen(false); fetchMetrics(); }}
       />
+
+      {!tourCompletedAt && (
+        <CoachMarks onComplete={() => setTourCompletedAt(new Date().toISOString())} />
+      )}
     </DashboardLayout>
   );
 }

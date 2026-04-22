@@ -122,21 +122,26 @@ test.describe.serial("Publisher Lifecycle — Full Journey", () => {
     if (user?.userId) await destroyTestUser(user.userId);
   });
 
-  // ── Step 1: Fresh user → redirected to /setup ──
-  test("Step 1: new publisher is redirected to /setup from /dashboard", async ({ page }) => {
+  // ── Step 1: Fresh user → lands on /dashboard with pending-setup banner ──
+  // Previously this asserted a force-redirect to /setup. Phase A (2026-04-22)
+  // removed that redirect so publishers can explore with a pending publication;
+  // the OnboardingChecklist banner now handles the nudge.
+  test("Step 1: new publisher lands on /dashboard with onboarding checklist", async ({ page }) => {
     test.setTimeout(20_000);
     await injectAuth(page, user);
     await page.goto("/dashboard");
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(3000);
 
-    // Fresh user (setup_complete=false) should be redirected to setup
-    const url = page.url();
-    expect(
-      url.includes("/setup"),
-      `Expected redirect to /setup, got ${url}`
-    ).toBe(true);
-    await assertNoCrash(page, "Step 1: redirect to setup");
+    // Fresh user should stay on /dashboard — no force-redirect
+    expect(page.url()).toContain("/dashboard");
+    expect(page.url()).not.toContain("/setup");
+
+    // Onboarding checklist nudge should be visible (first step: Import content)
+    await expect(page.getByText("Import your content").first()).toBeVisible({
+      timeout: 10_000,
+    });
+    await assertNoCrash(page, "Step 1: dashboard with pending setup");
   });
 
   // ── Step 2: Setup wizard renders correctly ──

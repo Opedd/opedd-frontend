@@ -28,12 +28,16 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
   const [otherText, setOtherText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const saveReferral = async (value: string) => {
+  const saveReferral = async (value: string | null) => {
     setSubmitting(true);
     // Cache immediately so navigation doesn't re-show the modal
     localStorage.setItem("opedd_referral_done", "1");
     try {
       const token = await getAccessToken();
+      // Stamp welcome_completed_at on the server so the gate never re-opens
+      // across devices. Referral is optional — include only if provided.
+      const body: Record<string, unknown> = { welcome_completed_at: true };
+      if (value) body.referral_source = value;
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers: {
@@ -41,7 +45,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
           apikey: EXT_ANON_KEY,
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ referral_source: value }),
+        body: JSON.stringify(body),
       });
       const result = await res.json();
       if (!result.success) console.warn("[ReferralStep] save failed:", result.error);
@@ -54,14 +58,18 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
   };
 
   const handleSubmit = () => {
-    if (!selected) return;
+    if (!selected) {
+      // Referral is optional — Continue always proceeds
+      saveReferral(null);
+      return;
+    }
     const value = selected === "Other" ? (otherText.trim() || "Other") : selected;
     saveReferral(value);
   };
 
   const handleSkip = () => {
-    localStorage.setItem("opedd_referral_done", "1");
-    onComplete();
+    // Skip path: still stamp welcome_completed_at so we never prompt again
+    saveReferral(null);
   };
 
   return (
@@ -114,7 +122,7 @@ export function ReferralStep({ onComplete }: ReferralStepProps) {
         {/* Submit */}
         <button
           onClick={handleSubmit}
-          disabled={!selected || submitting}
+          disabled={submitting}
           className="w-full bg-gradient-to-r from-oxford to-violet-600 text-white h-11 px-6 rounded-xl font-semibold text-sm flex items-center gap-2 justify-center disabled:opacity-50 transition-all hover:shadow-popover"
         >
           {submitting ? (

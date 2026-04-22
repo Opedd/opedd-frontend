@@ -188,6 +188,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               key={item.path}
               to={item.path}
               onClick={onItemClick}
+              data-tour-target={item.path === "/settings" ? "sidebar-settings" : undefined}
               className={cn(
                 "flex items-center gap-2.5 h-9 px-3 mx-1 rounded-lg text-sm font-medium transition-colors",
                 active

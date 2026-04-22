@@ -253,6 +253,7 @@ export function OnboardingChecklist({
                   {step.key === "content" && (
                     <Button
                       size="sm"
+                      data-tour-target="register-content"
                       onClick={() => onRegisterContent ? onRegisterContent() : navigate("/content")}
                       className="h-9 px-3 text-xs bg-oxford hover:bg-oxford-dark text-white font-semibold rounded-lg flex-shrink-0"
                     >
