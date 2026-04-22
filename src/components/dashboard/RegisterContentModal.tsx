@@ -1277,20 +1277,79 @@ export function RegisterContentModal({ open, onOpenChange, onSuccess, initialVie
       );
     }
 
-    const platformTitle =
-      pubPlatform === "substack" ? "Substack Import"
-      : pubPlatform === "beehiiv" ? "Beehiiv Import"
-      : pubPlatform === "ghost" ? "Ghost Import"
-      : pubPlatform === "wordpress" ? "WordPress Import"
-      : "Import Content";
+    const platformMeta: Record<string, { name: string; logo: string | null; greeting: string }> = {
+      substack: { name: "Substack", logo: PLATFORM_LOGOS.substack, greeting: "Bring your Substack home." },
+      beehiiv: { name: "beehiiv", logo: PLATFORM_LOGOS.beehiiv, greeting: "Connect your beehiiv newsletter." },
+      ghost: { name: "Ghost", logo: PLATFORM_LOGOS.ghost, greeting: "Pull your Ghost archive in." },
+      wordpress: { name: "WordPress", logo: PLATFORM_LOGOS.wordpress, greeting: "Import your WordPress site." },
+      other: { name: "your site", logo: null, greeting: "Let's find your content." },
+    };
+    const meta = platformMeta[pubPlatform || "other"];
 
     return (
       <DialogShell>
         <RegisterContentSubView
-          title={platformTitle}
-          description="Connect your content source"
+          eyebrow={
+            <div className="flex items-center gap-2 text-xs">
+              {meta.logo ? (
+                <img src={meta.logo} alt="" className="w-4 h-4 object-contain" />
+              ) : (
+                <Globe size={14} className="text-gray-400" strokeWidth={1.5} />
+              )}
+              <span className="font-medium uppercase tracking-[0.12em] text-[10px] text-gray-500">
+                {meta.name}
+              </span>
+            </div>
+          }
+          title={meta.greeting}
           showBack
           onBack={() => { setPubStep("select"); setPubPlatform(null); }}
+          footer={
+            !isSitemapImporting ? (
+              <div className="space-y-2">
+                {(pubPlatform === "substack" || pubPlatform === "beehiiv") && (
+                  <Button
+                    onClick={handleRssImport}
+                    disabled={!pubDomainInput.trim() || isConnecting}
+                    className="w-full h-12"
+                  >
+                    {isConnecting ? (
+                      <><Spinner size="sm" />Importing…</>
+                    ) : (
+                      <>Import content<ArrowRight size={16} /></>
+                    )}
+                  </Button>
+                )}
+
+                {pubPlatform === "ghost" && !useRssFallback && (
+                  <>
+                    <Button
+                      onClick={handleGhostImport}
+                      disabled={!pubDomainInput.trim() || isSitemapImporting}
+                      className="w-full h-12"
+                    >
+                      Import full archive
+                      <ArrowRight size={16} />
+                    </Button>
+                    <button
+                      onClick={() => setUseRssFallback(true)}
+                      className="w-full text-center text-xs text-gray-400 hover:text-foreground transition-colors py-1.5"
+                    >
+                      Use feed import instead
+                    </button>
+                  </>
+                )}
+                {pubPlatform === "ghost" && useRssFallback && (
+                  <Button
+                    onClick={handleRssImport}
+                    disabled={!pubDomainInput.trim() || isConnecting}
+                    className="w-full h-12"
+                  >
+                    {isConnecting ? (
+                      <><Spinner size="sm" />Importing…</>
+                    ) : (
+                      <>Import content<ArrowRight size={16} /></>
+                    )}
           footer={
             !isSitemapImporting ? (
               <div className="space-y-2">
