@@ -93,8 +93,27 @@ export default function Setup() {
   const [wpAppPassword, setWpAppPassword] = useState("");
   const [substackMode, setSubstackMode] = useState<"csv" | "sitemap">("csv");
   const [substackFile, setSubstackFile] = useState<File | null>(null);
+  const [rssImporting, setRssImporting] = useState(false);
+  const [rssImportResult, setRssImportResult] = useState<{
+    imported: number; updated: number; truncated: number; total: number;
+  } | null>(null);
   const [substackDragging, setSubstackDragging] = useState(false);
-  const [csvImportResult, setCsvImportResult] = useState<{ imported: number; skipped: number } | null>(null);
+  // Renamed from csvImportResult — backend now returns richer stats for ZIP
+  // (matched, updated, draft_skipped, podcast_or_thread_skipped,
+  // files_ignored_count, privacy_note). Legacy CSV path still populates
+  // just imported/skipped.
+  const [csvImportResult, setCsvImportResult] = useState<{
+    imported: number;
+    skipped?: number;
+    updated?: number;
+    matched?: number;
+    total_posts?: number;
+    draft_skipped?: number;
+    podcast_or_thread_skipped?: number;
+    html_missing?: number;
+    files_ignored_count?: number;
+    privacy_note?: string;
+  } | null>(null);
   const [step1Loading, setStep1Loading] = useState(false);
   const [step1Error, setStep1Error] = useState("");
 
@@ -320,13 +339,42 @@ export default function Setup() {
       return;
     }
 
-    // ── SUBSTACK CSV ──
+    // ── SUBSTACK ZIP / CSV upload ──
+    // ZIP is the primary path (only way to capture paid posts); CSV still
+    // supported for older exports. Both require a content_sources row for
+    // URL reconstruction, so we call platform-connect first (idempotent).
     if (platform === "substack" && substackMode === "csv") {
-      if (!substackFile) { setStep1Error("Please select a posts.csv file."); return; }
-      if (substackFile.size > 50 * 1024 * 1024) { setStep1Error("File too large (max 50 MB)."); return; }
-      if (!substackFile.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
+      if (!substackUrl.trim()) {
+        setStep1Error("Please enter your Substack URL first.");
+        return;
+      }
+      if (!substackFile) { setStep1Error("Please select your Substack export file (.zip or .csv)."); return; }
+      const isZip = substackFile.name.toLowerCase().endsWith(".zip");
+      const isCsv = substackFile.name.toLowerCase().endsWith(".csv");
+      if (!isZip && !isCsv) { setStep1Error("Please upload a .zip or .csv file from your Substack export."); return; }
+      const maxSize = isZip ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+      if (substackFile.size > maxSize) {
+        setStep1Error(`File too large (max ${isZip ? "500" : "50"} MB).`);
+        return;
+      }
       setStep1Loading(true);
       try {
+        const headers = await authHeaders();
+
+        // 1. Create/refresh the content_sources row. platform-connect is an
+        //    upsert-ish; re-POSTing the same URL just updates the existing
+        //    row. Required for ZIP path (URL reconstruction from post_id).
+        const connectRes = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ url: substackUrl.trim(), platform: "substack" }),
+        });
+        if (!connectRes.ok) {
+          const cj = await connectRes.json().catch(() => ({}));
+          throw new Error(cj?.error || "Could not register your Substack URL. Check that it's your real publication URL.");
+        }
+
+        // 2. Upload the archive. Backend auto-detects ZIP vs CSV by magic bytes.
         const token = await getAccessToken();
         const formData = new FormData();
         formData.append("file", substackFile);
@@ -337,8 +385,20 @@ export default function Setup() {
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || json?.message || "Upload failed");
-        setCsvImportResult({ imported: json.imported ?? 0, skipped: json.skipped ?? 0 });
-        setTimeout(() => { setStep(2); startImportPoll(); }, 2000);
+        const d = json?.data ?? json;
+        setCsvImportResult({
+          imported: d.imported ?? 0,
+          skipped: d.skipped,
+          updated: d.updated,
+          matched: d.matched,
+          total_posts: d.total_posts,
+          draft_skipped: d.draft_skipped,
+          podcast_or_thread_skipped: d.podcast_or_thread_skipped,
+          html_missing: d.html_missing,
+          files_ignored_count: d.files_ignored_count,
+          privacy_note: d.privacy_note,
+        });
+        setTimeout(() => { setStep(2); startImportPoll(); }, 2500);
       } catch (err: any) {
         setStep1Error(err?.message || "Upload failed — please try again.");
       } finally { setStep1Loading(false); }
@@ -418,6 +478,55 @@ export default function Setup() {
       startImportPoll();
     } catch { setStep1Error("Network error. Please try again."); }
     finally { setStep1Loading(false); }
+  };
+
+  // Substack RSS instant import. Non-blocking — user can keep the ZIP upload
+  // as the primary path. Backend fetches {url}/feed, parses ~25 most recent
+  // items, flags truncated paid-post previews as content_complete=false.
+  const handleSubstackRssImport = async () => {
+    if (!substackUrl.trim()) {
+      setStep1Error("Please enter your Substack URL first.");
+      return;
+    }
+    setStep1Error("");
+    setRssImporting(true);
+    setRssImportResult(null);
+    try {
+      const headers = await authHeaders();
+
+      // Ensure content_sources row exists — same idempotent platform-connect
+      // dance as the ZIP path. Safe to re-call on the same URL.
+      const connectRes = await fetch(`${EXT_SUPABASE_URL}/platform-connect`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ url: substackUrl.trim(), platform: "substack" }),
+      });
+      if (!connectRes.ok) {
+        const cj = await connectRes.json().catch(() => ({}));
+        throw new Error(cj?.error || "Could not register your Substack URL.");
+      }
+
+      const res = await fetch(`${EXT_SUPABASE_URL}/import-substack-rss`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json?.error || "RSS import failed.");
+      }
+      const d = json?.data ?? json;
+      setRssImportResult({
+        imported: d.imported ?? 0,
+        updated: d.updated ?? 0,
+        truncated: d.truncated ?? 0,
+        total: d.total ?? 0,
+      });
+    } catch (err: any) {
+      setStep1Error(err?.message || "RSS import failed. Try the archive upload instead.");
+    } finally {
+      setRssImporting(false);
+    }
   };
 
   const startImportPoll = () => {
@@ -627,13 +736,43 @@ export default function Setup() {
   const getSyncInstruction = (): string => {
     switch (platform) {
       case "substack":
-        return "In Substack Settings → Subscribers, add this as a free subscriber. Include paid posts by enabling 'Gift a subscription'.";
+        return "In Substack Settings → Subscribers → Add subscriber, enter this address and select 'Paid' → 'Complimentary' (no charge). That gives us both free and paid posts. You can revoke anytime.";
       case "beehiiv":
         return "In Beehiiv → Subscribers → Add Subscriber, paste this email.";
       case "ghost":
         return "In Ghost Admin → Members → New member, add this email.";
       default:
         return "Add this email as a subscriber or contact in your email platform. Every newsletter you send will be imported automatically.";
+    }
+  };
+
+  // Email-forwarding consent — records that the publisher has added our
+  // ingest address to their Substack subscribers list. inbound-email will
+  // stamp first_post_received_at on this row when the first post arrives,
+  // closing the verification loop end-to-end.
+  const [emailConsentGranting, setEmailConsentGranting] = useState(false);
+  const [emailConsentGranted, setEmailConsentGranted] = useState(false);
+  const [emailConsentError, setEmailConsentError] = useState("");
+
+  const handleGrantEmailConsent = async () => {
+    setEmailConsentError("");
+    setEmailConsentGranting(true);
+    try {
+      const headers = await authHeaders();
+      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "grant_email_forwarding_consent" }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error || "Could not record consent. Try again.");
+      }
+      setEmailConsentGranted(true);
+    } catch (err: any) {
+      setEmailConsentError(err?.message || "Could not record consent.");
+    } finally {
+      setEmailConsentGranting(false);
     }
   };
 
@@ -849,94 +988,155 @@ export default function Setup() {
                       <img src={substackLogo} alt="Substack" className="w-5 h-5" />
                       <span className="text-sm font-semibold text-[#040042]">Substack Connection</span>
                     </div>
-                    <p className="text-sm text-[#9CA3AF] italic">Your archive export is the only way to capture premium content from Substack, since Substack has no API. Public posts can be imported via URL, but paywalled content requires the data export.</p>
-                    <ol className="text-xs text-[#6B7280] space-y-0.5 list-decimal list-inside">
-                      <li>Go to <span className="font-medium text-[#374151]">substack.com/settings/account</span></li>
-                      <li>Click <span className="font-medium text-[#374151]">"Export data"</span></li>
-                      <li>Download the ZIP and extract <code className="font-mono text-[10px] bg-[#F3F4F6] px-1 py-0.5 rounded">posts.csv</code></li>
-                      <li>Drag <span className="font-medium text-[#374151]">posts.csv</span> into the box below</li>
-                    </ol>
+                    <p className="text-sm text-[#6B7280] leading-relaxed">
+                      Substack doesn't offer an API for third-party apps. We use three complementary paths — any combination works:
+                    </p>
+                    <ul className="text-xs text-[#6B7280] space-y-1 ml-4 list-disc">
+                      <li><span className="font-medium text-[#374151]">RSS import</span> — pulls your last ~25 free posts instantly. Paid posts arrive as truncated previews (Substack limits RSS).</li>
+                      <li><span className="font-medium text-[#374151]">Archive ZIP</span> — the only path that captures your full paid-post bodies. Exported from Substack Settings.</li>
+                      <li><span className="font-medium text-[#374151]">Email forwarding</span> — subscribe our ingest address to catch new paid posts going forward (set up in the next step).</li>
+                    </ul>
 
-                    {csvImportResult && (
-                      <div className="space-y-3">
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                    <div>
+                      <label className="text-sm font-medium text-[#040042]">Your Substack URL</label>
+                      <Input
+                        placeholder="https://yourname.substack.com"
+                        value={substackUrl}
+                        onChange={e => setSubstackUrl(e.target.value)}
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-[#9CA3AF] mt-1">Custom domain is fine too — we detect the Substack alias.</p>
+                    </div>
+
+                    {/* ── RSS instant import ── */}
+                    <div className="border border-[#E5E7EB] rounded-xl p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium text-[#040042]">Import recent posts now</p>
+                          <p className="text-xs text-[#6B7280] mt-0.5">~25 most recent items via RSS. Instant.</p>
+                        </div>
+                        <Button
+                          onClick={handleSubstackRssImport}
+                          disabled={rssImporting || !substackUrl.trim()}
+                          variant="outline"
+                          className="h-9 px-4 text-sm"
+                        >
+                          {rssImporting ? (
+                            <><Loader2 size={14} className="mr-2 animate-spin" /> Importing…</>
+                          ) : (
+                            <>Import from RSS</>
+                          )}
+                        </Button>
+                      </div>
+                      {rssImportResult && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
                           <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
                             <CheckCircle2 size={16} className="text-emerald-600" />
-                            ✓ {csvImportResult.imported} post{csvImportResult.imported !== 1 ? "s" : ""} imported ({csvImportResult.skipped} skipped)
+                            ✓ {rssImportResult.imported} new + {rssImportResult.updated} updated
+                            {rssImportResult.truncated > 0 && (
+                              <span className="text-emerald-600 font-normal">
+                                ({rssImportResult.truncated} paid previews — upload the ZIP below for full bodies)
+                              </span>
+                            )}
                           </div>
-                          <p className="text-xs text-emerald-600 mt-1 ml-6">Paywalled content included — full article bodies stored for AI delivery.</p>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
-                    {!csvImportResult && (
-                      <div
-                        onDragOver={e => { e.preventDefault(); setSubstackDragging(true); }}
-                        onDragLeave={() => setSubstackDragging(false)}
-                        onDrop={e => {
-                          e.preventDefault();
-                          setSubstackDragging(false);
-                          const f = e.dataTransfer.files?.[0];
-                          if (f) {
-                            if (!f.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
-                            if (f.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
-                            setSubstackFile(f);
-                            setStep1Error("");
-                          }
-                        }}
-                        onClick={() => {
-                          const input = document.createElement("input");
-                          input.type = "file";
-                          input.accept = ".csv";
-                          input.onchange = (e: any) => {
-                            const f = e.target.files?.[0];
+                    {/* ── Archive ZIP upload ── */}
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-[#040042]">Upload your archive for full paid content</p>
+                      <ol className="text-xs text-[#6B7280] space-y-0.5 list-decimal list-inside">
+                        <li>Go to <span className="font-medium text-[#374151]">substack.com/settings/account</span></li>
+                        <li>Click <span className="font-medium text-[#374151]">"Export data"</span>, wait for the email, download the ZIP</li>
+                        <li>Drag the ZIP below — we'll read only <code className="font-mono text-[10px] bg-[#F3F4F6] px-1 py-0.5 rounded">posts.csv</code> and your post HTML bodies; everything else in the archive (subscribers, analytics, payments) is ignored by design</li>
+                      </ol>
+
+                      {csvImportResult && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+                            <CheckCircle2 size={16} className="text-emerald-600" />
+                            ✓ {csvImportResult.imported} imported
+                            {csvImportResult.updated != null && csvImportResult.updated > 0 && `, ${csvImportResult.updated} updated`}
+                            {csvImportResult.total_posts != null && ` (of ${csvImportResult.total_posts} rows)`}
+                          </div>
+                          {(csvImportResult.draft_skipped || csvImportResult.podcast_or_thread_skipped || csvImportResult.html_missing) ? (
+                            <p className="text-xs text-emerald-600 ml-6">
+                              Skipped: {csvImportResult.draft_skipped || 0} drafts · {csvImportResult.podcast_or_thread_skipped || 0} non-newsletter · {csvImportResult.html_missing || 0} missing HTML
+                            </p>
+                          ) : null}
+                          {csvImportResult.privacy_note && (
+                            <p className="text-xs text-[#6B7280] ml-6 italic">{csvImportResult.privacy_note}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {!csvImportResult && (
+                        <div
+                          onDragOver={e => { e.preventDefault(); setSubstackDragging(true); }}
+                          onDragLeave={() => setSubstackDragging(false)}
+                          onDrop={e => {
+                            e.preventDefault();
+                            setSubstackDragging(false);
+                            const f = e.dataTransfer.files?.[0];
                             if (f) {
-                              if (!f.name.endsWith(".csv")) { setStep1Error("Please upload a .csv file from your Substack export."); return; }
-                              if (f.size > 50 * 1024 * 1024) { setStep1Error("File too large. Split your export or use sitemap import instead."); return; }
+                              const n = f.name.toLowerCase();
+                              if (!n.endsWith(".zip") && !n.endsWith(".csv")) {
+                                setStep1Error("Please upload the .zip file Substack gave you (or posts.csv for older exports).");
+                                return;
+                              }
+                              const maxSize = n.endsWith(".zip") ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+                              if (f.size > maxSize) {
+                                setStep1Error(`File too large (max ${n.endsWith(".zip") ? "500" : "50"} MB).`);
+                                return;
+                              }
                               setSubstackFile(f);
                               setStep1Error("");
                             }
-                          };
-                          input.click();
-                        }}
-                        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors duration-150
-                          ${substackDragging ? "border-[#4A26ED] bg-[#4A26ED]/5" : substackFile ? "border-emerald-300 bg-emerald-50" : "border-[#D1D5DB] hover:border-[#4A26ED]/40"}`}
-                      >
-                        {substackFile ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <FileText size={18} className="text-emerald-600" />
-                            <span className="text-sm font-medium text-[#040042]">{substackFile.name}</span>
-                            <span className="text-xs text-[#6B7280]">({(substackFile.size / 1024).toFixed(0)} KB)</span>
-                            <button onClick={e => { e.stopPropagation(); setSubstackFile(null); }} className="text-xs text-[#6B7280] hover:text-red-500 ml-2 underline">Remove</button>
-                          </div>
-                        ) : (
-                          <div className="space-y-1">
-                            <Upload size={24} className="mx-auto text-[#9CA3AF]" />
-                            <p className="text-sm text-[#6B7280]">Drag & drop <span className="font-medium">posts.csv</span> here, or click to browse</p>
-                            <p className="text-xs text-[#9CA3AF]">Max 50MB</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {!csvImportResult && (
-                      <Collapsible>
-                        <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#4A26ED] transition-colors">
-                          <ChevronDown size={14} className="transition-transform group-data-[state=open]:rotate-180" />
-                          Don't have the export? Import via URL instead
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="mt-3 space-y-3">
-                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
-                            URL-based import only captures public posts. Paywalled content will not be included — use the CSV export above for your complete archive.
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-[#040042]">Substack URL</label>
-                            <Input placeholder="https://yourname.substack.com" value={substackUrl} onChange={e => { setSubstackUrl(e.target.value); setSubstackMode("sitemap"); }} className="mt-1" />
-                          </div>
-                          {renderFeedDetection()}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    )}
+                          }}
+                          onClick={() => {
+                            const input = document.createElement("input");
+                            input.type = "file";
+                            input.accept = ".zip,.csv";
+                            input.onchange = (e: any) => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                const n = f.name.toLowerCase();
+                                if (!n.endsWith(".zip") && !n.endsWith(".csv")) {
+                                  setStep1Error("Please upload the .zip file Substack gave you (or posts.csv for older exports).");
+                                  return;
+                                }
+                                const maxSize = n.endsWith(".zip") ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+                                if (f.size > maxSize) {
+                                  setStep1Error(`File too large (max ${n.endsWith(".zip") ? "500" : "50"} MB).`);
+                                  return;
+                                }
+                                setSubstackFile(f);
+                                setStep1Error("");
+                              }
+                            };
+                            input.click();
+                          }}
+                          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors duration-150
+                            ${substackDragging ? "border-[#4A26ED] bg-[#4A26ED]/5" : substackFile ? "border-emerald-300 bg-emerald-50" : "border-[#D1D5DB] hover:border-[#4A26ED]/40"}`}
+                        >
+                          {substackFile ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <FileText size={18} className="text-emerald-600" />
+                              <span className="text-sm font-medium text-[#040042]">{substackFile.name}</span>
+                              <span className="text-xs text-[#6B7280]">({(substackFile.size / 1024 / 1024).toFixed(1)} MB)</span>
+                              <button onClick={e => { e.stopPropagation(); setSubstackFile(null); }} className="text-xs text-[#6B7280] hover:text-red-500 ml-2 underline">Remove</button>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              <Upload size={24} className="mx-auto text-[#9CA3AF]" />
+                              <p className="text-sm text-[#6B7280]">Drag & drop the <span className="font-medium">ZIP</span> (or <span className="font-medium">posts.csv</span>) here, or click to browse</p>
+                              <p className="text-xs text-[#9CA3AF]">ZIP up to 500 MB · CSV up to 50 MB</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -961,27 +1161,39 @@ export default function Setup() {
                   <p className="text-sm text-red-600 font-medium">{step1Error}</p>
                 )}
 
+                {/* Substack: allow continuing either via ZIP upload OR after a
+                    successful RSS import. Both paths are valid for advancing. */}
                 {platform && !csvImportResult && (
-                  <Button
-                    onClick={handleStep1Continue}
-                    disabled={step1Loading || (platform === "substack" && substackMode === "csv" && !substackFile)}
-                    className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11 rounded-xl font-medium shadow-sm"
-                  >
-                    {step1Loading ? (
-                      <>
-                        <Loader2 size={16} className="mr-2 animate-spin" />
-                        {platform === "ghost" ? "Connecting to Ghost..." : platform === "substack" && substackMode === "csv" ? "Importing…" : "Importing..."}
-                      </>
-                    ) : (
-                      platform === "substack" && substackMode === "csv" ? (
-                        <>Upload and Import <ChevronRight size={16} className="ml-1" /></>
-                      ) : platform === "wordpress" ? (
-                        <>Verify & Import Archive <ChevronRight size={16} className="ml-1" /></>
-                      ) : (
-                        <>Continue <ChevronRight size={16} className="ml-1" /></>
-                      )
+                  <>
+                    {platform === "substack" && !substackFile && rssImportResult && (
+                      <Button
+                        onClick={() => { setStep(2); startImportPoll(); }}
+                        className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11 rounded-xl font-medium shadow-sm"
+                      >
+                        Continue with RSS import (skip ZIP for now) <ChevronRight size={16} className="ml-1" />
+                      </Button>
                     )}
-                  </Button>
+                    <Button
+                      onClick={handleStep1Continue}
+                      disabled={step1Loading || (platform === "substack" && substackMode === "csv" && (!substackFile || !substackUrl.trim()))}
+                      className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white w-full h-11 rounded-xl font-medium shadow-sm"
+                    >
+                      {step1Loading ? (
+                        <>
+                          <Loader2 size={16} className="mr-2 animate-spin" />
+                          {platform === "ghost" ? "Connecting to Ghost..." : platform === "substack" && substackMode === "csv" ? "Importing…" : "Importing..."}
+                        </>
+                      ) : (
+                        platform === "substack" && substackMode === "csv" ? (
+                          <>Upload and Import <ChevronRight size={16} className="ml-1" /></>
+                        ) : platform === "wordpress" ? (
+                          <>Verify & Import Archive <ChevronRight size={16} className="ml-1" /></>
+                        ) : (
+                          <>Continue <ChevronRight size={16} className="ml-1" /></>
+                        )
+                      )}
+                    </Button>
+                  </>
                 )}
               </>
             )}
@@ -1172,6 +1384,37 @@ export default function Setup() {
                     <p className="text-xs text-[#6B7280]">{getSyncInstruction()}</p>
 
                     <p className="text-xs text-[#9CA3AF]">Works with every email platform. Full content including premium/paywalled posts.</p>
+
+                    {/* Consent confirmation — records that the publisher has
+                        added our ingest address. inbound-email stamps
+                        first_post_received_at when the first post arrives. */}
+                    <div className="pt-3 border-t border-[#E5E7EB] space-y-2">
+                      {emailConsentGranted ? (
+                        <div className="flex items-center gap-2 text-xs text-emerald-700 font-medium">
+                          <CheckCircle2 size={14} className="text-emerald-600" />
+                          Consent recorded. We'll confirm when your first post arrives.
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs w-full"
+                            disabled={emailConsentGranting}
+                            onClick={handleGrantEmailConsent}
+                          >
+                            {emailConsentGranting ? (
+                              <><Loader2 size={12} className="mr-1.5 animate-spin" /> Recording…</>
+                            ) : (
+                              <>I've added it — confirm</>
+                            )}
+                          </Button>
+                          {emailConsentError && (
+                            <p className="text-xs text-red-600">{emailConsentError}</p>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Card 2 — Publish Webhook */}
