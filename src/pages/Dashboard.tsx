@@ -102,7 +102,13 @@ export default function Dashboard() {
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("sync_status", "pending");
-      setHasPendingVerification((pendingCount ?? 0) > 0);
+      const { data: pubRow } = await (supabase as any)
+        .from("publishers")
+        .select("verification_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const publisherPending = pubRow?.verification_status === "pending";
+      setHasPendingVerification((pendingCount ?? 0) > 0 || publisherPending);
     } catch {
       setHasActivePublication(false);
       setHasPendingVerification(false);
@@ -246,7 +252,8 @@ export default function Dashboard() {
         body: JSON.stringify({ action: "connect_stripe" }),
       });
       const json = await res.json();
-      if (json.url) window.location.href = json.url;
+      const url = json?.data?.onboarding_url || json?.data?.url || json?.url;
+      if (url) window.location.href = url;
     } catch { /* ignore */ }
   };
 

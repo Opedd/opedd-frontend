@@ -631,6 +631,26 @@ export default function Settings() {
     }
   };
 
+  const handleStripeDashboard = async () => {
+    setIsBillingPortalLoading(true);
+    const newWindow = window.open("", "_blank");
+    try {
+      const result = await postAction("stripe_dashboard");
+      const url = result?.data?.dashboard_url || result?.data?.url;
+      if (result.success && url) {
+        if (newWindow) newWindow.location.href = url;
+      } else {
+        if (newWindow) newWindow.close();
+        throw new Error(typeof result.error === "string" ? result.error : "Failed to open Stripe dashboard");
+      }
+    } catch (err: unknown) {
+      if (newWindow) newWindow.close();
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
+    } finally {
+      setIsBillingPortalLoading(false);
+    }
+  };
+
   const isStripeFullyConnected = stripeStatus?.connected && stripeStatus?.onboarding_complete;
   const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
 
@@ -1469,12 +1489,20 @@ export default function Settings() {
                         {stripeStatus?.connected ? (
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-emerald-600 font-medium">✓ Stripe Connected</span>
-                            <button onClick={handleBillingPortal} disabled={isBillingPortalLoading} className="text-sm text-[#4A26ED] hover:underline font-medium disabled:opacity-50">
+                            <button onClick={handleStripeDashboard} disabled={isBillingPortalLoading} className="text-sm text-[#4A26ED] hover:underline font-medium disabled:opacity-50">
                               {isBillingPortalLoading ? "Opening..." : "Manage in Stripe →"}
                             </button>
                           </div>
                         ) : (
-                          <button onClick={() => postAction("connect_stripe").then((r: any) => r?.data?.url && window.open(r.data.url, "_blank"))} className="text-sm font-medium text-white bg-[#4A26ED] hover:bg-[#3B1ED1] px-4 py-2 rounded-lg">
+                          <button
+                            onClick={() =>
+                              postAction("connect_stripe", { return_path: "/settings" }).then((r: any) => {
+                                const url = r?.data?.onboarding_url || r?.data?.url;
+                                if (url) window.location.href = url;
+                              })
+                            }
+                            className="text-sm font-medium text-white bg-[#4A26ED] hover:bg-[#3B1ED1] px-4 py-2 rounded-lg"
+                          >
                             Connect Stripe
                           </button>
                         )}

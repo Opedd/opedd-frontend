@@ -76,7 +76,7 @@ export function TransactionReceiptDrawer({ transaction, open, onOpenChange, onRe
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/refund-license`, {
+      const res = await fetch(`${EXT_SUPABASE_URL}/refund-license`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -651,7 +651,7 @@ export default function Content() {
                     if (substackHumanPrice) body.human_price = parseFloat(substackHumanPrice);
                     if (substackAiPrice) body.ai_price = parseFloat(substackAiPrice);
 
-                    const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/substack-upload`, {
+                    const res = await fetch(`${EXT_SUPABASE_URL}/substack-upload`, {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
