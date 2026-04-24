@@ -266,7 +266,7 @@ export default function Setup() {
 
     (async () => {
       try {
-        const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/detect-feeds?domain=${encodeURIComponent(domain)}`, {
+        const res = await fetch(`${EXT_SUPABASE_URL}/detect-feeds?domain=${encodeURIComponent(domain)}`, {
           headers: { apikey: EXT_ANON_KEY },
         });
         if (cancelled) return;
