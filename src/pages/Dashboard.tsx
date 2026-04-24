@@ -252,7 +252,8 @@ export default function Dashboard() {
         body: JSON.stringify({ action: "connect_stripe" }),
       });
       const json = await res.json();
-      if (json.url) window.location.href = json.url;
+      const url = json?.data?.onboarding_url || json?.data?.url || json?.url;
+      if (url) window.location.href = url;
     } catch { /* ignore */ }
   };
 

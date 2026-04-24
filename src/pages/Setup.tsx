@@ -600,9 +600,14 @@ export default function Setup() {
         body: JSON.stringify({ action: "connect_stripe", return_path: "/setup" }),
       });
       const json = await res.json();
-      if (json.url) window.location.href = json.url;
-    } catch {
-      toast({ title: "Error", description: "Couldn't start Stripe setup.", variant: "destructive" });
+      const url = json?.data?.onboarding_url || json?.data?.url || json?.url;
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error(json?.error || "Stripe did not return an onboarding URL.");
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Couldn't start Stripe setup.", variant: "destructive" });
     } finally { setStripeLoading(false); }
   };
 
