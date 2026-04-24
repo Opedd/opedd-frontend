@@ -29,12 +29,16 @@ interface Stats {
 
 interface Publisher {
   id: string;
-  display_name: string;
+  name?: string;
+  display_name?: string;
   website_url: string | null;
   plan: string;
   article_count: number;
   total_revenue: number;
-  stripe_connected: boolean;
+  stripe_connected?: boolean;
+  stripe_onboarding_complete?: boolean;
+  verification_status?: "pending" | "verified" | null;
+  verified_at?: string | null;
   created_at: string;
 }
 
@@ -238,35 +242,72 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<"display_name" | "total_revenue" | "article_count">("display_name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string>("");
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = await getAccessToken();
+      const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=publishers`, {
+        headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      const json = await res.json();
+      setPublishers(json.data?.publishers ?? []);
+    } catch {
+      setPublishers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [getAccessToken]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const token = await getAccessToken();
-        const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=publishers`, {
-          headers: { apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error();
-        const json = await res.json();
-        setPublishers(json.data?.publishers ?? []);
-      } catch {
-        setPublishers([]);
-      } finally {
-        setLoading(false);
+    load();
+  }, [load]);
+
+  const handleVerify = async (publisherId: string, verify: boolean) => {
+    setVerifyError("");
+    setVerifyingId(publisherId);
+    try {
+      const token = await getAccessToken();
+      const action = verify ? "verify_publisher" : "unverify_publisher";
+      const res = await fetch(`${EXT_SUPABASE_URL}/admin?action=${action}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: EXT_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(
+          verify
+            ? { publisher_id: publisherId, method: "manual" }
+            : { publisher_id: publisherId, reason: "unverified via admin UI" }
+        ),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error || `${action} failed`);
       }
-    })();
-  }, [getAccessToken]);
+      await load();
+    } catch (err: any) {
+      setVerifyError(err?.message || "Action failed");
+    } finally {
+      setVerifyingId(null);
+    }
+  };
 
   const handleSort = (key: typeof sortKey) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortKey(key); setSortDir("asc"); }
   };
 
+  const nameOf = (p: Publisher) => p.display_name || p.name || "";
   const filtered = publishers
-    .filter(p => p.display_name?.toLowerCase().includes(search.toLowerCase()))
+    .filter(p => nameOf(p).toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      const av = a[sortKey] ?? "";
-      const bv = b[sortKey] ?? "";
+      const av = sortKey === "display_name" ? nameOf(a) : (a[sortKey] ?? "");
+      const bv = sortKey === "display_name" ? nameOf(b) : (b[sortKey] ?? "");
       const cmp = typeof av === "number" ? av - (bv as number) : String(av).localeCompare(String(bv));
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -284,34 +325,75 @@ function PublishersTab({ getAccessToken }: { getAccessToken: () => Promise<strin
           className="pl-10 h-10 border-gray-200"
         />
       </div>
+      {verifyError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-700">{verifyError}</div>
+      )}
       <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <SortTh label="Name" active={sortKey === "display_name"} dir={sortDir} onClick={() => handleSort("display_name")} />
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Website</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</th>
                 <SortTh label="Articles" active={sortKey === "article_count"} dir={sortDir} onClick={() => handleSort("article_count")} align="right" />
                 <SortTh label="Revenue" active={sortKey === "total_revenue"} dir={sortDir} onClick={() => handleSort("total_revenue")} align="right" />
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Stripe</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Joined</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-gray-400">No publishers found.</td></tr>
-              ) : filtered.map(p => (
-                <tr key={p.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                  <td className="py-3 px-4 font-medium text-gray-900">{p.display_name || "—"}</td>
-                  <td className="py-3 px-4 text-gray-500 truncate max-w-[180px]">{p.website_url || "—"}</td>
-                  <td className="py-3 px-4"><PlanBadge plan={p.plan} /></td>
-                  <td className="py-3 px-4 text-gray-900 text-right tabular-nums">{formatInteger(p.article_count)}</td>
-                  <td className="py-3 px-4 text-gray-900 font-medium text-right tabular-nums">{formatUSD(p.total_revenue)}</td>
-                  <td className="py-3 px-4">{p.stripe_connected ? <span className="text-emerald-500">✓</span> : <span className="text-gray-300">✗</span>}</td>
-                  <td className="py-3 px-4 text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
+                <tr><td colSpan={9} className="py-12 text-center text-gray-400">No publishers found.</td></tr>
+              ) : filtered.map(p => {
+                const isVerified = p.verification_status === "verified";
+                const isPending = p.verification_status === "pending";
+                const busy = verifyingId === p.id;
+                const stripeOk = p.stripe_connected ?? p.stripe_onboarding_complete;
+                return (
+                  <tr key={p.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                    <td className="py-3 px-4 font-medium text-gray-900">{nameOf(p) || "—"}</td>
+                    <td className="py-3 px-4">
+                      {isVerified ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Verified</span>
+                      ) : isPending ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-gray-500 truncate max-w-[180px]">{p.website_url || "—"}</td>
+                    <td className="py-3 px-4"><PlanBadge plan={p.plan} /></td>
+                    <td className="py-3 px-4 text-gray-900 text-right tabular-nums">{formatInteger(p.article_count)}</td>
+                    <td className="py-3 px-4 text-gray-900 font-medium text-right tabular-nums">{formatUSD(p.total_revenue)}</td>
+                    <td className="py-3 px-4">{stripeOk ? <span className="text-emerald-500">✓</span> : <span className="text-gray-300">✗</span>}</td>
+                    <td className="py-3 px-4 text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>
+                    <td className="py-3 px-4">
+                      {isVerified ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => handleVerify(p.id, false)}
+                          className="text-xs font-medium text-amber-700 hover:text-amber-900 hover:underline disabled:opacity-50"
+                        >
+                          {busy ? "…" : "Unverify"}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => handleVerify(p.id, true)}
+                          className="text-xs font-medium text-emerald-700 hover:text-emerald-900 hover:underline disabled:opacity-50"
+                        >
+                          {busy ? "…" : "Verify"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

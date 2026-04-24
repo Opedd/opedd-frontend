@@ -102,7 +102,13 @@ export default function Dashboard() {
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("sync_status", "pending");
-      setHasPendingVerification((pendingCount ?? 0) > 0);
+      const { data: pubRow } = await (supabase as any)
+        .from("publishers")
+        .select("verification_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const publisherPending = pubRow?.verification_status === "pending";
+      setHasPendingVerification((pendingCount ?? 0) > 0 || publisherPending);
     } catch {
       setHasActivePublication(false);
       setHasPendingVerification(false);
