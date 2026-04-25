@@ -1,4 +1,0 @@
-project_id = "dmmvaiupksamhgefdxev"
-
-[functions.issue-license]
-verify_jwt = false
