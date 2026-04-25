@@ -6,14 +6,6 @@ export const API = {
 
   // Direct Edge Function endpoints
   licenses: EDGE_FUNCTION_BASE + '/licenses',
-
-  // Content Sources (new schema) - for fetching user's licensed assets
-  // These paths are passed to the api-proxy edge function
-  contentSourcesAssets: '/content-sources/me/assets',
-  contentSources: '/content-sources',
-
-  // API proxy - append path as query param (path should NOT include /api/v1 prefix)
-  proxy: (path: string) => EDGE_FUNCTION_BASE + '/api-proxy?path=' + encodeURIComponent(path),
 };
 
 // Safely parse JSON response, handling empty bodies
@@ -29,45 +21,6 @@ async function safeParseJson(response: Response): Promise<unknown> {
   } catch {
     throw new Error('Invalid JSON response from server');
   }
-}
-
-// Generic fetch wrapper with auth
-export async function apiFetch<T>(
-  path: string,
-  options: RequestInit = {},
-  accessToken?: string | null
-): Promise<T> {
-  const url = API.proxy(path);
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'apikey': SUPABASE_ANON_KEY,
-    ...((options.headers as Record<string, string>) || {}),
-  };
-
-  if (accessToken) {
-    headers['Authorization'] = 'Bearer ' + accessToken;
-  }
-  
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    const parsed = (() => { try { return JSON.parse(errorText); } catch { return null; } })();
-    const msg = parsed?.error?.message || response.statusText;
-    throw new Error(msg);
-  }
-  
-  const data = await safeParseJson(response) as { success?: boolean; data?: T; error?: { message: string } };
-  
-  if (!data.success) {
-    throw new Error(data.error?.message || 'API request failed');
-  }
-  
-  return data.data as T;
 }
 
 // Direct Edge Function fetch (bypasses proxy)
@@ -131,21 +84,6 @@ export async function edgeFetchPaginated<T>(
   return { data: result.data, total: result.total, page: result.page, limit: result.limit, protectedCount: result.protectedCount } as T;
 }
 
-// Convenience methods (via proxy)
-export const api = {
-  get: <T>(path: string, token?: string | null) =>
-    apiFetch<T>(path, { method: 'GET' }, token),
-
-  post: <T>(path: string, body: unknown, token?: string | null) =>
-    apiFetch<T>(path, { method: 'POST', body: JSON.stringify(body) }, token),
-
-  put: <T>(path: string, body: unknown, token?: string | null) =>
-    apiFetch<T>(path, { method: 'PUT', body: JSON.stringify(body) }, token),
-
-  delete: <T>(path: string, token?: string | null) =>
-    apiFetch<T>(path, { method: 'DELETE' }, token),
-};
-
 // Licenses API (direct Edge Function)
 export const licensesApi = {
   list: <T>(params?: { page?: number; limit?: number; search?: string; status?: string; source_id?: string }, token?: string | null) => {
@@ -176,35 +114,6 @@ export const licensesApi = {
       method: 'POST',
       body: JSON.stringify(body),
     }, token),
-};
-
-// Content Sources API (new schema via proxy)
-export const contentSourcesApi = {
-  // Get all licensed assets for the current user
-  listAssets: <T>(token?: string | null) =>
-    apiFetch<T>(API.contentSourcesAssets, { method: 'GET' }, token),
-
-  // Get content sources
-  list: <T>(token?: string | null) =>
-    apiFetch<T>(API.contentSources, { method: 'GET' }, token),
-
-  // Create a new content source
-  create: <T>(body: { 
-    url: string; 
-    name: string; 
-    platform: "substack" | "beehiiv" | "ghost" | "wordpress" | "other";
-    human_price?: number; 
-    ai_price?: number 
-  }, token?: string | null) =>
-    apiFetch<T>(API.contentSources, { method: 'POST', body: JSON.stringify(body) }, token),
-
-  // Verify ownership of a content source
-  verify: <T>(sourceId: string, token?: string | null) =>
-    apiFetch<T>(`${API.contentSources}/${sourceId}/verify`, { method: 'POST' }, token),
-
-  // Trigger content sync for a content source (import articles)
-  sync: <T>(sourceId: string, token?: string | null) =>
-    apiFetch<T>(`${API.contentSources}/${sourceId}/sync`, { method: 'POST' }, token),
 };
 
 // Platform Connect API (direct Edge Function)
@@ -273,5 +182,3 @@ export const platformApi = {
       token
     ),
 };
-
-export default api;
