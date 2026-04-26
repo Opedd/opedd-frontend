@@ -53,6 +53,151 @@ export async function edgeFetch<T>(
   return data.data as T;
 }
 
+// Variant of edgeFetch that throws a typed error carrying the backend's
+// stable machine-readable `code` plus HTTP status. Used by wizardStateApi
+// so callers can switch on err.code (STATE_MISMATCH, REGRESS_FORBIDDEN, etc.)
+// rather than parsing message strings.
+export class WizardStateError extends Error {
+  readonly code: string;
+  readonly status: number;
+  readonly requestId?: string;
+  constructor(message: string, code: string, status: number, requestId?: string) {
+    super(message);
+    this.name = 'WizardStateError';
+    this.code = code;
+    this.status = status;
+    this.requestId = requestId;
+  }
+}
+
+async function wizardFetch<T>(
+  url: string,
+  options: RequestInit,
+  accessToken: string | null
+): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+    ...((options.headers as Record<string, string>) || {}),
+  };
+  if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+
+  const response = await fetch(url, { ...options, headers });
+  const text = await response.text();
+  let body: { success?: boolean; data?: T; error?: string; code?: string; request_id?: string } = {};
+  try {
+    body = text ? JSON.parse(text) : {};
+  } catch {
+    throw new WizardStateError(
+      'Invalid JSON response from wizard-state',
+      'INTERNAL_ERROR',
+      response.status
+    );
+  }
+  if (!body.success) {
+    throw new WizardStateError(
+      body.error || 'wizard-state request failed',
+      body.code || 'INTERNAL_ERROR',
+      response.status,
+      body.request_id
+    );
+  }
+  return body.data as T;
+}
+
+// ─── Wizard state types ──────────────────────────────────────────────
+//
+// Mirror the contract in opedd-backend/supabase/functions/wizard-state/
+// types.ts. Mapped to the 5-state vocabulary from migration 066 (see
+// INVARIANTS.md "Publisher state machine vocabulary"). The matching
+// transition rules are codified server-side; this module is purely the
+// HTTP client.
+
+export type SetupState =
+  | 'prospect'
+  | 'in_setup'
+  | 'connected'
+  | 'verified'
+  | 'suspended';
+
+// Wizard substep. The new wizard produces 1..5; the legacy migration-061
+// CHECK constraint also accepts 6, and during the soak window the GET
+// may surface setup_step=6 for legacy publishers who completed the old
+// 6-step wizard before migration 066 backfilled them. The frontend
+// tolerates 6 in the type so legacy values render without crashing —
+// can_advance / can_regress / next_step / prev_step are all server-
+// derived and resolve to false / null for step=6 (no forward path),
+// keeping the UI safe. Drop the `6` arm post-Phase 3 cutover (Session
+// 3.7) once legacy publishers are migrated through the new wizard or
+// admin tooling.
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
+
+export type WizardAction = 'advance' | 'regress' | 'save_step_data';
+
+export interface WizardStateView {
+  publisher_id: string;
+  setup_state: SetupState;
+  setup_step: WizardStep;
+  setup_data: Record<string, unknown>;
+  setup_complete: boolean;
+  dormant: boolean;
+  verification_status: string | null;
+  can_advance: boolean;
+  can_regress: boolean;
+  next_step: WizardStep | null;
+  prev_step: WizardStep | null;
+}
+
+export interface AdvancePayload {
+  expected_state: SetupState;
+  expected_step: WizardStep;
+  step_data?: Record<string, unknown>;
+}
+
+export interface RegressPayload {
+  expected_state: SetupState;
+  expected_step: WizardStep;
+}
+
+export interface SaveStepDataPayload {
+  expected_state: SetupState;
+  expected_step: WizardStep;
+  step_data: Record<string, unknown>;
+}
+
+export const wizardStateApi = {
+  get: (token: string | null) =>
+    wizardFetch<WizardStateView>(
+      EDGE_FUNCTION_BASE + '/wizard-state',
+      { method: 'GET' },
+      token
+    ),
+
+  advance: (payload: AdvancePayload, token: string | null) =>
+    wizardFetch<WizardStateView>(
+      EDGE_FUNCTION_BASE + '/wizard-state',
+      { method: 'POST', body: JSON.stringify({ action: 'advance', ...payload }) },
+      token
+    ),
+
+  regress: (payload: RegressPayload, token: string | null) =>
+    wizardFetch<WizardStateView>(
+      EDGE_FUNCTION_BASE + '/wizard-state',
+      { method: 'POST', body: JSON.stringify({ action: 'regress', ...payload }) },
+      token
+    ),
+
+  saveStepData: (payload: SaveStepDataPayload, token: string | null) =>
+    wizardFetch<WizardStateView>(
+      EDGE_FUNCTION_BASE + '/wizard-state',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'save_step_data', ...payload }),
+      },
+      token
+    ),
+};
+
 // Direct Edge Function fetch returning full envelope (for paginated responses)
 export async function edgeFetchPaginated<T>(
   url: string,
