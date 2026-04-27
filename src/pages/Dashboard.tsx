@@ -8,7 +8,7 @@ import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLic
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
-import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
+import { IngestionTracker } from "@/components/IngestionTracker";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -605,8 +605,10 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Import Progress Banner */}
-        <ImportProgressBanner onComplete={fetchMetrics} />
+        {/* Ingestion progress (Session 1.6 IngestionTracker primitive,
+            mounted on dashboard per Session 1.8 cleanup gate). Replaces
+            the legacy ImportProgressBanner — see KNOWN_ISSUES #29. */}
+        <IngestionTracker mode="dashboard" onComplete={fetchMetrics} />
 
         {/* Sources Section */}
         <div>

@@ -24,11 +24,10 @@ import { useIngestionStatus } from "@/hooks/useIngestionStatus";
  *
  * Returns null when status === 'idle' to avoid empty banner clutter.
  *
- * NOT mounted anywhere yet. First consumers:
- *   - Phase 3 Session 3.3 (wizard step 3-5 mounts with mode='wizard')
- *   - Session 1.8 / Phase 3 Session 3.6 (dashboard mounts with
- *     mode='dashboard'). That session MUST also delete
- *     ImportProgressBanner.tsx — see opedd-backend KNOWN_ISSUES #29.
+ * Mount sites:
+ *   - Dashboard.tsx mounts with mode='dashboard' (Session 1.8, this commit).
+ *     Replaces the legacy ImportProgressBanner per KNOWN_ISSUES #29 (closed).
+ *   - Phase 3 Session 3.3 (wizard step 3-5) will mount with mode='wizard'.
  */
 
 export interface IngestionTrackerProps {
