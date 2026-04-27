@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -52,8 +52,25 @@ const Licenses = lazy(() => import("./pages/Licenses"));
 const MyLicenses = lazy(() => import("./pages/MyLicenses"));
 
 // Lazy-loaded: infrequent dashboard routes
-const Setup = lazy(() => import("./pages/Setup"));
+// Legacy src/pages/Setup.tsx is intentionally NOT imported here —
+// /setup is a redirect to /setup-v2 (Phase 3 Session 3.1 loop-fix), so
+// the file is unreachable from app routing. The file stays in the repo
+// until Session 3.7 deletes it.
+const SetupV2 = lazy(() => import("./pages/SetupV2"));
 const Welcome = lazy(() => import("./pages/Welcome"));
+
+/**
+ * Phase 3 Session 3.1 loop-fix: any visit to /setup (old bookmarks,
+ * external links, callers we missed) redirects to /setup-v2 with the
+ * query string preserved. `replace` so back-button doesn't poison
+ * history. Legacy Setup.tsx stays in the bundle as a safety net but
+ * is not reachable from app routing — its single in-file return_path
+ * reference is dead code until Session 3.7 deletes the file.
+ */
+function SetupRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/setup-v2${location.search}${location.hash}`} replace />;
+}
 const Connectors = lazy(() => import("./pages/Connectors"));
 
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
@@ -104,7 +121,8 @@ const App = () => (
                 <Route path="/verify" element={<LicenseVerify />} />
                 <Route path="/verify/:key" element={<LicenseVerify />} />
                 <Route path="/widget-preview" element={<WidgetPreview />} />
-                <Route path="/setup" element={<ProtectedRoute><Setup /></ProtectedRoute>} />
+                <Route path="/setup-v2" element={<ProtectedRoute><SetupV2 /></ProtectedRoute>} />
+                <Route path="/setup" element={<SetupRedirect />} />
                 <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
 
                 <Route path="/invite/:token" element={<AcceptInvite />} />

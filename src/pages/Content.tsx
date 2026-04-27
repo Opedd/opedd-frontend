@@ -429,8 +429,8 @@ export default function Content() {
                 icon={FileText}
                 title="No articles yet"
                 description="Import your content catalog to start licensing it."
-                action={{ label: "Import from Sitemap", onClick: () => navigate("/setup") }}
-                secondaryAction={{ label: "Connect Publication", onClick: () => navigate("/setup") }}
+                action={{ label: "Import from Sitemap", onClick: () => navigate("/setup-v2") }}
+                secondaryAction={{ label: "Connect Publication", onClick: () => navigate("/setup-v2") }}
               />
             ) : (
               <table className="w-full min-w-[900px]">

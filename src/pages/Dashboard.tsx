@@ -637,14 +637,14 @@ export default function Dashboard() {
             <h2 className="text-[15px] font-semibold text-gray-900">Sources</h2>
             <Button
               size="sm"
-              onClick={() => navigate("/setup?add=1")}
+              onClick={() => navigate("/setup-v2?add=1")}
               className="h-9 px-4 rounded-lg bg-oxford hover:bg-oxford-dark text-white text-sm font-medium"
             >
               <Plus size={15} className="mr-1.5 flex-shrink-0" />
               Register content
             </Button>
           </div>
-          <SourcesView key={sourcesKey} onAddSource={() => navigate("/setup?add=1")} />
+          <SourcesView key={sourcesKey} onAddSource={() => navigate("/setup-v2?add=1")} />
         </div>
       </div>
 

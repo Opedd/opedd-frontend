@@ -71,14 +71,14 @@ function buildContent(
       return {
         title: "Get started — set up your publication to begin licensing.",
         variant: VARIANT_AMBER,
-        cta: { label: "Get started", onClick: () => navigate("/setup") },
+        cta: { label: "Get started", onClick: () => navigate("/setup-v2") },
       };
     case "in_setup": {
       const step = setupStep && setupStep >= 1 && setupStep <= 5 ? setupStep : 1;
       return {
         title: `Setup in progress — step ${step} of 5.`,
         variant: VARIANT_AMBER,
-        cta: { label: "Resume setup", onClick: () => navigate("/setup") },
+        cta: { label: "Resume setup", onClick: () => navigate("/setup-v2") },
       };
     }
     case "connected":
