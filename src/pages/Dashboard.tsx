@@ -18,7 +18,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 // PublicationSetupFlow removed — "Add content" now routes to /setup
-import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { VerificationPendingBanner } from "@/components/dashboard/VerificationPendingBanner";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
@@ -50,9 +49,6 @@ export default function Dashboard() {
   const [stripeConnected, setStripeConnected] = useState(false);
   const [stripePayoutsEnabled, setStripePayoutsEnabled] = useState<boolean | null>(null);
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
-  const [setupComplete, setSetupComplete] = useState(false);
-  const [aiLicensingConfigured, setAiLicensingConfigured] = useState(false);
-  const [aiLicenseTypes, setAiLicenseTypes] = useState<{ rag: boolean; training: boolean; inference: boolean } | null>(null);
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -192,10 +188,7 @@ export default function Dashboard() {
       setStripePayoutsEnabled(
         profile?.stripe_connect ? !!profile.stripe_connect.payouts_enabled : null
       );
-      setSetupComplete(!!profile?.setup_complete);
       setWelcomeCompletedAt(profile?.welcome_completed_at ?? null);
-      setAiLicensingConfigured(!!profile?.ai_license_types);
-      setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
       setIsAdmin(!!profile?.is_admin);
     } finally {
@@ -278,7 +271,7 @@ export default function Dashboard() {
   // 4. Onboarding Checklist (setup not complete)
   // 5. Pending Earnings card (already covered by #2 — kept distinct for the case
   //    where revenue is 0 but admin chooses to show. In MVP, #2 supersedes.)
-  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | "onboarding" | null;
+  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | null;
   const activeBanner: BannerKind = (() => {
     const stripeKycPending =
       !!stripeAccountId && (!stripeConnected || stripePayoutsEnabled === false);
@@ -286,11 +279,14 @@ export default function Dashboard() {
     const heldPayments = !stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0);
     if (heldPayments) return "held-payments";
     if (totalAssets > 0 && !isLoading && hasPendingVerification) return "verification";
-    if (!setupComplete) return "onboarding";
     return null;
   })();
 
-  const showQuickActions = setupComplete && totalAssets > 0;
+  // Session 1.9 commit 3: rewired from `setupComplete && totalAssets > 0`
+  // to use the wizard hook's setup_state directly. setupComplete was a
+  // legacy boolean that paired 1:1 with setup_state==='verified' in the
+  // 5-state machine; the wizard hook is now the canonical reader.
+  const showQuickActions = wizardState.setupState === "verified" && totalAssets > 0;
 
   const handleConnectStripe = async () => {
     try {
@@ -381,22 +377,6 @@ export default function Dashboard() {
             1.8 design review — VerificationPendingBanner kept in the
             codebase as legacy, suppressed at the call site. */}
         {activeBanner === "verification" && !wizardSpeaks && <VerificationPendingBanner />}
-
-        {activeBanner === "onboarding" && (
-          <div data-tour-target="onboarding-checklist">
-            <OnboardingChecklist
-            contentImported={contentImported}
-            aiLicensingConfigured={aiLicensingConfigured}
-            pricingConfigured={pricingConfigured}
-            stripeConnected={stripeConnected}
-            setupComplete={setupComplete}
-            publisherSlug={publisherSlug}
-            initialAiLicenseTypes={aiLicenseTypes}
-            onRegisterContent={() => navigate("/setup?add=1")}
-            onAiLicensingComplete={() => setAiLicensingConfigured(true)}
-          />
-          </div>
-        )}
 
 
         {/* Compact Metrics */}
