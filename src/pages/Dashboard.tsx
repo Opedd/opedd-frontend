@@ -9,6 +9,8 @@ import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { ImportProgressBanner } from "@/components/dashboard/ImportProgressBanner";
+import { SetupBanner } from "@/components/dashboard/SetupBanner";
+import { useWizardState } from "@/hooks/useWizardState";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { deriveSlug } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
@@ -56,6 +58,18 @@ export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasPendingVerification, setHasPendingVerification] = useState(false);
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+
+  // Session 1.8 — read setup_state for SetupBanner mounting AND for the
+  // VerificationPendingBanner hide condition. SetupBanner becomes the
+  // single source of truth for connected-state messaging once the wizard
+  // hook resolves; VerificationPendingBanner is suppressed in any
+  // non-verified resolved state to prevent double-banner overlap.
+  const wizardState = useWizardState();
+  const wizardSpeaks =
+    !wizardState.isLoading &&
+    !wizardState.error &&
+    !!wizardState.setupState &&
+    wizardState.setupState !== "verified";
 
   // Admin stats state
   interface AdminStats {
@@ -265,6 +279,12 @@ export default function Dashboard() {
       headerActions={<></>}
     >
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
+        {/* SetupBanner (Session 1.8): truthful state surfaced from
+            useWizardState. Visible for prospect / in_setup / connected /
+            suspended; returns null for verified. Always rendered above
+            the priority-banner switch so it can speak independently. */}
+        <SetupBanner />
+
         {/* Priority banner — only the highest-priority banner renders. */}
         {activeBanner === "stripe-kyc" && (
           <div className="bg-white rounded-xl border-2 border-oxford/40 p-5 shadow-card">
@@ -314,7 +334,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeBanner === "verification" && <VerificationPendingBanner />}
+        {/* Hide VerificationPendingBanner when SetupBanner can speak
+            (wizard hook resolved, non-verified state). Avoids double-
+            banner overlap on connected state. Refinement 1 from Session
+            1.8 design review — VerificationPendingBanner kept in the
+            codebase as legacy, suppressed at the call site. */}
+        {activeBanner === "verification" && !wizardSpeaks && <VerificationPendingBanner />}
 
         {activeBanner === "onboarding" && (
           <div data-tour-target="onboarding-checklist">
