@@ -11,6 +11,7 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { IngestionTracker } from "@/components/IngestionTracker";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { useWizardState } from "@/hooks/useWizardState";
+import { shouldRedirectToWelcome } from "./welcome-redirect";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { deriveSlug } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
@@ -94,6 +95,16 @@ export default function Dashboard() {
   // Timestamp of the dashboard coach-mark tour dismissal. `null` = tour not yet
   // seen, which triggers the CoachMarks component to render on first paint.
   const [tourCompletedAt, setTourCompletedAt] = useState<string | null>(null);
+
+  // Timestamp of the post-verification welcome screen completion. `null` = the
+  // publisher has never seen Welcome (or its referral capture). Drives the
+  // Session 1.9 redirect: when the wizard hook resolves with setup_state=
+  // 'verified' AND welcomeCompletedAt is null AND profile loaded, Dashboard
+  // navigates the publisher to /welcome before they ever see the dashboard
+  // surface. ReferralStep's PATCH stamps welcome_completed_at server-side, so
+  // a refresh after Welcome closes naturally returns truthy and skips the
+  // redirect on the next mount.
+  const [welcomeCompletedAt, setWelcomeCompletedAt] = useState<string | null>(null);
 
   // Track incomplete setup steps for banner
   const [setupCompletion, setSetupCompletion] = useState<{ pricingDone: boolean; widgetDone: boolean }>({
@@ -188,6 +199,7 @@ export default function Dashboard() {
       );
       setSetupComplete(!!profile?.setup_complete);
       setTourCompletedAt(profile?.tour_completed_at ?? null);
+      setWelcomeCompletedAt(profile?.welcome_completed_at ?? null);
       setAiLicensingConfigured(!!profile?.ai_license_types);
       setAiLicenseTypes(profile?.ai_license_types ?? null);
       if (profile?.inbound_email) setInboundEmail(profile.inbound_email);
@@ -201,6 +213,41 @@ export default function Dashboard() {
   useEffect(() => {
     Promise.all([checkPublications(), fetchMetrics(), loadProfile()]);
   }, [checkPublications, fetchMetrics, loadProfile]);
+
+  // Session 1.9 — Welcome trigger rewire. When the wizard hook AND the
+  // profile have both resolved, AND the publisher is in setup_state=
+  // 'verified' AND has not yet completed Welcome, redirect to /welcome.
+  // ReferralStep PATCHes welcome_completed_at server-side; on the next
+  // dashboard mount profile loads with welcome_completed_at set, so this
+  // effect short-circuits and the publisher proceeds straight to the
+  // dashboard.
+  //
+  // Idempotency: replace:true on navigate prevents a back-button loop;
+  // Welcome.tsx itself also gates on welcome_completed_at server-side
+  // and redirects back to /dashboard if already set, so a stale
+  // welcomeCompletedAt=null in this useEffect (right after Welcome
+  // PATCHes but before Dashboard re-fetches) would land on /welcome,
+  // see the truthy server value, and immediately redirect back. No loop.
+  useEffect(() => {
+    if (
+      shouldRedirectToWelcome({
+        isLoading: wizardState.isLoading,
+        hasError: !!wizardState.error,
+        setupState: wizardState.setupState,
+        profileLoaded,
+        welcomeCompletedAt,
+      })
+    ) {
+      navigate("/welcome", { replace: true });
+    }
+  }, [
+    wizardState.isLoading,
+    wizardState.error,
+    wizardState.setupState,
+    profileLoaded,
+    welcomeCompletedAt,
+    navigate,
+  ]);
 
   // Fetch admin stats
   const fetchAdminStats = useCallback(async () => {

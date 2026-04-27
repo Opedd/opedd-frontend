@@ -65,6 +65,20 @@ export default function Welcome() {
 
   return (
     <div className="min-h-screen bg-alice-gray">
+      {/* Session 1.9 — celebratory headline above the ReferralStep modal.
+          Shown to publishers landing here via Dashboard's auto-redirect on
+          the first verified render. Plaid/Linear-toned: warm + concise +
+          professional. ReferralStep modal renders on top with the actual
+          referral capture; this header is the celebration surface. */}
+      <div className="max-w-md mx-auto pt-20 px-6 text-center">
+        <h1 className="text-2xl font-semibold text-navy-deep">
+          Your publication is verified.
+        </h1>
+        <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+          You're live in the marketplace. One quick question before we hand
+          you the keys.
+        </p>
+      </div>
       <ReferralStep onComplete={() => navigate("/dashboard", { replace: true })} />
     </div>
   );
