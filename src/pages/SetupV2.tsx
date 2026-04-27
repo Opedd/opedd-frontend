@@ -4,6 +4,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platform";
 import { Step2Stub } from "@/components/setup-v2/Step2Stub";
+import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
 import { ResumeIntentCapture } from "@/components/setup-v2/ResumeIntentCapture";
 import { TerminalState } from "@/components/setup-v2/TerminalState";
 
@@ -107,13 +108,9 @@ export default function SetupV2() {
         />
       );
     case 5:
-      return (
-        <ResumeIntentCapture
-          stepLabel="step5-stripe"
-          title="Connect Stripe to get paid"
-          message="Connect Stripe to receive payouts from licensing deals. We'll email you when this step ships — no rush; we'll hold any earnings in escrow until you connect."
-        />
-      );
+      // Phase 3 Session 3.5 — Step 5 functional. Replaces the
+      // ResumeIntentCapture stub from Session 3.1.
+      return <Step5Stripe />;
     default:
       return (
         <ErrorView

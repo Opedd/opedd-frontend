@@ -198,6 +198,88 @@ export const wizardStateApi = {
     ),
 };
 
+// ─── Stripe Connect (Phase 3 Session 3.5) ──────────────────────────
+//
+// Wraps three publisher-profile actions that handle the publisher-side
+// Stripe Express Connect lifecycle: connect_stripe (create account +
+// onboarding link), stripe_status (force live retrieve + DB sync),
+// stripe_dashboard (login link to Stripe-hosted dashboard).
+//
+// All three POST to /publisher-profile with action-dispatch shape;
+// stripeApi encapsulates the action-name detail so callers don't need
+// to know it.
+//
+// Encapsulating via edgeFetch (which reads the standard
+// {success, data} envelope from _shared/cors.ts:successResponse)
+// fixes the legacy Setup.tsx:494 bug where the caller read `json.url`
+// instead of `json.data.onboarding_url`. Legacy was unreachable since
+// Phase 3 Session 3.1 (App.tsx /setup → /setup-v2 redirect) so zero
+// production impact, but the response-shape correction is now baked
+// into the wrapper.
+
+export interface StripeConnectResult {
+  onboarding_url: string;
+  stripe_account_id: string;
+}
+
+export interface StripeStatusResult {
+  connected: boolean;
+  onboarding_complete: boolean;
+  charges_enabled?: boolean;
+  payouts_enabled?: boolean;
+}
+
+export interface StripeDashboardResult {
+  dashboard_url: string;
+}
+
+export const stripeApi = {
+  /**
+   * Start Stripe Express onboarding. Returns an onboarding_url that
+   * the caller should redirect the browser to (window.location.href).
+   * Stripe will redirect back to ${returnPath}?stripe=success on
+   * completion or ?stripe=refresh on link expiry.
+   */
+  connect: (returnPath: string, token: string | null) =>
+    edgeFetch<StripeConnectResult>(
+      EDGE_FUNCTION_BASE + '/publisher-profile',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'connect_stripe', return_path: returnPath }),
+      },
+      token,
+    ),
+
+  /**
+   * Force a live stripe.accounts.retrieve() and sync the result to
+   * publishers.stripe_onboarding_complete + .stripe_disabled_reason.
+   * Returns the live state. Use after returning from Stripe's hosted
+   * onboarding form (?stripe=success path) to bridge the webhook-lag
+   * gap — webhook may not have fired by the time the user lands
+   * back, but stripe_status forces an immediate sync.
+   */
+  status: (token: string | null) =>
+    edgeFetch<StripeStatusResult>(
+      EDGE_FUNCTION_BASE + '/publisher-profile',
+      { method: 'POST', body: JSON.stringify({ action: 'stripe_status' }) },
+      token,
+    ),
+
+  /**
+   * Returns a single-use Stripe-hosted dashboard URL for the
+   * connected account. Used post-onboarding to let the publisher
+   * manage their Express account (view payouts, update bank info,
+   * etc.). Not used during Step 5 — included for Settings.tsx and
+   * future post-onboarding surface symmetry.
+   */
+  dashboard: (token: string | null) =>
+    edgeFetch<StripeDashboardResult>(
+      EDGE_FUNCTION_BASE + '/publisher-profile',
+      { method: 'POST', body: JSON.stringify({ action: 'stripe_dashboard' }) },
+      token,
+    ),
+};
+
 // Direct Edge Function fetch returning full envelope (for paginated responses)
 export async function edgeFetchPaginated<T>(
   url: string,
