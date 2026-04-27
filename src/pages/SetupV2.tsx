@@ -4,6 +4,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platform";
 import { Step2Stub } from "@/components/setup-v2/Step2Stub";
+import { Step4Categorize } from "@/components/setup-v2/Step4Categorize";
 import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
 import { ResumeIntentCapture } from "@/components/setup-v2/ResumeIntentCapture";
 import { TerminalState } from "@/components/setup-v2/TerminalState";
@@ -100,13 +101,9 @@ export default function SetupV2() {
         />
       );
     case 4:
-      return (
-        <ResumeIntentCapture
-          stepLabel="step4-categorize-price"
-          title="Categorize and price your content"
-          message="Pick categories and set licensing prices with calibrated defaults from real Opedd network deals. We'll email you when this step ships."
-        />
-      );
+      // Phase 3 Session 3.4 — Step 4 functional. Replaces the
+      // ResumeIntentCapture stub from Session 3.1.
+      return <Step4Categorize />;
     case 5:
       // Phase 3 Session 3.5 — Step 5 functional. Replaces the
       // ResumeIntentCapture stub from Session 3.1.

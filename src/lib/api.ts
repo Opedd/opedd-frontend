@@ -280,6 +280,41 @@ export const stripeApi = {
     ),
 };
 
+// ─── publisher-profile PATCH (Phase 3 Session 3.4) ─────────────────
+//
+// Writes whitelisted fields to the publishers row via the
+// publisher-profile PATCH handler. Allowlist enforced server-side
+// (supabase/functions/publisher-profile/index.ts:1544); known
+// supported fields include category, default_human_price,
+// default_ai_price, ai_annual_price, pricing_rules,
+// content_delivery_enabled, expertise_summary, and others.
+//
+// Step4Categorize is the first SetupV2 caller. Future Settings.tsx
+// pricing-edit flows etc. inherit the same wrapper. The broader
+// publisherProfileApi.get() refactor (multiple components currently
+// inline-fetch the GET) is a separate cleanup pass — out of scope
+// for Session 3.4.
+
+export interface PublisherProfilePatchPayload {
+  category?: string | null;
+  default_human_price?: number;
+  default_ai_price?: number;
+  ai_annual_price?: number | null;
+  pricing_rules?: Record<string, unknown>;
+  content_delivery_enabled?: boolean;
+  expertise_summary?: string | null;
+  [key: string]: unknown;
+}
+
+export const publisherProfileApi = {
+  patch: (payload: PublisherProfilePatchPayload, token: string | null) =>
+    edgeFetch<Record<string, unknown>>(
+      EDGE_FUNCTION_BASE + '/publisher-profile',
+      { method: 'PATCH', body: JSON.stringify(payload) },
+      token,
+    ),
+};
+
 // Direct Edge Function fetch returning full envelope (for paginated responses)
 export async function edgeFetchPaginated<T>(
   url: string,
