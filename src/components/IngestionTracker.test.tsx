@@ -23,7 +23,7 @@ vi.mock("@/contexts/AuthContext", () => ({
 import type { IngestionStatus } from "@/hooks/useIngestionStatus";
 
 // Mock the hook so the component tests stay in pure-render territory.
-const mockHookReturn = vi.fn<[], IngestionStatus>();
+const mockHookReturn = vi.fn<() => IngestionStatus>();
 vi.mock("@/hooks/useIngestionStatus", () => ({
   useIngestionStatus: () => mockHookReturn(),
 }));

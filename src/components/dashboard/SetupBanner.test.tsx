@@ -15,7 +15,7 @@ import type { SetupState, WizardStep } from "@/lib/api";
 
 // Mock useWizardState so tests are pure-render. SetupBanner has no other
 // dependency beyond react-router's useNavigate.
-const mockHookReturn = vi.fn<[], UseWizardStateResult>();
+const mockHookReturn = vi.fn<() => UseWizardStateResult>();
 vi.mock("@/hooks/useWizardState", () => ({
   useWizardState: () => mockHookReturn(),
 }));

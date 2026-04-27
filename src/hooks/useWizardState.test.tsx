@@ -23,7 +23,7 @@ import {
 
 // ─── Mocks ──────────────────────────────────────────────────────────
 
-const mockGetAccessToken = vi.fn<[], Promise<string | null>>();
+const mockGetAccessToken = vi.fn<() => Promise<string | null>>();
 const mockUser = { id: "user-1" };
 
 vi.mock("@/contexts/AuthContext", () => ({

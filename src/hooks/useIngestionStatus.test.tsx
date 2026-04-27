@@ -14,7 +14,7 @@ import { useIngestionStatus, _internal } from "./useIngestionStatus";
 
 // ─── Mocks ──────────────────────────────────────────────────────────
 
-const mockGetAccessToken = vi.fn<[], Promise<string | null>>();
+const mockGetAccessToken = vi.fn<() => Promise<string | null>>();
 const mockUser: { id: string } | null = { id: "user-1" };
 
 vi.mock("@/contexts/AuthContext", () => ({
