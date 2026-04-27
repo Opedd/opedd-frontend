@@ -19,7 +19,6 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 // PublicationSetupFlow removed — "Add content" now routes to /setup
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
-import { CoachMarks } from "@/components/dashboard/CoachMarks";
 import { VerificationPendingBanner } from "@/components/dashboard/VerificationPendingBanner";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
@@ -92,10 +91,6 @@ export default function Dashboard() {
 
   // Profile-loaded gate (replaces the old referralChecked loading flag)
   const [profileLoaded, setProfileLoaded] = useState(false);
-  // Timestamp of the dashboard coach-mark tour dismissal. `null` = tour not yet
-  // seen, which triggers the CoachMarks component to render on first paint.
-  const [tourCompletedAt, setTourCompletedAt] = useState<string | null>(null);
-
   // Timestamp of the post-verification welcome screen completion. `null` = the
   // publisher has never seen Welcome (or its referral capture). Drives the
   // Session 1.9 redirect: when the wizard hook resolves with setup_state=
@@ -198,7 +193,6 @@ export default function Dashboard() {
         profile?.stripe_connect ? !!profile.stripe_connect.payouts_enabled : null
       );
       setSetupComplete(!!profile?.setup_complete);
-      setTourCompletedAt(profile?.tour_completed_at ?? null);
       setWelcomeCompletedAt(profile?.welcome_completed_at ?? null);
       setAiLicensingConfigured(!!profile?.ai_license_types);
       setAiLicenseTypes(profile?.ai_license_types ?? null);
@@ -680,9 +674,6 @@ export default function Dashboard() {
         onSuccess={() => { setArchiveModalOpen(false); fetchMetrics(); }}
       />
 
-      {!tourCompletedAt && (
-        <CoachMarks onComplete={() => setTourCompletedAt(new Date().toISOString())} />
-      )}
     </DashboardLayout>
   );
 }
