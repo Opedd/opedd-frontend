@@ -12,6 +12,14 @@ vi.mock("@/hooks/useWizardState", () => ({
   useWizardState: () => mockHookReturn(),
 }));
 
+// Phase 3 Session 3.3 — SetupV2 now routes platform=substack to
+// Step2Substack (functional). Stub it out for routing-shape tests so
+// this file doesn't pull in its useAuth + verify-ownership wiring.
+// Step2Substack's own tests cover its internals.
+vi.mock("@/components/setup-v2/Step2Substack", () => ({
+  Step2Substack: () => <div data-testid="step2-substack-marker" />,
+}));
+
 import SetupV2 from "@/pages/SetupV2";
 
 function defaultState(
@@ -106,7 +114,7 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByRole("heading", { name: /Where do you publish/i })).toBeTruthy();
   });
 
-  it("renders Step2Stub with platform-specific copy for in_setup,2 + platform=substack", () => {
+  it("renders Step2Substack (functional) for in_setup,2 + platform=substack", () => {
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -115,7 +123,19 @@ describe("SetupV2 — state-driven step routing", () => {
       }),
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
-    expect(screen.getByText(/Connecting your Substack/i)).toBeTruthy();
+    expect(screen.getByTestId("step2-substack-marker")).toBeTruthy();
+  });
+
+  it("renders Step2Stub for in_setup,2 + non-substack platform (e.g., beehiiv)", () => {
+    mockHookReturn.mockReturnValue(
+      defaultState({
+        setupState: "in_setup",
+        currentStep: 2 as WizardStep,
+        setupData: { platform: "beehiiv" },
+      }),
+    );
+    render(<Wrapper><SetupV2 /></Wrapper>);
+    expect(screen.getByText(/Connecting your Beehiiv/i)).toBeTruthy();
   });
 
   it("renders Step3 stub for in_setup,3", () => {

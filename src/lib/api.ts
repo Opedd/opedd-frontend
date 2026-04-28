@@ -280,6 +280,96 @@ export const stripeApi = {
     ),
 };
 
+// ─── Ownership Verification (Phase 3 Session 3.3) ─────────────────
+//
+// Wraps the verify-ownership edge function (Phase 1 Session 1.4) for
+// the email_to_publication method. Step2Substack is the first real
+// caller — verify-ownership was dormant from Session 1.4 ship until
+// 3.3.
+//
+// All three endpoints share the standard {success, data} envelope
+// from _shared/cors.ts:successResponse. edgeFetch unwraps to .data.
+//
+// Backend contract:
+//   GET  /verify-ownership                              → resume / read state
+//   POST /verify-ownership { method, action: 'send_code', publication_url }
+//   POST /verify-ownership { method, action: 'confirm_code', code }
+// where method = 'email_to_publication' for Substack.
+//
+// State gate: backend requires setup_state='in_setup'. SetupV2 routing
+// is the client-side gate (Step2Substack only mounts in that state).
+// 422 WIZARD_STATE_INCOMPATIBLE on call → caller surfaces a reload.
+//
+// Rate limits per publisher (backend-enforced):
+//   send_code:    5  per hour
+//   confirm_code: 10 per hour
+
+export interface VerifyOwnershipResult {
+  verified: boolean;
+  method: 'email_to_publication';
+  reason?: string;
+  awaiting_confirmation?: boolean;
+  code_sent_to?: string;
+  expires_in_seconds?: number;
+  evidence?: Record<string, unknown>;
+  fallback_available?: 'dns_txt_record';
+}
+
+export interface OwnershipVerificationChallenge {
+  contact_email?: string;
+  expires_at?: string;
+  attempt_count?: number;
+}
+
+export interface OwnershipState {
+  ownership_verification: {
+    method?: string;
+    status?: 'pending' | 'verified' | 'failed' | 'expired';
+    challenge?: OwnershipVerificationChallenge;
+    verified_at?: string;
+    last_failure_reason?: string;
+    fallback_offered?: string | null;
+  } | null;
+  is_verified: boolean;
+}
+
+export const verifyOwnershipApi = {
+  get: (token: string | null) =>
+    edgeFetch<OwnershipState>(
+      EDGE_FUNCTION_BASE + '/verify-ownership',
+      { method: 'GET' },
+      token,
+    ),
+
+  sendCode: (publicationUrl: string, token: string | null) =>
+    edgeFetch<VerifyOwnershipResult>(
+      EDGE_FUNCTION_BASE + '/verify-ownership',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'email_to_publication',
+          action: 'send_code',
+          publication_url: publicationUrl,
+        }),
+      },
+      token,
+    ),
+
+  confirmCode: (code: string, token: string | null) =>
+    edgeFetch<VerifyOwnershipResult>(
+      EDGE_FUNCTION_BASE + '/verify-ownership',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'email_to_publication',
+          action: 'confirm_code',
+          code,
+        }),
+      },
+      token,
+    ),
+};
+
 // ─── publisher-profile PATCH (Phase 3 Session 3.4) ─────────────────
 //
 // Writes whitelisted fields to the publishers row via the

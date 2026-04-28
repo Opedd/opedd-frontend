@@ -4,6 +4,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platform";
 import { Step2Stub } from "@/components/setup-v2/Step2Stub";
+import { Step2Substack } from "@/components/setup-v2/Step2Substack";
 import { Step4Categorize } from "@/components/setup-v2/Step4Categorize";
 import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
 import { ResumeIntentCapture } from "@/components/setup-v2/ResumeIntentCapture";
@@ -91,6 +92,12 @@ export default function SetupV2() {
     case 1:
       return <Step1Platform />;
     case 2:
+      // Phase 3 Session 3.3 — Substack functional. Other platforms
+      // remain stubbed (each ships in its dedicated phase per the
+      // roadmap: Beehiiv P6, Ghost P7, WordPress P8, Custom P9).
+      if (platform === "substack") {
+        return <Step2Substack />;
+      }
       return <Step2Stub platform={platform} />;
     case 3:
       return (
