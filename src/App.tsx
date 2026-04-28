@@ -52,20 +52,16 @@ const Licenses = lazy(() => import("./pages/Licenses"));
 const MyLicenses = lazy(() => import("./pages/MyLicenses"));
 
 // Lazy-loaded: infrequent dashboard routes
-// Legacy src/pages/Setup.tsx is intentionally NOT imported here —
-// /setup is a redirect to /setup-v2 (Phase 3 Session 3.1 loop-fix), so
-// the file is unreachable from app routing. The file stays in the repo
-// until Session 3.7 deletes it.
 const SetupV2 = lazy(() => import("./pages/SetupV2"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 
 /**
- * Phase 3 Session 3.1 loop-fix: any visit to /setup (old bookmarks,
- * external links, callers we missed) redirects to /setup-v2 with the
- * query string preserved. `replace` so back-button doesn't poison
- * history. Legacy Setup.tsx stays in the bundle as a safety net but
- * is not reachable from app routing — its single in-file return_path
- * reference is dead code until Session 3.7 deletes the file.
+ * Phase 3 Session 3.1 loop-fix legacy: any visit to /setup (old
+ * bookmarks, external links, callers we missed) redirects to /setup-v2
+ * with the query string preserved. `replace` so back-button doesn't
+ * poison history. The legacy `Setup.tsx` page that motivated this
+ * redirect was deleted in Phase 3 Session 3.7; the alias is preserved
+ * because /setup remains a stable URL for external references.
  */
 function SetupRedirect() {
   const location = useLocation();

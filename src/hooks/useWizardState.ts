@@ -25,9 +25,9 @@ import {
  * Contract surface mirrors WizardStateView from the backend
  * (supabase/functions/wizard-state/types.ts in opedd-backend).
  *
- * Not mounted anywhere yet. First consumer: Phase 3 Session 3.1
- * (SetupV2.tsx). Old Setup.tsx wizard continues to work in parallel
- * until the Phase 3 Session 3.7 cutover.
+ * First consumer: Phase 3 Session 3.1 (SetupV2.tsx). The legacy
+ * Setup.tsx wizard was unreachable from app routing as of Session 3.1
+ * (App.tsx /setup → /setup-v2 redirect) and was deleted in Session 3.7.
  *
  * Key behaviors:
  *   - Cache hydrate: localStorage placeholder → background GET → write-through
