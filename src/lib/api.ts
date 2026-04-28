@@ -370,6 +370,43 @@ export const verifyOwnershipApi = {
     ),
 };
 
+// ─── Branding (Phase 3 Session 3.6) ────────────────────────────────
+//
+// Wraps the extract-branding edge function (Phase 1 Session 1.5) GET.
+// First real consumer: PartnershipHeader (Dashboard top band).
+//
+// `publisher-profile` GET does NOT return branding_data (not in its
+// SELECT clause), so the dedicated extract-branding GET endpoint is
+// the canonical read path for the branding slice. Backend already
+// validates state-gate-free reads (per extract-branding/store.ts:
+// branding_data is publisher-lifetime metadata, not wizard-transient).
+//
+// POST helpers (re-extract from Settings.tsx, etc.) deferred to a
+// future session; v1 scope = read-only display.
+
+export interface PersistedBranding {
+  logo_url?: string;
+  name?: string;
+  primary_color?: string;
+  banner_url?: string;
+  extracted_at?: string;
+  source?: 'substack' | 'beehiiv' | 'ghost' | 'wordpress' | 'custom';
+}
+
+export interface BrandingState {
+  branding_data: PersistedBranding;
+  has_branding: boolean;
+}
+
+export const brandingApi = {
+  get: (token: string | null) =>
+    edgeFetch<BrandingState>(
+      EDGE_FUNCTION_BASE + '/extract-branding',
+      { method: 'GET' },
+      token,
+    ),
+};
+
 // ─── publisher-profile PATCH (Phase 3 Session 3.4) ─────────────────
 //
 // Writes whitelisted fields to the publishers row via the

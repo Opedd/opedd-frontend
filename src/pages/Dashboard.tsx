@@ -9,6 +9,7 @@ import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { IngestionTracker } from "@/components/IngestionTracker";
+import { PartnershipHeader } from "@/components/dashboard/PartnershipHeader";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { shouldRedirectToWelcome } from "./welcome-redirect";
@@ -316,6 +317,13 @@ export default function Dashboard() {
       headerActions={<></>}
     >
       <div className="p-4 sm:p-8 max-w-6xl w-full mx-auto space-y-6">
+        {/* PartnershipHeader (Session 3.6): Opedd × publisher logo +
+            name band, populated from publishers.branding_data
+            (extract-branding output). Returns null until at least one
+            of {logo_url, name} is populated, so pre-Step-2 publishers
+            see no header band — keeps Dashboard quiet for prospects. */}
+        <PartnershipHeader />
+
         {/* SetupBanner (Session 1.8): truthful state surfaced from
             useWizardState. Visible for prospect / in_setup / connected /
             suspended; returns null for verified. Always rendered above
