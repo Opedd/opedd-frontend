@@ -50,7 +50,6 @@ afterEach(() => {
   if (originalClipboardDescriptor) {
     Object.defineProperty(navigator, "clipboard", originalClipboardDescriptor);
   } else {
-    // @ts-expect-error — intentional cleanup of mocked property
     delete (navigator as unknown as { clipboard?: unknown }).clipboard;
   }
 });
