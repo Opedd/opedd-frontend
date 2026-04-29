@@ -280,45 +280,78 @@ export const stripeApi = {
     ),
 };
 
-// ─── Ownership Verification (Phase 3 Session 3.3) ─────────────────
+// ─── Ownership Verification (Phase 4 Session 4.1.4 rewrite) ───────
 //
-// Wraps the verify-ownership edge function (Phase 1 Session 1.4) for
-// the email_to_publication method. Step2Substack is the first real
-// caller — verify-ownership was dormant from Session 1.4 ship until
-// 3.3.
+// Wraps the verify-ownership edge function for the two TOKEN methods:
+//   - visible_text_token (universal Substack fallback; About-page paste)
+//   - dns_txt_record     (custom-domain Substacks; DNS TXT record)
 //
-// All three endpoints share the standard {success, data} envelope
-// from _shared/cors.ts:successResponse. edgeFetch unwraps to .data.
+// Both are TOKEN methods per INVARIANTS § "Token-method handlers
+// direct-flip publisher row on success." On verify-success, the backend
+// updates publishers.verification_status='verified' atomically AND
+// inserts an email_forwarding_consents row pointing at the per-publisher
+// inbound_email — no auto-verify-publishers cron mediation, no UX lag.
+//
+// The legacy email_to_publication method (sendCode / confirmCode) was
+// REMOVED in this rewrite (Phase 4 Session 4.1.4). Backend handler
+// returns 410 GONE since Session 4.1.2; deletion of the backend stub
+// + dispatcher branch is owned by Session 4.1.7 cleanup audit.
+//
+// All endpoints share the standard {success, data} envelope from
+// _shared/cors.ts:successResponse. edgeFetch unwraps to .data.
 //
 // Backend contract:
-//   GET  /verify-ownership                              → resume / read state
-//   POST /verify-ownership { method, action: 'send_code', publication_url }
-//   POST /verify-ownership { method, action: 'confirm_code', code }
-// where method = 'email_to_publication' for Substack.
+//   GET  /verify-ownership                                          → resume / read state
+//   POST /verify-ownership { method: 'visible_text_token', action: 'issue_token', publication_url }
+//   POST /verify-ownership { method: 'visible_text_token', action: 'verify_token' }
+//   POST /verify-ownership { method: 'dns_txt_record',     action: 'issue_token', domain }
+//   POST /verify-ownership { method: 'dns_txt_record',     action: 'check_token' }
 //
 // State gate: backend requires setup_state='in_setup'. SetupV2 routing
 // is the client-side gate (Step2Substack only mounts in that state).
 // 422 WIZARD_STATE_INCOMPATIBLE on call → caller surfaces a reload.
 //
 // Rate limits per publisher (backend-enforced):
-//   send_code:    5  per hour
-//   confirm_code: 10 per hour
+//   visible_text_token issue_token:  3 per 24h (regen cap)
+//   visible_text_token verify_token: 30 per 24h (scrape cost-asymmetry)
+//   dns_txt_record     issue_token:  5 per hour
+//   dns_txt_record     check_token:  60 per hour
+
+export type TokenMethod = 'visible_text_token' | 'dns_txt_record';
 
 export interface VerifyOwnershipResult {
   verified: boolean;
-  method: 'email_to_publication';
+  method: TokenMethod;
   reason?: string;
   awaiting_confirmation?: boolean;
-  code_sent_to?: string;
   expires_in_seconds?: number;
   evidence?: Record<string, unknown>;
-  fallback_available?: 'dns_txt_record';
+  fallback_available?: TokenMethod;
+  // Backend's instructions field: shape varies by method.
+  //   visible_text_token: { record_type: 'visible_text', name: <publication_url>/about,
+  //                         value: 'opedd-verify-XXXXXXXX', ttl: <seconds> }
+  //   dns_txt_record:     { record_type: 'TXT', name: '_opedd-verify.<domain>',
+  //                         value: 'opedd-verify-<32-hex>', ttl: 300 }
+  instructions?: {
+    record_type: string;
+    name: string;
+    value: string;
+    ttl: number;
+  };
 }
 
 export interface OwnershipVerificationChallenge {
-  contact_email?: string;
+  // Common across both token methods (subset; backend stores more):
   expires_at?: string;
   attempt_count?: number;
+  // visible_text_token specific:
+  publication_url?: string;
+  token_hash?: string;
+  regen_count?: number;
+  // dns_txt_record specific:
+  domain?: string;
+  record_name?: string;
+  token?: string;
 }
 
 export interface OwnershipState {
@@ -341,29 +374,55 @@ export const verifyOwnershipApi = {
       token,
     ),
 
-  sendCode: (publicationUrl: string, token: string | null) =>
+  issueVisibleTextToken: (publicationUrl: string, token: string | null) =>
     edgeFetch<VerifyOwnershipResult>(
       EDGE_FUNCTION_BASE + '/verify-ownership',
       {
         method: 'POST',
         body: JSON.stringify({
-          method: 'email_to_publication',
-          action: 'send_code',
+          method: 'visible_text_token',
+          action: 'issue_token',
           publication_url: publicationUrl,
         }),
       },
       token,
     ),
 
-  confirmCode: (code: string, token: string | null) =>
+  verifyVisibleTextToken: (token: string | null) =>
     edgeFetch<VerifyOwnershipResult>(
       EDGE_FUNCTION_BASE + '/verify-ownership',
       {
         method: 'POST',
         body: JSON.stringify({
-          method: 'email_to_publication',
-          action: 'confirm_code',
-          code,
+          method: 'visible_text_token',
+          action: 'verify_token',
+        }),
+      },
+      token,
+    ),
+
+  issueDnsTxtToken: (domain: string, token: string | null) =>
+    edgeFetch<VerifyOwnershipResult>(
+      EDGE_FUNCTION_BASE + '/verify-ownership',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'dns_txt_record',
+          action: 'issue_token',
+          domain,
+        }),
+      },
+      token,
+    ),
+
+  checkDnsTxtToken: (token: string | null) =>
+    edgeFetch<VerifyOwnershipResult>(
+      EDGE_FUNCTION_BASE + '/verify-ownership',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'dns_txt_record',
+          action: 'check_token',
         }),
       },
       token,
