@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 vi.mock("@sentry/react", () => ({
@@ -21,11 +21,13 @@ vi.mock("@/hooks/useWizardState", () => ({
   useWizardState: () => mockHookReturn(),
 }));
 
-// Mock api: verifyOwnershipApi (typed) + edgeFetch (catches the inline
-// import-substack-rss / extract-branding / publisher-profile calls).
+// Mock api wrappers + the inline edgeFetch calls (publisher-profile GET on
+// mount; import-substack-rss + extract-branding in finalize).
 const mockGet = vi.fn();
-const mockSendCode = vi.fn();
-const mockConfirmCode = vi.fn();
+const mockIssueVisibleTextToken = vi.fn();
+const mockVerifyVisibleTextToken = vi.fn();
+const mockIssueDnsTxtToken = vi.fn();
+const mockCheckDnsTxtToken = vi.fn();
 const mockEdgeFetch = vi.fn();
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api")>();
@@ -33,8 +35,12 @@ vi.mock("@/lib/api", async (importOriginal) => {
     ...actual,
     verifyOwnershipApi: {
       get: (...args: unknown[]) => mockGet(...args),
-      sendCode: (...args: unknown[]) => mockSendCode(...args),
-      confirmCode: (...args: unknown[]) => mockConfirmCode(...args),
+      issueVisibleTextToken: (...args: unknown[]) =>
+        mockIssueVisibleTextToken(...args),
+      verifyVisibleTextToken: (...args: unknown[]) =>
+        mockVerifyVisibleTextToken(...args),
+      issueDnsTxtToken: (...args: unknown[]) => mockIssueDnsTxtToken(...args),
+      checkDnsTxtToken: (...args: unknown[]) => mockCheckDnsTxtToken(...args),
     },
     edgeFetch: (...args: unknown[]) => mockEdgeFetch(...args),
   };
@@ -75,19 +81,55 @@ function defaultWizardState(
   };
 }
 
+// Capture original clipboard descriptor (if any) so afterEach can restore.
+// Same cleanup pattern as TokenDisplay.test.tsx — prevents this test file's
+// jsdom mutation from leaking into other test files sharing the worker.
+const originalClipboardDescriptor = Object.getOwnPropertyDescriptor(
+  navigator,
+  "clipboard",
+);
+
 beforeEach(() => {
   vi.clearAllMocks();
-  // Default GET → no challenge, not verified
+  // Default GETs: ownership = null/not-verified; publisher-profile = inbound_email present
   mockGet.mockResolvedValue({ ownership_verification: null, is_verified: false });
+  mockEdgeFetch.mockImplementation((url: string) => {
+    if (url.includes("/publisher-profile")) {
+      return Promise.resolve({
+        inbound_email: "opedd+abc12345d678@inbound.opedd.com",
+        verification_status: "pending",
+      });
+    }
+    if (url.includes("/import-substack-rss")) {
+      return Promise.resolve({ imported: 25, total: 25 });
+    }
+    if (url.includes("/extract-branding")) {
+      return Promise.resolve({ logo_url: "x" });
+    }
+    return Promise.reject(new Error("unexpected edgeFetch url: " + url));
+  });
   mockHookReturn.mockReturnValue(defaultWizardState());
+
+  // jsdom doesn't ship Clipboard API; mock for TokenDisplay.
+  Object.defineProperty(navigator, "clipboard", {
+    value: { writeText: vi.fn().mockResolvedValue(undefined) },
+    configurable: true,
+    writable: true,
+  });
 });
 
-/**
- * Wait until the loading spinner is gone. Step2Substack mounts in a
- * loading state while it fires verify-ownership GET; tests assert
- * post-load behavior unless they specifically exercise loading.
- */
-async function renderAndSettle(): Promise<ReturnType<typeof render>> {
+afterEach(() => {
+  // Restore original clipboard descriptor (or delete property if jsdom
+  // didn't ship one). Prevents leaks into sibling test files.
+  if (originalClipboardDescriptor) {
+    Object.defineProperty(navigator, "clipboard", originalClipboardDescriptor);
+  } else {
+    // @ts-expect-error — intentional cleanup of mocked property
+    delete (navigator as unknown as { clipboard?: unknown }).clipboard;
+  }
+});
+
+async function renderAndSettle() {
   const utils = render(<Step2Substack />);
   await waitFor(() => {
     expect(mockGet).toHaveBeenCalled();
@@ -95,433 +137,337 @@ async function renderAndSettle(): Promise<ReturnType<typeof render>> {
   return utils;
 }
 
-describe("Step2Substack — happy path", () => {
-  it("URL submit fires verify-ownership send_code and renders OTP screen with masked email", async () => {
-    mockSendCode.mockResolvedValue({
+// ─── URL Entry → Active flow ─────────────────────────────────────────
+
+describe("Step2Substack — URL entry to active flow", () => {
+  it("mount renders URL entry by default (no challenge, not verified)", async () => {
+    await renderAndSettle();
+    await waitFor(() => {
+      expect(screen.getByTestId("step2-url-input")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("step2-url-submit")).toBeInTheDocument();
+  });
+
+  it("URL submit fires issueVisibleTextToken and transitions to active mode", async () => {
+    mockIssueVisibleTextToken.mockResolvedValue({
       verified: false,
-      method: "email_to_publication",
-      reason: "code_sent",
+      method: "visible_text_token",
       awaiting_confirmation: true,
-      code_sent_to: "o***@substack.com",
-      expires_in_seconds: 900,
+      reason: "token_issued",
+      expires_in_seconds: 86400,
+      instructions: {
+        record_type: "visible_text",
+        name: "https://opedd.substack.com/about",
+        value: "opedd-verify-A8F9C2BX",
+        ttl: 86400,
+      },
     });
 
     await renderAndSettle();
-
-    fireEvent.change(screen.getByLabelText("Substack URL"), {
-      target: { value: "https://opedd.substack.com" },
+    fireEvent.change(screen.getByTestId("step2-url-input"), {
+      target: { value: "opedd.substack.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
+    fireEvent.click(screen.getByTestId("step2-url-submit"));
 
     await waitFor(() => {
-      expect(mockSendCode).toHaveBeenCalledWith(
+      expect(mockIssueVisibleTextToken).toHaveBeenCalledWith(
         "https://opedd.substack.com",
         "test-jwt",
       );
     });
-
-    // OTP screen is rendered with the masked email inline
-    expect(
-      await screen.findByText(/One trip to Substack/i),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText(/o\*\*\*@substack\.com/).length).toBeGreaterThan(
-      0,
-    );
-    expect(screen.getByLabelText("Verification code")).toBeInTheDocument();
+    // Active mode rendered: TokenDisplay shows the token + Verify button visible
+    await waitFor(() => {
+      expect(screen.getByTestId("token-display-value").textContent).toBe(
+        "opedd-verify-A8F9C2BX",
+      );
+    });
+    expect(screen.getByTestId("step2-verify")).toBeInTheDocument();
   });
 
-  it("OTP submit triggers parallel ingest + branding + consent and advances wizard", async () => {
-    const advance = vi.fn().mockResolvedValue({});
-    mockHookReturn.mockReturnValue(
-      defaultWizardState({
-        advance,
-        setupData: {
-          platform: "substack",
-          substack_url: "https://opedd.substack.com",
-        },
-      }),
-    );
-    // Active challenge already present on GET — skip URL step
+  it("URL submit persists URL via wizard.saveStepData before issuing token", async () => {
+    mockIssueVisibleTextToken.mockResolvedValue({
+      verified: false,
+      method: "visible_text_token",
+      awaiting_confirmation: true,
+      reason: "token_issued",
+      expires_in_seconds: 86400,
+      instructions: {
+        record_type: "visible_text",
+        name: "https://opedd.substack.com/about",
+        value: "opedd-verify-A8F9C2BX",
+        ttl: 86400,
+      },
+    });
+    const wizardState = defaultWizardState();
+    mockHookReturn.mockReturnValue(wizardState);
+
+    await renderAndSettle();
+    fireEvent.change(screen.getByTestId("step2-url-input"), {
+      target: { value: "opedd.substack.com" },
+    });
+    fireEvent.click(screen.getByTestId("step2-url-submit"));
+
+    await waitFor(() => {
+      expect(wizardState.saveStepData).toHaveBeenCalledWith({
+        substack_url: "https://opedd.substack.com",
+      });
+    });
+  });
+
+  it("URL submit with empty input shows validation error, no API call", async () => {
+    await renderAndSettle();
+    fireEvent.click(screen.getByTestId("step2-url-submit"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("step2-url-submit")).toBeDisabled();
+    });
+    expect(mockIssueVisibleTextToken).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Active → Verify flow ────────────────────────────────────────────
+
+describe("Step2Substack — verify flow", () => {
+  beforeEach(() => {
+    // Pre-seed mount in active mode: visible_text_token challenge present
     mockGet.mockResolvedValue({
       ownership_verification: {
-        method: "email_to_publication",
+        method: "visible_text_token",
         status: "pending",
         challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
+          token_hash: "x".repeat(64),
+          publication_url: "https://opedd.substack.com",
+          expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
           attempt_count: 0,
+          regen_count: 0,
         },
       },
       is_verified: false,
     });
-    mockConfirmCode.mockResolvedValue({
-      verified: true,
-      method: "email_to_publication",
-      evidence: { contact_email_masked: "o***@substack.com" },
+  });
+
+  it("verify success transitions to success mode and fires finalize calls", async () => {
+    mockIssueVisibleTextToken.mockResolvedValue({
+      verified: false,
+      method: "visible_text_token",
+      awaiting_confirmation: true,
+      reason: "token_issued",
+      expires_in_seconds: 86400,
+      instructions: {
+        record_type: "visible_text",
+        name: "https://opedd.substack.com/about",
+        value: "opedd-verify-A8F9C2BX",
+        ttl: 86400,
+      },
     });
-    mockEdgeFetch.mockResolvedValue({});
+    mockVerifyVisibleTextToken.mockResolvedValue({
+      verified: true,
+      method: "visible_text_token",
+      evidence: {
+        publication_url: "https://opedd.substack.com",
+        scraped_at: new Date().toISOString(),
+      },
+    });
+    const wizardState = defaultWizardState({
+      setupData: { platform: "substack", substack_url: "https://opedd.substack.com" },
+    });
+    mockHookReturn.mockReturnValue(wizardState);
 
     await renderAndSettle();
+    // Active mode requires re-issue (resume doesn't include plaintext)
+    await waitFor(() =>
+      expect(screen.getByTestId("step2-issue-fresh")).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByTestId("step2-issue-fresh"));
+    await waitFor(() =>
+      expect(screen.getByTestId("step2-verify")).not.toBeDisabled(),
+    );
 
-    // Wait for OTP screen to render from GET-derived state
-    await screen.findByLabelText("Verification code");
-    fireEvent.change(screen.getByLabelText("Verification code"), {
-      target: { value: "123456" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Verify code/i }));
-
-    await waitFor(() => {
-      expect(mockConfirmCode).toHaveBeenCalledWith("123456", "test-jwt");
-    });
-
-    // Parallel calls: import-substack-rss + extract-branding + consent
-    await waitFor(() => {
-      expect(mockEdgeFetch).toHaveBeenCalledTimes(3);
-    });
-    const calledUrls = mockEdgeFetch.mock.calls.map((c) => c[0]);
-    expect(calledUrls).toContain("https://api.opedd.com/import-substack-rss");
-    expect(calledUrls).toContain("https://api.opedd.com/extract-branding");
-    expect(calledUrls).toContain("https://api.opedd.com/publisher-profile");
+    fireEvent.click(screen.getByTestId("step2-verify"));
 
     await waitFor(() => {
-      expect(advance).toHaveBeenCalledWith({});
+      expect(mockVerifyVisibleTextToken).toHaveBeenCalledWith("test-jwt");
+    });
+    // Success state + auto-finalize fires the parallel calls
+    await waitFor(() => {
+      expect(screen.getByTestId("step2-success")).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(mockEdgeFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/import-substack-rss"),
+        expect.any(Object),
+        "test-jwt",
+      );
+      expect(mockEdgeFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/extract-branding"),
+        expect.any(Object),
+        "test-jwt",
+      );
+    });
+    // Critical: wizard.advance fires after finalize
+    await waitFor(() => {
+      expect(wizardState.advance).toHaveBeenCalledWith({});
     });
   });
 
-  it("resume path: is_verified=true on mount renders Continue button (no auto-advance)", async () => {
-    const advance = vi.fn().mockResolvedValue({});
-    mockHookReturn.mockReturnValue(
-      defaultWizardState({
-        advance,
-        setupData: {
-          platform: "substack",
-          substack_url: "https://opedd.substack.com",
-        },
-      }),
+  it("verify failure (token_not_found_in_about_page) shows friendly retry message; no advance", async () => {
+    mockIssueVisibleTextToken.mockResolvedValue({
+      verified: false,
+      method: "visible_text_token",
+      awaiting_confirmation: true,
+      reason: "token_issued",
+      expires_in_seconds: 86400,
+      instructions: {
+        record_type: "visible_text",
+        name: "https://opedd.substack.com/about",
+        value: "opedd-verify-A8F9C2BX",
+        ttl: 86400,
+      },
+    });
+    mockVerifyVisibleTextToken.mockResolvedValue({
+      verified: false,
+      method: "visible_text_token",
+      reason: "token_not_found_in_about_page",
+    });
+    const wizardState = defaultWizardState({
+      setupData: { platform: "substack", substack_url: "https://opedd.substack.com" },
+    });
+    mockHookReturn.mockReturnValue(wizardState);
+
+    await renderAndSettle();
+    await waitFor(() =>
+      expect(screen.getByTestId("step2-issue-fresh")).toBeInTheDocument(),
     );
+    fireEvent.click(screen.getByTestId("step2-issue-fresh"));
+    await waitFor(() =>
+      expect(screen.getByTestId("step2-verify")).not.toBeDisabled(),
+    );
+
+    fireEvent.click(screen.getByTestId("step2-verify"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("step2-error").textContent).toMatch(
+        /didn't find the token/i,
+      );
+    });
+    expect(wizardState.advance).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Mount-time resume scenarios ─────────────────────────────────────
+
+describe("Step2Substack — resume on mount", () => {
+  it("is_verified=true on mount renders success state with Continue", async () => {
     mockGet.mockResolvedValue({
       ownership_verification: {
-        method: "email_to_publication",
+        method: "visible_text_token",
         status: "verified",
-        verified_at: new Date().toISOString(),
       },
       is_verified: true,
     });
-    mockEdgeFetch.mockResolvedValue({});
 
     await renderAndSettle();
-
-    expect(
-      await screen.findByText(/Your Substack is verified/i),
-    ).toBeInTheDocument();
-    // No advance until user clicks
-    expect(advance).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: /^Continue/i }));
-
     await waitFor(() => {
-      expect(advance).toHaveBeenCalledWith({});
+      expect(screen.getByTestId("step2-success")).toBeInTheDocument();
+    });
+  });
+
+  it("error state shown when mount GETs fail", async () => {
+    mockGet.mockRejectedValue(new Error("network down"));
+
+    render(<Step2Substack />);
+    await waitFor(() => {
+      expect(screen.getByText(/network down|please refresh/i)).toBeInTheDocument();
     });
   });
 });
 
-describe("Step2Substack — input validation", () => {
-  it("empty URL submission shows inline error and does not call sendCode", async () => {
-    await renderAndSettle();
+// ─── DNS sidebar visibility ──────────────────────────────────────────
 
-    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
-
-    expect(
-      await screen.findByText(/Please enter your Substack URL/i),
-    ).toBeInTheDocument();
-    expect(mockSendCode).not.toHaveBeenCalled();
-  });
-
-  it("OTP code with non-6-digit input shows inline error and does not call confirmCode", async () => {
-    mockGet.mockResolvedValue({
-      ownership_verification: {
-        method: "email_to_publication",
-        status: "pending",
-        challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
-          attempt_count: 0,
-        },
-      },
-      is_verified: false,
-    });
-
-    await renderAndSettle();
-
-    await screen.findByLabelText("Verification code");
-    fireEvent.change(screen.getByLabelText("Verification code"), {
-      target: { value: "12345" }, // 5 digits, not 6
-    });
-    // Submit button is disabled while length !== 6 — assert disabled.
-    expect(screen.getByRole("button", { name: /Verify code/i })).toBeDisabled();
-    expect(mockConfirmCode).not.toHaveBeenCalled();
-  });
-});
-
-describe("Step2Substack — backend error states", () => {
-  it("send_code returns no_contact_email_found → renders fallback messaging", async () => {
-    mockSendCode.mockResolvedValue({
+describe("Step2Substack — DNS sidebar", () => {
+  it("DNS sidebar hidden for *.substack.com URLs", async () => {
+    mockIssueVisibleTextToken.mockResolvedValue({
       verified: false,
-      method: "email_to_publication",
-      reason: "no_contact_email_found",
-      fallback_available: "dns_txt_record",
+      method: "visible_text_token",
+      awaiting_confirmation: true,
+      reason: "token_issued",
+      expires_in_seconds: 86400,
+      instructions: {
+        record_type: "visible_text",
+        name: "https://opedd.substack.com/about",
+        value: "opedd-verify-A8F9C2BX",
+        ttl: 86400,
+      },
     });
 
     await renderAndSettle();
-
-    fireEvent.change(screen.getByLabelText("Substack URL"), {
-      target: { value: "https://opedd.substack.com" },
+    fireEvent.change(screen.getByTestId("step2-url-input"), {
+      target: { value: "opedd.substack.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
+    fireEvent.click(screen.getByTestId("step2-url-submit"));
 
-    expect(
-      await screen.findByText(/We couldn't find a contact email/i),
-    ).toBeInTheDocument();
-    // No OTP input — we're on the fallback screen
-    expect(screen.queryByLabelText("Verification code")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId("step2-action-a")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("step2-dns-sidebar")).toBeNull();
   });
 
-  it("confirm_code returns code_mismatch → keeps OTP input and surfaces error", async () => {
-    mockGet.mockResolvedValue({
-      ownership_verification: {
-        method: "email_to_publication",
-        status: "pending",
-        challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
-          attempt_count: 0,
-        },
-      },
-      is_verified: false,
-    });
-    mockConfirmCode.mockResolvedValue({
+  it("DNS sidebar visible for custom-domain URLs", async () => {
+    mockIssueVisibleTextToken.mockResolvedValue({
       verified: false,
-      method: "email_to_publication",
-      reason: "code_mismatch",
-    });
-
-    await renderAndSettle();
-
-    fireEvent.change(await screen.findByLabelText("Verification code"), {
-      target: { value: "111111" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Verify code/i }));
-
-    expect(
-      await screen.findByText(/Wrong code — please try again/i),
-    ).toBeInTheDocument();
-    // OTP screen still rendered
-    expect(screen.getByLabelText("Verification code")).toBeInTheDocument();
-  });
-
-  it("confirm_code returns CHALLENGE_EXPIRED → returns to URL entry with expired notice", async () => {
-    mockGet.mockResolvedValue({
-      ownership_verification: {
-        method: "email_to_publication",
-        status: "pending",
-        challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
-          attempt_count: 0,
-        },
+      method: "visible_text_token",
+      awaiting_confirmation: true,
+      reason: "token_issued",
+      expires_in_seconds: 86400,
+      instructions: {
+        record_type: "visible_text",
+        name: "https://chinatalk.media/about",
+        value: "opedd-verify-A8F9C2BX",
+        ttl: 86400,
       },
-      is_verified: false,
     });
-    mockConfirmCode.mockRejectedValue(
-      new Error("Verification code has expired"),
-    );
 
     await renderAndSettle();
-
-    fireEvent.change(await screen.findByLabelText("Verification code"), {
-      target: { value: "123456" },
+    fireEvent.change(screen.getByTestId("step2-url-input"), {
+      target: { value: "chinatalk.media" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Verify code/i }));
+    fireEvent.click(screen.getByTestId("step2-url-submit"));
 
-    // Falls back to URL entry with soft notice
-    expect(
-      await screen.findByText(/Your code expired/i),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText("Substack URL")).toBeInTheDocument();
-  });
-
-  it("confirm_code returns TOO_MANY_ATTEMPTS → returns to URL entry with retry notice", async () => {
-    mockGet.mockResolvedValue({
-      ownership_verification: {
-        method: "email_to_publication",
-        status: "pending",
-        challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
-          attempt_count: 4,
-        },
-      },
-      is_verified: false,
-    });
-    mockConfirmCode.mockRejectedValue(
-      new Error("Too many wrong codes — request a new one"),
+    await waitFor(() =>
+      expect(screen.getByTestId("step2-dns-sidebar")).toBeInTheDocument(),
     );
-
-    await renderAndSettle();
-
-    fireEvent.change(await screen.findByLabelText("Verification code"), {
-      target: { value: "999999" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Verify code/i }));
-
-    expect(
-      await screen.findByText(/Too many wrong codes/i),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText("Substack URL")).toBeInTheDocument();
+    expect(screen.getByTestId("step2-dns-enable")).toBeInTheDocument();
   });
 });
 
-describe("Step2Substack — non-blocking finalize failures", () => {
-  it("import-substack-rss failure still advances wizard with warning", async () => {
-    const advance = vi.fn().mockResolvedValue({});
-    mockHookReturn.mockReturnValue(
-      defaultWizardState({
-        advance,
-        setupData: {
-          platform: "substack",
-          substack_url: "https://opedd.substack.com",
-        },
-      }),
-    );
-    mockGet.mockResolvedValue({
-      ownership_verification: {
-        method: "email_to_publication",
-        status: "pending",
-        challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
-          attempt_count: 0,
-        },
+// ─── Action B (inbound_email) rendering ──────────────────────────────
+
+describe("Step2Substack — Action B inbound_email", () => {
+  it("renders inbound_email from publisher-profile GET in Action B section", async () => {
+    mockIssueVisibleTextToken.mockResolvedValue({
+      verified: false,
+      method: "visible_text_token",
+      awaiting_confirmation: true,
+      reason: "token_issued",
+      expires_in_seconds: 86400,
+      instructions: {
+        record_type: "visible_text",
+        name: "https://opedd.substack.com/about",
+        value: "opedd-verify-A8F9C2BX",
+        ttl: 86400,
       },
-      is_verified: false,
-    });
-    mockConfirmCode.mockResolvedValue({
-      verified: true,
-      method: "email_to_publication",
-      evidence: { contact_email_masked: "o***@substack.com" },
-    });
-    // Per-call dispatch by URL: import fails; branding + consent succeed
-    mockEdgeFetch.mockImplementation(async (url: string) => {
-      if (url.includes("import-substack-rss")) {
-        throw new Error("Substack rate-limited us");
-      }
-      return {};
     });
 
     await renderAndSettle();
-    fireEvent.change(await screen.findByLabelText("Verification code"), {
-      target: { value: "123456" },
+    fireEvent.change(screen.getByTestId("step2-url-input"), {
+      target: { value: "opedd.substack.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Verify code/i }));
+    fireEvent.click(screen.getByTestId("step2-url-submit"));
 
-    // Wizard still advanced despite RSS failure
-    await waitFor(() => {
-      expect(advance).toHaveBeenCalledWith({});
-    });
-  });
-
-  it("extract-branding failure does NOT block advance and surfaces no error", async () => {
-    const advance = vi.fn().mockResolvedValue({});
-    mockHookReturn.mockReturnValue(
-      defaultWizardState({
-        advance,
-        setupData: {
-          platform: "substack",
-          substack_url: "https://opedd.substack.com",
-        },
-      }),
+    await waitFor(() =>
+      expect(screen.getByTestId("step2-inbound-email").textContent).toBe(
+        "opedd+abc12345d678@inbound.opedd.com",
+      ),
     );
-    mockGet.mockResolvedValue({
-      ownership_verification: {
-        method: "email_to_publication",
-        status: "pending",
-        challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
-          attempt_count: 0,
-        },
-      },
-      is_verified: false,
-    });
-    mockConfirmCode.mockResolvedValue({
-      verified: true,
-      method: "email_to_publication",
-      evidence: { contact_email_masked: "o***@substack.com" },
-    });
-    mockEdgeFetch.mockImplementation(async (url: string) => {
-      if (url.includes("extract-branding")) {
-        throw new Error("Branding scrape timed out");
-      }
-      return {};
-    });
-
-    await renderAndSettle();
-    fireEvent.change(await screen.findByLabelText("Verification code"), {
-      target: { value: "123456" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Verify code/i }));
-
-    await waitFor(() => {
-      expect(advance).toHaveBeenCalledWith({});
-    });
-    // No error toast about branding
-    expect(
-      screen.queryByText(/Branding scrape timed out/i),
-    ).not.toBeInTheDocument();
-  });
-});
-
-describe("Step2Substack — state mismatch", () => {
-  it("wizard.advance STATE_MISMATCH after verification surfaces an error message", async () => {
-    const advance = vi
-      .fn()
-      .mockRejectedValue(new Error("Wizard state changed — please reload"));
-    mockHookReturn.mockReturnValue(
-      defaultWizardState({
-        advance,
-        setupData: {
-          platform: "substack",
-          substack_url: "https://opedd.substack.com",
-        },
-      }),
-    );
-    mockGet.mockResolvedValue({
-      ownership_verification: {
-        method: "email_to_publication",
-        status: "pending",
-        challenge: {
-          contact_email: "owner@substack.com",
-          expires_at: new Date(Date.now() + 60_000).toISOString(),
-          attempt_count: 0,
-        },
-      },
-      is_verified: false,
-    });
-    mockConfirmCode.mockResolvedValue({
-      verified: true,
-      method: "email_to_publication",
-      evidence: { contact_email_masked: "o***@substack.com" },
-    });
-    mockEdgeFetch.mockResolvedValue({});
-
-    await renderAndSettle();
-    fireEvent.change(await screen.findByLabelText("Verification code"), {
-      target: { value: "123456" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Verify code/i }));
-
-    expect(
-      await screen.findByText(/Wizard state changed/i),
-    ).toBeInTheDocument();
   });
 });
