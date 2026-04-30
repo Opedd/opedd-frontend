@@ -652,7 +652,7 @@ export default function Dashboard() {
               Register content
             </Button>
           </div>
-          <SourcesView key={sourcesKey} onAddSource={() => navigate("/setup-v2?add=1")} />
+          <SourcesView key={sourcesKey} />
         </div>
       </div>
 

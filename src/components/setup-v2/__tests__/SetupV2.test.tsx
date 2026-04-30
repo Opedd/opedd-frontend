@@ -177,22 +177,7 @@ describe("SetupV2 — state-driven step routing", () => {
     });
   });
 
-  it("renders add-source stub for /setup-v2?add=1 when not in prospect", () => {
-    mockHookReturn.mockReturnValue(
-      defaultState({ setupState: "connected", currentStep: 5 as WizardStep }),
-    );
-    render(
-      <Wrapper initialEntry="/setup-v2?add=1"><SetupV2 /></Wrapper>,
-    );
-    expect(screen.getByRole("heading", { name: /Adding additional sources/i })).toBeTruthy();
-    expect(screen.getByText(/Phase 4/i)).toBeTruthy();
-  });
-
-  it("ignores ?add=1 for prospect users (renders normal Step 1 picker)", () => {
-    mockHookReturn.mockReturnValue(defaultState({ setupState: "prospect" }));
-    render(
-      <Wrapper initialEntry="/setup-v2?add=1"><SetupV2 /></Wrapper>,
-    );
-    expect(screen.getByRole("heading", { name: /Where do you publish/i })).toBeTruthy();
-  });
+  // ?add=1 branch tests removed Phase 4.7.2 — branch decommissioned per OQ.3
+  // (no add-source flow in v1). URLs with ?add=1 now fall through to the
+  // regular state-driven dispatch silently.
 });

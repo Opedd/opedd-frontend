@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/ui/Spinner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platform";
@@ -37,8 +37,6 @@ import { TerminalState } from "@/components/setup-v2/TerminalState";
 export default function SetupV2() {
   const wizard = useWizardState();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const isAddSource = searchParams.get("add") === "1";
 
   // Verified publishers don't belong on the wizard. Redirect quietly.
   useEffect(() => {
@@ -54,19 +52,10 @@ export default function SetupV2() {
   }
   if (!wizard.state) return <FullPageSpinner />;
 
-  // ─── ?add=1 path (Dashboard "add another source" buttons) ──────
-  // Out of scope for SetupV2 v1 — render a stub with email capture.
-  // Only meaningful for already-onboarded publishers; for prospect
-  // users we ignore the param and fall through to normal flow.
-  if (isAddSource && wizard.setupState !== "prospect") {
-    return (
-      <ResumeIntentCapture
-        stepLabel="add-additional-sources"
-        title="Adding additional sources"
-        message="Adding more publications to your existing account is coming in Phase 4. Your existing setup is unaffected — we'll email you when it's ready."
-      />
-    );
-  }
+  // Phase 4.7.2 (2026-04-30): the legacy `?add=1` branch was removed
+  // per OQ.3 (no add-source flow in v1). `/setup-v2?add=1` URLs now
+  // fall through to the regular state-driven dispatch silently.
+  // Closes KI #58 + #59 alongside PlatformConnectModal deletion.
 
   // ─── Terminal states ───────────────────────────────────────────
   if (wizard.setupState === "verified") {
