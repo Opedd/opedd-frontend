@@ -45,7 +45,7 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
     } catch (err: any) {
       toast({
         title: "Import failed",
-        description: err?.message || "Could not upload CSV.",
+        description: err?.message || "Could not upload export.",
         variant: "destructive",
       });
     } finally {
@@ -62,7 +62,7 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-navy-deep">Import from Substack</h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            Upload your Substack <code className="font-mono text-[10px] bg-gray-100 px-1 py-0.5 rounded">posts.csv</code> export to import your article catalog.
+            Upload your Substack export <code className="font-mono text-[10px] bg-gray-100 px-1 py-0.5 rounded">.zip</code> to import your full archive (including paid-post bodies).
           </p>
         </div>
       </div>
@@ -73,15 +73,14 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
         className="flex items-center gap-1.5 text-xs font-medium text-oxford hover:text-oxford-dark mb-3 transition-colors"
       >
         {instructionsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        How to get your CSV
+        How to get your export
       </button>
       {instructionsOpen && (
         <div className="bg-gray-50 rounded-lg p-3 mb-3 space-y-1.5">
           <ol className="text-xs text-gray-700 space-y-1 list-decimal list-inside">
             <li>Go to <span className="font-medium">substack.com → Settings → Export data</span></li>
             <li>Download the ZIP file</li>
-            <li>Open the ZIP and find <code className="font-mono text-[10px] bg-white px-1 py-0.5 rounded border border-gray-200">posts.csv</code></li>
-            <li>Upload it here</li>
+            <li>Upload the <code className="font-mono text-[10px] bg-white px-1 py-0.5 rounded border border-gray-200">.zip</code> file directly here</li>
           </ol>
         </div>
       )}
@@ -105,13 +104,13 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
           <input
             ref={fileRef}
             type="file"
-            accept=".csv"
+            accept=".zip,.csv"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
           <div className="flex items-center gap-2 h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm text-gray-500 cursor-pointer hover:border-oxford/30 transition-colors">
             <Upload size={14} className="flex-shrink-0" />
-            <span className="truncate">{file ? file.name : "Choose posts.csv"}</span>
+            <span className="truncate">{file ? file.name : "Choose export.zip"}</span>
           </div>
         </label>
         <Button

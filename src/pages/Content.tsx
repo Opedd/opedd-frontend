@@ -70,7 +70,7 @@ export default function Content() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    if (tab === "archive-license" || tab === "substack") return tab;
+    if (tab === "archive-license") return tab;
     return "articles";
   });
   const { user, getAccessToken } = useAuth();
@@ -105,13 +105,6 @@ export default function Content() {
 
   // Archive license modal
   const [archiveLicenseOpen, setArchiveLicenseOpen] = useState(false);
-
-  // Substack import state
-  const [substackFile, setSubstackFile] = useState<File | null>(null);
-  const [substackLicensing, setSubstackLicensing] = useState(true);
-  const [substackHumanPrice, setSubstackHumanPrice] = useState("");
-  const [substackAiPrice, setSubstackAiPrice] = useState("");
-  const [substackImporting, setSubstackImporting] = useState(false);
 
   // Pricing edit inside drawer
   const [editingRates, setEditingRates] = useState(false);
@@ -344,9 +337,6 @@ export default function Content() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white w-56">
-                <DropdownMenuItem onClick={() => setActiveTab("substack")}>
-                  <Upload size={14} className="mr-2" /> Import articles
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab("archive-license")}>
                   <Handshake size={14} className="mr-2" /> Issue archive license
                 </DropdownMenuItem>
@@ -553,134 +543,14 @@ export default function Content() {
         )}
           </TabsContent>
 
-           {/* Re-import Archive Tab */}
-           <TabsContent value="substack" className="mt-6">
-             <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-2xl space-y-5">
-               <div className="flex items-center gap-3">
-                 <img src={substackLogo} alt="Substack" className="w-10 h-10 rounded-xl" />
-                 <div>
-                   <h2 className="text-base font-bold text-gray-900">Re-import Archive</h2>
-                   <p className="text-sm text-gray-500 mt-0.5">Already imported during setup? Use this to import additional posts or update your archive with a new <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded font-mono">posts.csv</code> export.</p>
-                 </div>
-               </div>
-
-              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-500 space-y-1">
-                <p className="font-medium text-gray-900 text-xs uppercase tracking-wider mb-2">How to get your CSV</p>
-                <ol className="list-decimal list-inside space-y-1 text-sm">
-                  <li>Go to <span className="font-medium text-gray-900">substack.com → Settings → Export data</span></li>
-                  <li>Download the ZIP file</li>
-                  <li>Open the ZIP and find <code className="bg-white px-1 py-0.5 rounded text-xs font-mono border border-gray-200">posts.csv</code></li>
-                  <li>Upload it below</li>
-                </ol>
-              </div>
-
-              {/* File dropzone */}
-              <label
-                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-                  substackFile ? "border-oxford bg-oxford/5" : "border-gray-200 hover:border-oxford/40 bg-gray-50"
-                }`}
-              >
-                <Upload size={20} className={substackFile ? "text-oxford" : "text-gray-400"} />
-                <p className="mt-2 text-sm font-medium text-gray-500">
-                  {substackFile ? substackFile.name : "Choose posts.csv"}
-                </p>
-                {substackFile && (
-                  <p className="text-xs text-gray-400 mt-0.5">{(substackFile.size / 1024).toFixed(0)} KB</p>
-                )}
-                <input
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={(e) => setSubstackFile(e.target.files?.[0] || null)}
-                />
-              </label>
-
-              {/* Options */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <Checkbox
-                    checked={substackLicensing}
-                    onCheckedChange={(v) => setSubstackLicensing(!!v)}
-                  />
-                  <span className="text-sm text-gray-900">Enable licensing on all imported posts</span>
-                </label>
-
-                {substackLicensing && (
-                  <div className="grid grid-cols-2 gap-3 pl-7">
-                    <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Human price ($)</label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="e.g. 5.00"
-                        value={substackHumanPrice}
-                        onChange={(e) => setSubstackHumanPrice(e.target.value)}
-                        className="h-9 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-1 block">AI price ($)</label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="e.g. 10.00"
-                        value={substackAiPrice}
-                        onChange={(e) => setSubstackAiPrice(e.target.value)}
-                        className="h-9 text-sm"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Button
-                disabled={!substackFile || substackImporting}
-                className="bg-oxford hover:bg-oxford-dark text-white rounded-lg h-10 px-5 font-medium text-sm gap-2"
-                onClick={async () => {
-                  if (!substackFile) return;
-                  setSubstackImporting(true);
-                  try {
-                    const csvContent = await substackFile.text();
-                    const token = await getAccessToken();
-                    const body: Record<string, unknown> = {
-                      csv_content: csvContent,
-                      licensing_enabled: substackLicensing,
-                    };
-                    if (substackHumanPrice) body.human_price = parseFloat(substackHumanPrice);
-                    if (substackAiPrice) body.ai_price = parseFloat(substackAiPrice);
-
-                    const res = await fetch(`${EXT_SUPABASE_URL}/functions/v1/substack-upload`, {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        apikey: EXT_ANON_KEY,
-                        Authorization: `Bearer ${token}`,
-                      },
-                      body: JSON.stringify(body),
-                    });
-                    const json = await res.json();
-                    if (!res.ok) throw new Error(json.error || "Import failed");
-                    toast({
-                      title: "Import complete",
-                      description: `${json.imported ?? 0} articles imported, ${json.skipped ?? 0} skipped.`,
-                    });
-                    setSubstackFile(null);
-                    fetchAssets();
-                  } catch (err: any) {
-                    toast({ title: "Import failed", description: err.message, variant: "destructive" });
-                  } finally {
-                    setSubstackImporting(false);
-                  }
-                }}
-              >
-                {substackImporting ? <Spinner size="md" /> : <Upload size={16} />}
-                {substackImporting ? "Importing…" : "Import"}
-              </Button>
-            </div>
-          </TabsContent>
-
+          {/* Re-import Archive Tab — DELETED in Phase 4.5 Session 4.5.1 (2026-04-30).
+              The orphan TabsContent value="substack" block was a legacy Setup.tsx
+              artifact that survived Phase 3 Session 3.7 deletion. It POSTed to
+              ${EXT_SUPABASE_URL}/functions/v1/substack-upload — a double-prefix
+              URL that 404'd in production — with a JSON body the backend rejects.
+              Triple-broken; unreachable; deleted. Canonical dashboard ZIP card
+              lives in src/components/dashboard/SubstackImportCard.tsx mounted by
+              SourcesView.tsx per v2 spec § Phase 2 dashboard ZIP card. */}
 
           <TabsContent value="archive-license" className="mt-6">
             <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-2xl space-y-4">
