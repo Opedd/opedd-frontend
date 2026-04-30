@@ -1,268 +1,57 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { copyToClipboard } from "@/lib/clipboard";
+import { usePublication } from "@/hooks/usePublication";
 import type { DetectionResult } from "@/lib/api";
+import { PublicationCard } from "@/components/dashboard/PublicationCard";
 import { SubstackImportCard } from "@/components/dashboard/SubstackImportCard";
 import { WordPressPluginCard } from "@/components/dashboard/WordPressPluginCard";
-import {
-  Rss,
-  Trash2,
-  RefreshCw,
-  Loader2,
-  ExternalLink,
-  Clock,
-  Globe,
-  ShieldCheck,
-  DollarSign,
-  Search,
-  Copy,
-  Check,
-  Mail,
-  Zap,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { VerifyOwnershipModal } from "@/components/dashboard/VerifyOwnershipModal";
-import { SourcePricingModal } from "@/components/dashboard/SourcePricingModal";
 import { PlatformConnectModal } from "@/components/dashboard/PlatformConnectModal";
-
-// Platform logos
-import substackLogo from "@/assets/platforms/substack.svg";
-import ghostLogo from "@/assets/platforms/ghost.svg";
-import wordpressLogo from "@/assets/platforms/wordpress.svg";
-import beehiivLogo from "@/assets/platforms/beehiiv.svg";
-import mediumLogo from "@/assets/platforms/medium.svg";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/Spinner";
 
-interface Source {
-  id: string;
-  name: string;
-  feed_url: string;
-  platform: string | null;
-  sync_status: string | null;
-  article_count: number | null;
-  last_synced_at: string | null;
-  created_at: string | null;
-  verification_token?: string | null;
-  registration_path?: string;
-}
-
-const platformLogos: Record<string, string> = {
-  substack: substackLogo,
-  ghost: ghostLogo,
-  wordpress: wordpressLogo,
-  beehiiv: beehiivLogo,
-  medium: mediumLogo,
-};
+/**
+ * Phase 4.7.1 — SourcesView rewritten around Vercel-style PublicationCard.
+ *
+ * Per OQ.5 + OQ-F: one card per publisher account; existing surfaces (URL input bar,
+ * SubstackImportCard, WordPressPluginCard, PlatformConnectModal mount) preserved.
+ *
+ * Per-source-row affordances (re-sync, delete, per-source pricing, per-source verify)
+ * removed — those move to a Settings page in a later sub-session (OQ-D defers the
+ * Settings page; not in 4.7.1 scope).
+ *
+ * Per OQ-A, the legacy `fetchSources` function (and its `last_synced_at` typo at the
+ * old line 109) is gone. The new `usePublication` hook reads the correct `last_sync_at`
+ * column. Closes KI #62 here.
+ *
+ * KI #58 (PlatformConnectModal legacy) and KI #59 (add-source flow reconciliation)
+ * stay open — 4.7.2 owns the decommission. 4.7.1 leaves the URL bar + modal mount
+ * untouched.
+ */
 
 interface SourcesViewProps {
-  onAddSource: () => void;
+  /** Kept for parent-call compat; current Phase 4.7.1 implementation does not use it. */
+  onAddSource?: () => void;
 }
 
-export function SourcesView({ onAddSource }: SourcesViewProps) {
-  const { user } = useAuth();
+export function SourcesView(_props: SourcesViewProps) {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { platform: platformApiHook } = useAuthenticatedApi();
-  const [sources, setSources] = useState<Source[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [syncingId, setSyncingId] = useState<string | null>(null);
-  const [verifyModalSource, setVerifyModalSource] = useState<Source | null>(null);
-  const [tokenLookup, setTokenLookup] = useState<Record<string, string>>({});
-  const [pricingSource, setPricingSource] = useState<Source | null>(null);
-  const [deleteConfirmSource, setDeleteConfirmSource] = useState<Source | null>(null);
-  const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
-  const [publisherLogoUrl, setPublisherLogoUrl] = useState<string | null>(null);
-  const [publisherId, setPublisherId] = useState<string | null>(null);
+  const { publication, isLoading, error, refetch } = usePublication();
 
-  // URL input + platform detection
+  // URL input + platform detection (kept until 4.7.2 decommission)
   const [connectUrl, setConnectUrl] = useState("");
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
-  const [copiedEmailId, setCopiedEmailId] = useState<string | null>(null);
 
-  const fetchSources = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const [sourcesRes, publisherRes] = await Promise.all([
-        (supabase.from as any)("content_sources")
-          .select("id, name, url, source_type, sync_status, article_count, last_synced_at, created_at, verification_token, verification_status")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-        (supabase.from as any)("publishers").select("id, logo_url").eq("user_id", user.id).maybeSingle(),
-      ]);
-      if (sourcesRes.error) throw sourcesRes.error;
-      // Map content_sources columns to the Source interface
-      const mapped = (sourcesRes.data || []).map((row: any) => ({
-        ...row,
-        feed_url: row.url,
-        platform: row.source_type,
-      }));
-      setSources(mapped);
-      setPublisherLogoUrl(publisherRes.data?.logo_url || null);
-      setPublisherId(publisherRes.data?.id || null);
-    } catch (err) {
-      console.error("Error fetching sources:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSources();
-  }, [user]);
-
-  const handleResync = async (source: Source) => {
-    const previousCount = source.article_count || 0;
-    setSyncingId(source.id);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) throw new Error("Not authenticated");
-      const res = await fetch(`${EXT_SUPABASE_URL}/sync-content-source`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: EXT_ANON_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ sourceUrl: source.feed_url }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `Sync failed (${res.status})`);
-      }
-      toast({
-        title: "Syncing…",
-        description: `Fetching new articles from ${source.name}`,
-      });
-
-      // Subscribe to realtime updates for this source
-      const channel = supabase
-        .channel(`source-sync-${source.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'content_sources',
-            filter: `id=eq.${source.id}`,
-          },
-          (payload: any) => {
-            const updated = payload.new;
-            setSources(prev => prev.map(s =>
-              s.id === source.id
-                ? { ...s, article_count: updated.article_count, last_synced_at: updated.last_synced_at, sync_status: updated.sync_status }
-                : s
-            ));
-
-            const newCount = updated.article_count || 0;
-            const added = newCount - previousCount;
-
-            if (updated.sync_status !== 'syncing') {
-              supabase.removeChannel(channel);
-              setSyncingId(null);
-              toast({
-                title: "Sync Complete",
-                description: added > 0
-                  ? `${added} new article${added !== 1 ? "s" : ""} added to your Library.`
-                  : "No new articles found — your Library is up to date.",
-              });
-            }
-          }
-        )
-        .subscribe();
-
-      // Timeout safety net — unsubscribe after 30 seconds if no update received
-      setTimeout(() => {
-        supabase.removeChannel(channel);
-        setSyncingId(null);
-        toast({
-          title: "Sync is taking longer than expected",
-          description: "It's still running in the background. Refresh in a minute to see new articles.",
-          variant: "destructive",
-        });
-      }, 30000);
-    } catch (err) {
-      console.error("Resync error:", err);
-      setSyncingId(null);
-      toast({
-        title: "Sync Failed",
-        description: "Could not re-sync this source.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDelete = async (source: Source) => {
-    try {
-      // Delete articles explicitly linked to this source
-      if (publisherId) {
-        await (supabase as any).from("licenses").delete().eq("source_id", source.id).eq("publisher_id", publisherId);
-      }
-
-      // Delete the source itself
-      await (supabase as any).from("content_sources").delete().eq("id", source.id).eq("user_id", user!.id);
-
-      const remaining = sources.filter(s => s.id !== source.id);
-
-      // If no sources remain, delete all orphaned articles for this publisher
-      // (articles imported before source_id tracking was added have source_id=null)
-      if (remaining.length === 0 && publisherId) {
-        await (supabase as any).from("licenses").delete().eq("publisher_id", publisherId);
-      }
-
-      setSources(remaining);
-      toast({
-        title: "Source Removed",
-        description: `${source.name} and its articles have been removed.`,
-      });
-    } catch (err) {
-      console.error("Delete error:", err);
-      toast({
-        title: "Delete Failed",
-        description: "Could not remove this source.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Fetch verification tokens from sources already loaded
-  useEffect(() => {
-    if (sources.length > 0) {
-      const lookup: Record<string, string> = {};
-      sources.forEach((s) => {
-        if (s.verification_token) lookup[s.id] = s.verification_token;
-      });
-      setTokenLookup(lookup);
-    }
-  }, [sources]);
-
-  // Detect platform from URL
   const handleDetectPlatform = async () => {
     const trimmed = connectUrl.trim();
     if (!trimmed) return;
-    // Basic URL normalization
     let normalizedUrl = trimmed;
     if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = "https://" + normalizedUrl;
     setIsDetecting(true);
@@ -270,10 +59,11 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
       const result = await platformApiHook.detect(normalizedUrl);
       setDetectionResult(result);
       setShowConnectModal(true);
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not detect platform for this URL.";
       toast({
         title: "Detection failed",
-        description: err?.message || "Could not detect platform for this URL.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -281,20 +71,14 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     }
   };
 
-  // Helper to copy inbound email on source cards
-  const handleCopyEmail = async (email: string, sourceId: string) => {
-    const ok = await copyToClipboard(email);
-    if (ok) {
-      setCopiedEmailId(sourceId);
-      setTimeout(() => setCopiedEmailId(null), 2000);
-    }
-  };
-
-  // URL input bar — shown always at top
+  // URL input bar — kept per OQ-F until 4.7.2 decommissions PlatformConnectModal flow
   const urlInputBar = (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-card">
       <form
-        onSubmit={(e) => { e.preventDefault(); handleDetectPlatform(); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleDetectPlatform();
+        }}
         className="flex items-center gap-3"
       >
         <div className="relative flex-1">
@@ -318,403 +102,85 @@ export function SourcesView({ onAddSource }: SourcesViewProps) {
     </div>
   );
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {urlInputBar}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-card p-12 flex items-center justify-center">
-          <Spinner size="lg" className="text-oxford" />
-        </div>
-      </div>
-    );
-  }
-
-  if (sources.length === 0) {
-    return (
-      <div className="space-y-4">
-        {urlInputBar}
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-xl bg-oxford/10 flex items-center justify-center">
-            <Rss size={28} className="text-oxford" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-navy-deep">No Content Sources</h3>
-            <p className="text-sm text-navy-deep/60 mt-1 max-w-sm mx-auto">
-              Enter your publication URL above to connect and start importing content.
-            </p>
-          </div>
-        </div>
-
-        {/* Platform Connect Modal */}
-        {detectionResult && (
-          <PlatformConnectModal
-            open={showConnectModal}
-            onOpenChange={setShowConnectModal}
-            detection={detectionResult}
-            url={connectUrl.trim().startsWith("http") ? connectUrl.trim() : `https://${connectUrl.trim()}`}
-            onComplete={() => { setConnectUrl(""); setDetectionResult(null); fetchSources(); }}
-          />
-        )}
-      </div>
-    );
-  }
-
-  const totalArticles = sources.reduce((sum, s) => sum + (s.article_count || 0), 0);
-
-  const getRelativeTime = (dateStr: string | null) => {
-    if (!dateStr) return null;
-    const now = new Date();
-    const date = new Date(dateStr);
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+  // CTA handlers
+  const handleImportContent = () => {
+    // 4.7.1 v1: scroll to SubstackImportCard. 4.7.3 will replace with unified import modal.
+    document.getElementById("import-cards")?.scrollIntoView({ behavior: "smooth" });
+  };
+  const handleViewLicenses = () => {
+    navigate("/content");
+  };
+  const handleContinueSetup = () => {
+    navigate("/setup-v2");
+  };
+  const handleContactSupport = () => {
+    window.location.href = "mailto:support@opedd.com";
   };
 
   return (
     <div className="space-y-4">
-      {/* URL Input Bar */}
       {urlInputBar}
 
-      {/* Summary Bar */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-navy-deep/50">
-          {sources.length} Source{sources.length !== 1 ? "s" : ""} · {totalArticles} Total Article{totalArticles !== 1 ? "s" : ""}
-        </p>
-      </div>
+      {/* Publication card (loading / error / loaded states) */}
+      {isLoading ? (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-card p-12 flex items-center justify-center">
+          <Spinner size="lg" className="text-oxford" />
+        </div>
+      ) : error ? (
+        <div
+          role="alert"
+          className="bg-white rounded-xl border border-red-200 p-6 text-center space-y-3"
+        >
+          <p className="text-sm font-medium text-red-700">Couldn't load your publication</p>
+          <p className="text-xs text-red-600">{error.message}</p>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void refetch()}
+            className="bg-oxford hover:bg-oxford-dark text-white"
+          >
+            Retry
+          </Button>
+        </div>
+      ) : publication ? (
+        <PublicationCard
+          publication={publication}
+          onImportContent={handleImportContent}
+          onViewLicenses={handleViewLicenses}
+          onContinueSetup={handleContinueSetup}
+          onContactSupport={handleContactSupport}
+        />
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center space-y-2">
+          <p className="text-sm font-semibold text-navy-deep">No publisher record yet</p>
+          <p className="text-xs text-navy-deep/50">
+            Enter your publication URL above to get started.
+          </p>
+        </div>
+      )}
 
-      {/* Source Cards */}
-      <div className="grid grid-cols-1 gap-4">
-        {sources.map((source) => {
-          // Detect platform logo (small badge indicator)
-          const platformKey = (source.platform || "").toLowerCase();
-          const platformLogo = (() => {
-            if (platformKey && platformLogos[platformKey]) return platformLogos[platformKey];
-            const url = (source.feed_url || "").toLowerCase();
-            if (url.includes("substack.com")) return substackLogo;
-            if (url.includes("ghost.io") || url.includes(".ghost.")) return ghostLogo;
-            if (url.includes("beehiiv.com")) return beehiivLogo;
-            if (url.includes("wordpress.com") || url.includes("wp.com")) return wordpressLogo;
-            if (url.includes("medium.com")) return mediumLogo;
-            return null;
-          })();
-          const isVerified = source.sync_status === "active";
-          const isNewsletterFeed = !source.registration_path || source.registration_path === "newsletter_feed";
-          const isImportSource = source.registration_path === "bulk_enterprise" || source.registration_path === "single_work";
-          const isImporting = isImportSource && (source.sync_status === "syncing" || source.sync_status === "pending");
-          const isPending = !isVerified && !isImporting;
-          const isSyncing = syncingId === source.id;
-
-          return (
-            <div
-              key={source.id}
-              className="bg-white rounded-xl border border-blue-50 p-5 hover:shadow-popover transition-all"
-            >
-              <div className="flex items-start gap-4">
-                {/* Source logo: show platform logo based on URL detection */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(source.feed_url.replace(/^https?:\/\//, '').split('/')[0])}&sz=64`}
-                      alt={source.name}
-                      className="w-8 h-8 object-contain"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'; }}
-                    />
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-navy-deep text-sm truncate">{source.name}</h3>
-                    {isVerified ? (
-                      <Badge variant="outline" className="text-[10px] px-2 py-0 bg-emerald-50 text-emerald-700 border-emerald-200 gap-1 flex-shrink-0">
-                        <ShieldCheck size={8} />
-                        Verified
-                      </Badge>
-                    ) : isImporting ? (
-                      <Badge variant="outline" className="text-[10px] px-2 py-0 bg-blue-50 text-blue-600 border-blue-200 gap-1 flex-shrink-0">
-                        <Spinner size="sm" />
-                        Importing
-                      </Badge>
-                    ) : (
-                     <Badge variant="outline" className="text-[10px] px-2 py-0 bg-oxford/5 text-oxford border-oxford/20 gap-1 flex-shrink-0">
-                         <Clock size={8} />
-                         Pending
-                       </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-navy-deep/50 truncate">{source.feed_url}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-navy-deep/40">
-                    <span className="font-medium">{source.article_count || 0} articles</span>
-                    {source.last_synced_at && (
-                      <span>Synced {getRelativeTime(source.last_synced_at)}</span>
-                    )}
-                    {/* Sync Method Tag */}
-                    {(() => {
-                      const p = (source.platform || "").toLowerCase();
-                      const isWebhook = p === "ghost" || p === "beehiiv";
-                      return (
-                        <Badge variant="outline" className={`text-[9px] px-1.5 py-0 inline-flex items-center gap-1 ${isWebhook ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
-                          {isWebhook ? <><Zap size={9} /> Real-time Sync</> : <><RefreshCw size={9} /> Scheduled Sync</>}
-                        </Badge>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-
-              {/* Webhook URL info for Ghost/Beehiiv */}
-              {(() => {
-                const p = (source.platform || "").toLowerCase();
-                const isWebhook = p === "ghost" || p === "beehiiv";
-                if (!isWebhook || !isVerified) return null;
-                const webhookUrl = `https://api.opedd.com/webhook-receiver?source_id=${source.id}`;
-                return (
-                  <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
-                    <Rss size={14} className="text-emerald-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-emerald-700 flex-1 min-w-0">
-                      <p className="font-medium flex items-center gap-1"><Zap size={12} /> Real-time Sync Active</p>
-                      <p className="mt-0.5 text-emerald-600">
-                        Add this webhook URL to your {source.platform ? source.platform.charAt(0).toUpperCase() + source.platform.slice(1) : ''} admin to receive instant updates:
-                      </p>
-                      <code className="mt-1.5 block bg-emerald-100/60 rounded px-2 py-1 text-[10px] font-mono text-emerald-800 truncate">
-                        {webhookUrl}
-                      </code>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Empty source state — verified but 0 articles */}
-              {isVerified && (source.article_count || 0) === 0 && (
-                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-                  <Rss size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-blue-700">
-                    <p className="font-medium">Everything is set up!</p>
-                    <p className="mt-0.5 text-blue-600">
-                      We're just waiting for your first post to appear on {source.platform ? source.platform.charAt(0).toUpperCase() + source.platform.slice(1) : 'your site'}.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Import in progress banner for sitemap/enterprise sources */}
-              {isImporting && (
-                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-                  <Spinner size="sm" className="text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-blue-700">
-                    <p className="font-medium">Import in progress</p>
-                    <p className="mt-0.5 text-blue-600">
-                      We're importing your content. Articles will appear automatically once processing is complete.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Verification banner for pending sources */}
-              {isPending && isNewsletterFeed && (
-                <div className="mt-3 bg-oxford/5 border border-oxford/15 rounded-lg p-3">
-                  <div className="flex items-start gap-2">
-                    <ShieldCheck size={14} className="text-oxford mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-navy-deep">Verify ownership to activate licensing</p>
-                      <p className="text-[11px] text-navy-deep/50 mt-0.5">Add the verification code to your site, then click verify.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2.5">
-                    <Button
-                      size="sm"
-                      onClick={() => setVerifyModalSource({
-                        ...source,
-                        verification_token: tokenLookup[source.id] || source.verification_token || null,
-                      })}
-                      className="h-7 text-xs gap-1.5 bg-oxford hover:bg-oxford-dark text-white rounded-lg"
-                    >
-                      <ShieldCheck size={12} />
-                      Verify Ownership
-                    </Button>
-                    <button
-                      onClick={() => setVerifyModalSource({
-                        ...source,
-                        verification_token: tokenLookup[source.id] || source.verification_token || null,
-                      })}
-                      className="text-xs text-oxford hover:text-oxford-dark font-medium underline underline-offset-2"
-                    >
-                      View Code
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-blue-50">
-                {/* Verify or Re-sync based on status */}
-                {isImporting ? (
-                  <span className="text-[11px] text-blue-500 font-medium">Import in progress…</span>
-                ) : isPending && isNewsletterFeed ? (
-                  <span className="text-[11px] text-oxford font-medium">Pending verification</span>
-                ) : isPending ? (
-                  <span className="text-[11px] text-navy-deep/40 font-medium">Processing</span>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handleResync(source)}
-                      disabled={isSyncing}
-                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-navy-deep hover:underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {isSyncing ? <Spinner size="sm" /> : <RefreshCw size={12} />}
-                      Re-sync
-                    </button>
-
-                    <button
-                      onClick={() => setPricingSource(source)}
-                      className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-navy-deep hover:underline transition-colors"
-                    >
-                      <DollarSign size={12} />
-                      Set Pricing
-                    </button>
-
-                  </>
-                )}
-
-                {source.feed_url && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                    className="h-8 text-xs gap-1.5 text-gray-400 hover:text-navy-deep hover:bg-transparent"
-                  >
-                    <a href={source.feed_url.startsWith("http") ? source.feed_url : `https://${source.feed_url}`} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink size={12} />
-                      Visit
-                    </a>
-                  </Button>
-                )}
-
-                <div className="flex-1" />
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => { setDeleteConfirmSource(source); setDeleteConfirmInput(""); }}
-                        aria-label={`Remove source ${source.name}`}
-                        className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Remove source</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Import & Plugin Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SubstackImportCard onImportComplete={fetchSources} />
+      {/* Import + plugin cards (kept per OQ-F; 4.7.3 absorbs into unified import CTA) */}
+      <div id="import-cards" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SubstackImportCard onImportComplete={() => void refetch()} />
         <WordPressPluginCard />
       </div>
 
-      {/* Verify Ownership Modal */}
-      <VerifyOwnershipModal
-        open={!!verifyModalSource}
-        onOpenChange={(open) => { if (!open) setVerifyModalSource(null); }}
-        source={verifyModalSource}
-        onVerified={() => {
-          // Update local state to verified
-          if (verifyModalSource) {
-            setSources(prev => prev.map(s =>
-              s.id === verifyModalSource.id ? { ...s, sync_status: "active" } : s
-            ));
-            toast({
-              title: "Verified!",
-              description: `${verifyModalSource.name} ownership has been confirmed.`,
-            });
-          }
-        }}
-      />
-
-      {/* Source Pricing Modal */}
-      {pricingSource && (
-        <SourcePricingModal
-          open={!!pricingSource}
-          onOpenChange={(open) => { if (!open) setPricingSource(null); }}
-          sourceId={pricingSource.id}
-          sourceName={pricingSource.name}
-          onSuccess={fetchSources}
-        />
-      )}
-
-      {/* Remove Source Confirmation Dialog */}
-      <Dialog
-        open={!!deleteConfirmSource}
-        onOpenChange={(open) => { if (!open) { setDeleteConfirmSource(null); setDeleteConfirmInput(""); } }}
-      >
-        <DialogContent className="bg-white max-w-[420px] rounded-xl border border-gray-200 p-6 shadow-modal gap-0">
-          <DialogHeader className="space-y-0 mb-5">
-            <DialogTitle className="text-lg font-semibold text-navy-deep">Remove Source</DialogTitle>
-            <DialogDescription className="text-sm text-navy-deep/50 mt-1.5 leading-relaxed">
-              This will permanently disconnect <span className="font-semibold text-navy-deep">{deleteConfirmSource?.name}</span> and remove all synced articles from your library. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-2 mb-6">
-            <label className="text-xs font-medium text-navy-deep/50">
-              Type <span className="font-mono font-semibold text-navy-deep">{deleteConfirmSource?.name}</span> to confirm
-            </label>
-            <Input
-              value={deleteConfirmInput}
-              onChange={(e) => setDeleteConfirmInput(e.target.value)}
-              placeholder={deleteConfirmSource?.name}
-              className="bg-white border-slate-200 focus:border-oxford/40 focus:ring-oxford/10 h-10 rounded-lg text-sm"
-            />
-          </div>
-
-          <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
-            <button
-              onClick={() => { setDeleteConfirmSource(null); setDeleteConfirmInput(""); }}
-              className="text-sm font-medium text-gray-500 hover:text-navy-deep hover:underline transition-colors px-4 h-9 flex items-center"
-            >
-              Cancel
-            </button>
-            <Button
-              disabled={deleteConfirmInput !== deleteConfirmSource?.name}
-              onClick={() => {
-                if (deleteConfirmSource) {
-                  handleDelete(deleteConfirmSource);
-                  setDeleteConfirmSource(null);
-                  setDeleteConfirmInput("");
-                }
-              }}
-              className="bg-red-500 hover:bg-red-600 text-white rounded-lg h-9 px-4 text-sm font-medium disabled:opacity-40"
-            >
-              <Trash2 size={14} className="mr-1.5" />
-              Remove Source
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Platform Connect Modal */}
+      {/* PlatformConnectModal mount (kept per OQ-F; 4.7.2 decommissions per KI #58) */}
       {detectionResult && (
         <PlatformConnectModal
           open={showConnectModal}
           onOpenChange={setShowConnectModal}
           detection={detectionResult}
-          url={connectUrl.trim().startsWith("http") ? connectUrl.trim() : `https://${connectUrl.trim()}`}
-          onComplete={() => { setConnectUrl(""); setDetectionResult(null); fetchSources(); }}
+          url={
+            connectUrl.trim().startsWith("http")
+              ? connectUrl.trim()
+              : `https://${connectUrl.trim()}`
+          }
+          onComplete={() => {
+            setConnectUrl("");
+            setDetectionResult(null);
+            void refetch();
+          }}
         />
       )}
     </div>
