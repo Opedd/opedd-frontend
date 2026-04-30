@@ -1,3 +1,32 @@
+// Canonical edge-function URL pattern.
+//
+// `EDGE_FUNCTION_BASE` (and the equivalent `EXT_SUPABASE_URL` in
+// constants.ts, plus `PROFILE_URL` defaults in Step4Categorize /
+// Step5Stripe) all resolve to "https://api.opedd.com" — the
+// opedd-api-proxy Vercel rewrite that maps `/:path*` →
+// `https://djdzcciayennqchjgybx.supabase.co/functions/v1/:path*`.
+//
+// Callers MUST use single-prefix URL construction:
+//
+//   ✅  `${EDGE_FUNCTION_BASE}/<endpoint>`           — single prefix, correct
+//   ❌  `${EDGE_FUNCTION_BASE}/functions/v1/<endpoint>` — DOUBLE PREFIX → 404
+//
+// Adding `/functions/v1/` manually creates a double-prefix that resolves
+// to `/functions/v1/functions/v1/<endpoint>` on Supabase → 404. Browsers
+// surface this as "Preflight response is not successful. Status code: 404"
+// because the OPTIONS preflight to a non-existent path returns no CORS
+// headers.
+//
+// History:
+//   - 2026-04-24 KI #22: 5 callers fixed in opedd-frontend `8244554`
+//   - 2026-04-30 Phase 4.6 sweep: 6 additional callers fixed (Step4/5
+//     authored after KI #22; TransactionReceiptDrawer / Publishers /
+//     Enterprise / PlatformConnectModal missed by the original sweep)
+//
+// To bypass the proxy and hit Supabase directly (rare; e.g. ZIP upload
+// in SubstackImportCard, license certificate downloads in MyLicenses),
+// use `EXT_SUPABASE_REST` from constants.ts WITH the `/functions/v1/`
+// prefix — that's the explicitly-direct path that always needs the prefix.
 const EDGE_FUNCTION_BASE = 'https://api.opedd.com';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZHpjY2lheWVubnFjaGpneWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MTEyODIsImV4cCI6MjA4NDQ4NzI4Mn0.yy8AU2uOMMjqyGsjWLNlzsUp93Z9UQ7N-PRe90qDG3E';
 

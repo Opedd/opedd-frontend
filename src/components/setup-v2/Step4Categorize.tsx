@@ -110,7 +110,7 @@ type LoadState =
 async function fetchPricingSlice(
   token: string | null,
 ): Promise<PricingProfileSlice> {
-  const res = await fetch(`${PROFILE_URL}/functions/v1/publisher-profile`, {
+  const res = await fetch(`${PROFILE_URL}/publisher-profile`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error(`publisher-profile GET ${res.status}`);

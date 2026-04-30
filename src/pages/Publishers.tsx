@@ -59,7 +59,7 @@ export default function Publishers() {
     (async () => {
       try {
         const res = await fetch(
-          `${EXT_SUPABASE_URL}/functions/v1/publisher-directory?verified=true&limit=50`,
+          `${EXT_SUPABASE_URL}/publisher-directory?verified=true&limit=50`,
           { headers: { apikey: EXT_ANON_KEY } }
         );
         if (res.ok) {

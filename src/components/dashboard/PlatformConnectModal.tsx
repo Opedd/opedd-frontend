@@ -741,7 +741,7 @@ export function PlatformConnectModal({
   // Step 3: Forward Sync
   const renderStep3 = () => {
     const displayEmail = inboundEmail || `opedd+${connectResult?.source_id?.slice(0, 8) || "id"}@inbound.opedd.com`;
-    const webhookUrl = "https://api.opedd.com/functions/v1/platform-webhook";
+    const webhookUrl = "https://api.opedd.com/platform-webhook";
 
     return (
       <div className="space-y-5">

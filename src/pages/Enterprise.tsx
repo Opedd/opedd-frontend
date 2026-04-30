@@ -125,7 +125,7 @@ export default function Enterprise() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${EXT_SUPABASE_URL}/functions/v1/registry`, {
+    fetch(`${EXT_SUPABASE_URL}/registry`, {
       headers: { Authorization: `Bearer ${EXT_ANON_KEY}` },
     })
       .then(async (r) => {
