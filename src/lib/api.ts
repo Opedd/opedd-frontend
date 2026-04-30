@@ -73,10 +73,20 @@ export async function edgeFetch<T>(
     headers,
   });
 
-  const data = await safeParseJson(response) as { success?: boolean; data?: T; error?: { message: string } };
+  const data = await safeParseJson(response) as { success?: boolean; data?: T; error?: string | { message: string } };
 
   if (!data.success) {
-    throw new Error(data.error?.message || 'API request failed');
+    // Backend error envelope has TWO shapes:
+    //   string: { success: false, error: "<message>" }     — _shared/cors.ts errorResponse helper (most functions)
+    //   object: { success: false, error: { code, message } } — licenses/, webhook-receiver/ (legacy)
+    // Pre-2026-04-30 this only handled object-shape; string-shape errors
+    // surfaced as the generic "API request failed" fallback. Phase 4.6
+    // Step 4 PATCH 400 ("Unknown license type: human...") was the
+    // visible symptom. KI #55.
+    const errorMsg = typeof data.error === 'string'
+      ? data.error
+      : (data.error?.message ?? 'API request failed');
+    throw new Error(errorMsg);
   }
 
   return data.data as T;
@@ -551,10 +561,14 @@ export async function edgeFetchPaginated<T>(
     headers,
   });
 
-  const result = await safeParseJson(response) as { success?: boolean; data?: unknown; total?: number; page?: number; limit?: number; protectedCount?: number; error?: { message: string } };
+  const result = await safeParseJson(response) as { success?: boolean; data?: unknown; total?: number; page?: number; limit?: number; protectedCount?: number; error?: string | { message: string } };
 
   if (!result.success) {
-    throw new Error(result.error?.message || 'API request failed');
+    // See edgeFetch above for envelope shape rationale (KI #55).
+    const errorMsg = typeof result.error === 'string'
+      ? result.error
+      : (result.error?.message ?? 'API request failed');
+    throw new Error(errorMsg);
   }
 
   // Return the full envelope (data + total + page + limit + protectedCount)
