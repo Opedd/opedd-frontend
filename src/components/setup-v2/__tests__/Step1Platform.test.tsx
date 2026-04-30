@@ -58,9 +58,14 @@ describe("Step1Platform", () => {
     expect(screen.getByRole("button", { name: /Select Ghost/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Select WordPress/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Select Custom or Other/i })).toBeTruthy();
-    // Sample of v2 spec copy: each card shows setup-time + verification line
-    expect(screen.getAllByText(/Setup time/i).length).toBe(5);
-    expect(screen.getAllByText(/Verification/i).length).toBe(5);
+    // Sample of v2 spec copy: each card shows setup-time + verification line.
+    // Use exact-match string assertions so card-body text containing the
+    // word "verification" (e.g., the Substack card's "Paste a verification
+    // token..." value text) doesn't inflate the count beyond the 5 <dt>
+    // headers. Phase 4.6 (2026-04-30) — copy change introduced the
+    // collision; tighter assertion distinguishes labels from value text.
+    expect(screen.getAllByText("Setup time").length).toBe(5);
+    expect(screen.getAllByText("Verification").length).toBe(5);
   });
 
   it("from prospect, clicking a card calls wizard.advance({ platform })", async () => {

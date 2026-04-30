@@ -50,7 +50,7 @@ const PLATFORMS: PlatformCard[] = [
       "Connect via your publication URL. We'll import recent posts immediately and your full archive shortly after.",
     setupTime: "about 7 minutes",
     includes: "Free + paid posts (full archive in step 2)",
-    verification: "We'll email a code to your publication's contact address",
+    verification: "Paste a verification token on your About page",
   },
   {
     id: "beehiiv",

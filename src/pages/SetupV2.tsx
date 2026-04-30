@@ -100,11 +100,19 @@ export default function SetupV2() {
       }
       return <Step2Stub platform={platform} />;
     case 3:
+      // Phase 4.6 (2026-04-30) — allowAdvance={true} closes the
+      // dead-end that blocked publishers from reaching Step 4 + 5
+      // + Dashboard. Step 3 Model Perception preview is a
+      // deliberately-deferred placeholder (Phase 2 enriched-indexing
+      // pipeline paused); skip path lets publishers complete
+      // onboarding while the real implementation ships. Closes
+      // KI #53 + Phase 4.5 frontend live-flow gate deferral.
       return (
         <ResumeIntentCapture
           stepLabel="step3-model-perception"
           title="Model Perception preview"
           message="This step shows you what an LLM sees when buyers query your archive — title, body, named entities, expert authority claims, structured taxonomies. We're building the enrichment pipeline now; your archive is being indexed in the background and will be ready when this step ships."
+          allowAdvance={true}
         />
       );
     case 4:

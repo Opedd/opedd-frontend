@@ -178,4 +178,139 @@ describe("ResumeIntentCapture", () => {
       screen.queryByPlaceholderText("you@yourpublication.com"),
     ).toBeNull();
   });
+
+  // ── Phase 4.6 (2026-04-30) — allowAdvance prop ────────────────────
+  // Closes KI #53 (Step 3 dashboard dead-end). Skip-for-now CTA lets
+  // publishers advance past placeholder steps that are deliberately
+  // deferred. Step 3 Model Perception preview is the only v1 consumer.
+
+  describe("allowAdvance prop", () => {
+    it("does NOT render Skip for now button when allowAdvance is omitted (default false)", () => {
+      mockHookReturn.mockReturnValue(defaultState());
+      render(
+        <Wrapper>
+          <ResumeIntentCapture
+            stepLabel="step3-model-perception"
+            title="Step 3"
+            message="msg"
+          />
+        </Wrapper>,
+      );
+      expect(
+        screen.queryByRole("button", { name: /Skip for now/i }),
+      ).toBeNull();
+    });
+
+    it("does NOT render Skip for now button when allowAdvance={false}", () => {
+      mockHookReturn.mockReturnValue(defaultState());
+      render(
+        <Wrapper>
+          <ResumeIntentCapture
+            stepLabel="step3-model-perception"
+            title="Step 3"
+            message="msg"
+            allowAdvance={false}
+          />
+        </Wrapper>,
+      );
+      expect(
+        screen.queryByRole("button", { name: /Skip for now/i }),
+      ).toBeNull();
+    });
+
+    it("renders Skip for now button pre-submit when allowAdvance={true}", () => {
+      mockHookReturn.mockReturnValue(defaultState());
+      render(
+        <Wrapper>
+          <ResumeIntentCapture
+            stepLabel="step3-model-perception"
+            title="Step 3"
+            message="msg"
+            allowAdvance={true}
+          />
+        </Wrapper>,
+      );
+      expect(
+        screen.getByRole("button", { name: /Skip for now/i }),
+      ).toBeTruthy();
+      // Email-capture form still present alongside the skip button
+      expect(screen.getByPlaceholderText("you@yourpublication.com")).toBeTruthy();
+    });
+
+    it("renders Skip for now button post-submit (already-captured state) when allowAdvance={true}", () => {
+      mockHookReturn.mockReturnValue(
+        defaultState({
+          setupData: {
+            wizard_resume_intent: {
+              "step3-model-perception": {
+                email: "founder@example.com",
+                captured_at: "2026-04-30T07:00:00Z",
+              },
+            },
+          },
+        }),
+      );
+      render(
+        <Wrapper>
+          <ResumeIntentCapture
+            stepLabel="step3-model-perception"
+            title="Step 3"
+            message="msg"
+            allowAdvance={true}
+          />
+        </Wrapper>,
+      );
+      expect(
+        screen.getByRole("button", { name: /Skip for now/i }),
+      ).toBeTruthy();
+      // Confirmation state visible
+      expect(
+        screen.getByText(/We'll email you when this is ready/i),
+      ).toBeTruthy();
+    });
+
+    it("calls wizard.advance({}) when Skip for now is clicked", async () => {
+      const advance = vi.fn().mockResolvedValue({});
+      mockHookReturn.mockReturnValue(defaultState({ advance }));
+      render(
+        <Wrapper>
+          <ResumeIntentCapture
+            stepLabel="step3-model-perception"
+            title="Step 3"
+            message="msg"
+            allowAdvance={true}
+          />
+        </Wrapper>,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /Skip for now/i }));
+      await waitFor(() => {
+        expect(advance).toHaveBeenCalledTimes(1);
+      });
+      expect(advance).toHaveBeenCalledWith({});
+    });
+
+    it("surfaces inline error when wizard.advance throws on Skip", async () => {
+      const advance = vi
+        .fn()
+        .mockRejectedValue(new Error("Network unreachable"));
+      mockHookReturn.mockReturnValue(defaultState({ advance }));
+      render(
+        <Wrapper>
+          <ResumeIntentCapture
+            stepLabel="step3-model-perception"
+            title="Step 3"
+            message="msg"
+            allowAdvance={true}
+          />
+        </Wrapper>,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /Skip for now/i }));
+      await waitFor(() => {
+        expect(advance).toHaveBeenCalledTimes(1);
+      });
+      await waitFor(() => {
+        expect(screen.getByText(/Network unreachable/i)).toBeTruthy();
+      });
+    });
+  });
 });

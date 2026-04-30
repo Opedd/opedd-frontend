@@ -21,6 +21,14 @@ import { useWizardState } from "@/hooks/useWizardState";
  * Used by Step2Stub for non-Substack platforms in v1, and directly by
  * SetupV2 for Steps 3 / 4 / 5 (those don't need their own files in v1
  * — they share this component with step-specific copy passed as props).
+ *
+ * Phase 4.6 (2026-04-30) — added `allowAdvance` prop for the Step 3
+ * Model Perception preview placeholder dead-end fix (closes KI #53 +
+ * unblocks Phase 4.5 frontend live-flow gate). Set true ONLY for
+ * genuinely-skippable placeholder steps. Step 3 is the only v1
+ * consumer; Step2Stub for Beehiiv/Ghost/WordPress/Custom remains
+ * non-skippable because those are platform-specific flows that
+ * publishers genuinely cannot bypass.
  */
 
 interface ResumeIntent {
@@ -34,6 +42,14 @@ interface ResumeIntentCaptureProps {
   stepLabel: string;
   title: string;
   message: string;
+  /**
+   * When true, render a "Skip for now" CTA below the email-capture
+   * form that calls wizard.advance({}) — closes the dead-end for
+   * placeholder steps that publishers should be able to bypass while
+   * the real implementation ships. Default false: non-skippable
+   * placeholders (Step2Stub for unbuilt platforms) remain blocked.
+   */
+  allowAdvance?: boolean;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,6 +58,7 @@ export function ResumeIntentCapture({
   stepLabel,
   title,
   message,
+  allowAdvance = false,
 }: ResumeIntentCaptureProps) {
   const wizard = useWizardState();
   const [email, setEmail] = useState("");
@@ -49,6 +66,7 @@ export function ResumeIntentCapture({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [skipping, setSkipping] = useState(false);
 
   const existing = (wizard.setupData.wizard_resume_intent ?? {}) as ResumeIntentMap;
   const alreadyCaptured = !!existing[stepLabel];
@@ -78,6 +96,22 @@ export function ResumeIntentCapture({
       );
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    if (skipping || submitting || wizard.isMutating) return;
+    setSkipping(true);
+    setSubmitError(null);
+    try {
+      await wizard.advance({});
+      // SetupV2 routing re-renders to next step on the next paint;
+      // this component unmounts before the spinner resolves.
+    } catch (err) {
+      setSkipping(false);
+      setSubmitError(
+        err instanceof Error ? err.message : "Couldn't skip — please try again",
+      );
     }
   };
 
@@ -136,6 +170,20 @@ export function ResumeIntentCapture({
               <p className="text-sm text-green-700 mt-1">
                 Captured: {existing[stepLabel]?.email ?? email.trim()}
               </p>
+            </div>
+          )}
+
+          {allowAdvance && (
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSkip}
+                disabled={skipping || submitting || wizard.isMutating}
+                className="w-full"
+              >
+                {skipping ? "Skipping…" : "Skip for now"}
+              </Button>
             </div>
           )}
 
