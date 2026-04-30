@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthenticatedApi } from "@/hooks/useAuthenticatedApi";
-import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail, ArrowUp, ArrowDown, Bot, User as UserIcon, FileText, Tag, UserPlus, Eye, ChevronRight, Handshake, Coins } from "lucide-react";
+import { Plus, Copy, ExternalLink, Check, Users, DollarSign, Activity, AlertTriangle as AlertTriangleIcon, Link as LinkIcon, Mail, ArrowUp, ArrowDown, Bot, User as UserIcon, FileText, UserPlus, Eye, ChevronRight, Handshake, Coins } from "lucide-react";
 import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLicenseModal";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
@@ -461,7 +461,11 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { icon: Handshake, label: "Issue archive license", onClick: () => setArchiveModalOpen(true) },
-              { icon: Tag, label: "Update pricing", onClick: () => navigate("/licensing") },
+              // Phase 5.1 (2026-04-30): "Update pricing" quick action
+              // dropped — /licensing now serves a placeholder while the
+              // legacy editor is rebuilt against the canonical 4-type
+              // vocab. Restore when the Settings page revision ships
+              // (KI #66, Phase 4.7 OQ-D deferral).
               { icon: UserPlus, label: "Invite team", onClick: () => navigate("/settings?tab=team") },
               {
                 icon: Eye,

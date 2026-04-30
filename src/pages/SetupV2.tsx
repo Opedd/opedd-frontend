@@ -5,6 +5,7 @@ import { useWizardState } from "@/hooks/useWizardState";
 import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platform";
 import { Step2Stub } from "@/components/setup-v2/Step2Stub";
 import { Step2Substack } from "@/components/setup-v2/Step2Substack";
+import { Step4Categorize } from "@/components/setup-v2/Step4Categorize";
 import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
 import { ResumeIntentCapture } from "@/components/setup-v2/ResumeIntentCapture";
 import { TerminalState } from "@/components/setup-v2/TerminalState";
@@ -104,26 +105,15 @@ export default function SetupV2() {
         />
       );
     case 4:
-      // Phase 4.6 (2026-04-30) — Step 4 reverted to ResumeIntentCapture
-      // stub pending Phase 5 Session 5.x license-type vocabulary fix.
-      // Step 4 PATCH has been structurally broken since Phase 3 Session
-      // 3.4 (2026-04-28): Step4Categorize writes pricing_rules.license_types
-      // with key "human", but publisher-profile/index.ts:1574 allowlist
-      // rejects "human" (accepts only editorial, archive, ai_retrieval,
-      // ai_training, corporate, syndication). Probe 2026-04-30: zero
-      // publishers ever persisted the "human" key — every Step 4 PATCH
-      // returned 400. Skip path lets publishers complete onboarding
-      // while the vocabulary mismatch is fixed in Phase 5. See KI #54 +
-      // KI #56. Re-dispatch <Step4Categorize /> here once vocabulary is
-      // aligned.
-      return (
-        <ResumeIntentCapture
-          stepLabel="step4-categorize-and-price"
-          title="Pricing setup — coming soon"
-          message="We're rolling out an updated pricing system that gives you finer control over how your content is licensed for AI training, AI retrieval, and human research use. Skip for now to complete onboarding — we'll email you when pricing setup is ready, and you'll be able to set prices then."
-          allowAdvance={true}
-        />
-      );
+      // Phase 5 Session 5.1 (2026-04-30) — Step4Categorize re-dispatched.
+      // Vocabulary unification closed KI #54 + KI #56: backend
+      // allowlist now accepts the canonical 4-type vocab
+      // {human_per_article, human_full_archive, ai_retrieval, ai_training};
+      // Step4Categorize.tsx writes the new vocab. Pre-Phase-5.1 stub
+      // (Phase 4.6 commit γ) replaced this case with ResumeIntentCapture
+      // because the writer/allowlist mismatch (KI #54) caused every PATCH
+      // to 400; skip-path was the workaround. Mismatch fixed in 5.1.
+      return <Step4Categorize />;
     case 5:
       // Phase 3 Session 3.5 — Step 5 functional. Replaces the
       // ResumeIntentCapture stub from Session 3.1.

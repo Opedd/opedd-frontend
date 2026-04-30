@@ -1,14 +1,19 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle, BookOpen, ExternalLink, Mail, ShieldAlert, Scale } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Library, CreditCard, ArrowUpCircle, BookOpen, ExternalLink, Mail, ShieldAlert } from "lucide-react";
 import opeddLogo from "@/assets/opedd-logo.png";
 import { MobileSidebar } from "./MobileSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Phase 5.1 (2026-04-30): "Licensing" nav item hidden — /licensing
+// route now serves a placeholder while the legacy editor (vocabulary
+// {editorial, archive, corporate, syndication}) is rebuilt against
+// the canonical 4-type vocab. Bookmarked /licensing URLs still land
+// on the placeholder. Restore this entry when the Settings page
+// revision ships (Phase 4.7 OQ-D deferral; KI #66).
 const navItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: Library },
-  { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/distribution", icon: Zap },

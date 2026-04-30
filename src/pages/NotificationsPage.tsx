@@ -241,11 +241,15 @@ export default function NotificationsPage() {
             variants={itemVariants}
             className="bg-white rounded-xl border border-gray-200 shadow-card"
           >
+            {/* Phase 5.1 (2026-04-30): "View licensing page" action removed
+             *  — /licensing now serves a placeholder while the legacy
+             *  editor is rebuilt. EmptyState renders without an action
+             *  CTA in the no-notifications state until the Settings page
+             *  revision ships (KI #66). */}
             <EmptyState
               icon={Bell}
               title="No notifications yet"
               description="You'll be notified here when buyers license your content, payments are processed, and more."
-              action={{ label: "View licensing page", onClick: () => navigate("/licensing") }}
             />
           </motion.div>
         )}

@@ -10,13 +10,20 @@ import { CATEGORIES, OTHER_CATEGORY_ID } from "./categories";
 
 /**
  * Phase 3 Session 3.4 — Step 4 Categorize & Price (functional).
+ * Phase 4.6 commit γ deferred this component (case 4 swapped to a
+ * ResumeIntentCapture stub) due to vocabulary mismatch with the
+ * backend allowlist. Phase 5 Session 5.1 closed KI #54 + KI #56:
+ * the canonical 4-type vocabulary
+ * {human_per_article, human_full_archive, ai_retrieval, ai_training}
+ * is now wired end-to-end (frontend writer + backend allowlist +
+ * production data shape via scripts/5-1-vocab-migration-APPLY.sql).
+ * SetupV2.tsx case 4 re-dispatches <Step4Categorize/> as of 5.1.
  *
- * Replaces the Session 3.1 stub (ResumeIntentCapture). Single screen
- * with category picker (12 hardcoded + Other free-text) + 3 price
- * inputs (annual catalog, per-article AI, per-article human) + 3
- * license-type checkboxes (AI training / Retrieval / Human research)
- * + "Switch to retrieval-only mode" toggle that locks the AI training
- * checkbox per v2 spec.
+ * Single screen with category picker (12 hardcoded + Other free-text)
+ * + 3 price inputs (annual catalog, per-article AI, per-article
+ * human) + 3 license-type checkboxes (AI training / Retrieval /
+ * Human research) + "Switch to retrieval-only mode" toggle that
+ * locks the AI training checkbox per v2 spec.
  *
  * Persistence (per INVARIANTS.md "save_step_data is restricted to
  * setup_state='in_setup'... Post-onboarding data capture belongs in
@@ -25,13 +32,14 @@ import { CATEGORIES, OTHER_CATEGORY_ID } from "./categories";
  * Continue. NOT to wizard-state save_step_data.
  *
  * Canonical-field write correction vs legacy: writes to
- * pricing_rules.license_types.archive.price_annual (canonical;
- * create-checkout reads this for archive license purchases) NOT to
- * publishers.ai_annual_price (legacy top-level; create-checkout
- * archive path silently ignores it). Legacy was broken on archive
- * purchases — this v1 ships the fix. Existing publishers with
- * non-canonical ai_annual_price values retain those values until they
- * revisit Step 4.
+ * pricing_rules.license_types.human_full_archive.price_annual
+ * (canonical post-Phase-5.1; create-checkout reads this for archive
+ * license purchases) NOT to publishers.ai_annual_price (legacy
+ * top-level; create-checkout archive path silently ignores it).
+ * Pre-Phase-5.1 the same key was named 'archive' — the rename is a
+ * vocab migration, not a data-shape change. Existing publishers
+ * with non-canonical ai_annual_price values retain those values
+ * until they revisit Step 4.
  *
  * KNOWN_ISSUES #18 cleanup: Step 4 v1 does NOT write
  * publishers.ai_license_types (the deprecated shim from migration
@@ -91,11 +99,15 @@ interface PricingProfileSlice {
   default_human_price: number;
   default_ai_price: number;
   pricing_rules: {
+    // Phase 5 Session 5.1 canonical 4-type vocabulary. Pre-5.1
+    // names: 'human' / 'archive'. Backend allowlist at
+    // publisher-profile/index.ts:1574 enforces these as the only
+    // accepted keys; legacy names 400 post-5.1.
     license_types?: {
       ai_training?: { enabled?: boolean; [k: string]: unknown };
       ai_retrieval?: { enabled?: boolean; [k: string]: unknown };
-      human?: { enabled?: boolean; [k: string]: unknown };
-      archive?: { price_annual?: number; [k: string]: unknown };
+      human_per_article?: { enabled?: boolean; [k: string]: unknown };
+      human_full_archive?: { price_annual?: number; [k: string]: unknown };
       [k: string]: unknown;
     };
     [k: string]: unknown;
@@ -170,7 +182,7 @@ export function Step4Categorize() {
 
         // Prices: hydrate as strings (so empty input renders as "" not "0")
         const archive =
-          profile.pricing_rules?.license_types?.archive?.price_annual;
+          profile.pricing_rules?.license_types?.human_full_archive?.price_annual;
         if (typeof archive === "number" && archive > 0) {
           setAnnualPrice(String(archive));
         }
@@ -181,11 +193,13 @@ export function Step4Categorize() {
           setHumanPerArticle(String(profile.default_human_price));
         }
 
-        // License-type checkbox state — derive from pricing_rules
+        // License-type checkbox state — derive from pricing_rules.
+        // Phase 5.1 vocab: ai_training / ai_retrieval unchanged;
+        // human → human_per_article rename.
         const lt = profile.pricing_rules?.license_types ?? {};
         const aiTrainingEnabled = lt.ai_training?.enabled !== false;
         const aiRetrievalEnabled = lt.ai_retrieval?.enabled !== false;
-        const humanEnabled = lt.human?.enabled !== false;
+        const humanEnabled = lt.human_per_article?.enabled !== false;
         setAiTrainingChecked(aiTrainingEnabled);
         setAiRetrievalChecked(aiRetrievalEnabled);
         setHumanResearchChecked(humanEnabled);
@@ -236,16 +250,21 @@ export function Step4Categorize() {
 
       // Build pricing_rules.license_types payload — preserve any
       // pre-existing non-license-type pricing_rules keys we don't manage.
+      // Phase 5.1 canonical 4-type vocab:
+      //   human_per_article  ← was: 'human'    (per-article human research)
+      //   human_full_archive ← was: 'archive'  (annual catalog license)
+      //   ai_retrieval       (unchanged)
+      //   ai_training        (unchanged)
       const existingRules =
         loadState.kind === "ready" ? loadState.profile.pricing_rules : {};
       const existingLT = existingRules.license_types ?? {};
       const archiveBlock =
         annualPrice && Number(annualPrice) > 0
           ? {
-              ...(existingLT.archive ?? {}),
+              ...(existingLT.human_full_archive ?? {}),
               price_annual: Number(annualPrice),
             }
-          : existingLT.archive;
+          : existingLT.human_full_archive;
 
       const payload: Record<string, unknown> = {
         category: resolvedCategory,
@@ -267,11 +286,11 @@ export function Step4Categorize() {
               ...(existingLT.ai_retrieval ?? {}),
               enabled: aiRetrievalChecked,
             },
-            human: {
-              ...(existingLT.human ?? {}),
+            human_per_article: {
+              ...(existingLT.human_per_article ?? {}),
               enabled: humanResearchChecked,
             },
-            ...(archiveBlock ? { archive: archiveBlock } : {}),
+            ...(archiveBlock ? { human_full_archive: archiveBlock } : {}),
           },
         },
       };

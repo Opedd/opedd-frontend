@@ -228,7 +228,7 @@ describe("Step4Categorize — retrieval-only mode (block AI training)", () => {
 });
 
 describe("Step4Categorize — Continue submit", () => {
-  it("09. Continue PATCHes correct payload shape (canonical archive.price_annual; category; per-article prices; license_types) AND fires wizard.advance({})", async () => {
+  it("09. Continue PATCHes correct payload shape (Phase 5.1 canonical 4-type vocab; category; per-article prices; license_types) AND fires wizard.advance({})", async () => {
     const advance = vi.fn().mockResolvedValue({});
     mockHookReturn.mockReturnValue(defaultWizardState({ advance }));
     mockProfileFetch();
@@ -262,14 +262,16 @@ describe("Step4Categorize — Continue submit", () => {
     expect(payload.default_ai_price).toBe(75);
     expect(payload.default_human_price).toBe(12.5);
     // CRITICAL: annual catalog price writes to canonical
-    // pricing_rules.license_types.archive.price_annual (NOT legacy
-    // top-level publishers.ai_annual_price). create-checkout reads
+    // pricing_rules.license_types.human_full_archive.price_annual
+    // (Phase 5.1 vocab; pre-5.1 key was 'archive'). NOT legacy
+    // top-level publishers.ai_annual_price. create-checkout reads
     // from this canonical field for archive license purchases.
-    expect(payload.pricing_rules.license_types.archive.price_annual).toBe(60000);
-    // License types default-checked
+    expect(payload.pricing_rules.license_types.human_full_archive.price_annual).toBe(60000);
+    // License types default-checked. Phase 5.1 vocab: human →
+    // human_per_article rename; ai_training / ai_retrieval unchanged.
     expect(payload.pricing_rules.license_types.ai_training.enabled).toBe(true);
     expect(payload.pricing_rules.license_types.ai_retrieval.enabled).toBe(true);
-    expect(payload.pricing_rules.license_types.human.enabled).toBe(true);
+    expect(payload.pricing_rules.license_types.human_per_article.enabled).toBe(true);
 
     // Wizard advance fires after PATCH succeeds
     await waitFor(() => expect(advance).toHaveBeenCalledWith({}));

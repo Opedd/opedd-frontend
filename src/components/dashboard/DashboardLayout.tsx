@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Wallet, BarChart3, Settings, LogOut, Bell,
   ExternalLink, ChevronDown, CheckCheck, DollarSign, Shield,
-  RefreshCw, Menu, X, FileText, Zap, BookOpen, Scale, ShieldAlert,
+  RefreshCw, Menu, X, FileText, Zap, BookOpen, ShieldAlert,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -29,10 +29,12 @@ const planBadgeStyles: Record<PlanType, { classes: string; label: string }> = {
   enterprise: { classes: "bg-amber-50 text-amber-600", label: "Enterprise" },
 };
 
+// Phase 5.1 (2026-04-30): "Licensing" nav item hidden — see
+// DashboardSidebar.tsx + Licensing.tsx headers. Restore when the
+// Settings page revision ships (KI #66).
 const navItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: FileText },
-  { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/distribution", icon: Zap },

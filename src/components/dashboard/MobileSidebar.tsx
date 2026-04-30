@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen, Library, ShieldAlert, Scale } from "lucide-react";
+import { LayoutDashboard, Wallet, Zap, Settings, BarChart3, Menu, X, CreditCard, BookOpen, Library, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import opeddLogo from "@/assets/opedd-logo.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Phase 5.1 (2026-04-30): "Licensing" nav item hidden — see
+// DashboardSidebar.tsx + Licensing.tsx headers. Restore when the
+// Settings page revision ships (KI #66).
 const mainNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: Library },
-  { title: "Licensing", path: "/licensing", icon: Scale },
   { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
 ];
