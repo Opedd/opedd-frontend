@@ -166,4 +166,41 @@ describe("PublicationCard", () => {
     render(<PublicationCard publication={pub({ publicationUrl: null, logoUrl: null })} />);
     expect(screen.queryByRole("link", { name: /Visit/i })).not.toBeInTheDocument();
   });
+
+  // Phase 4.7.3 PFQ-6 (ii): secondary "Import content" link for established publishers.
+
+  it("renders secondary Import content link when verified+licenseCount>0", () => {
+    render(<PublicationCard publication={pub()} />);
+    // Two buttons: primary "View licenses" + secondary "Import content".
+    const buttons = screen.getAllByRole("button");
+    const importBtn = buttons.find((b) => /Import content/i.test(b.textContent ?? ""));
+    expect(importBtn).toBeDefined();
+  });
+
+  it("hides secondary Import content link when verified+licenseCount=0 (primary already Import content)", () => {
+    // Primary CTA IS import_content here; secondary would be a duplicate so we hide it.
+    render(<PublicationCard publication={pub({ licenseCount: 0, primaryCTA: "import_content" })} />);
+    const buttons = screen.getAllByRole("button");
+    const importBtns = buttons.filter((b) => /Import content/i.test(b.textContent ?? ""));
+    expect(importBtns.length).toBe(1); // primary only
+  });
+
+  it("hides secondary Import content link when not verified", () => {
+    render(<PublicationCard publication={pub({ verificationStatus: "pending", primaryCTA: "continue_setup" })} />);
+    const buttons = screen.getAllByRole("button");
+    const importBtns = buttons.filter((b) => /Import content/i.test(b.textContent ?? ""));
+    expect(importBtns.length).toBe(0);
+  });
+
+  it("clicking secondary Import content link fires onImportContent", () => {
+    const onImportContent = vi.fn();
+    render(<PublicationCard publication={pub()} onImportContent={onImportContent} />);
+    // pub() default has primaryCTA="view_licenses" — click the secondary.
+    const importBtn = screen
+      .getAllByRole("button")
+      .find((b) => /Import content/i.test(b.textContent ?? ""));
+    if (!importBtn) throw new Error("secondary Import content button not found");
+    fireEvent.click(importBtn);
+    expect(onImportContent).toHaveBeenCalledOnce();
+  });
 });

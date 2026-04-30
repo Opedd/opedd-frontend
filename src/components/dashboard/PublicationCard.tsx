@@ -192,6 +192,22 @@ export function PublicationCard({
           {ctaLabel}
         </Button>
 
+        {/* Phase 4.7.3 PFQ-6 (ii): secondary Import content link for verified+licenseCount>0
+            publishers, so established publishers can re-import without losing the primary
+            "View licenses" CTA. Skipped when primary IS already "Import content" (avoid dup). */}
+        {publication.verificationStatus === "verified" && publication.primaryCTA === "view_licenses" && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onImportContent?.()}
+            className="h-8 text-xs gap-1.5 text-gray-500 hover:text-navy-deep hover:bg-transparent"
+          >
+            <Upload size={12} />
+            Import content
+          </Button>
+        )}
+
         {publication.publicationUrl && (
           <Button
             variant="ghost"

@@ -1,35 +1,35 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePublication } from "@/hooks/usePublication";
 import { PublicationCard } from "@/components/dashboard/PublicationCard";
-import { SubstackImportCard } from "@/components/dashboard/SubstackImportCard";
+import { ImportContentModal } from "@/components/dashboard/ImportContentModal";
 import { WordPressPluginCard } from "@/components/dashboard/WordPressPluginCard";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/Spinner";
 
 /**
- * Phase 4.7.2 — SourcesView shrinks again. URL input bar + PlatformConnectModal
- * mount removed per OQ.3 (no add-source flow in v1). Closes KI #58 + #59.
+ * Phase 4.7.3 — SourcesView wires PublicationCard to the unified ImportContentModal
+ * per OQ.4 (single Import content CTA, multiple mechanisms inside).
  *
- * Phase 4.7.1 baseline (kept): one Vercel-style PublicationCard per publisher
- * account; SubstackImportCard + WordPressPluginCard preserved for content
- * import (4.7.3 will absorb both into a unified "Import content" CTA).
+ * State (PFQ-4 α): modal open/close lives here. Opened by PublicationCard's primary
+ * "Import content" CTA (verified + licenseCount=0) OR secondary "Import content"
+ * link (verified + licenseCount > 0; PFQ-6 ii).
  *
- * Phase 4.7.5 will fix KI #57 (SubstackImportCard upload click bug).
+ * SubstackImportCard absorbed into modal Upload-archive tab (PFQ-1 α). No longer
+ * mounted standalone in SourcesView.
+ *
+ * WordPressPluginCard left standalone per PFQ-3 α + KI #64 (WordPress integration
+ * scope undecided; cleanup-audit Phase 4.7.6 owns the WP go/no-go decision).
  */
 
 export function SourcesView() {
   const navigate = useNavigate();
   const { publication, isLoading, error, refetch } = usePublication();
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
-  const handleImportContent = () => {
-    document.getElementById("import-cards")?.scrollIntoView({ behavior: "smooth" });
-  };
-  const handleViewLicenses = () => {
-    navigate("/content");
-  };
-  const handleContinueSetup = () => {
-    navigate("/setup-v2");
-  };
+  const handleImportContent = () => setIsImportOpen(true);
+  const handleViewLicenses = () => navigate("/content");
+  const handleContinueSetup = () => navigate("/setup-v2");
   const handleContactSupport = () => {
     window.location.href = "mailto:support@opedd.com";
   };
@@ -73,10 +73,15 @@ export function SourcesView() {
         </div>
       )}
 
-      <div id="import-cards" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SubstackImportCard onImportComplete={() => void refetch()} />
-        <WordPressPluginCard />
-      </div>
+      {/* WordPressPluginCard kept standalone per PFQ-3 α + KI #64 — Phase 4.7.6 audit
+          owns the go/no-go on absorbing/removing/keeping WordPress integration. */}
+      <WordPressPluginCard />
+
+      <ImportContentModal
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onImportComplete={() => void refetch()}
+      />
     </div>
   );
 }

@@ -639,18 +639,12 @@ export default function Dashboard() {
             the legacy ImportProgressBanner — see KNOWN_ISSUES #29. */}
         <IngestionTracker mode="dashboard" onComplete={fetchMetrics} />
 
-        {/* Sources Section */}
+        {/* Sources Section — Phase 4.7.3: section-heading "Register content" button
+            removed per OQ.4 (single CTA via PublicationCard's "Import content" inside
+            SourcesView). Section heading kept for layout structure. */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[15px] font-semibold text-gray-900">Sources</h2>
-            <Button
-              size="sm"
-              onClick={() => navigate("/setup-v2?add=1")}
-              className="h-9 px-4 rounded-lg bg-oxford hover:bg-oxford-dark text-white text-sm font-medium"
-            >
-              <Plus size={15} className="mr-1.5 flex-shrink-0" />
-              Register content
-            </Button>
           </div>
           <SourcesView key={sourcesKey} />
         </div>
