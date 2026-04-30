@@ -85,11 +85,10 @@ describe("SetupBanner — state-to-copy mapping", () => {
     expect(screen.getByText(/Setup in progress — step 1 of 5/i)).toBeTruthy();
   });
 
-  it("4. renders connected copy WITHOUT a CTA when setup_state='connected'", () => {
+  it("4. returns null when setup_state='connected' (Phase 4.7.4 OQ.2 — no review queue exists)", () => {
     mockHookReturn.mockReturnValue(withState("connected"));
-    render(<Wrapper><SetupBanner /></Wrapper>);
-    expect(screen.getByText(/Your publication is connected\. Review pending — typically <24h\./i)).toBeTruthy();
-    expect(screen.queryByRole("button")).toBeNull();
+    const { container } = render(<Wrapper><SetupBanner /></Wrapper>);
+    expect(container.firstChild).toBeNull();
   });
 
   it("5. returns null when setup_state='verified' (Welcome.tsx owns the celebration)", () => {

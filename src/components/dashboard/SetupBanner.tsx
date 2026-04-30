@@ -82,10 +82,11 @@ function buildContent(
       };
     }
     case "connected":
-      return {
-        title: "Your publication is connected. Review pending — typically <24h.",
-        variant: VARIANT_INFO,
-      };
+      // Phase 4.7.4 (OQ.2): "Review pending — typically <24h" copy removed per
+      // trust-from-day-1 soft-launch posture (2026-04-29). No admin review queue
+      // exists; banner stays out for connected state, mirroring verified pattern.
+      // PublicationCard's verification badge conveys actual marketplace state.
+      return null;
     case "verified":
       // Celebration moment owned by Welcome.tsx (Session 1.9). Banner stays out.
       return null;

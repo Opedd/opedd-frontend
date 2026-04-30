@@ -156,7 +156,10 @@ describe("SetupV2 — state-driven step routing", () => {
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
     expect(screen.getByRole("heading", { name: /Your setup is complete/i })).toBeTruthy();
-    expect(screen.getByText(/Review pending/i)).toBeTruthy();
+    // Phase 4.7.4 (OQ.2): "Review pending" copy removed; the heading + Go to
+    // dashboard CTA are the only TerminalState content for connected state.
+    expect(screen.queryByText(/Review pending/i)).toBeNull();
+    expect(screen.getByRole("link", { name: /Go to dashboard/i })).toBeTruthy();
   });
 
   it("renders TerminalState 'suspended' for setup_state='suspended'", () => {
