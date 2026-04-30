@@ -37,19 +37,30 @@ describe("ImportContentModal", () => {
   // Radix's pointer-event model). Tab triggers + default-tab content are tested
   // above; runtime behavior verified via live-flow gate.
 
-  it("onImportComplete callback fires + modal auto-closes when SubstackImportCard signals success", () => {
-    const onOpenChange = vi.fn();
-    const onImportComplete = vi.fn();
-    render(
-      <ImportContentModal
-        open={true}
-        onOpenChange={onOpenChange}
-        onImportComplete={onImportComplete}
-      />,
-    );
-    fireEvent.click(screen.getByText("mock-trigger-import-complete"));
-    expect(onImportComplete).toHaveBeenCalledOnce();
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+  it("onImportComplete callback fires immediately; modal auto-closes after 2.5s delay (PFQ-C)", () => {
+    vi.useFakeTimers();
+    try {
+      const onOpenChange = vi.fn();
+      const onImportComplete = vi.fn();
+      render(
+        <ImportContentModal
+          open={true}
+          onOpenChange={onOpenChange}
+          onImportComplete={onImportComplete}
+        />,
+      );
+      fireEvent.click(screen.getByText("mock-trigger-import-complete"));
+      // onImportComplete fires immediately (callback chain to parent runs sync)
+      expect(onImportComplete).toHaveBeenCalledOnce();
+      // Modal close is delayed 2.5s — banner inside SubstackImportCard renders during the window
+      expect(onOpenChange).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(2499);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("renders modal title and description", () => {

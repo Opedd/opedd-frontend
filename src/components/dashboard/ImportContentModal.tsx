@@ -30,8 +30,11 @@ export interface ImportContentModalProps {
 export function ImportContentModal({ open, onOpenChange, onImportComplete }: ImportContentModalProps) {
   const handleImportComplete = () => {
     onImportComplete?.();
-    // Auto-close on successful import; founder can dismiss manually otherwise.
-    onOpenChange(false);
+    // Phase 4.7.5 PFQ-C: 2.5s delay before auto-close so the success banner
+    // inside SubstackImportCard renders visibly. Combined with the global
+    // success toast (PFQ-A iii) — banner gives in-context confirmation,
+    // toast survives modal close as redundancy.
+    setTimeout(() => onOpenChange(false), 2500);
   };
 
   return (

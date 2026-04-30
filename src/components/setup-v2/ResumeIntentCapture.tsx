@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import * as Sentry from "@sentry/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWizardState } from "@/hooks/useWizardState";
@@ -54,6 +55,19 @@ interface ResumeIntentCaptureProps {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Phase 4.7.5 PFQ-D: 15s timeout on wizard.advance({}) / saveStepData calls.
+// Defensive against silent Promise non-resolution (KI #65 watch-item).
+const WIZARD_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms),
+    ),
+  ]);
+}
+
 export function ResumeIntentCapture({
   stepLabel,
   title,
@@ -80,17 +94,22 @@ export function ResumeIntentCapture({
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await wizard.saveStepData({
-        wizard_resume_intent: {
-          ...existing,
-          [stepLabel]: {
-            email: email.trim().toLowerCase(),
-            captured_at: new Date().toISOString(),
+      await withTimeout(
+        wizard.saveStepData({
+          wizard_resume_intent: {
+            ...existing,
+            [stepLabel]: {
+              email: email.trim().toLowerCase(),
+              captured_at: new Date().toISOString(),
+            },
           },
-        },
-      });
+        }),
+        WIZARD_TIMEOUT_MS,
+        "saveStepData",
+      );
       setSubmitted(true);
     } catch (err) {
+      Sentry.captureException(err, { tags: { component: "ResumeIntentCapture", action: "submit" } });
       setSubmitError(
         err instanceof Error ? err.message : "Failed to save — please try again",
       );
@@ -104,14 +123,18 @@ export function ResumeIntentCapture({
     setSkipping(true);
     setSubmitError(null);
     try {
-      await wizard.advance({});
-      // SetupV2 routing re-renders to next step on the next paint;
-      // this component unmounts before the spinner resolves.
+      await withTimeout(wizard.advance({}), WIZARD_TIMEOUT_MS, "advance");
+      // SetupV2 routing re-renders to next step on the next paint and
+      // unmounts this component on success. The finally block below is
+      // defensive (KI #65 watch-item): if advance succeeds but the parent
+      // doesn't re-render OR the timeout fires, the spinner still resets.
     } catch (err) {
-      setSkipping(false);
+      Sentry.captureException(err, { tags: { component: "ResumeIntentCapture", action: "skip" } });
       setSubmitError(
         err instanceof Error ? err.message : "Couldn't skip — please try again",
       );
+    } finally {
+      setSkipping(false);
     }
   };
 

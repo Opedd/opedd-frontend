@@ -312,5 +312,44 @@ describe("ResumeIntentCapture", () => {
         expect(screen.getByText(/Network unreachable/i)).toBeTruthy();
       });
     });
+
+    // Phase 4.7.5 PFQ-D: 15s timeout on wizard.advance defensive against silent hang (KI #65 mitigation).
+    it("Skip handler timeout fires after 15s when advance hangs — surfaces error + resets spinner", async () => {
+      vi.useFakeTimers();
+      try {
+        // advance never resolves — simulates the KI #65 silent-hang scenario.
+        const advance = vi.fn().mockReturnValue(new Promise(() => {}));
+        mockHookReturn.mockReturnValue(defaultState({ advance }));
+        render(
+          <Wrapper>
+            <ResumeIntentCapture
+              stepLabel="step3-model-perception"
+              title="Step 3"
+              message="msg"
+              allowAdvance={true}
+            />
+          </Wrapper>,
+        );
+        fireEvent.click(screen.getByRole("button", { name: /Skip for now/i }));
+        // Spinner is showing immediately
+        expect(
+          screen.getByRole("button", { name: /Skipping…/i }),
+        ).toBeTruthy();
+
+        // Advance fake clock to fire the 15s timeout.
+        await vi.advanceTimersByTimeAsync(15_000);
+        // Drain microtasks so the rejection propagates through the catch block + finally.
+        await vi.runAllTimersAsync();
+
+        // Error message surfaces
+        expect(advance).toHaveBeenCalledTimes(1);
+        // Spinner reset (button reads "Skip for now" again, not "Skipping…")
+        expect(
+          screen.getByRole("button", { name: /Skip for now/i }),
+        ).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });
