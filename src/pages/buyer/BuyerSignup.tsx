@@ -217,7 +217,20 @@ export default function BuyerSignup() {
                 </div>
                 <div>
                   <Label htmlFor="contact_email">Contact email</Label>
-                  <Input id="contact_email" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} required />
+                  <Input
+                    id="contact_email"
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    required
+                    readOnly={!!user}
+                    className={user ? "bg-gray-50 cursor-not-allowed" : undefined}
+                  />
+                  {user && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Tied to your <span className="font-mono">{user.email}</span> session.
+                    </p>
+                  )}
                 </div>
                 <label className="flex items-start gap-2 rounded-lg border border-gray-200 p-3 cursor-pointer">
                   <Checkbox checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
