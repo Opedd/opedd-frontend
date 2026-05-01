@@ -23,7 +23,7 @@ describe("buyerApi", () => {
   describe("getBuyerAccount", () => {
     it("returns the profile when the request succeeds", async () => {
       mockEdgeFetch.mockResolvedValueOnce({
-        buyer: { id: "b1", name: "Test", organization: null, contact_email: "t@x.com", accepted_terms_at: null, terms_version: null, created_at: "2026-05-01T00:00:00Z" },
+        buyer: { id: "b1", name: "Test", organization: null, first_name: null, last_name: null, company_name: null, company_website: null, buyer_type: null, country_of_incorporation: null, contact_email: "t@x.com", accepted_terms_at: null, terms_version: null, public_attribution_consent: false, created_at: "2026-05-01T00:00:00Z" },
         keys: [],
       });
       const profile = await getBuyerAccount("jwt-token");
@@ -49,20 +49,24 @@ describe("buyerApi", () => {
     });
   });
 
-  describe("signupBuyer", () => {
-    it("posts the signup action with all required fields", async () => {
+  describe("signupBuyer (Phase 5.2.3 expanded payload)", () => {
+    it("posts the signup action with all 8 required fields", async () => {
       mockEdgeFetch.mockResolvedValueOnce({
-        buyer: { id: "b1", name: "n", organization: null, contact_email: "x@y.com", accepted_terms_at: null, terms_version: "v1", created_at: "" },
+        buyer: { id: "b1", name: null, organization: null, first_name: "Jane", last_name: "Smith", company_name: "Acme", company_website: "https://acme.ai", buyer_type: "ai_retrieval", country_of_incorporation: "US", contact_email: "x@y.com", accepted_terms_at: null, terms_version: "2026-05-02", public_attribution_consent: false, created_at: "" },
         key: "opedd_buyer_live_abc",
         key_id: "k1",
         key_prefix: "abc",
         environment: "live",
       });
       await signupBuyer("jwt", {
-        name: "Jane",
-        organization: "Acme",
+        first_name: "Jane",
+        last_name: "Smith",
+        company_name: "Acme",
+        company_website: "https://acme.ai",
+        buyer_type: "ai_retrieval",
+        country_of_incorporation: "US",
         contact_email: "jane@acme.example",
-        terms_version: "2026-05-01",
+        terms_version: "2026-05-02",
       });
       expect(mockEdgeFetch).toHaveBeenCalledWith(
         "https://api.opedd.com/buyer-account",
@@ -70,10 +74,14 @@ describe("buyerApi", () => {
           method: "POST",
           body: JSON.stringify({
             action: "signup",
-            name: "Jane",
-            organization: "Acme",
+            first_name: "Jane",
+            last_name: "Smith",
+            company_name: "Acme",
+            company_website: "https://acme.ai",
+            buyer_type: "ai_retrieval",
+            country_of_incorporation: "US",
             contact_email: "jane@acme.example",
-            terms_version: "2026-05-01",
+            terms_version: "2026-05-02",
           }),
         }),
         "jwt",

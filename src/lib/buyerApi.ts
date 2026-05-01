@@ -17,16 +17,47 @@ const BUYER_ACCOUNT_URL = "https://api.opedd.com/buyer-account";
 
 // ─── Types — mirror buyer-account index.ts response shapes ─────────
 
+// Phase 5.2.3: buyer_type enum mirroring the backend CHECK constraint
+// in migration 081. Single source of truth for the form select options.
+export const BUYER_TYPES = [
+  "ai_training",
+  "ai_retrieval",
+  "editorial_republish",
+  "research_academic",
+  "other",
+] as const;
+
+export type BuyerType = typeof BUYER_TYPES[number];
+
+export const BUYER_TYPE_LABELS: Record<BuyerType, string> = {
+  ai_training: "AI training",
+  ai_retrieval: "AI retrieval (RAG)",
+  editorial_republish: "Editorial republish",
+  research_academic: "Research / academic",
+  other: "Other",
+};
+
 export interface Buyer {
   id: string;
-  name: string;
+  // Legacy single-name + organization (pre-Phase-5.2.3; null for new
+  // signups, populated for the row that pre-dates migration 081).
+  name: string | null;
   organization: string | null;
+  // Phase 5.2.3 — richer identity. Required at signup post-2026-05-02;
+  // null for legacy rows pre-2026-05-02 (surfaced as "Complete profile"
+  // prompt in BuyerAccount).
+  first_name: string | null;
+  last_name: string | null;
+  company_name: string | null;
+  company_website: string | null;
+  buyer_type: BuyerType | null;
+  country_of_incorporation: string | null;  // ISO 3166-1 alpha-2
   contact_email: string;
   accepted_terms_at: string | null;
   terms_version: string | null;
   // Phase 5.3-attribution: privacy-by-default toggle. When true,
   // publishers whose content this buyer licenses see the buyer's
-  // organization name in their /insights Licensees section.
+  // company_name in their /insights Licensees section.
   // When false (default), publishers see "AI Lab #N" mask only.
   public_attribution_consent: boolean;
   created_at: string;
@@ -97,9 +128,17 @@ export async function getBuyerAccount(accessToken: string): Promise<BuyerProfile
   }
 }
 
+// Phase 5.2.3 signup payload — replaces single name + optional organization
+// with the 6-field richer identity. All fields are required at the
+// validation-layer; the backend rejects partial payloads with field-specific
+// 400 errors.
 export interface SignupParams {
-  name: string;
-  organization?: string | null;
+  first_name: string;
+  last_name: string;
+  company_name: string;
+  company_website: string;
+  buyer_type: BuyerType;
+  country_of_incorporation: string;  // ISO 3166-1 alpha-2 (e.g. "US", "GB")
   contact_email: string;
   terms_version: string;
 }
@@ -148,8 +187,16 @@ export async function revokeBuyerKey(accessToken: string, params: RevokeKeyParam
 }
 
 export interface PatchBuyerParams {
+  // Legacy fields (pre-Phase-5.2.3; still updatable for backward compat).
   name?: string;
   organization?: string | null;
+  // Phase 5.2.3 — richer identity. All accept null to allow clearing.
+  first_name?: string | null;
+  last_name?: string | null;
+  company_name?: string | null;
+  company_website?: string | null;
+  buyer_type?: BuyerType | null;
+  country_of_incorporation?: string | null;
   public_attribution_consent?: boolean;
 }
 

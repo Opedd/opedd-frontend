@@ -158,6 +158,7 @@ export default function Privacy() {
                 <h2 className="text-xl font-semibold text-navy-deep mt-8 mb-3">2. Data We Collect</h2>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Account data:</strong> email address, name, organisation name when you register</li>
+                  <li><strong>Buyer signup data (from 2 May 2026):</strong> first and last name, company name, company website, intended use category (e.g. AI training, RAG retrieval, editorial reuse, research), and country of incorporation. Collected once at buyer signup to support tax compliance (EU VAT), AI Act applicability, and Phase 5.4 metered-billing tier shaping.</li>
                   <li><strong>Transaction data:</strong> buyer email, name, organisation, intended use, license type, and amount for each license purchase</li>
                   <li><strong>Payment data:</strong> processed entirely by Stripe — we never store card numbers</li>
                   <li><strong>Usage data:</strong> pages visited, features used, timestamps — collected to improve the Service</li>
