@@ -47,7 +47,6 @@ const LicenseByUrl = lazy(() => import("./pages/LicenseByUrl"));
 const LicenseVerify = lazy(() => import("./pages/LicenseVerify"));
 const LicenseSuccess = lazy(() => import("./pages/LicenseSuccess"));
 const PublisherLicensingPage = lazy(() => import("./pages/PublisherLicensingPage"));
-const ArchiveLicenseCheckout = lazy(() => import("./pages/ArchiveLicenseCheckout"));
 const Licenses = lazy(() => import("./pages/Licenses"));
 const MyLicenses = lazy(() => import("./pages/MyLicenses"));
 
@@ -143,7 +142,6 @@ const App = () => (
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/licenses" element={<Licenses />} />
                 <Route path="/my-licenses" element={<MyLicenses />} />
-                <Route path="/archive/:publisher_id" element={<ArchiveLicenseCheckout />} />
                 <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                 <Route path="/enterprise" element={<Enterprise />} />
                 <Route path="/for-ai-agents" element={<ForAiAgents />} />

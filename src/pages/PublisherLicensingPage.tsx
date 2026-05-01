@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FileText,
-  Archive,
   Cpu,
   Brain,
   Share2,
@@ -11,12 +10,9 @@ import {
   Search,
   CheckCircle,
   Globe,
-  Loader2,
-  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -25,13 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Spinner } from "@/components/ui/Spinner";
@@ -50,7 +39,6 @@ interface LicenseTypeConfig {
 interface PricingRules {
   license_types?: {
     editorial?: LicenseTypeConfig;
-    archive?: LicenseTypeConfig;
     ai_retrieval?: LicenseTypeConfig;
     ai_training?: LicenseTypeConfig;
     corporate?: LicenseTypeConfig;
@@ -229,15 +217,6 @@ export default function PublisherLicensingPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
-  // Archive checkout modal state
-  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
-  const [archiveName, setArchiveName] = useState("");
-  const [archiveEmail, setArchiveEmail] = useState("");
-  const [archiveOrg, setArchiveOrg] = useState("");
-  const [archiveUse, setArchiveUse] = useState("");
-  const [archiveSubmitting, setArchiveSubmitting] = useState(false);
-  const [archiveError, setArchiveError] = useState<string | null>(null);
-
   const slug = publisherSlug ?? "";
 
   const fetchPublisher = useCallback(async () => {
@@ -372,19 +351,6 @@ export default function PublisherLicensingPage() {
       });
     }
 
-    // Archive
-    if (lt?.archive?.enabled && lt.archive.price_annual && lt.archive.price_annual > 0) {
-      cards.push({
-        icon: <Archive size={20} />,
-        label: "Archive License",
-        description: `Full catalog access — all ${pub.article_count} articles`,
-        price: `$${lt.archive.price_annual}/year`,
-        cta: "License Archive",
-        onAction: () => setArchiveModalOpen(true),
-        colorClass: "bg-blue-600",
-      });
-    }
-
     // AI / RAG
     if (lt?.ai_retrieval?.enabled && lt.ai_retrieval.price_monthly && lt.ai_retrieval.price_monthly > 0) {
       cards.push({
@@ -489,39 +455,6 @@ export default function PublisherLicensingPage() {
       </div>
     );
   }
-
-  const handleArchiveSubmit = async () => {
-    if (!publisher) return;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!archiveName.trim()) { setArchiveError("Full name is required."); return; }
-    if (!archiveEmail || !emailRegex.test(archiveEmail)) { setArchiveError("Valid email is required."); return; }
-    if (!archiveOrg.trim()) { setArchiveError("Organization is required."); return; }
-    if (!archiveUse) { setArchiveError("Please select your intended use."); return; }
-    setArchiveError(null);
-    setArchiveSubmitting(true);
-    try {
-      const res = await fetch(`${EXT_SUPABASE_URL}/create-checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY },
-        body: JSON.stringify({
-          publisher_id: publisher.id,
-          license_type: "archive",
-          buyer_email: archiveEmail,
-          buyer_name: archiveName,
-          buyer_organization: archiveOrg,
-          intended_use: archiveUse,
-          return_url: window.location.href,
-        }),
-      });
-      const result = await res.json();
-      if (!res.ok || !result.success) throw new Error(result.error || "Checkout failed");
-      if (!result.data?.checkout_url) throw new Error("Invalid checkout response");
-      window.location.href = result.data.checkout_url;
-    } catch (err: unknown) {
-      setArchiveError(err instanceof Error ? err.message : "Something went wrong");
-      setArchiveSubmitting(false);
-    }
-  };
 
   const cards = buildCards(publisher);
   const mailto = getMailtoLink(publisher.website_url, publisher.name, publisher.contact_email);
@@ -740,68 +673,6 @@ export default function PublisherLicensingPage() {
           )}
         </div>
       </div>
-
-      {/* Archive Checkout Modal */}
-      <Dialog open={archiveModalOpen} onOpenChange={(open) => { setArchiveModalOpen(open); setArchiveError(null); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Archive License — {publisher.name}</DialogTitle>
-            <DialogDescription>
-              Full catalog access for 1 year ·{" "}
-              <span className="font-semibold text-gray-900">
-                ${publisher.pricing_rules?.license_types?.archive?.price_annual}/year
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-500">Full Name *</Label>
-              <Input placeholder="Jane Smith" value={archiveName} onChange={e => { setArchiveName(e.target.value); setArchiveError(null); }} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-500">Email Address *</Label>
-              <Input type="email" placeholder="jane@example.com" value={archiveEmail} onChange={e => { setArchiveEmail(e.target.value); setArchiveError(null); }} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-500">Organization *</Label>
-              <Input placeholder="Acme Corp" value={archiveOrg} onChange={e => { setArchiveOrg(e.target.value); setArchiveError(null); }} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-500">Intended Use *</Label>
-              <div className="relative">
-                <select
-                  value={archiveUse}
-                  onChange={e => { setArchiveUse(e.target.value); setArchiveError(null); }}
-                  className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                >
-                  <option value="" disabled>Select intended use…</option>
-                  <option value="editorial">Editorial / Journalism</option>
-                  <option value="commercial">Commercial Use</option>
-                  <option value="ai_training">AI Model Training</option>
-                  <option value="corporate">Corporate / Internal</option>
-                  <option value="personal">Personal Research</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-            {archiveError && <p className="text-sm text-red-500">{archiveError}</p>}
-            <Button
-              onClick={handleArchiveSubmit}
-              disabled={archiveSubmitting}
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-            >
-              {archiveSubmitting ? (
-                <><Spinner size="md" className="mr-2" />Redirecting to payment…</>
-              ) : (
-                `Pay $${publisher.pricing_rules?.license_types?.archive?.price_annual}/year · Secure License`
-              )}
-            </Button>
-            <p className="text-xs text-gray-400 text-center">
-              Secured by Stripe · License issued instantly after payment
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* SECTION 4 — Footer strip */}
       <footer className="bg-gray-50 border-t border-gray-200 py-4 mt-8">
