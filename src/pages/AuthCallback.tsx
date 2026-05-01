@@ -36,6 +36,30 @@ export default function AuthCallback() {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let subscription: ReturnType<typeof supabase.auth.onAuthStateChange>["data"]["subscription"] | null = null;
 
+    // KI #80 Part 1 follow-up (2026-05-01): detect Supabase Auth
+    // error redirects at top-of-effect and route directly to friendly
+    // error UI. Expired/consumed magic links produce URLs like
+    // /auth/callback?error=access_denied&error_code=otp_expired ;
+    // without this short-circuit, the SDK auto-detect attempts to
+    // process the error URL (raising an internal AbortError caught
+    // by Sentry's browserTracingIntegration) AND the user waits the
+    // 5-second timeout before seeing a generic "link may have
+    // expired" message. Detecting the error params immediately
+    // gives instant friendly feedback.
+    const params = new URLSearchParams(window.location.search);
+    const errorCode = params.get("error_code");
+    const errorParam = params.get("error");
+    if (errorCode || errorParam) {
+      const friendly =
+        errorCode === "otp_expired"
+          ? "Your sign-in link has expired. Please request a new one."
+          : "Sign-in could not be completed. Please try again.";
+      setErrorMsg(friendly);
+      setStatus("error");
+      setTimeout(() => navigate("/login", { replace: true }), 3000);
+      return;
+    }
+
     // Snapshot URL detection at mount-time. The SDK's auto-detect
     // clears the URL hash/query after exchange; capture before that.
     const isNewUser = window.location.href.includes("type=signup") || window.location.href.includes("confirmation_token");
