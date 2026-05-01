@@ -1,8 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
+
+// KI #80 fix (2026-05-01): the previous implementation called
+// supabase.auth.exchangeCodeForSession(window.location.href) manually
+// inside this useEffect. That collided with the SDK's automatic
+// auto-detect (detectSessionInUrl=true default in client.ts), causing
+// two concurrent token-exchange requests against the same single-use
+// magic-link code. The SDK's internal request manager aborted one,
+// surfacing as `AbortError: signal is aborted without reason`.
+//
+// Fix: let the SDK auto-detect handle the exchange (single source of
+// truth). This component just waits for the SIGNED_IN event via the
+// auth-state subscription, with a getSession() fast-path for the case
+// where the SDK has already resolved by the time React mounts. No
+// manual exchangeCodeForSession call.
+//
+// Affects: all flows hitting /auth/callback — publisher Google OAuth
+// (Login.tsx + Signup.tsx), publisher email confirmation (Signup.tsx),
+// buyer magic-link (BuyerSignup.tsx — Phase 5.2.2). The race was
+// latent for publishers (signInWithPassword bypasses callback; OAuth
+// wins the race more often; 3-sec error redirect is forgiving) but
+// surfaced reliably for buyer magic-link in incognito (Sentry ID
+// a796cb555e3f4e3c9e8aa93c8a11a522).
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -10,39 +32,80 @@ export default function AuthCallback() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        // Exchange the code/token from the URL for a session
-        const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+    let resolved = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let subscription: ReturnType<typeof supabase.auth.onAuthStateChange>["data"]["subscription"] | null = null;
 
-        if (error) {
-          // If code exchange fails, the URL might use hash-based tokens
-          // which are handled automatically by the Supabase client
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            setStatus("success");
-            const isNewUser = !!(window.location.href.includes("type=signup") || window.location.href.includes("confirmation_token"));
-            setTimeout(() => navigate(isNewUser ? "/welcome" : "/dashboard", { replace: true }), 1500);
-            return;
-          }
-          throw error;
-        }
+    // Snapshot URL detection at mount-time. The SDK's auto-detect
+    // clears the URL hash/query after exchange; capture before that.
+    const isNewUser = window.location.href.includes("type=signup") || window.location.href.includes("confirmation_token");
 
-        setStatus("success");
-        // New signups land on /welcome (referral capture); returning users go direct to dashboard.
-        // /welcome itself self-redirects to /dashboard if welcome_completed_at is already set,
-        // so this is safe even if the URL params are missed and every user hits /welcome.
-        const isNewUser = !!(window.location.href.includes("type=signup") || window.location.href.includes("confirmation_token"));
-        setTimeout(() => navigate(isNewUser ? "/welcome" : "/dashboard", { replace: true }), 1500);
-      } catch (err) {
-        console.error("[AuthCallback] Error:", err);
-        setErrorMsg(err instanceof Error ? err.message : "Verification failed");
-        setStatus("error");
-        setTimeout(() => navigate("/login", { replace: true }), 3000);
-      }
+    // Honor ?next= query param if present (Phase 5.2.2 BuyerSignup.tsx
+    // passes ?next=/buyer/signup so the buyer lands on signup form
+    // instead of /welcome publisher-onboarding). Hardened against
+    // open-redirect bypasses:
+    //   - startsWith("/")  rejects absolute URLs (https://evil.com/...)
+    //   - !startsWith("//") rejects protocol-relative URLs (//evil.com/...
+    //                       which the browser treats as evil.com)
+    //   - !includes("\\")  rejects backslash-escape bypasses
+    const urlNext = new URLSearchParams(window.location.search).get("next");
+    const safeNext =
+      urlNext &&
+      urlNext.startsWith("/") &&
+      !urlNext.startsWith("//") &&
+      !urlNext.includes("\\")
+        ? urlNext
+        : null;
+
+    const cleanup = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      subscription?.unsubscribe();
     };
 
-    handleCallback();
+    const finish = () => {
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      setStatus("success");
+      const dest = safeNext ?? (isNewUser ? "/welcome" : "/dashboard");
+      setTimeout(() => navigate(dest, { replace: true }), 1500);
+    };
+
+    const fail = (msg: string) => {
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      console.error("[AuthCallback] Error:", msg);
+      setErrorMsg(msg || "Verification failed");
+      setStatus("error");
+      setTimeout(() => navigate("/login", { replace: true }), 3000);
+    };
+
+    // 1. Fast path: the SDK may have already auto-exchanged the code
+    //    by the time React mounts. If a session exists, finish.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (resolved) return;
+      if (session) {
+        finish();
+        return;
+      }
+
+      // 2. Wait for the SDK's auto-exchange to complete. Subscribe to
+      //    the auth-state stream; SIGNED_IN fires once the token
+      //    request resolves.
+      const { data } = supabase.auth.onAuthStateChange((event, sess) => {
+        if (event === "SIGNED_IN" && sess) finish();
+      });
+      subscription = data.subscription;
+
+      // 3. Timeout fallback: if SIGNED_IN doesn't fire within 5s, the
+      //    code is invalid/expired or the URL doesn't carry one.
+      timeoutId = setTimeout(() => fail("The link may have expired or is invalid"), 5000);
+    }).catch((err) => {
+      fail(err instanceof Error ? err.message : "Verification failed");
+    });
+
+    return cleanup;
   }, [navigate]);
 
   return (
