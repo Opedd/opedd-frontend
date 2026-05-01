@@ -3,6 +3,7 @@ import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import {
   TrendingUp, FileCheck, Sparkles, User, Loader2, BarChart3, AlertTriangle, ArrowUp, ArrowDown,
+  Users,
 } from "lucide-react";
 import { decodeText } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -16,6 +17,10 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
+import { getPublisherLicensees, type Licensee } from "@/lib/publisherLicenseesApi";
+import { LicenseeRow } from "@/components/dashboard/LicenseeRow";
+import { LicenseesEmptyState } from "@/components/dashboard/LicenseesEmptyState";
+import { LicenseeDetailsModal } from "@/components/dashboard/LicenseeDetailsModal";
 
 interface RevenueDay { date: string; revenue: number; count: number; }
 interface TopArticle { id: string; title: string; revenue: number; count: number; }
@@ -43,6 +48,13 @@ export default function Insights() {
   const [licenseTypeSplit, setLicenseTypeSplit] = useState<LicenseTypeSplit>({ human: 0, ai: 0 });
   const [periodComparison, setPeriodComparison] = useState<PeriodComparison | null>(null);
   const [hasData, setHasData] = useState(false);
+
+  // Phase 5.3-attribution: Licensees section state.
+  const [licensees, setLicensees] = useState<Licensee[]>([]);
+  const [publisherId, setPublisherId] = useState<string | null>(null);
+  const [licenseesLoading, setLicenseesLoading] = useState(true);
+  const [licenseesError, setLicenseesError] = useState(false);
+  const [activeLicensee, setActiveLicensee] = useState<Licensee | null>(null);
 
   const fetchInsights = useCallback(async () => {
     if (!user) return;
@@ -90,6 +102,26 @@ export default function Insights() {
   }, [user, getAccessToken]);
 
   useEffect(() => { fetchInsights(); }, [fetchInsights]);
+
+  // Phase 5.3-attribution: fetch licensees data.
+  const fetchLicensees = useCallback(async () => {
+    if (!user) return;
+    setLicenseesLoading(true);
+    setLicenseesError(false);
+    try {
+      const token = await getAccessToken();
+      if (!token) { setLicenseesLoading(false); return; }
+      const result = await getPublisherLicensees(token);
+      setLicensees(result.licensees);
+      setPublisherId(result.publisher_id);
+    } catch (err) {
+      console.warn("[Insights] licensees fetch failed:", err);
+      setLicenseesError(true);
+    } finally {
+      setLicenseesLoading(false);
+    }
+  }, [user, getAccessToken]);
+  useEffect(() => { fetchLicensees(); }, [fetchLicensees]);
 
   if (!user) return null;
 
@@ -276,7 +308,42 @@ export default function Insights() {
             </motion.div>
           </>
         )}
+
+        {/* Phase 5.3-attribution: Licensees section.
+            Renders for all publishers regardless of `hasData` (transactions
+            exist) — a publisher with enterprise-license attribution may
+            have zero individual `license_transactions` but real licensees. */}
+        <motion.div variants={itemVariants} className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
+          <div className="p-5 border-b border-gray-200 flex items-center gap-2">
+            <Users size={16} className="text-oxford" />
+            <h2 className="font-bold text-gray-900 text-lg">Licensees</h2>
+            <p className="text-sm text-gray-500 ml-auto">
+              {licenseesLoading ? "" : `${licensees.length} ${licensees.length === 1 ? "buyer" : "buyers"}`}
+            </p>
+          </div>
+          {licenseesLoading ? (
+            <div className="p-8 flex items-center justify-center">
+              <Loader2 size={20} className="animate-spin text-gray-300" />
+            </div>
+          ) : licenseesError ? (
+            <div className="p-8 text-center">
+              <AlertTriangle size={20} className="mx-auto text-red-600 mb-2" />
+              <p className="text-sm text-gray-500">Failed to load licensees.</p>
+              <button onClick={fetchLicensees} className="mt-2 text-xs font-semibold text-oxford hover:underline">Try again</button>
+            </div>
+          ) : licensees.length === 0 ? (
+            publisherId ? <LicenseesEmptyState publisherId={publisherId} /> : null
+          ) : (
+            <div>
+              {licensees.map((l, i) => (
+                <LicenseeRow key={`${l.display_name}-${i}`} licensee={l} onViewDetails={setActiveLicensee} />
+              ))}
+            </div>
+          )}
+        </motion.div>
       </motion.div>
+
+      <LicenseeDetailsModal licensee={activeLicensee} onClose={() => setActiveLicensee(null)} />
     </DashboardLayout>
   );
 }

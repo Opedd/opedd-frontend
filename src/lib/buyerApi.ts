@@ -24,6 +24,11 @@ export interface Buyer {
   contact_email: string;
   accepted_terms_at: string | null;
   terms_version: string | null;
+  // Phase 5.3-attribution: privacy-by-default toggle. When true,
+  // publishers whose content this buyer licenses see the buyer's
+  // organization name in their /insights Licensees section.
+  // When false (default), publishers see "AI Lab #N" mask only.
+  public_attribution_consent: boolean;
   created_at: string;
 }
 
@@ -145,6 +150,7 @@ export async function revokeBuyerKey(accessToken: string, params: RevokeKeyParam
 export interface PatchBuyerParams {
   name?: string;
   organization?: string | null;
+  public_attribution_consent?: boolean;
 }
 
 export async function patchBuyer(accessToken: string, params: PatchBuyerParams): Promise<{ buyer: Buyer }> {

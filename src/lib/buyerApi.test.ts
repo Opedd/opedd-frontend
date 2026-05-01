@@ -126,7 +126,7 @@ describe("buyerApi", () => {
 
   describe("patchBuyer", () => {
     it("uses PATCH method with the supplied fields", async () => {
-      mockEdgeFetch.mockResolvedValueOnce({ buyer: { id: "b1", name: "Updated", organization: "Acme", contact_email: "x@y.com", accepted_terms_at: null, terms_version: null, created_at: "" } });
+      mockEdgeFetch.mockResolvedValueOnce({ buyer: { id: "b1", name: "Updated", organization: "Acme", contact_email: "x@y.com", accepted_terms_at: null, terms_version: null, public_attribution_consent: false, created_at: "" } });
       await patchBuyer("jwt", { name: "Updated", organization: "Acme" });
       expect(mockEdgeFetch).toHaveBeenCalledWith(
         "https://api.opedd.com/buyer-account",
@@ -136,6 +136,13 @@ describe("buyerApi", () => {
         }),
         "jwt",
       );
+    });
+
+    it("forwards public_attribution_consent flag (Phase 5.3-attribution)", async () => {
+      mockEdgeFetch.mockResolvedValueOnce({ buyer: { id: "b1", name: "x", organization: null, contact_email: "x@y.com", accepted_terms_at: null, terms_version: null, public_attribution_consent: true, created_at: "" } });
+      await patchBuyer("jwt", { public_attribution_consent: true });
+      const callBody = JSON.parse((mockEdgeFetch.mock.calls[0][1] as { body: string }).body);
+      expect(callBody).toEqual({ public_attribution_consent: true });
     });
   });
 });

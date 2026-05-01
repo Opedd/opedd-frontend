@@ -175,6 +175,37 @@ export default function BuyerAccount() {
                   <Label className="text-xs text-gray-500">Account created</Label>
                   <p className="text-sm text-gray-900 mt-1">{new Date(profile.buyer.created_at).toLocaleDateString()}</p>
                 </div>
+                {/* Phase 5.3-attribution: privacy-by-default toggle. */}
+                <div className="pt-2 border-t border-gray-100">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={profile.buyer.public_attribution_consent}
+                      onChange={async (e) => {
+                        const next = e.target.checked;
+                        try {
+                          const token = await getAccessToken();
+                          if (!token) throw new Error("Session expired");
+                          const { buyer } = await patchBuyer(token, { public_attribution_consent: next });
+                          setProfile({ ...profile, buyer });
+                          toast({ title: next ? "Public attribution on" : "Public attribution off" });
+                        } catch (err) {
+                          toast({
+                            title: "Couldn't save",
+                            description: err instanceof Error ? err.message : "Try again.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-oxford focus:ring-oxford"
+                      data-testid="public-attribution-toggle"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">Public attribution</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Allow publishers to see your organization name on their analytics.</p>
+                    </div>
+                  </label>
+                </div>
               </CardContent>
             </Card>
 
