@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Wallet, BarChart3, Settings, LogOut, Bell,
   ExternalLink, ChevronDown, CheckCheck, DollarSign, Shield,
   RefreshCw, Menu, X, FileText, Zap, BookOpen, ShieldAlert,
+  Key, User, Activity,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -32,13 +33,22 @@ const planBadgeStyles: Record<PlanType, { classes: string; label: string }> = {
 // Phase 5.1 (2026-04-30): "Licensing" nav item hidden — see
 // DashboardSidebar.tsx + Licensing.tsx headers. Restore when the
 // Settings page revision ships (KI #66).
-const navItems = [
+const publisherNavItems = [
   { title: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { title: "Catalog", path: "/content", icon: FileText },
   { title: "Ledger", path: "/ledger", icon: Wallet },
   { title: "Analytics", path: "/insights", icon: BarChart3 },
   { title: "Distribution", path: "/distribution", icon: Zap },
   { title: "Settings", path: "/settings", icon: Settings },
+];
+
+// Phase 5.2.2: buyer dashboard nav. Hybrid routing per OQ-1 — Account
+// (Profile + Usage tabs) + Keys (separate top-level). Same shell as
+// publisher per OQ-4 (variant prop pattern).
+const buyerNavItems = [
+  { title: "Account", path: "/buyer/account", icon: User },
+  { title: "API Keys", path: "/buyer/keys", icon: Key },
+  { title: "Usage", path: "/buyer/account?tab=usage", icon: Activity },
 ];
 
 interface Notification {
@@ -62,9 +72,17 @@ export interface DashboardLayoutProps {
   title: string;
   subtitle?: string;
   headerActions?: React.ReactNode;
+  // Phase 5.2.2 OQ-4: same shell for publisher + buyer dashboards;
+  // nav items, plan/trial logic, and account-link target diverge.
+  // Default "publisher" preserves zero-behavior-change for existing routes.
+  variant?: "publisher" | "buyer";
 }
 
-export function DashboardLayout({ children, title, subtitle, headerActions }: DashboardLayoutProps) {
+export function DashboardLayout({ children, title, subtitle, headerActions, variant = "publisher" }: DashboardLayoutProps) {
+  const isBuyerVariant = variant === "buyer";
+  const navItems = isBuyerVariant ? buyerNavItems : publisherNavItems;
+  const accountSettingsHref = isBuyerVariant ? "/buyer/account" : "/settings";
+  const logoLinkHref = isBuyerVariant ? "/buyer/account" : "/dashboard";
   const { user, logout, getAccessToken } = useAuth();
   const location = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -129,7 +147,11 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   }, [user, getAccessToken]);
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
-  useEffect(() => { fetchPlan(); }, [fetchPlan]);
+  useEffect(() => {
+    // Phase 5.2.2: skip publisher-profile fetch in buyer variant.
+    // Buyers don't have a plan/trial concept yet (deferred per C.5).
+    if (!isBuyerVariant) fetchPlan();
+  }, [fetchPlan, isBuyerVariant]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -164,10 +186,23 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
   };
 
   const getInitial = () => user?.email?.charAt(0).toUpperCase() || "U";
-  const displayName = user?.email?.split("@")[0] || "Publisher";
+  const displayName = user?.email?.split("@")[0] || (isBuyerVariant ? "Buyer" : "Publisher");
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return location.pathname === "/dashboard";
+    // Buyer "Usage" nav points to /buyer/account?tab=usage; treat as active
+    // when on /buyer/account with the usage query param.
+    if (path.includes("?")) {
+      const [base, query] = path.split("?");
+      const params = new URLSearchParams(query);
+      const tab = params.get("tab");
+      if (location.pathname === base && new URLSearchParams(location.search).get("tab") === tab) return true;
+      return false;
+    }
+    // Buyer "Account" link should NOT light up when on the Usage tab variant
+    if (isBuyerVariant && path === "/buyer/account") {
+      return location.pathname === "/buyer/account" && new URLSearchParams(location.search).get("tab") !== "usage";
+    }
     return location.pathname === path;
   };
 
@@ -175,7 +210,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
     <>
       {/* Logo */}
       <div className="h-14 flex items-center px-5 border-b border-gray-200">
-        <Link to="/dashboard">
+        <Link to={logoLinkHref}>
           <img src={opeddLogo} alt="Opedd" className="h-7" />
         </Link>
       </div>
@@ -229,7 +264,11 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
               <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-                  {publisherPlan ? (
+                  {isBuyerVariant ? (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0 bg-oxford-light text-oxford">
+                      Buyer
+                    </span>
+                  ) : publisherPlan ? (
                     <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0", planBadgeStyles[publisherPlan].classes)}>
                       {planBadgeStyles[publisherPlan].label}
                     </span>
@@ -244,7 +283,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" className="w-48 bg-white border-gray-200 shadow-popover z-50">
             <DropdownMenuItem asChild className="cursor-pointer text-sm py-2">
-              <Link to="/settings"><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
+              <Link to={accountSettingsHref}><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-gray-200" />
             <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); sessionStorage.removeItem("opedd_trial_days"); sessionStorage.removeItem("opedd_trial_dismissed"); logout(); }}>
@@ -384,7 +423,8 @@ export function DashboardLayout({ children, title, subtitle, headerActions }: Da
         </header>
 
         {/* Trial banner — shown to free plan publishers during their trial window */}
-        {publisherPlan === "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 && !sessionStorage.getItem("opedd_trial_dismissed") && (() => {
+        {/* Phase 5.2.2: suppressed entirely in buyer variant (no plan model yet) */}
+        {!isBuyerVariant && publisherPlan === "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 && !sessionStorage.getItem("opedd_trial_dismissed") && (() => {
           const urgent = trialDaysRemaining <= 7;
           return (
             <div className={cn(

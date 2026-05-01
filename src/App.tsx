@@ -55,6 +55,11 @@ const MyLicenses = lazy(() => import("./pages/MyLicenses"));
 const SetupV2 = lazy(() => import("./pages/SetupV2"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 
+// Phase 5.2.2: buyer dashboard at /buyer/* (signup, account, keys)
+const BuyerSignup = lazy(() => import("./pages/buyer/BuyerSignup"));
+const BuyerAccount = lazy(() => import("./pages/buyer/BuyerAccount"));
+const BuyerKeys = lazy(() => import("./pages/buyer/BuyerKeys"));
+
 /**
  * Phase 3 Session 3.1 loop-fix legacy: any visit to /setup (old
  * bookmarks, external links, callers we missed) redirects to /setup-v2
@@ -120,6 +125,16 @@ const App = () => (
                 <Route path="/setup-v2" element={<ProtectedRoute><SetupV2 /></ProtectedRoute>} />
                 <Route path="/setup" element={<SetupRedirect />} />
                 <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+
+                {/* Phase 5.2.2: buyer dashboard routes. /buyer/signup is public (entry);
+                    /buyer/account + /buyer/keys are JWT-gated via ProtectedRoute.
+                    Per OQ-3 lenient cohabitation, ProtectedRoute checks Supabase JWT only —
+                    buyer pages handle "JWT valid + no enterprise_buyers row" by redirecting
+                    to /buyer/signup themselves. */}
+                <Route path="/buyer/signup" element={<BuyerSignup />} />
+                <Route path="/buyer/account" element={<ProtectedRoute><BuyerAccount /></ProtectedRoute>} />
+                <Route path="/buyer/keys" element={<ProtectedRoute><BuyerKeys /></ProtectedRoute>} />
+                <Route path="/buyer" element={<Navigate to="/buyer/account" replace />} />
 
                 <Route path="/invite/:token" element={<AcceptInvite />} />
                 <Route path="/terms" element={<Terms />} />
