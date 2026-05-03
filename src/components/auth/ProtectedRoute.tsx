@@ -5,9 +5,11 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 export function ProtectedRoute({
   children,
   requireAdmin = false,
+  unauthedRedirect = "/login",
 }: {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  unauthedRedirect?: string;
 }) {
   const { user, isLoading } = useAuth();
 
@@ -16,7 +18,7 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={unauthedRedirect} replace />;
   }
 
   if (requireAdmin) {

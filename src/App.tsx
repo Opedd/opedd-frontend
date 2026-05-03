@@ -131,8 +131,8 @@ const App = () => (
                     buyer pages handle "JWT valid + no enterprise_buyers row" by redirecting
                     to /buyer/signup themselves. */}
                 <Route path="/buyer/signup" element={<BuyerSignup />} />
-                <Route path="/buyer/account" element={<ProtectedRoute><BuyerAccount /></ProtectedRoute>} />
-                <Route path="/buyer/keys" element={<ProtectedRoute><BuyerKeys /></ProtectedRoute>} />
+                <Route path="/buyer/account" element={<ProtectedRoute unauthedRedirect="/buyer/signup"><BuyerAccount /></ProtectedRoute>} />
+                <Route path="/buyer/keys" element={<ProtectedRoute unauthedRedirect="/buyer/signup"><BuyerKeys /></ProtectedRoute>} />
                 <Route path="/buyer" element={<Navigate to="/buyer/account" replace />} />
 
                 <Route path="/invite/:token" element={<AcceptInvite />} />
