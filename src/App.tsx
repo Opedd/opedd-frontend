@@ -59,6 +59,12 @@ const BuyerSignup = lazy(() => import("./pages/buyer/BuyerSignup"));
 const BuyerAccount = lazy(() => import("./pages/buyer/BuyerAccount"));
 const BuyerKeys = lazy(() => import("./pages/buyer/BuyerKeys"));
 
+// Phase 5.4-β: dedicated /settings/pricing editor for the 4-vocab ×
+// 3-payment-model matrix. Reads/writes publishers.pricing_rules JSONB
+// via publisher-profile PATCH; backend allowlist (publisher-profile/
+// index.ts:1571) double-gates the write shape.
+const PricingSettings = lazy(() => import("./pages/Settings/Pricing"));
+
 /**
  * Phase 3 Session 3.1 loop-fix legacy: any visit to /setup (old
  * bookmarks, external links, callers we missed) redirects to /setup-v2
@@ -112,6 +118,7 @@ const App = () => (
                 <Route path="/distribution" element={<ProtectedRoute><Connectors /></ProtectedRoute>} />
                 <Route path="/payments" element={<Navigate to="/settings?tab=billing" replace />} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/settings/pricing" element={<ProtectedRoute><PricingSettings /></ProtectedRoute>} />
                 <Route path="/connectors" element={<Navigate to="/distribution" replace />} />
                 <Route path="/integrations" element={<Navigate to="/distribution" replace />} />
                 <Route path="/license/success" element={<LicenseSuccess />} />
