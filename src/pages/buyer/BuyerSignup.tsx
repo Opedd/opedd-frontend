@@ -97,33 +97,95 @@ export default function BuyerSignup() {
   // One-time key display
   const [issued, setIssued] = useState<IssuedKeyResponse | null>(null);
 
+  // KI #97 (2026-05-04): waiting-room gate. When the user lands on this
+  // page from a magic-link click, the URL carries ?code=<UUID> (PKCE
+  // flow) or #access_token=<token> (legacy implicit-flow defensive guard;
+  // unreachable with flowType: 'pkce' but cheap to keep). The Supabase
+  // SDK auto-detect (detectSessionInUrl: true in client.ts) processes
+  // those params asynchronously and fires onAuthStateChange("SIGNED_IN")
+  // when the exchange completes. AuthContext picks up the event and
+  // populates `user`; BuyerSignup's stage-gate effect re-runs and
+  // transitions to "signup-form".
+  //
+  // Pre-KI-#97 race: AuthContext.getSession() can resolve with null
+  // BEFORE the SDK's auto-detect finishes processing ?code=. AuthContext
+  // sets isLoading=false; the stage-gate effect runs with !user; falls
+  // through to setStage("magic-link"). When SIGNED_IN fires later,
+  // user populates and the effect re-runs — but in some sessions, the
+  // stage transition either fails silently or never receives the event,
+  // leaving the user stuck on the magic-link form despite being authed.
+  //
+  // Fix (mirroring AuthCallback.tsx's pattern from KI #80): detect
+  // ?code= / #access_token= on mount; while one is present and user is
+  // null, hold stage="checking" instead of falling through to
+  // "magic-link". Add a 5s timeout fallback for the case where the
+  // SDK exchange silently fails (expired code, network drop, race
+  // condition we haven't fully characterized).
+  //
+  // Errors (?error=access_denied&error_code=otp_expired) deliberately
+  // NOT caught here — they fall through to the existing magic-link
+  // stage immediately. Adding error-specific friendly copy would
+  // duplicate AuthCallback's KI #80 part-1 short-circuit; the
+  // magic-link form is an acceptable error-recovery surface (user
+  // re-enters email, requests new link).
+  const [codeInUrl] = useState(() => {
+    if (typeof window === "undefined") return false;
+    // Use proper URLSearchParams parsing — naive .includes("code=") would
+    // false-positive on ?error_code=otp_expired (which contains "code="
+    // as a substring inside "error_code=").
+    const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
+    return (
+      params.has("code") ||
+      hash.includes("access_token=")
+    );
+  });
+
   // Stage gate: when auth resolves, decide whether to show the
   // magic-link form or the signup form (or short-circuit if buyer
   // row already exists).
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
+
+    if (user) {
+      (async () => {
+        try {
+          const token = await getAccessToken();
+          if (!token) { setStage("magic-link"); return; }
+          const profile = await getBuyerAccount(token);
+          if (profile) {
+            navigate("/buyer/account", { replace: true });
+            return;
+          }
+          setContactEmail(user.email ?? "");
+          setStage("signup-form");
+        } catch (err) {
+          console.warn("[BuyerSignup] account check failed:", err);
+          setStage("signup-form");
+          setContactEmail(user.email ?? "");
+        }
+      })();
+      return;
+    }
+
+    // !user
+    if (!codeInUrl) {
       setStage("magic-link");
       return;
     }
-    (async () => {
-      try {
-        const token = await getAccessToken();
-        if (!token) { setStage("magic-link"); return; }
-        const profile = await getBuyerAccount(token);
-        if (profile) {
-          navigate("/buyer/account", { replace: true });
-          return;
-        }
-        setContactEmail(user.email ?? "");
-        setStage("signup-form");
-      } catch (err) {
-        console.warn("[BuyerSignup] account check failed:", err);
-        setStage("signup-form");
-        setContactEmail(user.email ?? "");
-      }
-    })();
-  }, [authLoading, user, getAccessToken, navigate]);
+
+    // KI #97: codeInUrl AND !user → SDK exchange may be in flight.
+    // Hold stage="checking". Add 5s timeout for silent-failure fallback.
+    const timeoutId = setTimeout(() => {
+      setStage("magic-link");
+      toast({
+        title: "Sign-in didn't complete",
+        description: "Please request a new sign-in link.",
+        variant: "destructive",
+      });
+    }, 5000);
+    return () => clearTimeout(timeoutId);
+  }, [authLoading, user, codeInUrl, getAccessToken, navigate, toast]);
 
   const filteredCountries = useMemo(
     () => searchCountries(countryQuery).slice(0, 50),
