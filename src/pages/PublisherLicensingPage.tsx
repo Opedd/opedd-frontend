@@ -27,23 +27,34 @@ import { Spinner } from "@/components/ui/Spinner";
 
 // --- Interfaces ---
 
+// Phase 5.4-β commit 2 (2026-05-05): canonical 4-vocab license_types
+// shape mirroring _shared/pricing.ts:resolvePrice and the publisher-
+// profile PATCH allowlist (post-5.4-β commit 1). Pre-5.4-β shape used
+// legacy keys (`editorial`, `corporate`, `syndication`) + legacy field
+// names (`price_per_article`, `price_monthly`, `price_onetime`); those
+// keys were rejected by the backend allowlist post-Phase 5.1, so the
+// branches in buildCards() that read them were dead code (no publisher
+// has those keys in their pricing_rules JSONB).
+
 interface LicenseTypeConfig {
-  enabled: boolean;
-  price_per_article?: number | null;
-  price_annual?: number | null;
-  price_monthly?: number | null;
-  price_onetime?: number | null;
-  quote_only?: boolean;
+  enabled?: boolean;
+  price?: number | null;          // one_time payment model
+  price_annual?: number | null;   // subscription payment model
+  price_metered?: number | null;  // metered payment model (per-call)
+  [k: string]: unknown;
 }
 
 interface PricingRules {
   license_types?: {
-    editorial?: LicenseTypeConfig;
-    ai_retrieval?: LicenseTypeConfig;
     ai_training?: LicenseTypeConfig;
-    corporate?: LicenseTypeConfig;
-    syndication?: LicenseTypeConfig;
+    ai_retrieval?: LicenseTypeConfig;
+    human_per_article?: LicenseTypeConfig;
+    human_full_archive?: LicenseTypeConfig;
   };
+  // Preserve forward-compat for non-license-type keys (e.g.,
+  // `categories` legacy per-category override). Editor + landing
+  // page don't read these but must not clobber.
+  [k: string]: unknown;
 }
 
 interface PublisherData {
@@ -331,87 +342,110 @@ export default function PublisherLicensingPage() {
     setLoadingMore(false);
   };
 
-  // Build license cards
+  // Phase 5.4-β commit 2 (2026-05-05): build license cards from the
+  // canonical 4-vocab × 3-payment-model matrix. Each (license_type,
+  // payment_model) pair where the publisher has set a non-zero price
+  // produces a distinct card (per founder's "distinct cards over
+  // single-card-with-picker" decision in the 5.4 design proposal).
+  //
+  // CTA navigation deferred to Phase 5.4-γ (KI #105) — cards land on
+  // href="#" placeholder. Founder direction: shipping the editor +
+  // landing-page card rendering is the load-bearing 5.4-β value;
+  // CTA navigation requires its own design surface (article picker
+  // for one_time per-article, confirm-flow for subscription, metered
+  // subscription_item creation flow) that's separate scope.
+  //
+  // Pre-5.4-β buildCards() read legacy keys (editorial, corporate,
+  // syndication) that the backend allowlist rejected post-Phase 5.1,
+  // so the branches were dead code. Replaced with the 7 valid
+  // (license_type, payment_model) combinations matching
+  // _shared/pricing.ts:VALID_COMBINATIONS server-side.
   const buildCards = (pub: PublisherData): LicenseCardProps[] => {
     const lt = pub.pricing_rules?.license_types;
-    const mailto = getMailtoLink(pub.website_url, pub.name, pub.contact_email);
     const cards: LicenseCardProps[] = [];
 
-    // Editorial
-    const editorialPrice = lt?.editorial?.price_per_article ?? pub.default_human_price;
-    if ((lt?.editorial?.enabled !== false) && editorialPrice && editorialPrice > 0) {
+    // ai_training: one_time + subscription
+    if (lt?.ai_training?.price && lt.ai_training.price > 0) {
+      cards.push({
+        icon: <Brain size={20} />,
+        label: "AI Training (one-time)",
+        description: "Bulk training-data corpus, single purchase",
+        price: `$${lt.ai_training.price.toLocaleString()} one-time`,
+        cta: "Request access",
+        href: "#",
+        colorClass: "bg-purple-600",
+      });
+    }
+    if (lt?.ai_training?.price_annual && lt.ai_training.price_annual > 0) {
+      cards.push({
+        icon: <Brain size={20} />,
+        label: "AI Training (annual)",
+        description: "Bulk training-data corpus, ongoing access",
+        price: `$${lt.ai_training.price_annual.toLocaleString()}/year`,
+        cta: "Subscribe",
+        href: "#",
+        colorClass: "bg-purple-600",
+      });
+    }
+
+    // ai_retrieval: one_time + subscription + metered
+    if (lt?.ai_retrieval?.price && lt.ai_retrieval.price > 0) {
+      cards.push({
+        icon: <Cpu size={20} />,
+        label: "AI Retrieval (one-time)",
+        description: "RAG / inference API, prepaid",
+        price: `$${lt.ai_retrieval.price.toLocaleString()} one-time`,
+        cta: "Request access",
+        href: "#",
+        colorClass: "bg-violet-600",
+      });
+    }
+    if (lt?.ai_retrieval?.price_annual && lt.ai_retrieval.price_annual > 0) {
+      cards.push({
+        icon: <Cpu size={20} />,
+        label: "AI Retrieval (annual)",
+        description: "RAG / inference API, flat-rate annual",
+        price: `$${lt.ai_retrieval.price_annual.toLocaleString()}/year`,
+        cta: "Subscribe",
+        href: "#",
+        colorClass: "bg-violet-600",
+      });
+    }
+    if (lt?.ai_retrieval?.price_metered && lt.ai_retrieval.price_metered > 0) {
+      cards.push({
+        icon: <Cpu size={20} />,
+        label: "AI Retrieval (metered)",
+        description: "RAG / inference API, pay per call",
+        price: `$${lt.ai_retrieval.price_metered}/call`,
+        cta: "Subscribe (metered)",
+        href: "#",
+        colorClass: "bg-violet-600",
+      });
+    }
+
+    // human_per_article: one_time only
+    if (lt?.human_per_article?.price && lt.human_per_article.price > 0) {
       cards.push({
         icon: <FileText size={20} />,
-        label: "Editorial Use",
-        description: "Reuse in articles, reports, analysis",
-        price: `$${editorialPrice}/article`,
+        label: "Per-article licensing",
+        description: "Single-article republication right",
+        price: `$${lt.human_per_article.price}/article`,
         cta: "Browse catalog",
         href: "#catalog",
         colorClass: "bg-indigo-600",
       });
     }
 
-    // AI / RAG
-    if (lt?.ai_retrieval?.enabled && lt.ai_retrieval.price_monthly && lt.ai_retrieval.price_monthly > 0) {
-      cards.push({
-        icon: <Cpu size={20} />,
-        label: "AI / RAG Access",
-        description: "Structured API access for AI applications",
-        price: `$${lt.ai_retrieval.price_monthly}/month`,
-        cta: "Get API Access",
-        href: mailto,
-        colorClass: "bg-violet-600",
-        newTab: true,
-      });
-    }
-
-    // AI Training
-    const aiTrainingPrice = lt?.ai_training?.price_onetime ?? pub.default_ai_price;
-    if ((lt?.ai_training?.enabled !== false) && aiTrainingPrice && aiTrainingPrice > 0) {
-      cards.push({
-        icon: <Brain size={20} />,
-        label: "AI Training",
-        description: "License for model training & fine-tuning",
-        price: lt?.ai_training?.price_onetime
-          ? `$${lt.ai_training.price_onetime} one-time`
-          : `$${pub.default_ai_price}`,
-        cta: "License for Training",
-        href: mailto,
-        colorClass: "bg-purple-600",
-        newTab: true,
-      });
-    }
-
-    // Syndication
-    if (lt?.syndication?.enabled) {
-      const synPrice = lt.syndication.quote_only
-        ? null
-        : lt.syndication.price_per_article
-          ? `$${lt.syndication.price_per_article}/article`
-          : null;
-      cards.push({
-        icon: <Share2 size={20} />,
-        label: "Syndication",
-        description: "Republish in your publication",
-        price: synPrice,
-        cta: "Contact for Quote",
-        href: mailto,
-        colorClass: "bg-teal-600",
-        newTab: true,
-      });
-    }
-
-    // Corporate
-    if (lt?.corporate?.enabled && lt.corporate.price_annual && lt.corporate.price_annual > 0) {
+    // human_full_archive: subscription only
+    if (lt?.human_full_archive?.price_annual && lt.human_full_archive.price_annual > 0) {
       cards.push({
         icon: <Building2 size={20} />,
-        label: "Corporate Blanket",
-        description: "Internal enterprise-wide reuse",
-        price: `$${lt.corporate.price_annual}/year`,
-        cta: "Contact for Quote",
-        href: mailto,
+        label: "Full archive (annual)",
+        description: "Annual access to publisher's full archive",
+        price: `$${lt.human_full_archive.price_annual.toLocaleString()}/year`,
+        cta: "Subscribe",
+        href: "#",
         colorClass: "bg-slate-600",
-        newTab: true,
       });
     }
 
@@ -521,12 +555,25 @@ export default function PublisherLicensingPage() {
         </div>
 
         {/* SECTION 2 — License Type Cards */}
-        <div>
+        <div data-testid="licensing-options-section">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Licensing options</h2>
           {cards.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
-              <p className="font-medium text-gray-600">Pricing coming soon</p>
-              <p className="text-sm mt-1">Contact the publisher directly for licensing inquiries.</p>
+            <div
+              data-testid="licensing-empty-state"
+              className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400"
+            >
+              <p className="font-medium text-gray-600">This publisher is not currently accepting licenses.</p>
+              <p className="text-sm mt-1">
+                Contact the publisher directly for licensing inquiries, or{" "}
+                <a
+                  href="https://docs.opedd.com/quickstart"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:underline"
+                >
+                  explore our API integrations →
+                </a>
+              </p>
               <a
                 href={mailto}
                 className="inline-block mt-3 text-sm text-indigo-600 hover:underline"
@@ -535,11 +582,29 @@ export default function PublisherLicensingPage() {
               </a>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {cards.map((card) => (
-                <LicenseCard key={card.label} {...card} />
-              ))}
-            </div>
+            <>
+              <div data-testid="licensing-cards-grid" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {cards.map((card) => (
+                  <LicenseCard key={card.label} {...card} />
+                ))}
+              </div>
+              {/* Phase 5.4-β commit 2: API-discovery CTA per C.3 framing
+                  (Opedd is infrastructure, not marketplace). Pushes
+                  serious AI buyers toward the canonical API path even
+                  when they arrive via direct landing-page link. */}
+              <div className="mt-6 text-center text-sm text-gray-500">
+                <p>Building an AI integration?</p>
+                <a
+                  data-testid="api-discovery-cta"
+                  href="https://docs.opedd.com/quickstart"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:underline font-medium"
+                >
+                  Integrate via API →
+                </a>
+              </div>
+            </>
           )}
         </div>
 
