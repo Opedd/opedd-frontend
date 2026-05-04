@@ -272,7 +272,7 @@ export default function Dashboard() {
   // 4. Onboarding Checklist (setup not complete)
   // 5. Pending Earnings card (already covered by #2 — kept distinct for the case
   //    where revenue is 0 but admin chooses to show. In MVP, #2 supersedes.)
-  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | null;
+  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | "not-payable" | null;
   const activeBanner: BannerKind = (() => {
     const stripeKycPending =
       !!stripeAccountId && (!stripeConnected || stripePayoutsEnabled === false);
@@ -280,6 +280,13 @@ export default function Dashboard() {
     const heldPayments = !stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0);
     if (heldPayments) return "held-payments";
     if (totalAssets > 0 && !isLoading && hasPendingVerification) return "verification";
+    // Phase 5.10-α: verified publisher hasn't started Stripe + has no
+    // earnings yet. Buyers attempting purchases hard-fail at request
+    // time with 422 PUBLISHER_NOT_PAYABLE per
+    // _shared/stripe-eligibility.ts. Banner closes the publisher-side
+    // nudge gap (we don't run a separate admin queue; this banner +
+    // Sentry warning-level events are the entire surface).
+    if (wizardState.setupState === "verified" && !stripeConnected) return "not-payable";
     return null;
   })();
 
@@ -367,6 +374,38 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-500 mt-1">
                   Your earnings are accumulating. Connect your bank to start receiving payouts.
                 </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={handleConnectStripe}
+                className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
+              >
+                Connect Stripe →
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Phase 5.10-α: not-payable banner. Verified publisher who
+            hasn't started Stripe Connect; no earnings accrued yet.
+            Buyers hitting purchase endpoints currently get 422
+            PUBLISHER_NOT_PAYABLE; this banner is the publisher-side
+            nudge surface so the gap is visible without standing up
+            an admin queue. Self-interest copy framing per founder
+            direction (subject = publisher, impact = revenue). */}
+        {activeBanner === "not-payable" && (
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-card">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <AlertTriangleIcon size={18} className="text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-navy-deep">
+                    Connect Stripe to receive buyer payments.
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Buyers attempting to purchase your content currently receive an error. Complete Stripe Connect onboarding to start receiving payments.
+                  </p>
+                </div>
               </div>
               <Button
                 size="sm"
