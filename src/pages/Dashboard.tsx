@@ -14,6 +14,7 @@ import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { shouldRedirectToWelcome } from "./welcome-redirect";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
+import { stripeApi } from "@/lib/api";
 import { deriveSlug } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -308,17 +309,27 @@ export default function Dashboard() {
   // 5-state machine; the wizard hook is now the canonical reader.
   const showQuickActions = wizardState.setupState === "verified" && totalAssets > 0;
 
+  // KI #114 fix: migrated from inline raw-fetch + legacy `json.url` access
+  // pattern to canonical `stripeApi.connect()` wrapper. Pre-fix bug:
+  // backend returns `{ success: true, data: { onboarding_url, stripe_account_id } }`
+  // (standard envelope per `_shared/cors.ts:successResponse`); inline handler
+  // read `json.url` (always undefined) so `window.location.href` never fired.
+  // Same bug class as the former `Setup.tsx:494` (migrated to wrapper at
+  // Phase 3 Session 3.1). Affected 3 onClick sites sharing this handler:
+  // stripe-kyc banner (KI #114), held-payments banner (untriggered in
+  // production), not-payable banner (Phase 5.10-α). edgeFetch unwraps the
+  // envelope to `StripeConnectResult` directly and throws on !success;
+  // catch routes to Sentry instead of the prior silent `/* ignore */`.
   const handleConnectStripe = async () => {
     try {
       const token = await getAccessToken();
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ action: "connect_stripe" }),
-      });
-      const json = await res.json();
-      if (json.url) window.location.href = json.url;
-    } catch { /* ignore */ }
+      const result = await stripeApi.connect("/dashboard", token);
+      if (result.onboarding_url) {
+        window.location.href = result.onboarding_url;
+      }
+    } catch (err) {
+      Sentry.captureException(err, { tags: { surface: "dashboard-connect-stripe" } });
+    }
   };
 
   const handleCopyUrl = async () => {
