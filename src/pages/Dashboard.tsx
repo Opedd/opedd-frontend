@@ -50,6 +50,7 @@ export default function Dashboard() {
   const [stripeConnected, setStripeConnected] = useState(false);
   const [stripePayoutsEnabled, setStripePayoutsEnabled] = useState<boolean | null>(null);
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -186,6 +187,7 @@ export default function Dashboard() {
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setStripeAccountId(profile?.stripe_account_id ?? null);
+      setVerificationStatus(profile?.verification_status ?? null);
       setStripePayoutsEnabled(
         profile?.stripe_connect ? !!profile.stripe_connect.payouts_enabled : null
       );
@@ -286,7 +288,17 @@ export default function Dashboard() {
     // _shared/stripe-eligibility.ts. Banner closes the publisher-side
     // nudge gap (we don't run a separate admin queue; this banner +
     // Sentry warning-level events are the entire surface).
-    if (wizardState.setupState === "verified" && !stripeConnected) return "not-payable";
+    //
+    // KI #115 fix: gate on `verification_status === 'verified'` (legacy
+    // marketplace gate, load-bearing during 2-column soak window per
+    // backend INVARIANTS) — NOT `wizardState.setupState === 'verified'`
+    // (new 5-state machine, admin-approval-strict; empty-set in current
+    // production state because admin hasn't transitioned soft-verified
+    // publishers through the new machine yet). Soak-window soft-verified
+    // publishers (verification_status='verified' + setup_state='connected')
+    // ARE in publishers_public and ARE soliciting buyers — they're the
+    // exact cohort that needs this banner.
+    if (verificationStatus === "verified" && !stripeConnected) return "not-payable";
     return null;
   })();
 
