@@ -24,9 +24,15 @@ import { OneTimeKeyModal } from "@/components/buyer/OneTimeKeyModal";
 import { COUNTRY_CODES, searchCountries } from "@/lib/countryCodes";
 
 // Phase 5.2.3: buyer signup. Two-stage flow.
-//   Stage 1: not authed yet — magic-link delivery via signInWithOtp.
-//            User clicks the email link → /auth/callback → session set
-//            → returns to this page with a JWT.
+//   Stage 1: not authed yet — magic-link delivery via signInWithOtp
+//            with emailRedirectTo set to /buyer/signup directly
+//            (KI #93, 2026-05-04). User clicks the email link →
+//            Supabase verifies the OTP → redirects to
+//            /buyer/signup?code=<pkce> → SDK auto-detect
+//            (detectSessionInUrl: true in client.ts) exchanges the
+//            code transparently when this page mounts. Skipping
+//            /auth/callback avoids Supabase's redirect-allowlist
+//            query-string strip behavior that broke ?next=/buyer/signup.
 //   Stage 2: authed but no enterprise_buyers row — render the 7-field
 //            signup form (first/last name, company name + website,
 //            buyer type, country, contact email, terms). On submit:
@@ -136,7 +142,7 @@ export default function BuyerSignup() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/buyer/signup")}` },
+        options: { emailRedirectTo: `${window.location.origin}/buyer/signup` },
       });
       if (error) throw error;
       setMagicLinkSent(true);
