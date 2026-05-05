@@ -215,13 +215,40 @@ export default function Ledger() {
     setIsRevoking(true);
     try {
       const token = await getAccessToken();
+      // Phase 5.11-γ Tier 1 sub-task 4 — KI #137 + KI #136 fix:
+      // - KI #137: migrate to action='revoke_content' canonical Phase 5.7
+      //   path. Pre-fix body { transaction_id } fell through to backend's
+      //   handleLegacyTransactionRevoke which does NOT fire the Phase 5.7
+      //   full cascade (article-level revoke + deletion_deadline + auto-
+      //   refund). Action='revoke_content' routes to handleRevokeContent
+      //   (revoke-license/index.ts:289+) which fires the full cascade.
+      //   tx → license_id mapping: revokeTarget.assetId (= tx.article_id =
+      //   licenses.id; verified via Phase 5.11-γ proposal Finding 3).
+      //   Cites Deprecated-vocab cleanup ritual INVARIANT (codified
+      //   2026-05-05) — frontend writeback migrated alongside the deprecated
+      //   path, not deferred.
+      // - KI #136: handle BOTH error envelope shapes per `_shared/cors.ts`
+      //   (string from errorResponse helper; object from legacy paths).
+      //   Pre-fix `result.error?.message` was always undefined for string
+      //   shape → fell back to hardcoded "Failed to revoke" → toast hid
+      //   the actual diagnostic (e.g., 403 "You do not have permission to
+      //   revoke this license" was hidden during Phase 5.11-β B.3 walk).
+      //   Same envelope-shape pattern as KI #124 Settings.tsx fix.
       const res = await fetch(`${EXT_SUPABASE_URL}/revoke-license`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ transaction_id: revokeTarget.id }),
+        body: JSON.stringify({
+          action: "revoke_content",
+          license_id: revokeTarget.assetId,
+        }),
       });
       const result = await res.json();
-      if (!res.ok || !result.success) throw new Error(result.error?.message || "Failed to revoke");
+      if (!res.ok || !result.success) {
+        const errMsg = typeof result.error === "string"
+          ? result.error
+          : (result.error?.message ?? "Failed to revoke");
+        throw new Error(errMsg);
+      }
       setTransactions(prev => prev.map(tx => tx.id === revokeTarget.id ? { ...tx, status: "revoked" as const } : tx));
       toast({ title: "License revoked", description: `License ${revokeTarget.licenseKey} has been revoked.` });
     } catch (err: any) {
