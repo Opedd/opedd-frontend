@@ -5,14 +5,27 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function deriveSlug(websiteUrl: string | null): string {
+/**
+ * Tandem sync with canonical opedd-backend `_shared/url-normalize.ts`
+ * deriveSlug (KI #125 OQ-4 A — 2026-05-05). Matches the canonical's
+ * shape: lowercase upfront, strip protocol, strip trailing slash,
+ * split path/port, strip www., take first host label.
+ *
+ * Handles `WWW.` (uppercase) correctly — old shape used a case-sensitive
+ * `/^www\./` match that missed mixed-case prefixes.
+ *
+ * KI #149 (P3, Phase 5.12 candidate): full refactor — frontend reads
+ * `publisher.slug` from API response instead of deriving locally; this
+ * helper goes away when KI #149 ships.
+ */
+export function deriveSlug(websiteUrl: string | null | undefined): string {
   if (!websiteUrl) return "";
-  const domain = websiteUrl
-    .replace(/^https?:\/\//, "")
-    .replace(/^www\./, "")
-    .split("/")[0]
-    .split(":")[0];
-  return domain.split(".")[0].toLowerCase();
+  let s = websiteUrl.toLowerCase().trim();
+  s = s.replace(/^https?:\/\//, "");
+  s = s.replace(/\/$/, "");
+  const host = s.split("/")[0].split(":")[0];
+  const noWww = host.replace(/^www\./, "");
+  return noWww.split(".")[0];
 }
 
 export function formatDate(dateStr: string | null | undefined): string | null {
