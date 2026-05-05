@@ -257,7 +257,16 @@ export default function Settings() {
 
 
   // Save feedback banners
-  const [saveBanner, setSaveBanner] = useState<"success" | "error" | null>(null);
+  // saveBanner shape carries the actual backend error message (KI #124 fix).
+  // Pre-fix: boolean-ish "success"|"error"|null with hardcoded "Failed to save.
+  // Try again." text — hid the actual diagnostic from the user. Backend's
+  // _shared/cors.ts:errorResponse returns `error` as a STRING; legacy parsing
+  // (`result.error?.message`) was always undefined for this envelope shape.
+  const [saveBanner, setSaveBanner] = useState<
+    | { kind: "success" }
+    | { kind: "error"; message: string }
+    | null
+  >(null);
   const [apiKeyWarning, setApiKeyWarning] = useState(false);
   const [contactForPricing, setContactForPricing] = useState(false);
 
@@ -661,25 +670,24 @@ export default function Settings() {
     setIsSaving(true);
     try {
       const headers = await apiHeaders();
-      const syndicationVal = parseFloat(defaultSyndicationPrice) || 0;
-      const mergedRules = {
-        ...publisherPricingRules,
-        license_types: {
-          ...(publisherPricingRules?.license_types ?? {}),
-          syndication: {
-            ...(publisherPricingRules?.license_types?.syndication ?? {}),
-            enabled: syndicationVal > 0,
-            price_per_article: syndicationVal,
-          },
-        },
-      };
+      // KI #122 fix: syndication merge block REMOVED. Phase 5.1 vocabulary
+      // unification stripped 'syndication' from publisher-profile's PATCH
+      // allowlist (validTypes = human_per_article / human_full_archive /
+      // ai_retrieval / ai_training). KI #67 closed 2026-05-01 deleted
+      // ArchiveLicenseCheckout + PublisherLicensingPage syndication card but
+      // missed this Settings.tsx writeback — every Settings save has been
+      // silently failing since (frontend hid the actual reason via KI #124
+      // response-shape parse bug; only surfaced 2026-05-05 Phase 5.11-β
+      // walk Step 9). The price-input UI surface for syndication is left
+      // intact; READ path at L348 still reads legacy values for display, but
+      // WRITE path no longer sends the deprecated key.
       const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({
           name: publisherName,
           default_human_price: parseFloat(defaultHumanPrice) || 0,
-          pricing_rules: mergedRules,
+          pricing_rules: publisherPricingRules,
           default_ai_price: defaultAiPrice ? parseFloat(defaultAiPrice) : null,
           ai_annual_price: aiAnnualPrice ? parseFloat(aiAnnualPrice) : null,
           category: publisherCategory || null,
@@ -697,13 +705,23 @@ export default function Settings() {
             setPublisherPricingRules(result.data.pricing_rules ?? null);
           }
         }
-        setSaveBanner("success");
+        setSaveBanner({ kind: "success" });
         setTimeout(() => setSaveBanner(null), 3000);
       } else {
-        throw new Error(result.error?.message || "Save failed");
+        // KI #124 fix: handle BOTH error envelope shapes per
+        // _shared/cors.ts. errorResponse returns string; legacy
+        // license/webhook handlers may return {code, message}. Pre-fix
+        // `result.error?.message` was always undefined for the string
+        // shape, falling back to hardcoded "Save failed" and hiding
+        // the actual diagnostic from the user.
+        const errMsg = typeof result.error === "string"
+          ? result.error
+          : (result.error?.message ?? "Save failed");
+        throw new Error(errMsg);
       }
     } catch (err: unknown) {
-      setSaveBanner("error");
+      const message = err instanceof Error ? err.message : "Save failed";
+      setSaveBanner({ kind: "error", message });
     } finally {
       setIsSaving(false);
     }
@@ -803,7 +821,7 @@ export default function Settings() {
         <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
           {/* Save feedback banners */}
           <AnimatePresence>
-            {saveBanner === "success" && (
+            {saveBanner?.kind === "success" && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                 className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-[#f0fdf4] px-4 py-3"
@@ -812,14 +830,14 @@ export default function Settings() {
                 <span className="text-sm font-medium text-[#166534]">Settings saved</span>
               </motion.div>
             )}
-            {saveBanner === "error" && (
+            {saveBanner?.kind === "error" && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                 className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3"
               >
                 <div className="flex items-center gap-2">
                   <AlertTriangle size={16} className="text-[#DC2626] flex-shrink-0" />
-                  <span className="text-sm font-medium text-[#DC2626]">Failed to save. Try again.</span>
+                  <span className="text-sm font-medium text-[#DC2626]">{saveBanner.message}</span>
                 </div>
                 <button onClick={() => setSaveBanner(null)} aria-label="Dismiss save error" className="text-red-400 hover:text-red-600"><X size={14} /></button>
               </motion.div>
