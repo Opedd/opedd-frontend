@@ -16,6 +16,7 @@ import { shouldRedirectToWelcome } from "./welcome-redirect";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { stripeApi } from "@/lib/api";
 import { deriveSlug } from "@/lib/utils";
+import { derivePricingGaps, type PricingGap } from "@/lib/pricing-gaps";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
@@ -48,6 +49,7 @@ export default function Dashboard() {
   const [urlCopied, setUrlCopied] = useState(false);
   const [contentImported, setContentImported] = useState(false);
   const [pricingConfigured, setPricingConfigured] = useState(false);
+  const [pricingGaps, setPricingGaps] = useState<PricingGap[]>([]);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [stripePayoutsEnabled, setStripePayoutsEnabled] = useState<boolean | null>(null);
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
@@ -186,6 +188,13 @@ export default function Dashboard() {
       }
       setContentImported(!!profile?.content_imported);
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
+      setPricingGaps(
+        derivePricingGaps({
+          pricing_rules: profile?.pricing_rules ?? null,
+          default_human_price: profile?.default_human_price ?? null,
+          default_ai_price: profile?.default_ai_price ?? null,
+        })
+      );
       setStripeConnected(!!profile?.stripe_onboarding_complete);
       setStripeAccountId(profile?.stripe_account_id ?? null);
       setVerificationStatus(profile?.verification_status ?? null);
@@ -275,7 +284,7 @@ export default function Dashboard() {
   // 4. Onboarding Checklist (setup not complete)
   // 5. Pending Earnings card (already covered by #2 — kept distinct for the case
   //    where revenue is 0 but admin chooses to show. In MVP, #2 supersedes.)
-  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | "not-payable" | null;
+  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | "not-payable" | "pricing-gap" | null;
   const activeBanner: BannerKind = (() => {
     const stripeKycPending =
       !!stripeAccountId && (!stripeConnected || stripePayoutsEnabled === false);
@@ -300,6 +309,14 @@ export default function Dashboard() {
     // ARE in publishers_public and ARE soliciting buyers — they're the
     // exact cohort that needs this banner.
     if (verificationStatus === "verified" && !stripeConnected) return "not-payable";
+    // KI #126: post-KI-130 (license_type 4-vocab matrix accepted at
+    // create-checkout / agent-purchase / api ?action=purchase|batch),
+    // a wizard-onboarded publisher's enabled tiers can be reached by
+    // buyers via combinations the wizard never priced. Resolver throws
+    // PRICING_RULE_NOT_CONFIGURED at checkout. Banner nudges the
+    // publisher to Settings/Pricing (Phase 5.4-β editor) before that
+    // happens. Lowest priority — Stripe-side gates supersede.
+    if (pricingGaps.length > 0) return "pricing-gap";
     return null;
   })();
 
@@ -436,6 +453,41 @@ export default function Dashboard() {
                 className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
               >
                 Connect Stripe →
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* KI #126 (Phase 5.12 Cluster A): pricing-gap banner. Wizard's
+            Step4Categorize collects only `default_human_price` /
+            `default_ai_price` (legacy fallbacks for the 2 pre-Phase-5.4
+            combos: human_per_article one_time + ai_retrieval subscription)
+            plus `human_full_archive.price_annual`. Post-KI-130, buyers
+            can hit create-checkout with the full 4-vocab matrix; the
+            other combinations have no resolver-reachable price for a
+            wizard-only publisher and throw PRICING_RULE_NOT_CONFIGURED.
+            Banner CTA → Settings/Pricing (Phase 5.4-β editor) which
+            covers the per-tier × per-payment-model surface in full. */}
+        {activeBanner === "pricing-gap" && (
+          <div className="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-card">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <AlertTriangleIcon size={18} className="text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-navy-deep">
+                    Some buyer payment options aren't priced yet.
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Buyers selecting these will see an error at checkout. Set the missing prices in Settings to open every payment path.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => navigate("/settings/pricing")}
+                className="bg-oxford hover:bg-oxford-dark text-white shrink-0"
+              >
+                Set prices →
               </Button>
             </div>
           </div>

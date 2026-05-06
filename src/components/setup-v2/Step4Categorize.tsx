@@ -560,6 +560,17 @@ export function Step4Categorize() {
               You can change these later. Most publishers enable all three to
               maximize earnings — different buyers want different rights.
             </p>
+            {/* KI #126 (Phase 5.12 Cluster A) belt-and-suspenders to the
+                Dashboard pricing-gap banner. The wizard prices only the two
+                most common buyer paths (per-article human + annual AI
+                subscription); enabling additional licensing modes (one-time
+                AI, retrieval/metered, AI training subscription) requires
+                Settings → Pricing post-onboarding. Cheap inline note keeps
+                conviction-stage expectations correct. */}
+            <p className="text-xs text-gray-500">
+              You can fine-tune per-license-type pricing later in Settings →
+              Pricing.
+            </p>
           </section>
 
           {/* "Switch to retrieval-only mode" — v2 spec Refinement 3 */}
