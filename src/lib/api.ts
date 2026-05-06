@@ -478,6 +478,7 @@ export const verifyOwnershipApi = {
     platform: 'beehiiv',
     credentials: BeehiivCredentials,
     token: string | null,
+    signal?: AbortSignal,
   ) =>
     edgeFetch<PlatformNativeApiResult>(
       EDGE_FUNCTION_BASE + '/verify-ownership',
@@ -488,6 +489,7 @@ export const verifyOwnershipApi = {
           platform,
           credentials,
         }),
+        signal,
       },
       token,
     ),
