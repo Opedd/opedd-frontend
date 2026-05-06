@@ -58,14 +58,22 @@ const TICK_INTERVAL_MS = 100;
 
 /**
  * Returns true if the click happened on an interactive descendant
- * (button, link, input, label, role="button"). Used to skip the
- * card-area click-to-advance handler when publisher clicks a Why?
+ * (real <button>, <a>, <input>, <label>). Used to skip the card-
+ * area click-to-advance handler when publisher clicks a Why?
  * expander or the Continue Now button — those have their own
  * semantics.
+ *
+ * Note: `[role="button"]` is intentionally NOT in the selector. The
+ * card wrapper itself carries role="button", and `closest` walks up
+ * the DOM — so including [role="button"] would match the wrapper for
+ * every click inside the card and short-circuit advance entirely.
+ * All actual interactive descendants are real <button> elements
+ * (HelperExpandable trigger, Continue Now button) so the narrower
+ * selector is sufficient.
  */
 function isInteractiveTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
-  return !!target.closest('button, a, input, label, [role="button"]');
+  return !!target.closest('button, a, input, label');
 }
 
 export function SuccessView(props: SuccessViewProps) {

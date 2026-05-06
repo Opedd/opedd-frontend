@@ -20,6 +20,12 @@ vi.mock("@/components/setup-v2/Step2Substack", () => ({
   Step2Substack: () => <div data-testid="step2-substack-marker" />,
 }));
 
+// Phase 6.5 — same pattern for Step2Beehiiv (commit 6 + 7 wired the
+// dispatch). Step2Beehiiv's own tests cover its internals.
+vi.mock("@/components/setup-v2/Step2Beehiiv", () => ({
+  Step2Beehiiv: () => <div data-testid="step2-beehiiv-marker" />,
+}));
+
 import SetupV2 from "@/pages/SetupV2";
 
 function defaultState(
@@ -126,7 +132,11 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-substack-marker")).toBeTruthy();
   });
 
-  it("renders Step2Stub for in_setup,2 + non-substack platform (e.g., beehiiv)", () => {
+  it("renders Step2Beehiiv for in_setup,2 + platform=beehiiv (Phase 6.5 dispatch)", () => {
+    // Phase 6.5 commit b253edf swapped the case-2 dispatch so
+    // platform=beehiiv routes to Step2Beehiiv (canonical platform_
+    // native_api path per Phase 6.0 commit 2be6932). Pre-Phase-6.5
+    // this test asserted Step2Stub for beehiiv.
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -135,7 +145,23 @@ describe("SetupV2 — state-driven step routing", () => {
       }),
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
-    expect(screen.getByText(/Connecting your Beehiiv/i)).toBeTruthy();
+    expect(screen.getByTestId("step2-beehiiv-marker")).toBeTruthy();
+  });
+
+  it("renders Step2Stub for in_setup,2 + still-stubbed platform (e.g., ghost)", () => {
+    // Ghost still routes to Step2Stub until Phase 7.5 ships
+    // Step2Ghost. Same applies to wordpress (Phase 8) + custom
+    // (Phase 9). One test covers the stub-routing behavior; the
+    // remaining stubbed platforms share the same code path.
+    mockHookReturn.mockReturnValue(
+      defaultState({
+        setupState: "in_setup",
+        currentStep: 2 as WizardStep,
+        setupData: { platform: "ghost" },
+      }),
+    );
+    render(<Wrapper><SetupV2 /></Wrapper>);
+    expect(screen.getByText(/Connecting your Ghost site/i)).toBeTruthy();
   });
 
   it("renders Step3 stub for in_setup,3", () => {
