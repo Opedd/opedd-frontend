@@ -464,7 +464,80 @@ export const verifyOwnershipApi = {
       },
       token,
     ),
+
+  // Phase 6.5 — API-key-as-proof flow for Beehiiv (Phase 7.5 will widen
+  // to Ghost). Single backend roundtrip; on success the backend handler
+  // direct-flips the publishers row + queues platform_archive_jobs +
+  // registers the platform webhook + persists secret on content_sources
+  // (per Phase 6.0 commit 2be6932 RED #3 Option (a) cascade). Frontend
+  // reads the extended success shape (archive_job_id / webhook_
+  // registered / archive_estimated_count) to render real-time-vs-
+  // deferred sub-states. See INVARIANTS.md "API-key-as-proof methods
+  // direct-flip" sibling carve-out (commit 72e3dc6).
+  runPlatformNativeApi: (
+    platform: 'beehiiv',
+    credentials: BeehiivCredentials,
+    token: string | null,
+  ) =>
+    edgeFetch<PlatformNativeApiResult>(
+      EDGE_FUNCTION_BASE + '/verify-ownership',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'platform_native_api',
+          platform,
+          credentials,
+        }),
+      },
+      token,
+    ),
 };
+
+// ─── Phase 6.5 — API-key-as-proof types ────────────────────────────
+//
+// Stable enum mirror of backend's `_shared/connectors/beehiiv.ts:
+// BeehiivVerifyReason` (Phase 6.0 commit d9c7aec / 2be6932). Translation
+// from Beehiiv's free-text errors to enum happens at the backend
+// connector boundary so future Beehiiv API copy / localization changes
+// don't propagate as frontend breakage. Step2Beehiiv discriminates
+// error-class copy on this enum.
+
+export type BeehiivVerifyReason =
+  | 'BAD_API_KEY'
+  | 'PUBLICATION_NOT_FOUND'
+  | 'BEEHIIV_API_ERROR'
+  | 'BEEHIIV_UNREACHABLE';
+
+export interface BeehiivCredentials {
+  api_key: string;
+  pub_id: string;
+}
+
+// PlatformNativeApiResult mirrors the backend's verify-ownership
+// platform_native_api response shape (see verify-ownership/types.ts
+// VerifySuccess + VerifyFailure post-Phase-6.0 commit 2be6932).
+//
+// Verified=true populates `evidence` + the three direct-flip-cascade
+// fields (archive_job_id / webhook_registered / archive_estimated_
+// count). Verified=false populates `reason` (enum) + optional
+// fallback_available.
+export interface PlatformNativeApiResult {
+  verified: boolean;
+  method: 'platform_native_api';
+  // Verified=true fields
+  evidence?: {
+    platform: 'beehiiv';
+    publication_name: string | null;
+    pub_id?: string;
+    web_url?: string | null;
+  };
+  archive_job_id?: string | null;
+  webhook_registered?: boolean;
+  archive_estimated_count?: number | null;
+  // Verified=false fields
+  reason?: BeehiivVerifyReason | string;
+  fallback_available?: 'dns_txt_record' | 'manual_review';
+}
 
 // ─── Branding (Phase 3 Session 3.6) ────────────────────────────────
 //
