@@ -819,7 +819,11 @@ export default function Settings() {
     <DashboardLayout title="Settings">
         <SEO title="Settings — Opedd" path="/settings" noindex />
         <div className="p-8 max-w-6xl w-full mx-auto space-y-0">
-          {/* Save feedback banners */}
+          {/* Save success banner — top-of-page; ephemeral confirmation
+              (3s auto-dismiss). KI #123: error variant moved inline-above-
+              Save (search for `saveBanner?.kind === "error"` further down)
+              so a save failure surfaces adjacent to the failing action
+              instead of forcing the user to scroll back to the top. */}
           <AnimatePresence>
             {saveBanner?.kind === "success" && (
               <motion.div
@@ -828,18 +832,6 @@ export default function Settings() {
               >
                 <CheckCircle size={16} className="text-[#166534] flex-shrink-0" />
                 <span className="text-sm font-medium text-[#166534]">Settings saved</span>
-              </motion.div>
-            )}
-            {saveBanner?.kind === "error" && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3"
-              >
-                <div className="flex items-center gap-2">
-                  <AlertTriangle size={16} className="text-[#DC2626] flex-shrink-0" />
-                  <span className="text-sm font-medium text-[#DC2626]">{saveBanner.message}</span>
-                </div>
-                <button onClick={() => setSaveBanner(null)} aria-label="Dismiss save error" className="text-red-400 hover:text-red-600"><X size={14} /></button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1123,6 +1115,26 @@ export default function Settings() {
                         <p className="text-xs text-gray-500">Enter the buyer's email to resend all license keys to their inbox.</p>
                         <ResendLicensesForm />
                       </div>
+
+                      {/* KI #123: inline-above-Save error banner. Persists
+                          until user dismisses or successful save replaces
+                          state; sits adjacent to the failing action so the
+                          user doesn't have to scroll back to page-top to
+                          read what went wrong. */}
+                      <AnimatePresence>
+                        {saveBanner?.kind === "error" && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                            className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3"
+                          >
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle size={16} className="text-[#DC2626] flex-shrink-0" />
+                              <span className="text-sm font-medium text-[#DC2626]">{saveBanner.message}</span>
+                            </div>
+                            <button onClick={() => setSaveBanner(null)} aria-label="Dismiss save error" className="text-red-400 hover:text-red-600"><X size={14} /></button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
                       {/* Save Button */}
                       <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium disabled:opacity-50 transition-all active:scale-[0.98]">
