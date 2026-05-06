@@ -57,6 +57,11 @@ const DEFAULT_BUYER_TYPE: BuyerType = "ai_retrieval";
 
 type Stage = "magic-link" | "signup-form" | "checking";
 
+// KI #129 (2026-05-06): per-tab persistence key for unsaved one-time
+// API key. See `useState(issued, ...)` lazy initializer + setIssued
+// callsite + handleKeyModalClose for the read/write/clear cycle.
+const ISSUED_KEY_STORAGE_KEY = "opedd:buyer-signup:issued-key";
+
 function detectRateLimit(message: string): boolean {
   const m = message.toLowerCase();
   return (
@@ -94,8 +99,23 @@ export default function BuyerSignup() {
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  // One-time key display
-  const [issued, setIssued] = useState<IssuedKeyResponse | null>(null);
+  // One-time key display.
+  // KI #129 (2026-05-06): hydrate from sessionStorage on mount so an
+  // accidental refresh / back-button / tab-close BEFORE the user
+  // completes the OneTimeKeyModal checkbox-confirmed dismissal doesn't
+  // lose the key. Persistence is per-tab (sessionStorage) — auto-cleared
+  // on tab close — and explicitly cleared in handleKeyModalClose after
+  // the user confirms via checkbox. Documented exception to the
+  // one-time-display contract in `lib/buyerApi.ts`.
+  const [issued, setIssued] = useState<IssuedKeyResponse | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.sessionStorage.getItem(ISSUED_KEY_STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as IssuedKeyResponse) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // KI #97 (2026-05-04): waiting-room gate. When the user lands on this
   // page from a magic-link click, the URL carries ?code=<UUID> (PKCE
@@ -277,6 +297,17 @@ export default function BuyerSignup() {
         terms_version: TERMS_VERSION,
       });
       setIssued(result);
+      // KI #129: persist per-tab so refresh/back/tab-close before the
+      // user completes the modal's checkbox-confirmed dismissal doesn't
+      // lose the key. Cleared in handleKeyModalClose.
+      try {
+        window.sessionStorage.setItem(ISSUED_KEY_STORAGE_KEY, JSON.stringify(result));
+      } catch {
+        // sessionStorage unavailable (private mode quota, disabled storage,
+        // etc.) — modal still works for the in-session lifetime; we just
+        // can't survive a refresh. Strictly worse-than-nothing if it
+        // throws on setItem too, so swallow.
+      }
       toast({ title: "Account created", description: "Save your API key — it won't be shown again." });
     } catch (err) {
       toast({
@@ -291,6 +322,14 @@ export default function BuyerSignup() {
 
   const handleKeyModalClose = () => {
     setIssued(null);
+    // KI #129: explicit clear after the modal's checkbox-confirmed
+    // dismissal (OneTimeKeyModal hard-gates handleClose on the
+    // `confirmed` checkbox; this handler only fires post-confirmation).
+    try {
+      window.sessionStorage.removeItem(ISSUED_KEY_STORAGE_KEY);
+    } catch {
+      // sessionStorage unavailable — nothing to clear.
+    }
     navigate("/buyer/account", { replace: true });
   };
 
@@ -393,14 +432,16 @@ export default function BuyerSignup() {
                       type="email"
                       value={contactEmail}
                       onChange={(e) => { setContactEmail(e.target.value); setFieldErrors({ ...fieldErrors, contact_email: "" }); }}
-                      readOnly={!!user}
-                      className={user ? "bg-gray-50 cursor-not-allowed" : undefined}
                     />
-                    {user && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        Tied to your <span className="font-mono">{user.email}</span> session.
-                      </p>
-                    )}
+                    {/* KI #128 (2026-05-06): silent un-bind. Email is
+                        pre-filled from the auth session for convenience
+                        (founders signing up as buyers may want the same
+                        email) but stays editable — no readOnly + no
+                        "Tied to your session" caption. enterprise_buyers
+                        may share auth.users.id with publishers per the
+                        cross-role data model; the buyer can type a
+                        different contact email if their company-side
+                        billing inbox differs from their auth identity. */}
                     {fieldErrors.contact_email && <p className="text-xs text-red-500 mt-1">{fieldErrors.contact_email}</p>}
                   </div>
                 </div>

@@ -82,7 +82,16 @@ export interface BuyerProfileResponse {
 // One-time-display contract: full token returned ONLY in signup +
 // create_key responses. The frontend MUST display the token in a
 // one-time modal with "you won't see this again" warning. Storing
-// outside the modal lifetime is forbidden.
+// outside the modal lifetime is forbidden — with one documented
+// exception per KI #129 (2026-05-06): the BuyerSignup signup-time
+// flow may persist `IssuedKeyResponse` to `sessionStorage` under
+// key `opedd:buyer-signup:issued-key` to survive accidental refresh
+// / back / tab-close BEFORE the user completes the OneTimeKeyModal
+// checkbox-confirmed dismissal. sessionStorage is per-tab and
+// auto-cleared on tab close; the BuyerSignup flow MUST also clear
+// the key explicitly inside `handleKeyModalClose` (called only after
+// the modal's checkbox-confirmed dismissal). localStorage / cookies
+// / any cross-tab or persistent surface remain forbidden.
 export interface IssuedKeyResponse {
   buyer: Buyer;
   key: string;             // full opedd_buyer_<env>_<32-hex> token
