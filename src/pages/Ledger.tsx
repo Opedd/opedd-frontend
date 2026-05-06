@@ -206,6 +206,26 @@ export default function Ledger() {
     };
   }, [apiMetrics, transactions]);
 
+  // KI #135 (2026-05-06): hide pending license_transactions older than
+  // 24h from default view. Source: abandoned Stripe sessions accumulate
+  // as `pending` rows that clutter the publisher's revenue view (founder
+  // saw 4 rows post-B.2 retry attempts; only the last was paid). Frontend
+  // filter is the band-aid; backend cron sweep tracked as KI #156 follow-
+  // up. Suppression bypassed when statusFilter='pending' so the rows
+  // remain explicitly inspectable.
+  const PENDING_STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+  const displayedTransactions = useMemo(() => {
+    if (statusFilter === "pending") return transactions;
+    const cutoff = Date.now() - PENDING_STALE_THRESHOLD_MS;
+    return transactions.filter((tx) => {
+      if (tx.status !== "processing") return true;
+      const created = Date.parse(tx.date);
+      if (Number.isNaN(created)) return true;
+      return created >= cutoff;
+    });
+  }, [transactions, statusFilter]);
+  const hiddenStalePendingCount = transactions.length - displayedTransactions.length;
+
   if (!user) return null;
 
   const handleRowClick = (tx: Transaction) => { setSelectedTransaction(tx); setDrawerOpen(true); };
@@ -419,7 +439,7 @@ export default function Ledger() {
 
         {!fetchError && (
           <motion.div variants={itemVariants}>
-                {transactions.length === 0 ? (
+                {displayedTransactions.length === 0 ? (
                   <div className="bg-white rounded-xl border border-gray-200 shadow-card">
                     <EmptyState
                       icon={FileCheck}
@@ -509,6 +529,15 @@ export default function Ledger() {
                           </Button>
                         )}
                       </div>
+                      {/* KI #135: stale-pending suppression notice. Surfaces
+                          path-back to suppressed rows so the user can find
+                          them via Status filter. Only renders when there's
+                          actually something hidden. */}
+                      {hiddenStalePendingCount > 0 && (
+                        <p className="text-xs text-gray-400 mt-3">
+                          {hiddenStalePendingCount} stale Pending {hiddenStalePendingCount === 1 ? "row" : "rows"} (&gt; 24h old) hidden — change Status filter to "Pending" to view.
+                        </p>
+                      )}
                     </div>
 
                     <Table>
@@ -525,7 +554,7 @@ export default function Ledger() {
                       </TableHeader>
                       <TableBody>
                         <AnimatePresence>
-                          {transactions.map((tx, index) => (
+                          {displayedTransactions.map((tx, index) => (
                             <motion.tr key={tx.id} variants={rowVariants} initial="hidden" animate="visible" transition={{ delay: index * 0.05 }} className="border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors group" onClick={() => handleRowClick(tx)}>
                               <TableCell>
                                 <div className="flex items-center gap-2">
