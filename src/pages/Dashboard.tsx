@@ -15,7 +15,6 @@ import { useWizardState } from "@/hooks/useWizardState";
 import { shouldRedirectToWelcome } from "./welcome-redirect";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { stripeApi } from "@/lib/api";
-import { deriveSlug } from "@/lib/utils";
 import { derivePricingGaps, type PricingGap } from "@/lib/pricing-gaps";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -183,9 +182,13 @@ export default function Dashboard() {
       });
       const json = await res.json();
       const profile = json.success ? json.data : null;
-      if (profile?.website_url) {
-        setPublisherSlug(deriveSlug(profile.website_url));
-      }
+      // KI #149 (closed 2026-05-06): read canonical publishers.slug
+      // directly from the API response (post-tandem opedd-backend slice).
+      // Pre-fix: derived client-side via deriveSlug(profile.website_url).
+      // Backend `publisher-profile` GET now exposes the column populated
+      // by migration 096 (KI #125 closure) so the publisher's licensing
+      // URL preview matches the canonical slug used by sitemap/api routes.
+      setPublisherSlug(profile?.slug ?? null);
       setContentImported(!!profile?.content_imported);
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
       setPricingGaps(
