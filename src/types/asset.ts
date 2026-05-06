@@ -79,45 +79,6 @@ export interface DbAsset {
   metadata?: Record<string, unknown> | null;
 }
 
-// License registration payload (aligned with backend schema)
-export interface LicensePayload {
-  title: string;
-  description?: string;
-  accessType: AccessType;
-  contentHash?: string;
-  metadata?: {
-    url?: string;
-    type?: "article" | "publication" | "document";
-    platform?: string;
-    [key: string]: unknown;
-  };
-  human_price?: number;
-  ai_price?: number;
-}
-
-// Database transaction structure
-export interface DbTransaction {
-  id: string;
-  created_at: string;
-  asset_id: string;
-  amount: number;
-  license_type: string;
-  status: string;
-  story_protocol_hash?: string | null;
-  buyer_email?: string | null;
-  publisher_id: string;
-}
-
-// Generate a content hash from content string
-export const generateContentHash = (content: string): string => {
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    const char = content.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return `0x${Math.abs(hash).toString(16).padStart(16, '0')}`;
-};
 
 // Map database asset to UI asset format
 export const mapDbAssetToUiAsset = (dbAsset: DbAsset): Asset => {

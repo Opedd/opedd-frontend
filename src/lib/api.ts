@@ -171,8 +171,6 @@ export type SetupState =
 // admin tooling.
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
-export type WizardAction = 'advance' | 'regress' | 'save_step_data';
-
 export interface WizardStateView {
   publisher_id: string;
   setup_state: SetupState;

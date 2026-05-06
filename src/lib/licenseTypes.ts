@@ -210,10 +210,3 @@ export function getLicenseTypeTextColor(
   return "text-gray-500";
 }
 
-/** Get canonical metadata or null. */
-export function getLicenseTypeMeta(
-  raw: string | null | undefined,
-): LicenseTypeMeta | null {
-  const canonical = normalizeLegacyType(raw);
-  return canonical ? LICENSE_TYPE_LABELS[canonical] : null;
-}

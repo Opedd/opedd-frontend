@@ -35,10 +35,3 @@ export function formatInteger(
   return new Intl.NumberFormat("en-US").format(Math.round(value));
 }
 
-export function formatPercent(
-  ratio: number | null | undefined,
-  opts?: { decimals?: number; emptyAs?: string },
-): string {
-  if (ratio == null || !Number.isFinite(ratio)) return opts?.emptyAs ?? "—";
-  return `${(ratio * 100).toFixed(opts?.decimals ?? 1)}%`;
-}
