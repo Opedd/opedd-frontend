@@ -465,18 +465,24 @@ export const verifyOwnershipApi = {
       token,
     ),
 
-  // Phase 6.5 — API-key-as-proof flow for Beehiiv (Phase 7.5 will widen
-  // to Ghost). Single backend roundtrip; on success the backend handler
-  // direct-flips the publishers row + queues platform_archive_jobs +
-  // registers the platform webhook + persists secret on content_sources
-  // (per Phase 6.0 commit 2be6932 RED #3 Option (a) cascade). Frontend
-  // reads the extended success shape (archive_job_id / webhook_
-  // registered / archive_estimated_count) to render real-time-vs-
-  // deferred sub-states. See INVARIANTS.md "API-key-as-proof methods
-  // direct-flip" sibling carve-out (commit 72e3dc6).
+  // Phase 6.5 — API-key-as-proof flow for Beehiiv. Phase 7.5 widening
+  // (2026-05-08): platform literal accepts 'ghost' + credentials union
+  // accepts GhostCredentials. Single backend roundtrip; on success the
+  // backend handler direct-flips the publishers row + queues platform_
+  // archive_jobs + registers the platform webhook + persists secret on
+  // content_sources (per Phase 6.0 commit 2be6932 RED #3 Option (a)
+  // cascade for Beehiiv; Phase 7.0 commit f3784eb sister cascade for
+  // Ghost via runGhostDirectFlip). Frontend reads the extended success
+  // shape (archive_job_id / webhook_registered / archive_estimated_
+  // count at top level) to render real-time-vs-deferred sub-states.
+  // See INVARIANTS.md "API-key-as-proof methods direct-flip" sibling
+  // carve-out (commit 72e3dc6) — Beehiiv + Ghost share the same
+  // direct-flip + supplementary-state shape; evidence sub-shape
+  // differs by platform. Canonical Platform type at backend
+  // verify-ownership/types.ts:23-28.
   runPlatformNativeApi: (
-    platform: 'beehiiv',
-    credentials: BeehiivCredentials,
+    platform: 'beehiiv' | 'ghost',
+    credentials: BeehiivCredentials | GhostCredentials,
     token: string | null,
     signal?: AbortSignal,
   ) =>
@@ -495,14 +501,21 @@ export const verifyOwnershipApi = {
     ),
 };
 
-// ─── Phase 6.5 — API-key-as-proof types ────────────────────────────
+// ─── Phase 6.5 + Phase 7.5 — API-key-as-proof types ────────────────
 //
-// Stable enum mirror of backend's `_shared/connectors/beehiiv.ts:
-// BeehiivVerifyReason` (Phase 6.0 commit d9c7aec / 2be6932). Translation
-// from Beehiiv's free-text errors to enum happens at the backend
-// connector boundary so future Beehiiv API copy / localization changes
-// don't propagate as frontend breakage. Step2Beehiiv discriminates
-// error-class copy on this enum.
+// Stable enum mirrors of backend's connector-layer error vocabularies.
+// Translation from each platform's free-text errors to enum happens at
+// the backend connector boundary so future API copy / localization
+// changes don't propagate as frontend breakage. Step2Beehiiv +
+// Step2Ghost components discriminate error-class copy on these enums.
+//
+// Beehiiv enum: backend `_shared/connectors/beehiiv.ts` (Phase 6.0
+//   commit d9c7aec / 2be6932). 4 stable values.
+// Ghost enum: backend `_shared/connectors/ghost.ts:18-23` (Phase 7.0
+//   commit 19eaa60 / f3784eb). 5 stable values; differs from Beehiiv
+//   in vocabulary (INVALID_API_KEY vs BAD_API_KEY rename) + scope
+//   (UNREACHABLE / BAD_KEY_FORMAT / TIMEOUT additions for the JWT
+//   key-format check + connection-class discrimination).
 
 export type BeehiivVerifyReason =
   | 'BAD_API_KEY'
@@ -510,34 +523,66 @@ export type BeehiivVerifyReason =
   | 'BEEHIIV_API_ERROR'
   | 'BEEHIIV_UNREACHABLE';
 
+export type GhostVerifyReason =
+  | 'INVALID_API_KEY'
+  | 'UNREACHABLE'
+  | 'BAD_KEY_FORMAT'
+  | 'GHOST_SERVER_ERROR'
+  | 'TIMEOUT';
+
 export interface BeehiivCredentials {
   api_key: string;
   pub_id: string;
 }
 
+// Ghost credentials shape (mirrors backend platform_native_api.ts:
+// 51-54 source-verified). Field names differ from Beehiiv: site_url
+// (canonical, NOT api-returned) + admin_api_key (key_id:hex_secret
+// format per Ghost Admin → Settings → Integrations → Custom
+// Integration).
+export interface GhostCredentials {
+  site_url: string;
+  admin_api_key: string;
+}
+
 // PlatformNativeApiResult mirrors the backend's verify-ownership
 // platform_native_api response shape (see verify-ownership/types.ts
-// VerifySuccess + VerifyFailure post-Phase-6.0 commit 2be6932).
+// VerifySuccess + VerifyFailure post-Phase-6.0 commit 2be6932 +
+// Phase 7.0 commit f3784eb Ghost branch extension).
 //
 // Verified=true populates `evidence` + the three direct-flip-cascade
 // fields (archive_job_id / webhook_registered / archive_estimated_
-// count). Verified=false populates `reason` (enum) + optional
+// count) at TOP LEVEL of the result (NOT nested under evidence —
+// source-verified at backend platform_native_api.ts:82-86 +
+// 179-183). Verified=false populates `reason` (enum) + optional
 // fallback_available.
+//
+// Phase 7.5 widening: evidence widened to discriminated union on
+// `platform` field. Beehiiv evidence (platform: 'beehiiv'; api-
+// returned web_url + pub_id) vs Ghost evidence (platform: 'ghost';
+// canonical site_url; no pub_id; no web_url) — source-verified at
+// backend platform_native_api.ts:122-128 (Beehiiv) vs 179-183 (Ghost).
 export interface PlatformNativeApiResult {
   verified: boolean;
   method: 'platform_native_api';
   // Verified=true fields
-  evidence?: {
-    platform: 'beehiiv';
-    publication_name: string | null;
-    pub_id?: string;
-    web_url?: string | null;
-  };
+  evidence?:
+    | {
+        platform: 'beehiiv';
+        publication_name: string | null;
+        pub_id?: string;
+        web_url?: string | null;
+      }
+    | {
+        platform: 'ghost';
+        site_url: string;
+        publication_name: string | null;
+      };
   archive_job_id?: string | null;
   webhook_registered?: boolean;
   archive_estimated_count?: number | null;
   // Verified=false fields
-  reason?: BeehiivVerifyReason | string;
+  reason?: BeehiivVerifyReason | GhostVerifyReason | string;
   fallback_available?: 'dns_txt_record' | 'manual_review';
 }
 
