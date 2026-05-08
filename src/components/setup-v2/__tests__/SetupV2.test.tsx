@@ -26,6 +26,13 @@ vi.mock("@/components/setup-v2/Step2Beehiiv", () => ({
   Step2Beehiiv: () => <div data-testid="step2-beehiiv-marker" />,
 }));
 
+// Phase 7.5 — same pattern for Step2Ghost (commit 6 + 7 wired the
+// dispatch — Phase 7.5 commit 7 swaps ghost from Step2Stub fallback
+// to Step2Ghost). Step2Ghost's own tests cover its internals.
+vi.mock("@/components/setup-v2/Step2Ghost", () => ({
+  Step2Ghost: () => <div data-testid="step2-ghost-marker" />,
+}));
+
 import SetupV2 from "@/pages/SetupV2";
 
 function defaultState(
@@ -148,11 +155,13 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-beehiiv-marker")).toBeTruthy();
   });
 
-  it("renders Step2Stub for in_setup,2 + still-stubbed platform (e.g., ghost)", () => {
-    // Ghost still routes to Step2Stub until Phase 7.5 ships
-    // Step2Ghost. Same applies to wordpress (Phase 8) + custom
-    // (Phase 9). One test covers the stub-routing behavior; the
-    // remaining stubbed platforms share the same code path.
+  it("renders Step2Ghost for in_setup,2 + platform=ghost (Phase 7.5 dispatch)", () => {
+    // Phase 7.5 commit 69f54d3 swapped the case-2 dispatch so
+    // platform=ghost routes to Step2Ghost (sibling platform_native_
+    // api direct-flip cascade per Phase 7.0 commit f3784eb runGhost
+    // DirectFlip). Pre-Phase-7.5 this test asserted Step2Stub for
+    // ghost; the still-stubbed-platform coverage moved to the new
+    // wordpress test below.
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -161,7 +170,22 @@ describe("SetupV2 — state-driven step routing", () => {
       }),
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
-    expect(screen.getByText(/Connecting your Ghost site/i)).toBeTruthy();
+    expect(screen.getByTestId("step2-ghost-marker")).toBeTruthy();
+  });
+
+  it("renders Step2Stub for in_setup,2 + still-stubbed platform (e.g., wordpress)", () => {
+    // Post-Phase-7.5 still-stubbed platforms: wordpress (Phase 8) +
+    // custom (Phase 9). One test covers the stub-routing behavior;
+    // the remaining stubbed platforms share the same code path.
+    mockHookReturn.mockReturnValue(
+      defaultState({
+        setupState: "in_setup",
+        currentStep: 2 as WizardStep,
+        setupData: { platform: "wordpress" },
+      }),
+    );
+    render(<Wrapper><SetupV2 /></Wrapper>);
+    expect(screen.getByText(/Connecting your WordPress site/i)).toBeTruthy();
   });
 
   it("renders Step3 stub for in_setup,3", () => {
