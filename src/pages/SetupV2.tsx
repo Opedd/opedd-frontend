@@ -6,6 +6,7 @@ import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platf
 import { Step2Stub } from "@/components/setup-v2/Step2Stub";
 import { Step2Substack } from "@/components/setup-v2/Step2Substack";
 import { Step2Beehiiv } from "@/components/setup-v2/Step2Beehiiv";
+import { Step2Ghost } from "@/components/setup-v2/Step2Ghost";
 import { Step4Categorize } from "@/components/setup-v2/Step4Categorize";
 import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
 import { ResumeIntentCapture } from "@/components/setup-v2/ResumeIntentCapture";
@@ -85,13 +86,19 @@ export default function SetupV2() {
       // Phase 3 Session 3.3 — Substack functional.
       // Phase 6.5 — Beehiiv functional (canonical platform_native_api
       // path per Phase 6.0 commit 2be6932 RED #3 Option (a) cascade).
-      // Other platforms remain stubbed (each ships in its dedicated
-      // phase per the roadmap: Ghost P7, WordPress P8, Custom P9).
+      // Phase 7.5 — Ghost functional (sibling platform_native_api
+      // direct-flip cascade per Phase 7.0 commit f3784eb runGhost
+      // DirectFlip; INVARIANTS sibling carve-out commit 72e3dc6).
+      // Remaining platforms stubbed each ship in their dedicated
+      // phase per the roadmap: WordPress P8, Custom P9.
       if (platform === "substack") {
         return <Step2Substack />;
       }
       if (platform === "beehiiv") {
         return <Step2Beehiiv />;
+      }
+      if (platform === "ghost") {
+        return <Step2Ghost />;
       }
       return <Step2Stub platform={platform} />;
     case 3:
