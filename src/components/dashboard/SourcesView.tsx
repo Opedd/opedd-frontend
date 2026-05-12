@@ -3,23 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { usePublication } from "@/hooks/usePublication";
 import { PublicationCard } from "@/components/dashboard/PublicationCard";
 import { ImportContentModal } from "@/components/dashboard/ImportContentModal";
-import { WordPressPluginCard } from "@/components/dashboard/WordPressPluginCard";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/Spinner";
 
 /**
- * Phase 4.7.3 — SourcesView wires PublicationCard to the unified ImportContentModal
- * per OQ.4 (single Import content CTA, multiple mechanisms inside).
- *
- * State (PFQ-4 α): modal open/close lives here. Opened by PublicationCard's primary
- * "Import content" CTA (verified + licenseCount=0) OR secondary "Import content"
- * link (verified + licenseCount > 0; PFQ-6 ii).
- *
- * SubstackImportCard absorbed into modal Upload-archive tab (PFQ-1 α). No longer
- * mounted standalone in SourcesView.
- *
- * WordPressPluginCard left standalone per PFQ-3 α + KI #64 (WordPress integration
- * scope undecided; cleanup-audit Phase 4.7.6 owns the WP go/no-go decision).
+ * SourcesView wires PublicationCard to the unified ImportContentModal.
+ * Modal opens via PublicationCard's "Import content" CTA.
  */
 
 export function SourcesView() {
@@ -72,10 +61,6 @@ export function SourcesView() {
           </p>
         </div>
       )}
-
-      {/* WordPressPluginCard kept standalone per PFQ-3 α + KI #64 — Phase 4.7.6 audit
-          owns the go/no-go on absorbing/removing/keeping WordPress integration. */}
-      <WordPressPluginCard />
 
       <ImportContentModal
         open={isImportOpen}

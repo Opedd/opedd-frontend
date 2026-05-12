@@ -34,7 +34,6 @@ import { IssueArchiveLicenseModal } from "@/components/dashboard/IssueArchiveLic
 
 import substackLogo from "@/assets/platforms/substack.svg";
 import ghostLogo from "@/assets/platforms/ghost.svg";
-import wordpressLogo from "@/assets/platforms/wordpress.svg";
 import beehiivLogo from "@/assets/platforms/beehiiv.svg";
 import { formatUSD } from "@/lib/formatNumber";
 import { Spinner } from "@/components/ui/Spinner";
@@ -45,7 +44,6 @@ function getPlatformLogo(url: string | undefined): string | null {
   if (u.includes("substack.com")) return substackLogo;
   if (u.includes("ghost.io") || u.includes(".ghost.")) return ghostLogo;
   if (u.includes("beehiiv.com")) return beehiivLogo;
-  if (u.includes("wordpress.com") || u.includes("wp.com")) return wordpressLogo;
   return null;
 }
 

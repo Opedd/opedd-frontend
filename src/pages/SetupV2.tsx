@@ -83,18 +83,10 @@ export default function SetupV2() {
     case 1:
       return <Step1Platform />;
     case 2:
-      // Phase 3 Session 3.3 — Substack functional.
-      // Phase 6.5 — Beehiiv functional (canonical platform_native_api
-      // path per Phase 6.0 commit 2be6932 RED #3 Option (a) cascade).
-      // Phase 7.5 — Ghost functional (sibling platform_native_api
-      // direct-flip cascade per Phase 7.0 commit f3784eb runGhost
-      // DirectFlip; INVARIANTS sibling carve-out commit 72e3dc6).
-      // Phase 8.6 — Custom API functional (canonical Phase 8 Publisher
-      // API path: publishers-api-keys + publishers-content +
-      // publishers-webhooks). WordPress + Custom CMS folded into the
-      // single "api" platform card per founder routing 2026-05-12;
-      // Step2Stub retired (all 4 platforms ship dedicated Step2*
-      // components).
+      // 4 canonical platforms: substack, beehiiv (platform_native_api
+      // direct-flip), ghost (sibling carve-out), api (Phase 8 canonical
+      // Publisher API: publishers-api-keys + publishers-content +
+      // publishers-webhooks).
       if (platform === "substack") {
         return <Step2Substack />;
       }
@@ -107,10 +99,7 @@ export default function SetupV2() {
       if (platform === "api") {
         return <Step2Api />;
       }
-      // Unknown/legacy platform value (e.g., publishers with old
-      // "wordpress" or "custom" in setup_data.platform pre-Phase-8.6).
-      // Fall back to Step1 platform picker so they re-select Custom
-      // API from the new card set.
+      // Unknown/legacy platform value — fall back to Step1 picker.
       return <Step1Platform />;
     case 3:
       // Phase 4.6 (2026-04-30) — allowAdvance={true} closes the

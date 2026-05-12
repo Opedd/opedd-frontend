@@ -42,8 +42,8 @@ import { brandingApi, type PersistedBranding } from "@/lib/api";
  * fallback only fills primary_color from theme-color). v1 doesn't
  * render any banner image — header is a single-row band. Phase 10
  * polish handles banner imagery once cross-platform patterns are
- * clearer (Beehiiv / Ghost / WordPress paths may surface banners
- * differently, or not at all).
+ * clearer (Beehiiv / Ghost paths may surface banners differently,
+ * or not at all).
  *
  * LOVABLE-POLISH (Phase 10 handoff):
  * - Typography weight + spacing pre-polish; v1 ships utility classes.

@@ -3,18 +3,11 @@ import SEO from "@/components/SEO";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import wordpressIcon from "@/assets/platforms/wordpress.svg";
 import ghostIcon from "@/assets/platforms/ghost.svg";
 import substackIcon from "@/assets/platforms/substack.svg";
 import beehiivIcon from "@/assets/platforms/beehiiv.svg";
 
 const platforms = [
-  {
-    name: "WordPress",
-    slug: "wordpress",
-    icon: wordpressIcon,
-    description: "Install the Opedd plugin and auto-embed the licensing widget on every post.",
-  },
   {
     name: "Ghost",
     slug: "ghost",
@@ -42,7 +35,7 @@ const Guides = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Integration Guides — Opedd"
-        description="Step-by-step guides to connect Opedd with WordPress, Ghost, Substack, and Beehiiv."
+        description="Step-by-step guides to connect Opedd with Ghost, Substack, and Beehiiv."
         path="/guides"
       />
       <Header />

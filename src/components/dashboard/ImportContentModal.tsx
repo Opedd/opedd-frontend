@@ -86,10 +86,10 @@ export function ImportContentModal({ open, onOpenChange, onImportComplete }: Imp
               className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center space-y-2"
             >
               <Code2 size={24} className="text-gray-400 mx-auto" />
-              <p className="text-sm font-medium text-navy-deep">Platform API — coming soon</p>
+              <p className="text-sm font-medium text-navy-deep">Platform API</p>
               <p className="text-xs text-navy-deep/60">
-                Direct API connectors for Beehiiv, Ghost, WordPress, and Custom platforms ship in
-                Phases 6-9. We'll email you when each is ready.
+                Direct API connectors are available for Beehiiv and Ghost. Custom-CMS
+                publishers onboard via the Custom API path.
               </p>
             </div>
           </TabsContent>

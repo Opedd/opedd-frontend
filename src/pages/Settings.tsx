@@ -1383,7 +1383,7 @@ export default function Settings() {
                             {publisherIdCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy ID</>}
                           </Button>
                         </div>
-                        <p className="text-xs text-gray-400 mt-3">Use this in your widget embed snippet, WordPress plugin, and AI defense policy URL</p>
+                        <p className="text-xs text-gray-400 mt-3">Use this in your widget embed snippet and AI defense policy URL</p>
                       </div>
 
                       {/* Widget Embed Code — moved to Distribution/Widget tab */}

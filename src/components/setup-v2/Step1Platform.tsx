@@ -3,17 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useWizardState } from "@/hooks/useWizardState";
 
 /**
- * Phase 3 Session 3.1 — Step 1: platform picker (functional).
- * Phase 8.6 (2026-05-12) — 5 cards → 4 cards. WordPress + Custom CMS
- * folded into single "Custom API" card per founder routing decoupling
- * WordPress onboarding from verify-ownership/platform_native_api.
- * WordPress publishers onboard via the canonical Phase 8 Publisher API
- * (publishers-api-keys + publishers-content + publishers-webhooks).
- *
- * Renders 4 platform cards: Substack / Beehiiv / Ghost / Custom API.
- * Copy is v2 spec for Substack/Beehiiv/Ghost; Custom API copy is
- * Phase 8.6 v1 (post-onboarding-decoupling). Lovable polish lands in
- * Phase 10.
+ * Step 1: platform picker (functional). Renders 4 platform cards:
+ * Substack / Beehiiv / Ghost / Custom API. Custom-CMS publishers
+ * onboard via the Custom API card (canonical Phase 8 Publisher API).
  *
  * State machine:
  *   - prospect → click card → wizard.advance({ platform }) → in_setup,1
@@ -79,7 +71,7 @@ const PLATFORMS: PlatformCard[] = [
     id: "api",
     label: "Custom API",
     body:
-      "Push content directly via the Opedd Publisher API. Works with WordPress, headless CMS, custom-built sites, or any system that can make HTTP POST calls.",
+      "Push content directly via the Opedd Publisher API. Works with any CMS, headless system, or custom-built site that can make HTTP POST calls.",
     setupTime: "about 5 minutes",
     includes: "Anything your system can post",
     verification: "Opedd API key (issued in setup)",

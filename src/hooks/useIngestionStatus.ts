@@ -38,9 +38,8 @@ import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
  * and the first 'done' poll), making 'done' unreachable until growth
  * stalls. For fast-completing imports (RSS, small archives), the wizard
  * simply skips the visible 'active' phase and renders 'done' immediately
- * — accurate, no UX regression. Long imports (Beehiiv / Ghost / WordPress
- * full archives) reliably expose archive_status='running' and trigger
- * case 2.
+ * — accurate, no UX regression. Long imports (Beehiiv / Ghost full
+ * archives) reliably expose archive_status='running' and trigger case 2.
  *
  * The status flows from observable data only; useRef session-history
  * tracking is used SOLELY to gate the onComplete callback (fires only

@@ -34,7 +34,6 @@ const Enterprise = lazy(() => import("./pages/Enterprise"));
 const Status = lazy(() => import("./pages/Status"));
 const Publishers = lazy(() => import("./pages/Publishers"));
 const Guides = lazy(() => import("./pages/Guides"));
-const WordPressGuide = lazy(() => import("./pages/guides/WordPressGuide"));
 const GhostGuide = lazy(() => import("./pages/guides/GhostGuide"));
 const SubstackGuide = lazy(() => import("./pages/guides/SubstackGuide"));
 const BeehiivGuide = lazy(() => import("./pages/guides/BeehiivGuide"));
@@ -156,7 +155,6 @@ const App = () => (
                 <Route path="/status" element={<Status />} />
                 <Route path="/publishers" element={<Publishers />} />
                 <Route path="/guides" element={<Guides />} />
-                <Route path="/guides/wordpress" element={<WordPressGuide />} />
                 <Route path="/guides/ghost" element={<GhostGuide />} />
                 <Route path="/guides/substack" element={<SubstackGuide />} />
                 <Route path="/guides/beehiiv" element={<BeehiivGuide />} />

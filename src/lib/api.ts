@@ -606,7 +606,7 @@ export interface PersistedBranding {
   primary_color?: string;
   banner_url?: string;
   extracted_at?: string;
-  source?: 'substack' | 'beehiiv' | 'ghost' | 'wordpress' | 'custom';
+  source?: 'substack' | 'beehiiv' | 'ghost' | 'custom';
 }
 
 export interface BrandingState {
@@ -778,7 +778,7 @@ export interface PublisherWebhookCreated {
     event_types: string[];
     active: boolean;
     is_test: boolean;
-    platform: 'beehiiv' | 'ghost' | 'wordpress' | null;
+    platform: 'beehiiv' | 'ghost' | null;
     signature_version: 'v2';
     created_at: string;
     revoked_at: string | null;
@@ -828,7 +828,7 @@ export const publisherApi = {
     body: {
       url: string;
       event_types: string[];
-      platform?: 'beehiiv' | 'ghost' | 'wordpress' | null;
+      platform?: 'beehiiv' | 'ghost' | null;
     },
     apiKey: string,
   ) =>

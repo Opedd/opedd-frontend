@@ -561,7 +561,7 @@ export default function Connectors() {
                 )}
 
                 <p className="text-xs text-gray-400">
-                  Add this URL to your site's robots.txt or use the Opedd WordPress plugin to apply it automatically.
+                  Add this URL to your site's robots.txt.
                 </p>
               </div>
             </div>
