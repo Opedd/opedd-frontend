@@ -9,61 +9,39 @@ import { SuccessView } from './SuccessView';
 import type { ViewMode } from './types';
 import type { UIFailure } from './FailureBanner';
 
-// Phase 8.6 — Step2Api container.
+// Step2Api container — Custom API onboarding path. Creates a publisher
+// API key via /publishers-api-keys; the key creation IS the verification
+// act per Phase 8.7 verification-flip cascade ("API-key-as-proof").
 //
-// Mirrors Step2Ghost container (Phase 7.5 ship) state machine + race-
-// safety pattern + mount-resume probe + Sentry instrumentation.
-// Step2Api-specific adaptations:
-//   - Field state: environment ('test' | 'live'; default 'test') +
-//     name (optional string). NOT siteUrl/adminApiKey/apiKey/pubId.
-//   - Backend call: publisherApi.createApiKey (POST /publishers-api-
-//     keys action=create_api_key) instead of verifyOwnershipApi.run
-//     PlatformNativeApi. Session-JWT-authed (chicken-and-egg
-//     avoidance per Phase 8.0.1 self-management carve-out).
-//   - SuccessData shape: plaintext key + key prefix + environment +
-//     optional name. Plaintext NEVER persisted to setup_data; the
-//     prefix + id + environment are persisted so resume works.
-//   - Mount-resume probe: publisherApi.listApiKeys; if a non-revoked
-//     key matches setup_data.api_key_id, render SuccessView mode=
-//     'resume_stale' (publisher's plaintext is gone but their key
-//     exists — skip to immediate auto-advance).
-//   - setup_data persistence: api_key_id (uuid) + api_key_prefix
-//     (12 chars; non-sensitive) + api_environment ('test' | 'live').
-//     Plaintext key NEVER persisted.
-//   - Sentry tags: component: 'Step2Api', breadcrumb category:
-//     'step2-api'.
+// Field state: name (optional string).
+// Backend call: publisherApi.createApiKey (POST /publishers-api-keys
+// action=create_api_key); session-JWT-authed.
+// SuccessData shape: plaintext key + key prefix + optional name.
+// Plaintext NEVER persisted to setup_data; the prefix + id are.
+// Mount-resume probe: publisherApi.listApiKeys; if a non-revoked key
+// matches setup_data.api_key_id, render SuccessView mode='resume_stale'
+// (publisher's plaintext is gone but their key exists).
 //
-// State machine (locked spec; identical to Ghost):
-//   URL_ENTRY → submit → ACTIVE → success → SUCCESS → 6s timeout OR
-//                                            user-click → wizard.advance({})
-//   URL_ENTRY → submit → ACTIVE → failure → URL_ENTRY (banner; values preserved)
-//   ACTIVE → cancel-button (3s+) → URL_ENTRY (values preserved; AbortController.abort())
-//
-// Race safety (3 refs; identical to Ghost pattern preserved verbatim):
-//   - abortControllerRef: per-submit AbortController; .abort() on cancel.
-//   - requestIdRef: increments on submit AND on cancel; stale results
-//     short-circuit at result-handler boundary.
-//   - submittingRef: guards rapid double-submit during synchronous
-//     render window between click → setViewMode('active').
+// State machine:
+//   URL_ENTRY → submit → ACTIVE → success → SUCCESS → user-click → advance
+//   URL_ENTRY → submit → ACTIVE → failure → URL_ENTRY (banner)
+//   ACTIVE → cancel → URL_ENTRY (values preserved; AbortController.abort)
 
 type SuccessData =
   | {
       mode: 'fresh';
       plaintextKey: string;
       keyPrefix: string;
-      environment: 'live' | 'test';
       name?: string;
     }
   | {
       mode: 'resume_stale';
       keyPrefix: string;
-      environment: 'live' | 'test';
     };
 
 interface SetupDataAuthSlice {
   api_key_id?: string;
   api_key_prefix?: string;
-  api_environment?: 'live' | 'test';
 }
 
 export function Step2Api() {
@@ -73,9 +51,6 @@ export function Step2Api() {
   const setupDataAuth = wizard.setupData as SetupDataAuthSlice;
 
   const [viewMode, setViewMode] = useState<ViewMode>('url_entry');
-  const [environment, setEnvironment] = useState<'live' | 'test'>(
-    () => setupDataAuth.api_environment ?? 'test',
-  );
   const [name, setName] = useState('');
   const [failure, setFailure] = useState<UIFailure | null>(null);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
@@ -84,12 +59,9 @@ export function Step2Api() {
   const requestIdRef = useRef(0);
   const submittingRef = useRef(false);
 
-  // ─── Mount-resume probe ─────────────────────────────────────────
-  // If setup_data.api_key_id is present, fetch the publisher's key
-  // list + verify a matching non-revoked key still exists. If so,
-  // skip to SuccessView mode='resume_stale' (no plaintext available;
-  // immediate auto-advance). Probe failure is non-blocking (logs
-  // breadcrumb only — publisher can re-create a key from URL_ENTRY).
+  // Mount-resume probe: if setup_data.api_key_id is present, verify a
+  // matching non-revoked key still exists. If so, skip to SuccessView
+  // mode='resume_stale' (no plaintext available).
   useEffect(() => {
     if (!setupDataAuth.api_key_id) return;
     let cancelled = false;
@@ -105,7 +77,6 @@ export function Step2Api() {
           setSuccessData({
             mode: 'resume_stale',
             keyPrefix: matching.key_prefix,
-            environment: matching.environment,
           });
           setViewMode('success');
         }
@@ -123,17 +94,10 @@ export function Step2Api() {
     };
   }, [getAccessToken, setupDataAuth.api_key_id]);
 
-  // ─── Submit handler ─────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
     if (submittingRef.current) return;
     submittingRef.current = true;
     setFailure(null);
-
-    if (environment !== 'test' && environment !== 'live') {
-      setFailure({ kind: 'invalid_payload' });
-      submittingRef.current = false;
-      return;
-    }
 
     const trimmedName = name.trim();
     const effectiveName = trimmedName.length > 0 ? trimmedName : 'Onboarding key';
@@ -146,26 +110,17 @@ export function Step2Api() {
 
     try {
       const token = await getAccessToken();
-      // Note: publisherApi.createApiKey does NOT accept AbortSignal in
-      // its current shape (edgeFetch helper doesn't thread signal in
-      // the publisherApi namespace). cancel-during-active surfaces in
-      // the UI via setViewMode('url_entry') but the in-flight fetch
-      // completes naturally; stale result short-circuited by
-      // requestIdRef check below.
       const result = await publisherApi.createApiKey(
-        { environment, name: effectiveName },
+        { name: effectiveName },
         token,
       );
 
       if (requestId !== requestIdRef.current) return;
 
-      // Persist non-sensitive fields to setup_data for resume support.
-      // Plaintext key NEVER persisted per security hygiene.
       try {
         await wizard.saveStepData({
           api_key_id: result.id,
           api_key_prefix: result.key_prefix,
-          api_environment: result.environment,
         });
       } catch (err) {
         Sentry.addBreadcrumb({
@@ -178,13 +133,8 @@ export function Step2Api() {
 
       setSuccessData({
         mode: 'fresh',
-        // Backend response field is `plaintext_key` (snake_case;
-        // source-verified 2026-05-12 prod probe). Field-name mismatch
-        // shipped at 39f98b0; fixed in this amendment per Workflow A
-        // bug-fix on in-flight branch.
         plaintextKey: result.plaintext_key,
         keyPrefix: result.key_prefix,
-        environment: result.environment,
         name: result.name,
       });
       setViewMode('success');
@@ -193,9 +143,7 @@ export function Step2Api() {
       if (err instanceof DOMException && err.name === 'AbortError') return;
 
       const msg = err instanceof Error ? err.message : '';
-      // Discriminate Phase 8 error codes from the thrown message
-      // (edgeFetch surfaces `error.message` on Phase 8 failures).
-      if (/VALIDATION_FAILED|Invalid input|environment/i.test(msg)) {
+      if (/VALIDATION_FAILED|Invalid input/i.test(msg)) {
         setFailure({ kind: 'create_failed', code: 'VALIDATION_FAILED' });
       } else if (/UNAUTHORIZED|No authorization|Invalid or expired/i.test(msg)) {
         setFailure({ kind: 'create_failed', code: 'UNAUTHORIZED' });
@@ -214,9 +162,8 @@ export function Step2Api() {
         abortControllerRef.current = null;
       }
     }
-  }, [environment, name, getAccessToken, wizard]);
+  }, [name, getAccessToken, wizard]);
 
-  // ─── Cancel handler ─────────────────────────────────────────────
   const handleCancel = useCallback(() => {
     Sentry.addBreadcrumb({
       category: 'step2-api',
@@ -230,7 +177,6 @@ export function Step2Api() {
     setViewMode('url_entry');
   }, []);
 
-  // ─── Wizard advance handler ─────────────────────────────────────
   const handleAdvance = useCallback(async () => {
     try {
       await wizard.advance({});
@@ -241,7 +187,6 @@ export function Step2Api() {
     }
   }, [wizard]);
 
-  // ─── View dispatch ──────────────────────────────────────────────
   if (viewMode === 'success' && successData) {
     if (successData.mode === 'fresh') {
       return (
@@ -249,7 +194,6 @@ export function Step2Api() {
           mode="fresh"
           plaintextKey={successData.plaintextKey}
           keyPrefix={successData.keyPrefix}
-          environment={successData.environment}
           name={successData.name}
           onAdvance={handleAdvance}
         />
@@ -259,7 +203,6 @@ export function Step2Api() {
       <SuccessView
         mode="resume_stale"
         keyPrefix={successData.keyPrefix}
-        environment={successData.environment}
         onAdvance={handleAdvance}
       />
     );
@@ -268,19 +211,15 @@ export function Step2Api() {
   if (viewMode === 'active') {
     return (
       <ActiveView
-        environment={environment}
         name={name}
         onCancel={handleCancel}
       />
     );
   }
 
-  // Default: url_entry
   return (
     <URLEntryView
-      environment={environment}
       name={name}
-      onEnvironmentChange={setEnvironment}
       onNameChange={setName}
       onSubmit={handleSubmit}
       isSubmitting={false}

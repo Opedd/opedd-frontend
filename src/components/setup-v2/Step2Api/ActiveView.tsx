@@ -1,24 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Spinner } from '@/components/ui/Spinner';
 
-// Phase 8.6 — ACTIVE view for Step2Api (key creation in flight).
-//
-// Mirrors Step2Ghost/ActiveView.tsx (Phase 7.5 ship) — same loading-
-// copy progression + cancel-at-3s threshold. Fields are NOT displayed
-// in ACTIVE since they're a radio selection + optional name (not
-// sensitive to lock-and-show like Ghost's site_url + admin_api_key).
-// Just spinner + status copy + cancel affordance.
-//
-//   - 0-500ms:   "Creating your API key..."
-//   - 500ms-2s:  "Creating your API key... (this usually takes a second)"
-//   - 2s+:       "Still creating... hold tight"
-//   - 3s+:       Cancel button (X) appears
-//
-// LOVABLE-POLISH (Phase 10): no transition animation between copy
-// strings. Functional first.
-
 interface ActiveViewProps {
-  environment: 'live' | 'test';
   name: string;
   onCancel: () => void;
 }
@@ -34,7 +17,7 @@ function loadingCopy(elapsedMs: number): string {
   return 'Still creating... hold tight';
 }
 
-export function ActiveView({ environment, name, onCancel }: ActiveViewProps) {
+export function ActiveView({ name, onCancel }: ActiveViewProps) {
   const [elapsedMs, setElapsedMs] = useState(0);
 
   useEffect(() => {
@@ -57,9 +40,7 @@ export function ActiveView({ environment, name, onCancel }: ActiveViewProps) {
           </h1>
           <p className="text-gray-600 leading-relaxed">
             Issuing your{' '}
-            <span className="font-mono text-navy-deep">
-              {environment === 'test' ? 'opedd_pub_test_' : 'opedd_pub_'}
-            </span>{' '}
+            <span className="font-mono text-navy-deep">opedd_pub_</span>{' '}
             key{name ? ` "${name}"` : ''}…
           </p>
         </header>

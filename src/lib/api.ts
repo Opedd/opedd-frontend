@@ -745,16 +745,9 @@ export const licensesApi = {
 // compatibility with existing consumers).
 
 export interface PublisherApiKeyCreated {
-  // Backend canonical field is `plaintext_key` (source-verified via
-  // production probe 2026-05-12 against /publishers-api-keys
-  // action=create_api_key response shape). Phase 8.5.2 opedd-docs
-  // openapi.json schema currently declares `key` — that doc-as-code
-  // drift will be fixed in a follow-on chip (Phase 8.6.1 hygiene)
-  // after this Phase 8.6 frontend cohort ships clean.
-  plaintext_key: string;  // plaintext — returned ONCE; cannot be re-fetched
-  key_prefix: string;     // first 12 chars (e.g. "opedd_pub_te")
-  id: string;             // UUID
-  environment: 'live' | 'test';
+  plaintext_key: string;
+  key_prefix: string;
+  id: string;
   name?: string;
   scopes: string[];
   created_at: string;
@@ -763,7 +756,6 @@ export interface PublisherApiKeyCreated {
 export interface PublisherApiKeyListItem {
   id: string;
   key_prefix: string;
-  environment: 'live' | 'test';
   name?: string;
   scopes: string[];
   created_at: string;
@@ -777,13 +769,12 @@ export interface PublisherWebhookCreated {
     url: string;
     event_types: string[];
     active: boolean;
-    is_test: boolean;
     platform: 'beehiiv' | 'ghost' | null;
     signature_version: 'v2';
     created_at: string;
     revoked_at: string | null;
   };
-  secret: string;         // HMAC-SHA256 plaintext — returned ONCE
+  secret: string;
 }
 
 export interface PublisherContentResult {
@@ -795,7 +786,7 @@ export interface PublisherContentResult {
 export const publisherApi = {
   // POST /publishers-api-keys action=create_api_key (session JWT)
   createApiKey: (
-    body: { environment: 'live' | 'test'; name?: string },
+    body: { name?: string },
     token: string | null,
   ) =>
     edgeFetch<PublisherApiKeyCreated>(

@@ -37,14 +37,12 @@ type SuccessViewProps =
       mode: 'fresh';
       plaintextKey: string;
       keyPrefix: string;
-      environment: 'live' | 'test';
       name?: string;
       onAdvance: () => void;
     }
   | {
       mode: 'resume_stale';
       keyPrefix: string;
-      environment: 'live' | 'test';
       onAdvance: () => void;
     };
 
@@ -96,8 +94,7 @@ export function SuccessView(props: SuccessViewProps) {
           </h2>
           <p className="text-sm text-gray-600 mb-4">
             Key{' '}
-            <code className="font-mono text-navy-deep">{props.keyPrefix}…</code>{' '}
-            ({props.environment})
+            <code className="font-mono text-navy-deep">{props.keyPrefix}…</code>
           </p>
           <p className="text-sm text-gray-500" role="status" aria-live="polite">
             Continuing…
@@ -134,8 +131,7 @@ export function SuccessView(props: SuccessViewProps) {
             Your API key is ready
           </h2>
           <p className="text-sm text-gray-600">
-            {props.environment === 'test' ? 'Sandbox' : 'Live'} key{' '}
-            {props.name ? `"${props.name}"` : ''}
+            {props.name ? `"${props.name}"` : 'Your new key'}
           </p>
         </div>
 
