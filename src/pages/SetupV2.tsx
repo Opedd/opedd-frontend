@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/ui/Spinner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platform";
-import { Step2Stub } from "@/components/setup-v2/Step2Stub";
 import { Step2Substack } from "@/components/setup-v2/Step2Substack";
 import { Step2Beehiiv } from "@/components/setup-v2/Step2Beehiiv";
 import { Step2Ghost } from "@/components/setup-v2/Step2Ghost";
+import { Step2Api } from "@/components/setup-v2/Step2Api";
 import { Step4Categorize } from "@/components/setup-v2/Step4Categorize";
 import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
 import { ResumeIntentCapture } from "@/components/setup-v2/ResumeIntentCapture";
@@ -89,8 +89,12 @@ export default function SetupV2() {
       // Phase 7.5 — Ghost functional (sibling platform_native_api
       // direct-flip cascade per Phase 7.0 commit f3784eb runGhost
       // DirectFlip; INVARIANTS sibling carve-out commit 72e3dc6).
-      // Remaining platforms stubbed each ship in their dedicated
-      // phase per the roadmap: WordPress P8, Custom P9.
+      // Phase 8.6 — Custom API functional (canonical Phase 8 Publisher
+      // API path: publishers-api-keys + publishers-content +
+      // publishers-webhooks). WordPress + Custom CMS folded into the
+      // single "api" platform card per founder routing 2026-05-12;
+      // Step2Stub retired (all 4 platforms ship dedicated Step2*
+      // components).
       if (platform === "substack") {
         return <Step2Substack />;
       }
@@ -100,7 +104,14 @@ export default function SetupV2() {
       if (platform === "ghost") {
         return <Step2Ghost />;
       }
-      return <Step2Stub platform={platform} />;
+      if (platform === "api") {
+        return <Step2Api />;
+      }
+      // Unknown/legacy platform value (e.g., publishers with old
+      // "wordpress" or "custom" in setup_data.platform pre-Phase-8.6).
+      // Fall back to Step1 platform picker so they re-select Custom
+      // API from the new card set.
+      return <Step1Platform />;
     case 3:
       // Phase 4.6 (2026-04-30) — allowAdvance={true} closes the
       // dead-end that blocked publishers from reaching Step 4 + 5

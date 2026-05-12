@@ -19,17 +19,18 @@ import { useWizardState } from "@/hooks/useWizardState";
  * preserves entries from sibling stubs (Step3 capture won't clobber
  * Step4 capture).
  *
- * Used by Step2Stub for non-Substack platforms in v1, and directly by
- * SetupV2 for Steps 3 / 4 / 5 (those don't need their own files in v1
- * — they share this component with step-specific copy passed as props).
+ * Used directly by SetupV2 for Steps 3 / 4 / 5 (those don't need their
+ * own files in v1 — they share this component with step-specific copy
+ * passed as props).
  *
  * Phase 4.6 (2026-04-30) — added `allowAdvance` prop for the Step 3
  * Model Perception preview placeholder dead-end fix (closes KI #53 +
  * unblocks Phase 4.5 frontend live-flow gate). Set true ONLY for
  * genuinely-skippable placeholder steps. Step 3 is the only v1
- * consumer; Step2Stub for Beehiiv/Ghost/WordPress/Custom remains
- * non-skippable because those are platform-specific flows that
- * publishers genuinely cannot bypass.
+ * consumer (Phase 8.6 retired Step2Stub; all 4 platforms now ship
+ * dedicated Step2 components — Step2Substack / Step2Beehiiv /
+ * Step2Ghost / Step2Api — each non-skippable as they're the platform-
+ * specific onboarding flows that publishers genuinely cannot bypass).
  */
 
 interface ResumeIntent {

@@ -48,7 +48,7 @@ beforeEach(() => {
 });
 
 describe("Step1Platform", () => {
-  it("renders all 5 platform cards with v2 spec copy", () => {
+  it("renders all 4 platform cards with v2 spec copy (Phase 8.6: wordpress + custom folded into 'api')", () => {
     mockHookReturn.mockReturnValue(defaultState());
     render(<Wrapper><Step1Platform /></Wrapper>);
 
@@ -56,16 +56,15 @@ describe("Step1Platform", () => {
     expect(screen.getByRole("button", { name: /Select Substack/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Select Beehiiv/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Select Ghost/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Select WordPress/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Select Custom or Other/i })).toBeTruthy();
-    // Sample of v2 spec copy: each card shows setup-time + verification line.
-    // Use exact-match string assertions so card-body text containing the
-    // word "verification" (e.g., the Substack card's "Paste a verification
-    // token..." value text) doesn't inflate the count beyond the 5 <dt>
-    // headers. Phase 4.6 (2026-04-30) — copy change introduced the
-    // collision; tighter assertion distinguishes labels from value text.
-    expect(screen.getAllByText("Setup time").length).toBe(5);
-    expect(screen.getAllByText("Verification").length).toBe(5);
+    expect(screen.getByRole("button", { name: /Select Custom API/i })).toBeTruthy();
+    // Phase 8.6 (2026-05-12): card count dropped 5 → 4. WordPress +
+    // Custom CMS folded into the single Custom API path per founder
+    // routing.
+    expect(screen.getAllByText("Setup time").length).toBe(4);
+    expect(screen.getAllByText("Verification").length).toBe(4);
+    // Negative assertions: removed cards should not render
+    expect(screen.queryByRole("button", { name: /Select WordPress/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Select Custom or Other/i })).toBeNull();
   });
 
   it("from prospect, clicking a card calls wizard.advance({ platform })", async () => {
@@ -127,16 +126,16 @@ describe("Step1Platform", () => {
       defaultState({
         setupState: "in_setup",
         currentStep: 1 as WizardStep,
-        setupData: { platform: "wordpress" },
+        setupData: { platform: "api" },
         advance,
         saveStepData,
       }),
     );
     render(<Wrapper><Step1Platform /></Wrapper>);
 
-    fireEvent.click(screen.getByRole("button", { name: /Select WordPress/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Select Custom API/i }));
     await waitFor(() => expect(advance).toHaveBeenCalledTimes(1));
-    expect(advance).toHaveBeenCalledWith({ platform: "wordpress" });
+    expect(advance).toHaveBeenCalledWith({ platform: "api" });
     expect(saveStepData).not.toHaveBeenCalled();
   });
 });

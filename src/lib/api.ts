@@ -725,3 +725,115 @@ export const licensesApi = {
     }, token),
 };
 
+// ─── Phase 8.6 — Publisher API client helpers ──────────────────────
+//
+// Wraps the canonical Phase 8 Publisher API surface for Step2Api
+// consumption. Three endpoints; session-JWT-authed via authClient
+// pattern (publishers-api-keys is session-JWT — chicken-and-egg
+// avoidance per Phase 8.0.1 self-management carve-out).
+//
+// Endpoint contracts source-verified against opedd-backend commit
+// 34be5a8 (Phase 8.6 backend ship) + opedd-docs commit f05b7c4
+// (canonical OpenAPI spec extension at /publishers-api-keys +
+// /publishers-content + /publishers-webhooks paths).
+//
+// Phase 8 response envelope: nested error shape per KI #205 deferral.
+// edgeFetch handles unwrapping the top-level `{success, data, error}`
+// envelope; on `success: false` it throws an Error carrying the
+// nested error.message (legacy contract — Phase 8 endpoints return
+// nested error object but edgeFetch flattens to message for backwards
+// compatibility with existing consumers).
+
+export interface PublisherApiKeyCreated {
+  key: string;            // plaintext — returned ONCE; cannot be re-fetched
+  key_prefix: string;     // first 12 chars (e.g. "opedd_pub_te")
+  id: string;             // UUID
+  environment: 'live' | 'test';
+  name?: string;
+  scopes: string[];
+  created_at: string;
+}
+
+export interface PublisherApiKeyListItem {
+  id: string;
+  key_prefix: string;
+  environment: 'live' | 'test';
+  name?: string;
+  scopes: string[];
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+}
+
+export interface PublisherWebhookCreated {
+  webhook: {
+    id: string;
+    url: string;
+    event_types: string[];
+    active: boolean;
+    is_test: boolean;
+    platform: 'beehiiv' | 'ghost' | 'wordpress' | null;
+    signature_version: 'v2';
+    created_at: string;
+    revoked_at: string | null;
+  };
+  secret: string;         // HMAC-SHA256 plaintext — returned ONCE
+}
+
+export interface PublisherContentResult {
+  inserted_count: number;
+  total_submitted: number;
+  errors: Array<{ source_url: string; error: string }>;
+}
+
+export const publisherApi = {
+  // POST /publishers-api-keys action=create_api_key (session JWT)
+  createApiKey: (
+    body: { environment: 'live' | 'test'; name?: string },
+    token: string | null,
+  ) =>
+    edgeFetch<PublisherApiKeyCreated>(
+      EDGE_FUNCTION_BASE + '/publishers-api-keys',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create_api_key', ...body }),
+      },
+      token,
+    ),
+
+  // POST /publishers-api-keys action=list_api_keys (session JWT)
+  listApiKeys: (token: string | null) =>
+    edgeFetch<{ keys: PublisherApiKeyListItem[] }>(
+      EDGE_FUNCTION_BASE + '/publishers-api-keys',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'list_api_keys' }),
+      },
+      token,
+    ),
+
+  // POST /publishers-webhooks action=register (Phase 8 API key Bearer)
+  // Note: this uses the Publisher API key (`opedd_pub_<env>_<32-hex>`)
+  // NOT the session JWT. The caller passes the plaintext key (just
+  // created via createApiKey) — Step2Api wires this through after
+  // showing the SuccessView reveal so a single onboarding flow can
+  // create-then-register-webhook in one session.
+  registerWebhookWithApiKey: (
+    body: {
+      url: string;
+      event_types: string[];
+      platform?: 'beehiiv' | 'ghost' | 'wordpress' | null;
+    },
+    apiKey: string,
+  ) =>
+    edgeFetch<PublisherWebhookCreated>(
+      EDGE_FUNCTION_BASE + '/publishers-webhooks',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'register', ...body }),
+      },
+      apiKey,
+    ),
+};
+
+

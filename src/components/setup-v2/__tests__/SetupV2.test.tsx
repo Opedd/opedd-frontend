@@ -33,6 +33,12 @@ vi.mock("@/components/setup-v2/Step2Ghost", () => ({
   Step2Ghost: () => <div data-testid="step2-ghost-marker" />,
 }));
 
+// Phase 8.6 — same pattern for Step2Api (canonical Phase 8 Publisher
+// API onboarding path). Step2Api's own tests cover its internals.
+vi.mock("@/components/setup-v2/Step2Api", () => ({
+  Step2Api: () => <div data-testid="step2-api-marker" />,
+}));
+
 import SetupV2 from "@/pages/SetupV2";
 
 function defaultState(
@@ -173,10 +179,26 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-ghost-marker")).toBeTruthy();
   });
 
-  it("renders Step2Stub for in_setup,2 + still-stubbed platform (e.g., wordpress)", () => {
-    // Post-Phase-7.5 still-stubbed platforms: wordpress (Phase 8) +
-    // custom (Phase 9). One test covers the stub-routing behavior;
-    // the remaining stubbed platforms share the same code path.
+  it("renders Step2Api for in_setup,2 + platform=api (Phase 8.6 dispatch)", () => {
+    // Phase 8.6 commit (2026-05-12) swapped the case-2 dispatch: Step2Stub
+    // retired; "api" platform routes to Step2Api (canonical Phase 8
+    // Publisher API onboarding path). WordPress + Custom CMS folded
+    // into the single "api" card per founder routing.
+    mockHookReturn.mockReturnValue(
+      defaultState({
+        setupState: "in_setup",
+        currentStep: 2 as WizardStep,
+        setupData: { platform: "api" },
+      }),
+    );
+    render(<Wrapper><SetupV2 /></Wrapper>);
+    expect(screen.getByTestId("step2-api-marker")).toBeTruthy();
+  });
+
+  it("legacy platform values (e.g., 'wordpress' in setup_data from pre-Phase-8.6) fall back to Step1Platform", () => {
+    // Phase 8.6 fallback: publishers with legacy "wordpress" or
+    // "custom" in their setup_data.platform should re-render Step1
+    // so they pick from the new card set (substack/beehiiv/ghost/api).
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -185,7 +207,8 @@ describe("SetupV2 — state-driven step routing", () => {
       }),
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
-    expect(screen.getByText(/Connecting your WordPress site/i)).toBeTruthy();
+    // Step1Platform header is the disambiguator (and Step2Stub is gone)
+    expect(screen.getByRole("heading", { name: /Where do you publish/i })).toBeTruthy();
   });
 
   it("renders Step3 stub for in_setup,3", () => {

@@ -4,10 +4,16 @@ import { useWizardState } from "@/hooks/useWizardState";
 
 /**
  * Phase 3 Session 3.1 — Step 1: platform picker (functional).
+ * Phase 8.6 (2026-05-12) — 5 cards → 4 cards. WordPress + Custom CMS
+ * folded into single "Custom API" card per founder routing decoupling
+ * WordPress onboarding from verify-ownership/platform_native_api.
+ * WordPress publishers onboard via the canonical Phase 8 Publisher API
+ * (publishers-api-keys + publishers-content + publishers-webhooks).
  *
- * Renders 5 platform cards per onboarding-redesign-v2.md §"Step 1".
- * Copy is v2 spec verbatim — institutional Plaid/Linear-toned, no
- * emoji. Lovable polish lands in Phase 10.
+ * Renders 4 platform cards: Substack / Beehiiv / Ghost / Custom API.
+ * Copy is v2 spec for Substack/Beehiiv/Ghost; Custom API copy is
+ * Phase 8.6 v1 (post-onboarding-decoupling). Lovable polish lands in
+ * Phase 10.
  *
  * State machine:
  *   - prospect → click card → wizard.advance({ platform }) → in_setup,1
@@ -29,8 +35,7 @@ export type PlatformId =
   | "substack"
   | "beehiiv"
   | "ghost"
-  | "wordpress"
-  | "custom";
+  | "api";
 
 interface PlatformCard {
   id: PlatformId;
@@ -71,22 +76,13 @@ const PLATFORMS: PlatformCard[] = [
     verification: "Admin API key",
   },
   {
-    id: "wordpress",
-    label: "WordPress",
+    id: "api",
+    label: "Custom API",
     body:
-      "Connect via your site URL and Application Password. Works with WordPress.com Business and self-hosted.",
-    setupTime: "about 6 minutes",
-    includes: "All posts and pages",
-    verification: "Application Password",
-  },
-  {
-    id: "custom",
-    label: "Custom or Other",
-    body:
-      "For headless CMS, custom-built sites, or anything not listed above. We'll work with you to find the right approach.",
-    setupTime: "5–10 minutes",
-    includes: "Depends on platform",
-    verification: "API key, DNS record, or email",
+      "Push content directly via the Opedd Publisher API. Works with WordPress, headless CMS, custom-built sites, or any system that can make HTTP POST calls.",
+    setupTime: "about 5 minutes",
+    includes: "Anything your system can post",
+    verification: "Opedd API key (issued in setup)",
   },
 ];
 
