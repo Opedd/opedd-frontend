@@ -144,7 +144,7 @@ export function PublicationGate({
             {hasPending ? (
               <Button
                 size="sm"
-                onClick={() => navigate("/settings?tab=profile")}
+                onClick={() => navigate("/setup-v2")}
                 className="h-8 px-3 text-xs bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg"
               >
                 <ShieldCheck size={13} className="mr-1.5" />
@@ -193,7 +193,7 @@ export function LockedTabContent({ children }: { children?: ReactNode }) {
         Go to your Profile tab to complete verification.
       </p>
       <button
-        onClick={() => navigate("/settings?tab=profile")}
+        onClick={() => navigate("/setup-v2")}
         className="mt-1 text-xs font-semibold text-oxford hover:underline"
       >
         Go to Profile →

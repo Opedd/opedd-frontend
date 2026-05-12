@@ -379,7 +379,7 @@ export default function Ledger() {
                 </p>
                 <p className="text-xs text-amber-700 mt-0.5">Complete your Stripe Connect setup to receive payouts for these licenses.</p>
               </div>
-              <a href="/settings?tab=profile" className="shrink-0 text-xs font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-900">Complete Setup →</a>
+              <a href="/setup-v2" className="shrink-0 text-xs font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-900">Complete Setup →</a>
             </motion.div>
           );
         })()}

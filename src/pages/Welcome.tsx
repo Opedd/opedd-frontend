@@ -45,6 +45,13 @@ export default function Welcome() {
           navigate("/dashboard", { replace: true });
           return;
         }
+        // Gate celebratory copy on actual verified state. Publishers landing
+        // here pre-verification (e.g., direct URL navigation, abandoned wizard
+        // resume) get routed back to /setup-v2 to complete setup first.
+        if (json?.success && json.data?.setup_state !== "verified") {
+          navigate("/setup-v2", { replace: true });
+          return;
+        }
         setChecking(false);
       } catch {
         if (!cancelled) setChecking(false);
