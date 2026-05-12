@@ -48,7 +48,7 @@ beforeEach(() => {
 });
 
 describe("Step1Platform", () => {
-  it("renders all 4 platform cards with v2 spec copy (Phase 8.6: wordpress + custom folded into 'api')", () => {
+  it("renders 4 platform cards (Substack/Beehiiv/Ghost/Custom API)", () => {
     mockHookReturn.mockReturnValue(defaultState());
     render(<Wrapper><Step1Platform /></Wrapper>);
 
@@ -57,12 +57,9 @@ describe("Step1Platform", () => {
     expect(screen.getByRole("button", { name: /Select Beehiiv/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Select Ghost/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Select Custom API/i })).toBeTruthy();
-    // Phase 8.6 (2026-05-12): card count dropped 5 → 4. WordPress +
-    // Custom CMS folded into the single Custom API path per founder
-    // routing.
     expect(screen.getAllByText("Setup time").length).toBe(4);
     expect(screen.getAllByText("Verification").length).toBe(4);
-    // Negative assertions: removed cards should not render
+    // Negative assertions: pre-cleanup cards should not render
     expect(screen.queryByRole("button", { name: /Select WordPress/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /Select Custom or Other/i })).toBeNull();
   });

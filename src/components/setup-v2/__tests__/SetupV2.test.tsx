@@ -161,13 +161,8 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-beehiiv-marker")).toBeTruthy();
   });
 
-  it("renders Step2Ghost for in_setup,2 + platform=ghost (Phase 7.5 dispatch)", () => {
-    // Phase 7.5 commit 69f54d3 swapped the case-2 dispatch so
-    // platform=ghost routes to Step2Ghost (sibling platform_native_
-    // api direct-flip cascade per Phase 7.0 commit f3784eb runGhost
-    // DirectFlip). Pre-Phase-7.5 this test asserted Step2Stub for
-    // ghost; the still-stubbed-platform coverage moved to the new
-    // wordpress test below.
+  it("renders Step2Ghost for in_setup,2 + platform=ghost", () => {
+    // Ghost dispatch via sibling platform_native_api direct-flip cascade.
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -179,11 +174,8 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-ghost-marker")).toBeTruthy();
   });
 
-  it("renders Step2Api for in_setup,2 + platform=api (Phase 8.6 dispatch)", () => {
-    // Phase 8.6 commit (2026-05-12) swapped the case-2 dispatch: Step2Stub
-    // retired; "api" platform routes to Step2Api (canonical Phase 8
-    // Publisher API onboarding path). WordPress + Custom CMS folded
-    // into the single "api" card per founder routing.
+  it("renders Step2Api for in_setup,2 + platform=api", () => {
+    // "api" platform routes to Step2Api (canonical Phase 8 Publisher API).
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -195,10 +187,10 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-api-marker")).toBeTruthy();
   });
 
-  it("legacy platform values (e.g., 'wordpress' in setup_data from pre-Phase-8.6) fall back to Step1Platform", () => {
-    // Phase 8.6 fallback: publishers with legacy "wordpress" or
-    // "custom" in their setup_data.platform should re-render Step1
-    // so they pick from the new card set (substack/beehiiv/ghost/api).
+  it("legacy platform values in setup_data fall back to Step1Platform", () => {
+    // Publishers with legacy platform values (e.g., pre-cleanup
+    // 'wordpress' or 'custom') re-render Step1 so they pick from the
+    // canonical 4-card set (substack/beehiiv/ghost/api).
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -207,7 +199,7 @@ describe("SetupV2 — state-driven step routing", () => {
       }),
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
-    // Step1Platform header is the disambiguator (and Step2Stub is gone)
+    // Step1Platform header is the disambiguator
     expect(screen.getByRole("heading", { name: /Where do you publish/i })).toBeTruthy();
   });
 

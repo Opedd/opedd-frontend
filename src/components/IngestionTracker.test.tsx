@@ -73,7 +73,7 @@ describe("IngestionTracker — render states", () => {
           {
             id: "s1",
             url: "u",
-            source_type: "wordpress",
+            source_type: "ghost",
             archive_status: "running",
             archive_count: 312,
           },
