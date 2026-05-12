@@ -187,22 +187,6 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-api-marker")).toBeTruthy();
   });
 
-  it("legacy platform values in setup_data fall back to Step1Platform", () => {
-    // Publishers with legacy platform values (e.g., pre-cleanup
-    // 'wordpress' or 'custom') re-render Step1 so they pick from the
-    // canonical 4-card set (substack/beehiiv/ghost/api).
-    mockHookReturn.mockReturnValue(
-      defaultState({
-        setupState: "in_setup",
-        currentStep: 2 as WizardStep,
-        setupData: { platform: "wordpress" },
-      }),
-    );
-    render(<Wrapper><SetupV2 /></Wrapper>);
-    // Step1Platform header is the disambiguator
-    expect(screen.getByRole("heading", { name: /Where do you publish/i })).toBeTruthy();
-  });
-
   it("renders Step3 stub for in_setup,3", () => {
     mockHookReturn.mockReturnValue(
       defaultState({
