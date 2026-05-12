@@ -15,7 +15,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
-import { usePlans, getPlan } from "@/hooks/usePlans";
 import {
   User,
   Globe,
@@ -80,8 +79,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { loadStripe } from "@stripe/stripe-js";
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { PublicationGate, LockedTabContent } from "@/components/dashboard/PublicationGate";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -207,14 +204,12 @@ export default function Settings() {
       // Legacy admin tab — admin moved to /admin route
       return "profile";
     }
-    const validTabs = ["profile", "billing", "team", "developers", "account"];
+    // Legacy ?tab=billing / ?tab=team redirect to Profile (those tabs retired in Phase 9.4).
+    if (tab === "billing" || tab === "team") return "profile";
+    const validTabs = ["profile", "developers", "account"];
     return validTabs.includes(tab || "") ? tab! : "profile";
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Cancel subscription state
-  const [cancelSubOpen, setCancelSubOpen] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
 
   // Delete account state
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -255,7 +250,6 @@ export default function Settings() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-
   // Save feedback banners
   // saveBanner shape carries the actual backend error message (KI #124 fix).
   // Pre-fix: boolean-ish "success"|"error"|null with hardcoded "Failed to save.
@@ -282,34 +276,10 @@ export default function Settings() {
   const [expertiseSummary, setExpertiseSummary] = useState("");
   const [isSavingTaxonomy, setIsSavingTaxonomy] = useState(false);
 
-  // Team state
-  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; user_id: string; role: string; email: string; joined_at: string }>>([]);
-  const [teamInvitations, setTeamInvitations] = useState<Array<{ id: string; email: string; role: string; created_at: string; expires_at: string }>>([]);
-  const [currentUserRole, setCurrentUserRole] = useState<string>("owner");
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [isInviting, setIsInviting] = useState(false);
-  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
-  const [isLoadingTeam, setIsLoadingTeam] = useState(false);
-  const [teamLoaded, setTeamLoaded] = useState(false);
-  const [teamError, setTeamError] = useState(false);
-
-  // Billing tab state
-  interface StripeConnect {
-    connected: boolean;
-    onboarding_complete: boolean;
-    charges_enabled?: boolean;
-    payouts_enabled?: boolean;
-  }
+  // Stripe Connect status (used by Profile tab's connected/payout banner)
   const [stripeStatus, setStripeStatus] = useState<StripeConnect | null>(null);
   const [isStripeLoading, setIsStripeLoading] = useState(true);
   const [isStripeConnecting, setIsStripeConnecting] = useState(false);
-  const [publisherPlan, setPublisherPlan] = useState<string>("free");
-  const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null);
-  const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
-  const [isBillingPortalLoading, setIsBillingPortalLoading] = useState(false);
-  const [billing, setBilling] = useState<"monthly" | "annually">("monthly");
-  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
-  const [checkoutStripePromise, setCheckoutStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
 
   const apiHeaders = useCallback(async () => {
     const token = await getAccessToken();
@@ -377,123 +347,6 @@ export default function Settings() {
     }
   }, [apiHeaders]);
 
-  const fetchTeam = useCallback(async (retry = true) => {
-    setIsLoadingTeam(true);
-    setTeamError(false);
-    try {
-      let headers;
-      try {
-        headers = await apiHeaders();
-      } catch {
-        // Token refresh failed — retry once after a brief delay
-        if (retry) {
-          await new Promise(r => setTimeout(r, 1000));
-          return fetchTeam(false);
-        }
-        throw new Error("Session expired — please refresh the page");
-      }
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ action: "list_team" }),
-      });
-      if (!res.ok && res.status === 401 && retry) {
-        // Auth expired mid-request — retry once
-        await new Promise(r => setTimeout(r, 500));
-        return fetchTeam(false);
-      }
-      const result = await res.json();
-      if (result.success && result.data) {
-        setTeamMembers(result.data.members || []);
-        setTeamInvitations(result.data.invitations || []);
-        if (result.data.current_user_role) {
-          setCurrentUserRole(result.data.current_user_role);
-        }
-      } else {
-        console.warn("[Settings] Team fetch returned error:", result.error);
-        setTeamError(true);
-      }
-    } catch (err) {
-      console.warn("[Settings] Team fetch failed:", err);
-      setTeamError(true);
-    } finally {
-      setIsLoadingTeam(false);
-      setTeamLoaded(true);
-    }
-  }, [apiHeaders]);
-
-  const handleInviteMember = async () => {
-    const email = inviteEmail.trim().toLowerCase();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast({ title: "Invalid Email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-    setIsInviting(true);
-    try {
-      const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ action: "invite_member", email }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setInviteEmail("");
-        toast({ title: "Invitation Sent", description: `An invite has been sent to ${email}.` });
-        fetchTeam();
-      } else {
-        throw new Error(result.error || "Failed to send invitation");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Invite Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    } finally {
-      setIsInviting(false);
-    }
-  };
-
-  const handleRemoveMember = async (memberId: string) => {
-    setRemovingMemberId(memberId);
-    try {
-      const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ action: "remove_member", member_id: memberId }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        toast({ title: "Member Removed", description: "The team member has been removed." });
-        fetchTeam();
-      } else {
-        throw new Error(result.error || "Failed to remove member");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Remove Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    } finally {
-      setRemovingMemberId(null);
-    }
-  };
-
-  const handleCancelInvitation = async (invitationId: string) => {
-    try {
-      const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ action: "cancel_invitation", invitation_id: invitationId }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        toast({ title: "Invitation Cancelled", description: "The pending invitation has been cancelled." });
-        fetchTeam();
-      } else {
-        throw new Error(result.error || "Failed to cancel invitation");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Cancel Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    }
-  };
-
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
@@ -510,12 +363,6 @@ export default function Settings() {
         .catch(() => {});
     }
   }, [activeTab, articleCount, profile?.api_key]);
-
-  useEffect(() => {
-    if (activeTab === "team" && !teamLoaded && !isLoadingTeam) {
-      fetchTeam();
-    }
-  }, [activeTab, teamLoaded, isLoadingTeam, fetchTeam]);
 
   // Realtime: if THIS user is removed from the team, force redirect to home
   useEffect(() => {
@@ -540,47 +387,6 @@ export default function Settings() {
   }, [user, navigate, toast]);
 
   // Billing tab: load stripe status & plan
-  const fetchBillingData = useCallback(async () => {
-    try {
-      const headers = await apiHeaders();
-      const profileRes = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, { headers });
-      const profileResult = await profileRes.json();
-      if (profileResult.success && profileResult.data) {
-        const d = profileResult.data;
-        if (d.stripe_connect) setStripeStatus(d.stripe_connect);
-        if (d.plan) setPublisherPlan(d.plan);
-        if (d.stripe_customer_id) setStripeCustomerId(d.stripe_customer_id);
-      }
-      const stripeResult = await postAction("stripe_status");
-      if (stripeResult.success && stripeResult.data) {
-        setStripeStatus(stripeResult.data);
-      }
-    } catch (err) {
-      console.warn("[Settings/Billing] Load failed:", err);
-    } finally {
-      setIsStripeLoading(false);
-    }
-  }, [apiHeaders, postAction]);
-
-  useEffect(() => {
-    if (activeTab === "billing") fetchBillingData();
-  }, [activeTab, fetchBillingData]);
-
-  // Billing handlers
-  const handleConnectStripe = async () => {
-    setIsStripeConnecting(true);
-    try {
-      const result = await postAction("connect_stripe");
-      if (result.success && result.data?.onboarding_url) {
-        window.location.href = result.data.onboarding_url;
-      } else {
-        throw new Error(typeof result.error === "string" ? result.error : "Failed to start Stripe onboarding");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Stripe Connect Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-      setIsStripeConnecting(false);
-    }
-  };
 
   const handleOpenStripeDashboard = async () => {
     const newWindow = window.open("", "_blank");
@@ -598,71 +404,8 @@ export default function Settings() {
     }
   };
 
-  const handleUpgrade = async (plan: "pro" | "enterprise") => {
-    setIsUpgrading(plan);
-    try {
-      const result = await postAction("create_subscription", { plan, embedded: true, billing });
-      if (result.success && result.data?.client_secret) {
-        const stripePromise = loadStripe(result.data.publishable_key);
-        setCheckoutStripePromise(stripePromise);
-        setCheckoutClientSecret(result.data.client_secret);
-      } else {
-        throw new Error(typeof result.error === "string" ? result.error : "Failed to start checkout");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Upgrade Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    } finally {
-      setIsUpgrading(null);
-    }
-  };
-
-  const handleCloseCheckout = () => {
-    setCheckoutClientSecret(null);
-    setCheckoutStripePromise(null);
-  };
-
-  const handleBillingPortal = async () => {
-    setIsBillingPortalLoading(true);
-    const newWindow = window.open("", "_blank");
-    try {
-      const result = await postAction("billing_portal");
-      if (result.success && result.data?.url) {
-        if (newWindow) newWindow.location.href = result.data.url;
-      } else {
-        if (newWindow) newWindow.close();
-        throw new Error(typeof result.error === "string" ? result.error : "Failed to open billing portal");
-      }
-    } catch (err: unknown) {
-      if (newWindow) newWindow.close();
-      toast({ title: "Error", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    } finally {
-      setIsBillingPortalLoading(false);
-    }
-  };
-
   const isStripeFullyConnected = stripeStatus?.connected && stripeStatus?.onboarding_complete;
   const isStripePartial = stripeStatus?.connected && !stripeStatus?.onboarding_complete;
-
-  const { data: plansData } = usePlans();
-  const PLANS = plansData.plans.map((p) => ({
-    key: p.id,
-    name: p.name,
-    price: p.monthly_display,
-    period: "/month",
-    description: p.description,
-    features: p.features.map((text) => ({ text })),
-    highlighted: p.highlighted,
-  }));
-  const ANNUAL_PRICES: Record<string, { price: string; total: string }> = {
-    pro: {
-      price: getPlan(plansData, "pro")?.annual_equivalent_display || "$31",
-      total: getPlan(plansData, "pro")?.annual_total_display || "$374/year",
-    },
-    enterprise: {
-      price: getPlan(plansData, "enterprise")?.annual_equivalent_display || "$79",
-      total: getPlan(plansData, "enterprise")?.annual_total_display || "$950/year",
-    },
-  };
 
   if (!user) return null;
 
@@ -851,8 +594,6 @@ export default function Settings() {
                 <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0 whitespace-nowrap">
                   {[
                     { value: "profile", label: "Profile" },
-                    { value: "billing", label: "Billing" },
-                    { value: "team", label: "Team" },
                     { value: "developers", label: "Developers" },
                     { value: "account", label: "Account" },
                   ].map((tab) => (
@@ -1231,130 +972,6 @@ export default function Settings() {
                 </TabsContent>
 
                 {/* TAB 2: Team */}
-                <TabsContent value="team" className="mt-6" forceMount={activeTab === "team" ? true : undefined}>
-                  {activeTab === "team" && (
-                    <motion.div key="team" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-                      {isGated ? <LockedTabContent /> : <>
-                      {isLoadingTeam ? (
-                        <div className="flex items-center justify-center py-20">
-                          <Spinner size="lg" className="text-[#4A26ED]" />
-                        </div>
-                      ) : teamError ? (
-                        <div className="flex flex-col items-center justify-center py-16 gap-4">
-                          <p className="text-gray-500 text-sm">Failed to load team data.</p>
-                            <Button
-                            onClick={() => { setTeamLoaded(false); setTeamError(false); }}
-                            className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg"
-                          >
-                            Try Again
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Invite Member (owner only) */}
-                          {currentUserRole === "owner" && (
-                            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                              <div className="mb-4">
-                                <h2 className="font-bold text-[#040042]">Invite Team Member</h2>
-                                <p className="text-[#6B7280] text-xs mt-0.5">Send an invitation to join your team as a member</p>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <div className="flex-1 relative">
-                                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                  <Input type="email" placeholder="colleague@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleInviteMember(); }} className="bg-slate-50 border-slate-200 h-10 rounded-lg pl-11 focus:border-[#4A26ED] focus:ring-[#4A26ED]/20" />
-                                </div>
-                                <Button onClick={handleInviteMember} disabled={isInviting || !inviteEmail.trim()} className="h-12 px-6 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-semibold">
-                                  {isInviting ? <><Spinner size="sm" className="mr-2" />Sending...</> : <><Send size={14} className="mr-2" />Send Invite</>}
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Team Members */}
-                          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                            <h2 className="font-bold text-[#040042] mb-4">Team Members ({teamMembers.length})</h2>
-                            <div className="divide-y divide-slate-100">
-                              {teamMembers.map((member) => (
-                                <div key={member.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4A26ED]/10 to-[#7C3AED]/10 flex items-center justify-center text-sm font-bold text-[#4A26ED] uppercase">
-                                      {member.email.charAt(0)}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-medium text-[#040042]">{member.email}</p>
-                                      <p className="text-xs text-gray-400">Joined {new Date(member.joined_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className={member.role === "owner" ? "bg-[#4A26ED]/10 text-[#4A26ED] border-[#4A26ED]/20 font-medium" : "bg-slate-50 text-gray-600 border-slate-200 font-medium"}>
-                                      {member.role === "owner" ? "Owner" : "Member"}
-                                    </Badge>
-                                    {currentUserRole === "owner" && member.role !== "owner" && (
-                                      <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                          <Button size="sm" variant="ghost" aria-label={`Remove team member ${member.email}`} className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50">
-                                            <Trash2 size={14} />
-                                          </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent className="bg-white">
-                                          <AlertDialogHeader>
-                                            <AlertDialogTitle className="flex items-center gap-2 text-[#040042]"><AlertTriangle size={20} className="text-amber-500" />Remove Team Member?</AlertDialogTitle>
-                                            <AlertDialogDescription className="text-gray-600">This will remove <strong>{member.email}</strong> from your team.</AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleRemoveMember(member.id)} disabled={removingMemberId === member.id} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">
-                                              {removingMemberId === member.id ? <><Spinner size="sm" className="mr-2" />Removing...</> : "Remove Member"}
-                                            </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                      </AlertDialog>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                              {teamMembers.length === 0 && (
-                                <p className="text-sm text-gray-400 py-4 text-center">No team members yet — invite someone above.</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Pending Invitations */}
-                          {teamInvitations.length > 0 && (
-                            <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                              <h2 className="font-bold text-[#040042] mb-4">Pending Invitations ({teamInvitations.length})</h2>
-                              <div className="divide-y divide-slate-100">
-                                {teamInvitations.map((inv) => (
-                                  <div key={inv.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
-                                        <Mail size={16} className="text-amber-600" />
-                                      </div>
-                                      <div>
-                                        <p className="text-sm font-medium text-[#040042]">{inv.email}</p>
-                                        <p className="text-xs text-gray-400">
-                                          Sent {new Date(inv.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                          {" "}&middot;{" "}
-                                          Expires {new Date(inv.expires_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    {currentUserRole === "owner" && (
-                                      <Button size="sm" variant="ghost" onClick={() => handleCancelInvitation(inv.id)} className="h-8 px-3 text-gray-400 hover:text-red-500 hover:bg-red-50 text-xs">
-                                        Cancel
-                                      </Button>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                      </>}
-                    </motion.div>
-                  )}
-                </TabsContent>
 
                 {/* TAB: API Keys */}
                 <TabsContent value="developers" className="mt-6" forceMount={activeTab === "developers" ? true : undefined}>
@@ -1461,58 +1078,6 @@ export default function Settings() {
                   )}
                 </TabsContent>
                 {/* TAB: Billing */}
-                <TabsContent value="billing" className="mt-6" forceMount={activeTab === "billing" ? true : undefined}>
-                  {activeTab === "billing" && (
-                    <motion.div key="billing" variants={tabContentVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-                      {/* Current Plan */}
-                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                        <h2 className="font-bold text-[#040042] mb-4">Current Plan</h2>
-                        {(() => {
-                          const planLabel = publisherPlan === "enterprise" ? "Enterprise" : publisherPlan === "pro" ? "Pro" : "Free";
-                          const planColor = publisherPlan === "enterprise" ? "bg-amber-100 text-amber-800" : publisherPlan === "pro" ? "bg-[#EEF2FF] text-[#4A26ED]" : "bg-[#F3F4F6] text-[#6B7280]";
-                          return (
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className={`text-xs font-semibold px-3 py-1 rounded-full uppercase ${planColor}`}>{planLabel}</span>
-                                <span className="text-sm text-[#6B7280]">
-                                  {publisherPlan === "enterprise" ? "Unlimited articles · 5% fee" : publisherPlan === "pro" ? "Unlimited articles · 9% fee" : "500 articles · 15% fee"}
-                                </span>
-                              </div>
-                              {publisherPlan !== "enterprise" && (
-                                <button
-                                  onClick={() => handleUpgrade(publisherPlan === "free" ? "pro" : "enterprise")}
-                                  disabled={isUpgrading !== null}
-                                  className="text-sm font-medium text-white bg-[#4A26ED] hover:bg-[#3B1ED1] px-4 py-2 rounded-lg disabled:opacity-50"
-                                >
-                                  {isUpgrading ? "Processing..." : `Upgrade to ${publisherPlan === "free" ? "Pro" : "Enterprise"}`}
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-
-                      {/* Stripe Connect */}
-                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                        <h2 className="font-bold text-[#040042] mb-2">Stripe Payouts</h2>
-                        <p className="text-sm text-[#6B7280] mb-4">Connect your Stripe account to receive licensing revenue directly.</p>
-                        {stripeStatus?.connected ? (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-emerald-600 font-medium">✓ Stripe Connected</span>
-                            <button onClick={handleBillingPortal} disabled={isBillingPortalLoading} className="text-sm text-[#4A26ED] hover:underline font-medium disabled:opacity-50">
-                              {isBillingPortalLoading ? "Opening..." : "Manage in Stripe →"}
-                            </button>
-                          </div>
-                        ) : (
-                          <button onClick={() => postAction("connect_stripe").then((r: any) => r?.data?.url && window.open(r.data.url, "_blank"))} className="text-sm font-medium text-white bg-[#4A26ED] hover:bg-[#3B1ED1] px-4 py-2 rounded-lg">
-                            Connect Stripe
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </TabsContent>
-
 
               </AnimatePresence>
             </Tabs>
@@ -1520,52 +1085,6 @@ export default function Settings() {
           )}
 
         </div>
-
-      {/* Cancel Subscription Dialog */}
-      <Dialog open={cancelSubOpen} onOpenChange={setCancelSubOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cancel Subscription</DialogTitle>
-            <DialogDescription>
-              Your plan will remain active until the end of your billing period. After that it will revert to Free.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setCancelSubOpen(false)} disabled={isCancelling}>
-              Keep Plan
-            </Button>
-            <Button
-              className="bg-[#E53E3E] hover:bg-[#C53030] text-white"
-              disabled={isCancelling}
-              onClick={async () => {
-                setIsCancelling(true);
-                try {
-                  const headers = await apiHeaders();
-                  const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify({ action: "cancel_subscription" }),
-                  });
-                  const result = await res.json();
-                  if (result.success) {
-                    toast({ title: "Subscription cancelled", description: "Your plan stays active until end of billing period." });
-                    setCancelSubOpen(false);
-                    fetchProfile();
-                  } else {
-                    throw new Error(result.error?.message || "Cancellation failed");
-                  }
-                } catch (err: unknown) {
-                  toast({ title: "Cancellation failed", description: err instanceof Error ? err.message : "Please try again", variant: "destructive" });
-                } finally {
-                  setIsCancelling(false);
-                }
-              }}
-            >
-              {isCancelling ? <><Spinner size="sm" className="mr-2" />Cancelling...</> : "Confirm Cancellation"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Account Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -1630,19 +1149,6 @@ export default function Settings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Embedded Stripe Checkout Modal */}
-      {checkoutClientSecret && checkoutStripePromise && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <button onClick={handleCloseCheckout} aria-label="Close checkout" className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] hover:text-[#040042] hover:border-[#040042] transition-colors"><X size={16} /></button>
-            <div className="p-2">
-              <EmbeddedCheckoutProvider stripe={checkoutStripePromise} options={{ clientSecret: checkoutClientSecret }}>
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
-            </div>
-          </div>
-        </div>
-      )}
     </DashboardLayout>
   );
 }
