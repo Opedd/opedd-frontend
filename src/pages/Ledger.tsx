@@ -207,12 +207,6 @@ export default function Ledger() {
   }, [apiMetrics, transactions]);
 
   // KI #135 (2026-05-06): hide pending license_transactions older than
-  // 24h from default view. Source: abandoned Stripe sessions accumulate
-  // as `pending` rows that clutter the publisher's revenue view (founder
-  // saw 4 rows post-B.2 retry attempts; only the last was paid). Frontend
-  // filter is the band-aid; backend cron sweep tracked as KI #156 follow-
-  // up. Suppression bypassed when statusFilter='pending' so the rows
-  // remain explicitly inspectable.
   const PENDING_STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
   const displayedTransactions = useMemo(() => {
     if (statusFilter === "pending") return transactions;
@@ -236,24 +230,6 @@ export default function Ledger() {
     try {
       const token = await getAccessToken();
       // Phase 5.11-γ Tier 1 sub-task 4 — KI #137 + KI #136 fix:
-      // - KI #137: migrate to action='revoke_content' canonical Phase 5.7
-      //   path. Pre-fix body { transaction_id } fell through to backend's
-      //   handleLegacyTransactionRevoke which does NOT fire the Phase 5.7
-      //   full cascade (article-level revoke + deletion_deadline + auto-
-      //   refund). Action='revoke_content' routes to handleRevokeContent
-      //   (revoke-license/index.ts:289+) which fires the full cascade.
-      //   tx → license_id mapping: revokeTarget.assetId (= tx.article_id =
-      //   licenses.id; verified via Phase 5.11-γ proposal Finding 3).
-      //   Cites Deprecated-vocab cleanup ritual INVARIANT (codified
-      //   2026-05-05) — frontend writeback migrated alongside the deprecated
-      //   path, not deferred.
-      // - KI #136: handle BOTH error envelope shapes per `_shared/cors.ts`
-      //   (string from errorResponse helper; object from legacy paths).
-      //   Pre-fix `result.error?.message` was always undefined for string
-      //   shape → fell back to hardcoded "Failed to revoke" → toast hid
-      //   the actual diagnostic (e.g., 403 "You do not have permission to
-      //   revoke this license" was hidden during Phase 5.11-β B.3 walk).
-      //   Same envelope-shape pattern as KI #124 Settings.tsx fix.
       const res = await fetch(`${EXT_SUPABASE_URL}/revoke-license`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: EXT_ANON_KEY, Authorization: `Bearer ${token}` },

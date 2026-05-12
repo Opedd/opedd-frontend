@@ -80,13 +80,6 @@ export default function Dashboard() {
   // Profile-loaded gate (replaces the old referralChecked loading flag)
   const [profileLoaded, setProfileLoaded] = useState(false);
   // Timestamp of the post-verification welcome screen completion. `null` = the
-  // publisher has never seen Welcome (or its referral capture). Drives the
-  // Session 1.9 redirect: when the wizard hook resolves with setup_state=
-  // 'verified' AND welcomeCompletedAt is null AND profile loaded, Dashboard
-  // navigates the publisher to /welcome before they ever see the dashboard
-  // surface. ReferralStep's PATCH stamps welcome_completed_at server-side, so
-  // a refresh after Welcome closes naturally returns truthy and skips the
-  // redirect on the next mount.
   const [welcomeCompletedAt, setWelcomeCompletedAt] = useState<string | null>(null);
 
   // Track incomplete setup steps for banner
@@ -94,7 +87,6 @@ export default function Dashboard() {
     pricingDone: true,
     widgetDone: true,
   });
-
 
   const checkPublications = useCallback(async () => {
     if (!user) return;
@@ -164,11 +156,6 @@ export default function Dashboard() {
       const json = await res.json();
       const profile = json.success ? json.data : null;
       // KI #149 (closed 2026-05-06): read canonical publishers.slug
-      // directly from the API response (post-tandem opedd-backend slice).
-      // Pre-fix: derived client-side via deriveSlug(profile.website_url).
-      // Backend `publisher-profile` GET now exposes the column populated
-      // by migration 096 (KI #125 closure) so the publisher's licensing
-      // URL preview matches the canonical slug used by sitemap/api routes.
       setPublisherSlug(profile?.slug ?? null);
       setContentImported(!!profile?.content_imported);
       setPricingConfigured(isPricingConfigured(profile?.pricing_rules));
@@ -199,19 +186,6 @@ export default function Dashboard() {
   }, [checkPublications, fetchMetrics, loadProfile]);
 
   // Session 1.9 — Welcome trigger rewire. When the wizard hook AND the
-  // profile have both resolved, AND the publisher is in setup_state=
-  // 'verified' AND has not yet completed Welcome, redirect to /welcome.
-  // ReferralStep PATCHes welcome_completed_at server-side; on the next
-  // dashboard mount profile loads with welcome_completed_at set, so this
-  // effect short-circuits and the publisher proceeds straight to the
-  // dashboard.
-  //
-  // Idempotency: replace:true on navigate prevents a back-button loop;
-  // Welcome.tsx itself also gates on welcome_completed_at server-side
-  // and redirects back to /dashboard if already set, so a stale
-  // welcomeCompletedAt=null in this useEffect (right after Welcome
-  // PATCHes but before Dashboard re-fetches) would land on /welcome,
-  // see the truthy server value, and immediately redirect back. No loop.
   useEffect(() => {
     if (
       shouldRedirectToWelcome({
@@ -276,50 +250,16 @@ export default function Dashboard() {
     const heldPayments = !stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0);
     if (heldPayments) return "held-payments";
     // Phase 5.10-α: verified publisher hasn't started Stripe + has no
-    // earnings yet. Buyers attempting purchases hard-fail at request
-    // time with 422 PUBLISHER_NOT_PAYABLE per
-    // _shared/stripe-eligibility.ts. Banner closes the publisher-side
-    // nudge gap (we don't run a separate admin queue; this banner +
-    // Sentry warning-level events are the entire surface).
-    //
-    // KI #115 fix: gate on `verification_status === 'verified'` (legacy
-    // marketplace gate, load-bearing during 2-column soak window per
-    // backend INVARIANTS) — NOT `wizardState.setupState === 'verified'`
-    // (new 5-state machine, admin-approval-strict; empty-set in current
-    // production state because admin hasn't transitioned soft-verified
-    // publishers through the new machine yet). Soak-window soft-verified
-    // publishers (verification_status='verified' + setup_state='connected')
-    // ARE in publishers_public and ARE soliciting buyers — they're the
-    // exact cohort that needs this banner.
     if (verificationStatus === "verified" && !stripeConnected) return "not-payable";
     // KI #126: post-KI-130 (license_type 4-vocab matrix accepted at
-    // create-checkout / agent-purchase / api ?action=purchase|batch),
-    // a wizard-onboarded publisher's enabled tiers can be reached by
-    // buyers via combinations the wizard never priced. Resolver throws
-    // PRICING_RULE_NOT_CONFIGURED at checkout. Banner nudges the
-    // publisher to Settings/Pricing (Phase 5.4-β editor) before that
-    // happens. Lowest priority — Stripe-side gates supersede.
     if (pricingGaps.length > 0) return "pricing-gap";
     return null;
   })();
 
   // Session 1.9 commit 3: rewired from `setupComplete && totalAssets > 0`
-  // to use the wizard hook's setup_state directly. setupComplete was a
-  // legacy boolean that paired 1:1 with setup_state==='verified' in the
-  // 5-state machine; the wizard hook is now the canonical reader.
   const showQuickActions = wizardState.setupState === "verified" && totalAssets > 0;
 
   // KI #114 fix: migrated from inline raw-fetch + legacy `json.url` access
-  // pattern to canonical `stripeApi.connect()` wrapper. Pre-fix bug:
-  // backend returns `{ success: true, data: { onboarding_url, stripe_account_id } }`
-  // (standard envelope per `_shared/cors.ts:successResponse`); inline handler
-  // read `json.url` (always undefined) so `window.location.href` never fired.
-  // Same bug class as the former `Setup.tsx:494` (migrated to wrapper at
-  // Phase 3 Session 3.1). Affected 3 onClick sites sharing this handler:
-  // stripe-kyc banner (KI #114), held-payments banner (untriggered in
-  // production), not-payable banner (Phase 5.10-α). edgeFetch unwraps the
-  // envelope to `StripeConnectResult` directly and throws on !success;
-  // catch routes to Sentry instead of the prior silent `/* ignore */`.
   const handleConnectStripe = async () => {
     try {
       const token = await getAccessToken();
@@ -551,10 +491,6 @@ export default function Dashboard() {
             {[
               { icon: Handshake, label: "Issue archive license", onClick: () => setArchiveModalOpen(true) },
               // Phase 5.1 (2026-04-30): "Update pricing" quick action
-              // dropped — /licensing now serves a placeholder while the
-              // legacy editor is rebuilt against the canonical 4-type
-              // vocab. Restore when the Settings page revision ships
-              // (KI #66, Phase 4.7 OQ-D deferral).
               { icon: UserPlus, label: "Invite team", onClick: () => navigate("/settings?tab=team") },
               {
                 icon: Eye,
