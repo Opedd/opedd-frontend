@@ -93,12 +93,6 @@ export function DashboardLayout({ children, title, subtitle, headerActions, vari
   const [publisherPlan, setPublisherPlan] = useState<PlanType | null>(
     () => (sessionStorage.getItem("opedd_plan") as PlanType | null)
   );
-  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(
-    () => {
-      const cached = sessionStorage.getItem("opedd_trial_days");
-      return cached !== null ? Number(cached) : null;
-    }
-  );
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -133,12 +127,6 @@ export function DashboardLayout({ children, title, subtitle, headerActions, vari
         if (plan && ["free", "pro", "enterprise"].includes(plan)) {
           setPublisherPlan(plan as PlanType);
           sessionStorage.setItem("opedd_plan", plan);
-        }
-        if (result.data.trial_active && typeof result.data.trial_days_remaining === "number") {
-          setTrialDaysRemaining(result.data.trial_days_remaining);
-          sessionStorage.setItem("opedd_trial_days", String(result.data.trial_days_remaining));
-        } else {
-          sessionStorage.removeItem("opedd_trial_days");
         }
       }
     } catch (err) {
@@ -286,7 +274,7 @@ export function DashboardLayout({ children, title, subtitle, headerActions, vari
               <Link to={accountSettingsHref}><Settings className="mr-2 h-4 w-4" />Account Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-gray-200" />
-            <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); sessionStorage.removeItem("opedd_trial_days"); sessionStorage.removeItem("opedd_trial_dismissed"); logout(); }}>
+            <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 text-sm py-2" onClick={() => { sessionStorage.removeItem("opedd_plan"); logout(); }}>
               <LogOut className="mr-2 h-4 w-4" />Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -421,43 +409,6 @@ export function DashboardLayout({ children, title, subtitle, headerActions, vari
             </Popover>
           </div>
         </header>
-
-        {/* Trial banner — shown to free plan publishers during their trial window */}
-        {/* Phase 5.2.2: suppressed entirely in buyer variant (no plan model yet) */}
-        {!isBuyerVariant && publisherPlan === "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 && !sessionStorage.getItem("opedd_trial_dismissed") && (() => {
-          const urgent = trialDaysRemaining <= 7;
-          return (
-            <div className={cn(
-              "shrink-0 px-4 py-2.5 flex items-center justify-between gap-4 border-b",
-              urgent
-                ? "bg-warning/10 border-warning/20"
-                : "bg-oxford-light border-oxford-pale"
-            )}>
-              <p className={cn("text-xs font-medium flex-1", urgent ? "text-warning" : "text-oxford")}>
-                <span className="font-bold">{trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left on your free trial</span>
-                {" "}— import unlimited articles and explore all features.{urgent ? " Upgrade now to keep full access." : ""}
-              </p>
-              <NavLink
-                to="/settings?tab=billing"
-                className={cn(
-                  "shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap border",
-                  urgent
-                    ? "border-warning/40 text-warning hover:bg-warning/15"
-                    : "border-oxford/20 text-oxford hover:bg-oxford/5"
-                )}
-              >
-                Upgrade now
-              </NavLink>
-              <button
-                onClick={() => { sessionStorage.setItem("opedd_trial_dismissed", "1"); setTrialDaysRemaining(null); }}
-                className={cn("shrink-0 p-1 rounded-lg transition-colors", urgent ? "text-warning/60 hover:text-warning hover:bg-warning/15" : "text-oxford/40 hover:text-oxford hover:bg-oxford/5")}
-                aria-label="Dismiss trial banner"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          );
-        })()}
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">

@@ -20,7 +20,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 // PublicationSetupFlow removed — "Add content" now routes to /setup
-import { VerificationPendingBanner } from "@/components/dashboard/VerificationPendingBanner";
 import { useToast } from "@/hooks/use-toast";
 import { PaginatedResponse } from "@/types/asset";
 import { DbAsset } from "@/types/asset";
@@ -56,20 +55,9 @@ export default function Dashboard() {
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
   const [inboundCopied, setInboundCopied] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [hasPendingVerification, setHasPendingVerification] = useState(false);
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
 
-  // Session 1.8 — read setup_state for SetupBanner mounting AND for the
-  // VerificationPendingBanner hide condition. SetupBanner becomes the
-  // single source of truth for connected-state messaging once the wizard
-  // hook resolves; VerificationPendingBanner is suppressed in any
-  // non-verified resolved state to prevent double-banner overlap.
   const wizardState = useWizardState();
-  const wizardSpeaks =
-    !wizardState.isLoading &&
-    !wizardState.error &&
-    !!wizardState.setupState &&
-    wizardState.setupState !== "verified";
 
   // Admin stats state
   interface AdminStats {
@@ -117,15 +105,8 @@ export default function Dashboard() {
         .eq("user_id", user.id)
         .in("sync_status", ["active", "protected"]);
       setHasActivePublication((count ?? 0) > 0);
-      const { count: pendingCount } = await (supabase as any)
-        .from("content_sources")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("sync_status", "pending");
-      setHasPendingVerification((pendingCount ?? 0) > 0);
     } catch {
       setHasActivePublication(false);
-      setHasPendingVerification(false);
     }
   }, [user]);
 
@@ -287,14 +268,13 @@ export default function Dashboard() {
   // 4. Onboarding Checklist (setup not complete)
   // 5. Pending Earnings card (already covered by #2 — kept distinct for the case
   //    where revenue is 0 but admin chooses to show. In MVP, #2 supersedes.)
-  type BannerKind = "stripe-kyc" | "held-payments" | "verification" | "not-payable" | "pricing-gap" | null;
+  type BannerKind = "stripe-kyc" | "held-payments" | "not-payable" | "pricing-gap" | null;
   const activeBanner: BannerKind = (() => {
     const stripeKycPending =
       !!stripeAccountId && (!stripeConnected || stripePayoutsEnabled === false);
     if (stripeKycPending) return "stripe-kyc";
     const heldPayments = !stripeConnected && (totalRevenue > 0 || totalLicensesSold > 0);
     if (heldPayments) return "held-payments";
-    if (totalAssets > 0 && !isLoading && hasPendingVerification) return "verification";
     // Phase 5.10-α: verified publisher hasn't started Stripe + has no
     // earnings yet. Buyers attempting purchases hard-fail at request
     // time with 422 PUBLISHER_NOT_PAYABLE per
@@ -495,14 +475,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        {/* Hide VerificationPendingBanner when SetupBanner can speak
-            (wizard hook resolved, non-verified state). Avoids double-
-            banner overlap on connected state. Refinement 1 from Session
-            1.8 design review — VerificationPendingBanner kept in the
-            codebase as legacy, suppressed at the call site. */}
-        {activeBanner === "verification" && !wizardSpeaks && <VerificationPendingBanner />}
-
 
         {/* Compact Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
