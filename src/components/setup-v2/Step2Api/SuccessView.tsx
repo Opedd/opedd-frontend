@@ -1,19 +1,31 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { HelperExpandable } from './HelperExpandable';
 
 // Phase 8.6 — SUCCESS view for Step2Api (key issued).
 //
-// Mirrors Step2Ghost/SuccessView.tsx (Phase 7.5 ship) — two render
-// modes (fresh + resume_stale) + countdown auto-advance + click/
-// keyboard advance affordance. Step2Api-specific UX:
-//   - Plaintext key revealed ONCE in a copy-to-clipboard widget
-//   - Persistent "save this key now — we can't show it again" warning
-//   - Curl example with the live key value (one-time visible)
-//   - resume_stale renders for publishers who created a key in a prior
-//     session (setup_data.api_key_id present); shows key prefix +
-//     "your key is already created" but NEVER plaintext (we can't
-//     re-fetch it). Skip the countdown; immediate advance.
+// Mirrors Step2Ghost/SuccessView.tsx (Phase 7.5 ship) shape — two
+// render modes (fresh + resume_stale). Step2Api-specific UX diverges
+// from sibling Step2Ghost/Step2Beehiiv on the fresh-branch advance
+// mechanism (Phase 8.6.0 amendment per founder live-flow gate
+// surface 2026-05-12):
+//
+//   - Plaintext key is a one-time-shown 35-char secret. If the
+//     publisher misses the copy window, they MUST revoke + reissue.
+//   - Canonical pattern (Stripe / GitHub / AWS): persistent reveal +
+//     acknowledgment checkbox + user-driven Continue. NO auto-advance.
+//   - Acknowledgment: "I've saved this key in a secure location"
+//     checkbox. Continue button disabled until checked.
+//   - Card-area click-to-advance + Enter/Space-to-advance REMOVED
+//     for fresh branch (avoid accidental advance before publisher
+//     copies the key). resume_stale retains immediate-advance (no
+//     plaintext at stake).
+//
+// Pre-amendment shape (39f98b0): 6s countdown + click-card-to-
+// advance. Founder live-flow gate revealed: (a) field-name mismatch
+// caused plaintext to render empty; (b) 6s countdown was too
+// aggressive to copy a 35-char key even if rendering correctly.
+// Both axes fixed in this amendment.
 //
 // LOVABLE-POLISH (Phase 10): no fade-in animation; instant view-mode
 // swap. Copy-to-clipboard uses navigator.clipboard.writeText with
@@ -36,18 +48,10 @@ type SuccessViewProps =
       onAdvance: () => void;
     };
 
-const COUNTDOWN_MS = 6000;
-const TICK_INTERVAL_MS = 100;
-
-function isInteractiveTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  return !!target.closest('button, a, input, label, code');
-}
-
 export function SuccessView(props: SuccessViewProps) {
   const advancedRef = useRef(false);
-  const [secondsLeft, setSecondsLeft] = useState(6);
   const [copied, setCopied] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   const triggerAdvance = useCallback(() => {
     if (advancedRef.current) return;
@@ -55,39 +59,15 @@ export function SuccessView(props: SuccessViewProps) {
     props.onAdvance();
   }, [props]);
 
+  // Resume-stale: immediate advance, no countdown (no plaintext at
+  // stake; publisher has nothing to copy). Fresh branch: NO auto-
+  // advance per Phase 8.6.0 amendment — view persists indefinitely
+  // until publisher checks the acknowledgment box + clicks Continue.
   useEffect(() => {
-    // Resume-stale: immediate advance, no countdown.
     if (props.mode === 'resume_stale') {
       triggerAdvance();
-      return;
     }
-
-    // Fresh: 6s countdown (longer than Ghost's 3s — the publisher
-    // needs more time to copy their plaintext key before auto-advance).
-    const startedAt = Date.now();
-    const interval = setInterval(() => {
-      const elapsedMs = Date.now() - startedAt;
-      const remaining = Math.max(0, Math.ceil((COUNTDOWN_MS - elapsedMs) / 1000));
-      setSecondsLeft(remaining);
-      if (elapsedMs >= COUNTDOWN_MS) {
-        clearInterval(interval);
-        triggerAdvance();
-      }
-    }, TICK_INTERVAL_MS);
-    return () => clearInterval(interval);
   }, [props.mode, triggerAdvance]);
-
-  const handleCardClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (isInteractiveTarget(e.target)) return;
-    triggerAdvance();
-  };
-
-  const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      triggerAdvance();
-    }
-  };
 
   const handleCopyKey = useCallback(async (keyValue: string) => {
     try {
@@ -142,14 +122,7 @@ export function SuccessView(props: SuccessViewProps) {
 
   return (
     <div className="min-h-screen bg-alice-gray px-6 py-12">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={handleCardClick}
-        onKeyDown={handleCardKeyDown}
-        aria-label="Continue to the next step"
-        className="max-w-2xl mx-auto rounded-2xl bg-white border border-gray-200 p-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-navy-deep/20 hover:border-gray-300 transition-colors"
-      >
+      <div className="max-w-2xl mx-auto rounded-2xl bg-white border border-gray-200 p-8">
         <div className="text-center mb-6">
           <div
             className="text-6xl text-green-700 leading-none mb-4"
@@ -218,18 +191,37 @@ export function SuccessView(props: SuccessViewProps) {
           </HelperExpandable>
         </div>
 
-        <div className="text-center space-y-3">
-          <p className="text-sm text-gray-500" role="status" aria-live="polite">
-            Continuing to next step in {secondsLeft}…
+        {/* Acknowledgment gate — Continue button disabled until checkbox checked.
+            Canonical Stripe/GitHub/AWS pattern for one-time-shown secret reveal. */}
+        <div className="border-t border-gray-200 pt-6 space-y-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acknowledged}
+              onChange={(e) => setAcknowledged(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-navy-deep focus:ring-navy-deep/30"
+              aria-describedby="api-ack-helper"
+            />
+            <span className="text-sm text-navy-deep">
+              I've saved this key in a secure location
+            </span>
+          </label>
+          <p id="api-ack-helper" className="text-xs text-gray-500 ml-7">
+            Once you continue, this key won't be shown again. Make sure you've
+            copied it to your password manager, a `.env` file, or wherever your
+            system reads credentials.
           </p>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => triggerAdvance()}
-            className="px-6"
-          >
-            Continue now
-          </Button>
+
+          <div className="text-center pt-2">
+            <Button
+              type="button"
+              onClick={() => triggerAdvance()}
+              disabled={!acknowledged}
+              className="px-8"
+            >
+              Continue
+            </Button>
+          </div>
         </div>
       </div>
     </div>

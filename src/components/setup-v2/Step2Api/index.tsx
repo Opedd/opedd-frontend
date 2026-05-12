@@ -178,7 +178,11 @@ export function Step2Api() {
 
       setSuccessData({
         mode: 'fresh',
-        plaintextKey: result.key,
+        // Backend response field is `plaintext_key` (snake_case;
+        // source-verified 2026-05-12 prod probe). Field-name mismatch
+        // shipped at 39f98b0; fixed in this amendment per Workflow A
+        // bug-fix on in-flight branch.
+        plaintextKey: result.plaintext_key,
         keyPrefix: result.key_prefix,
         environment: result.environment,
         name: result.name,

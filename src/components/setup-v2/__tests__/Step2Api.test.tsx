@@ -81,7 +81,7 @@ beforeEach(() => {
   // Default: list returns empty (no pre-existing key); create returns success.
   mockListApiKeys.mockResolvedValue({ keys: [] });
   mockCreateApiKey.mockResolvedValue({
-    key: 'opedd_pub_test_abc123def456abc123def456abc123de',
+    plaintext_key: 'opedd_pub_test_abc123def456abc123def456abc123de',
     key_prefix: 'opedd_pub_te',
     id: '00000000-0000-0000-0000-000000000001',
     environment: 'test',
@@ -147,7 +147,7 @@ describe('Step2Api — submit → ACTIVE → SUCCESS happy path', () => {
       expect(screen.getByText(/Creating your API key/i)).toBeTruthy();
     });
     resolveCreate({
-      key: 'opedd_pub_test_abc123def456abc123def456abc123de',
+      plaintext_key: 'opedd_pub_test_abc123def456abc123def456abc123de',
       key_prefix: 'opedd_pub_te',
       id: '00000000-0000-0000-0000-000000000001',
       environment: 'test',
@@ -206,7 +206,7 @@ describe('Step2Api — submit → ACTIVE → SUCCESS happy path', () => {
 
   it('Live environment selection passes through to backend call', async () => {
     mockCreateApiKey.mockResolvedValue({
-      key: 'opedd_pub_xyz789xyz789xyz789xyz789xyz789xy',
+      plaintext_key: 'opedd_pub_xyz789xyz789xyz789xyz789xyz789xy',
       key_prefix: 'opedd_pub_xy',
       id: '00000000-0000-0000-0000-000000000002',
       environment: 'live',
@@ -293,7 +293,7 @@ describe('Step2Api — cancel from ACTIVE', () => {
 
     expect(screen.getByRole('button', { name: /Cancel key creation/i })).toBeTruthy();
     resolveCreate({
-      key: 'opedd_pub_test_x',
+      plaintext_key: 'opedd_pub_test_x',
       key_prefix: 'opedd_pub_te',
       id: 'id1',
       environment: 'test',
@@ -322,7 +322,7 @@ describe('Step2Api — cancel from ACTIVE', () => {
     // Resolve the still-pending promise — should NOT advance to SUCCESS
     // (stale-response short-circuit via requestIdRef).
     resolveCreate({
-      key: 'opedd_pub_test_x',
+      plaintext_key: 'opedd_pub_test_x',
       key_prefix: 'opedd_pub_te',
       id: 'id1',
       environment: 'test',
@@ -348,40 +348,57 @@ describe('Step2Api — SUCCESS view', () => {
     );
   });
 
-  it('Continue now button advances the wizard', async () => {
+  it('plaintext key value renders verbatim in <code> element (Phase 8.6.0 regression guard)', async () => {
+    // Phase 8.6.0 amendment: backend returns plaintext_key (snake_case)
+    // not key. Pre-amendment shipped at 39f98b0 read result.key →
+    // undefined → empty <code> element. This assertion guards against
+    // recurrence of the field-name-mismatch class.
+    render(<Step2Api />);
+    fireEvent.click(screen.getByRole('button', { name: /Create API key/i }));
+    await waitFor(() => expect(screen.getByText(/Your API key is ready/i)).toBeTruthy());
+    const codeEl = document.getElementById('api-key-reveal');
+    expect(codeEl).not.toBeNull();
+    expect(codeEl?.textContent).toBe('opedd_pub_test_abc123def456abc123def456abc123de');
+  });
+
+  it('Continue button DISABLED until acknowledgment checkbox is checked (Phase 8.6.0 UX gate)', async () => {
+    render(<Step2Api />);
+    fireEvent.click(screen.getByRole('button', { name: /Create API key/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Continue$/i })).toBeTruthy());
+    const continueBtn = screen.getByRole('button', { name: /^Continue$/i }) as HTMLButtonElement;
+    expect(continueBtn.disabled).toBe(true);
+  });
+
+  it('after checking acknowledgment checkbox, Continue button enabled + advances on click', async () => {
     const advance = vi.fn().mockResolvedValue({});
     mockHookReturn.mockReturnValue(defaultState({ advance }));
     render(<Step2Api />);
     fireEvent.click(screen.getByRole('button', { name: /Create API key/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /Continue now/i })).toBeTruthy());
-    fireEvent.click(screen.getByRole('button', { name: /Continue now/i }));
+    await waitFor(() =>
+      expect(screen.getByLabelText(/I've saved this key in a secure location/i)).toBeTruthy(),
+    );
+    const checkbox = screen.getByLabelText(/I've saved this key in a secure location/i) as HTMLInputElement;
+    fireEvent.click(checkbox);
+    expect(checkbox.checked).toBe(true);
+    const continueBtn = screen.getByRole('button', { name: /^Continue$/i }) as HTMLButtonElement;
+    expect(continueBtn.disabled).toBe(false);
+    fireEvent.click(continueBtn);
     await waitFor(() => expect(advance).toHaveBeenCalledWith({}));
   });
 
-  it('auto-advances after 6s countdown', async () => {
+  it('no auto-advance — view persists indefinitely until user-driven advance (Phase 8.6.0 UX change)', async () => {
     vi.useFakeTimers();
     const advance = vi.fn().mockResolvedValue({});
     mockHookReturn.mockReturnValue(defaultState({ advance }));
     render(<Step2Api />);
     fireEvent.click(screen.getByRole('button', { name: /Create API key/i }));
     await act(async () => { await Promise.resolve(); });
-    await act(async () => { vi.advanceTimersByTime(6100); });
-    expect(advance).toHaveBeenCalledWith({});
+    // Advance well beyond the OLD 6s countdown — view should STILL be
+    // showing; advance should NOT have fired (no auto-advance).
+    await act(async () => { vi.advanceTimersByTime(30000); });
+    expect(advance).not.toHaveBeenCalled();
+    expect(screen.getByText(/Your API key is ready/i)).toBeTruthy();
     vi.useRealTimers();
-  });
-
-  it('clicking the card area advances (non-interactive target)', async () => {
-    const advance = vi.fn().mockResolvedValue({});
-    mockHookReturn.mockReturnValue(defaultState({ advance }));
-    render(<Step2Api />);
-    fireEvent.click(screen.getByRole('button', { name: /Create API key/i }));
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Continue to the next step/i })).toBeTruthy(),
-    );
-    // Click the card itself (not Continue button or the code block)
-    const headline = screen.getByText(/Your API key is ready/i);
-    fireEvent.click(headline);
-    await waitFor(() => expect(advance).toHaveBeenCalledWith({}));
   });
 
   it('persistent "save this key now" warning is shown', async () => {
@@ -489,7 +506,7 @@ describe('Step2Api — double-submit guard', () => {
     await waitFor(() => expect(screen.getByText(/Creating your API key/i)).toBeTruthy());
     expect(mockCreateApiKey).toHaveBeenCalledTimes(1);
     resolveCreate({
-      key: 'opedd_pub_test_x',
+      plaintext_key: 'opedd_pub_test_x',
       key_prefix: 'opedd_pub_te',
       id: 'id1',
       environment: 'test',
@@ -519,7 +536,7 @@ describe('Step2Api — failure → recovery → success', () => {
     mockCreateApiKey
       .mockRejectedValueOnce(new Error('Network'))
       .mockResolvedValueOnce({
-        key: 'opedd_pub_test_recoveredkey1234567890abcdef1234',
+        plaintext_key: 'opedd_pub_test_recoveredkey1234567890abcdef1234',
         key_prefix: 'opedd_pub_te',
         id: '00000000-0000-0000-0000-000000000003',
         environment: 'test',

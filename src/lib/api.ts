@@ -745,7 +745,13 @@ export const licensesApi = {
 // compatibility with existing consumers).
 
 export interface PublisherApiKeyCreated {
-  key: string;            // plaintext — returned ONCE; cannot be re-fetched
+  // Backend canonical field is `plaintext_key` (source-verified via
+  // production probe 2026-05-12 against /publishers-api-keys
+  // action=create_api_key response shape). Phase 8.5.2 opedd-docs
+  // openapi.json schema currently declares `key` — that doc-as-code
+  // drift will be fixed in a follow-on chip (Phase 8.6.1 hygiene)
+  // after this Phase 8.6 frontend cohort ships clean.
+  plaintext_key: string;  // plaintext — returned ONCE; cannot be re-fetched
   key_prefix: string;     // first 12 chars (e.g. "opedd_pub_te")
   id: string;             // UUID
   environment: 'live' | 'test';
