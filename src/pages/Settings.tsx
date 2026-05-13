@@ -369,6 +369,28 @@ export default function Settings() {
     }
   }, [activeTab, articleCount, profile?.api_key]);
 
+  const loadApiKeys = useCallback(async () => {
+    setIsLoadingKeys(true);
+    try {
+      const token = await getAccessToken();
+      const result = await publisherApi.listApiKeys(token);
+      setApiKeys(result.api_keys ?? []);
+    } catch (err) {
+      toast({
+        title: "Couldn't load API keys",
+        description: err instanceof Error ? err.message : "Please retry.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingKeys(false);
+    }
+  }, [getAccessToken, toast]);
+
+  useEffect(() => {
+    if (activeTab !== "developers" || !profile) return;
+    void loadApiKeys();
+  }, [activeTab, profile, loadApiKeys]);
+
   // Realtime: if THIS user is removed from the team, force redirect to home
   useEffect(() => {
     if (!user) return;
@@ -524,28 +546,6 @@ export default function Settings() {
       toast({ title: "Copy Failed", description: "Please copy manually", variant: "destructive" });
     }
   };
-
-  const loadApiKeys = useCallback(async () => {
-    setIsLoadingKeys(true);
-    try {
-      const token = await getAccessToken();
-      const result = await publisherApi.listApiKeys(token);
-      setApiKeys(result.api_keys ?? []);
-    } catch (err) {
-      toast({
-        title: "Couldn't load API keys",
-        description: err instanceof Error ? err.message : "Please retry.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingKeys(false);
-    }
-  }, [getAccessToken, toast]);
-
-  useEffect(() => {
-    if (activeTab !== "developers" || !profile) return;
-    void loadApiKeys();
-  }, [activeTab, profile, loadApiKeys]);
 
   const handleCreateApiKey = async () => {
     if (isCreatingKey) return;
