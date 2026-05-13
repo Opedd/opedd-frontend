@@ -1,6 +1,14 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import { Button } from '@/components/ui/button';
+import { publisherApi } from '@/lib/api';
 import { HelperExpandable } from './HelperExpandable';
+
+type TestState =
+  | { kind: 'idle' }
+  | { kind: 'testing' }
+  | { kind: 'succeeded'; inserted: number }
+  | { kind: 'failed'; message: string };
 
 // Phase 8.6 — SUCCESS view for Step2Api (key issued).
 //
@@ -50,6 +58,7 @@ export function SuccessView(props: SuccessViewProps) {
   const advancedRef = useRef(false);
   const [copied, setCopied] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [testState, setTestState] = useState<TestState>({ kind: 'idle' });
 
   const triggerAdvance = useCallback(() => {
     if (advancedRef.current) return;
@@ -66,6 +75,23 @@ export function SuccessView(props: SuccessViewProps) {
       triggerAdvance();
     }
   }, [props.mode, triggerAdvance]);
+
+  const handleTestKey = useCallback(async (apiKey: string) => {
+    setTestState({ kind: 'testing' });
+    try {
+      const result = await publisherApi.testContent(apiKey);
+      setTestState({ kind: 'succeeded', inserted: result.inserted_count });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Test request failed.';
+      setTestState({ kind: 'failed', message });
+      Sentry.addBreadcrumb({
+        category: 'step2-api',
+        level: 'warning',
+        message: 'test-key POST failed',
+        data: { error: message.slice(0, 200) },
+      });
+    }
+  }, []);
 
   const handleCopyKey = useCallback(async (keyValue: string) => {
     try {
@@ -185,6 +211,58 @@ export function SuccessView(props: SuccessViewProps) {
               <code>{curlExample}</code>
             </pre>
           </HelperExpandable>
+        </div>
+
+        {/* In-flight test-POST: verifies the freshly-issued key round-trips
+            against /publishers-content before the publisher leaves the wizard.
+            Side effect: inserts one sample article (clearly labeled) into the
+            publisher's catalog — they can delete it from their dashboard. */}
+        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-navy-deep">Test your key</p>
+              <p className="text-xs text-gray-600 mt-0.5">
+                We'll send one sample article to your catalog using this key.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleTestKey(props.plaintextKey)}
+              disabled={testState.kind === 'testing'}
+              className="flex-shrink-0"
+            >
+              {testState.kind === 'testing'
+                ? 'Testing…'
+                : testState.kind === 'succeeded'
+                  ? 'Test again'
+                  : 'Send test article'}
+            </Button>
+          </div>
+
+          {testState.kind === 'succeeded' && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-3 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-900"
+            >
+              <strong className="font-semibold">✓ Test successful.</strong>{' '}
+              {testState.inserted === 1
+                ? '1 article inserted'
+                : `${testState.inserted} articles inserted`}{' '}
+              — your key is working. You can remove the sample from your dashboard.
+            </div>
+          )}
+
+          {testState.kind === 'failed' && (
+            <div
+              role="alert"
+              className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-900"
+            >
+              <strong className="font-semibold">Test failed.</strong>{' '}
+              {testState.message}
+            </div>
+          )}
         </div>
 
         {/* Acknowledgment gate — Continue button disabled until checkbox checked.

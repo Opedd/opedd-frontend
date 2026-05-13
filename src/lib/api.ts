@@ -825,6 +825,32 @@ export const publisherApi = {
       token,
     ),
 
+  // POST /publishers-content — single sample article test (Phase 8 API key Bearer).
+  // Used by Step2Api SuccessView "Test your key" button. Caller passes the
+  // freshly-revealed plaintext key (just returned from createApiKey). On
+  // success the publisher's catalog gains one onboarding-sample article; the
+  // random URL suffix prevents re-test collisions on the composite UNIQUE
+  // (publisher_id, source_url). Schema mirrors publishers-content
+  // ArticleSchema (title 1-500, url valid HTTPS, published_at ISO,
+  // html_body ≤200KB).
+  testContent: (apiKey: string) => {
+    const suffix = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`).slice(0, 8);
+    const sample = {
+      title: 'Opedd onboarding test',
+      url: `https://opedd.com/onboarding-sample/${suffix}`,
+      published_at: new Date().toISOString(),
+      html_body: '<p>This sample article was created during your Opedd API onboarding. You can delete it any time.</p>',
+    };
+    return edgeFetch<PublisherContentResult>(
+      EDGE_FUNCTION_BASE + '/publishers-content',
+      {
+        method: 'POST',
+        body: JSON.stringify({ articles: [sample] }),
+      },
+      apiKey,
+    );
+  },
+
   // POST /publishers-webhooks action=register (Phase 8 API key Bearer)
   // Note: this uses the Publisher API key (`opedd_pub_<env>_<32-hex>`)
   // NOT the session JWT. The caller passes the plaintext key (just
