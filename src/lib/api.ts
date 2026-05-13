@@ -809,6 +809,22 @@ export const publisherApi = {
       token,
     ),
 
+  // POST /publishers-api-keys action=revoke_api_key (session JWT)
+  // Idempotent: revoking an already-revoked OR not-owned key returns
+  // { id, already_revoked: true }.
+  revokeApiKey: (
+    id: string,
+    token: string | null,
+  ) =>
+    edgeFetch<{ id: string; key_prefix?: string; revoked_at?: string; already_revoked?: boolean }>(
+      EDGE_FUNCTION_BASE + '/publishers-api-keys',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'revoke_api_key', id }),
+      },
+      token,
+    ),
+
   // POST /publishers-webhooks action=register (Phase 8 API key Bearer)
   // Note: this uses the Publisher API key (`opedd_pub_<env>_<32-hex>`)
   // NOT the session JWT. The caller passes the plaintext key (just

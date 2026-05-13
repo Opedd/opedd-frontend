@@ -81,6 +81,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PublicationGate, LockedTabContent } from "@/components/dashboard/PublicationGate";
 import { Spinner } from "@/components/ui/Spinner";
+import { publisherApi, type PublisherApiKeyListItem } from "@/lib/api";
 
 interface StripeConnect {
   connected: boolean;
@@ -241,10 +242,15 @@ export default function Settings() {
   const [publisherIdCopied, setPublisherIdCopied] = useState(false);
   const [publisherIdRevealed, setPublisherIdRevealed] = useState(false);
   
-  // API Key state
-  const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
-  const [apiKeyCopied, setApiKeyCopied] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
+  // API Keys state (canonical /publishers-api-keys)
+  const [apiKeys, setApiKeys] = useState<PublisherApiKeyListItem[]>([]);
+  const [isLoadingKeys, setIsLoadingKeys] = useState(false);
+  const [createKeyDialogOpen, setCreateKeyDialogOpen] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [isCreatingKey, setIsCreatingKey] = useState(false);
+  const [freshKey, setFreshKey] = useState<{ plaintext_key: string; key_prefix: string; name?: string } | null>(null);
+  const [freshKeyCopied, setFreshKeyCopied] = useState(false);
+  const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
 
   // Logo state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -261,7 +267,6 @@ export default function Settings() {
     | { kind: "error"; message: string }
     | null
   >(null);
-  const [apiKeyWarning, setApiKeyWarning] = useState(false);
   const [contactForPricing, setContactForPricing] = useState(false);
 
   // Content Taxonomy
@@ -508,7 +513,6 @@ export default function Settings() {
   };
 
   const publisherId = profile?.id || user?.id || "";
-  const apiKey = profile?.api_key || "";
 
   const handleCopyPublisherId = async () => {
     try {
@@ -521,40 +525,86 @@ export default function Settings() {
     }
   };
 
-  const handleCopyApiKey = async () => {
-    if (!apiKey) return;
+  const loadApiKeys = useCallback(async () => {
+    setIsLoadingKeys(true);
     try {
-      await navigator.clipboard.writeText(apiKey);
-      setApiKeyCopied(true);
-      setTimeout(() => setApiKeyCopied(false), 2000);
-      toast({ title: "API Key Copied!", description: "Keep this key secure and never share it publicly." });
-    } catch {
-      toast({ title: "Copy Failed", description: "Please copy manually", variant: "destructive" });
+      const token = await getAccessToken();
+      const result = await publisherApi.listApiKeys(token);
+      setApiKeys(result.api_keys ?? []);
+    } catch (err) {
+      toast({
+        title: "Couldn't load API keys",
+        description: err instanceof Error ? err.message : "Please retry.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingKeys(false);
+    }
+  }, [getAccessToken, toast]);
+
+  useEffect(() => {
+    if (activeTab !== "developers" || !profile) return;
+    void loadApiKeys();
+  }, [activeTab, profile, loadApiKeys]);
+
+  const handleCreateApiKey = async () => {
+    if (isCreatingKey) return;
+    setIsCreatingKey(true);
+    try {
+      const token = await getAccessToken();
+      const trimmed = newKeyName.trim();
+      const result = await publisherApi.createApiKey(
+        trimmed.length > 0 ? { name: trimmed } : {},
+        token,
+      );
+      setFreshKey({
+        plaintext_key: result.plaintext_key,
+        key_prefix: result.key_prefix,
+        name: result.name,
+      });
+      setFreshKeyCopied(false);
+      setCreateKeyDialogOpen(false);
+      setNewKeyName("");
+      void loadApiKeys();
+    } catch (err) {
+      toast({
+        title: "Couldn't create API key",
+        description: err instanceof Error ? err.message : "Please retry.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingKey(false);
     }
   };
 
-  const handleRegenerateApiKey = async () => {
-    setIsRegenerating(true);
+  const handleRevokeApiKey = async (id: string) => {
+    if (revokingKeyId) return;
+    setRevokingKeyId(id);
     try {
-      const headers = await apiHeaders();
-      const res = await fetch(`${EXT_SUPABASE_URL}/publisher-profile`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ action: "regenerate_api_key" }),
+      const token = await getAccessToken();
+      await publisherApi.revokeApiKey(id, token);
+      toast({ title: "API key revoked" });
+      void loadApiKeys();
+    } catch (err) {
+      toast({
+        title: "Couldn't revoke",
+        description: err instanceof Error ? err.message : "Please retry.",
+        variant: "destructive",
       });
-      const result = await res.json();
-      if (result.success && result.data?.api_key) {
-        setProfile(prev => prev ? { ...prev, api_key: result.data.api_key } : prev);
-        setApiKeyRevealed(true);
-        setApiKeyWarning(true);
-        toast({ title: "API Key Generated", description: "Your new key is shown below. Update your integrations." });
-      } else {
-        throw new Error(result.error?.message || "Failed to generate key");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Generation Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
     } finally {
-      setIsRegenerating(false);
+      setRevokingKeyId(null);
+    }
+  };
+
+  const handleCopyFreshKey = async () => {
+    if (!freshKey) return;
+    try {
+      await navigator.clipboard.writeText(freshKey.plaintext_key);
+      setFreshKeyCopied(true);
+      setTimeout(() => setFreshKeyCopied(false), 2000);
+      toast({ title: "Copied", description: "Save it now — it won't be shown again." });
+    } catch {
+      toast({ title: "Copy failed", description: "Select and copy manually.", variant: "destructive" });
     }
   };
 
@@ -1005,72 +1055,83 @@ export default function Settings() {
 
                       {/* Widget Embed Code — moved to Distribution/Widget tab */}
 
-                      {/* API Key */}
+                      {/* API Keys */}
                       <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
-                        <div className="mb-6">
-                          <div className="flex items-center gap-2">
-                            <h2 className="font-bold text-[#040042]">API Key</h2>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide bg-red-100 text-red-700">Secret</span>
+                        <div className="flex items-start justify-between gap-4 mb-6">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h2 className="font-bold text-[#040042]">API Keys</h2>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide bg-red-100 text-red-700">Secret</span>
+                            </div>
+                            <p className="text-[#6B7280] text-xs mt-0.5">Keys are shown once at creation. Treat each like a password — never expose in frontend code or HTML.</p>
                           </div>
-                          <p className="text-[#6B7280] text-xs mt-0.5">Secret key — treat like a password. Never expose in frontend code or HTML</p>
+                          <Button
+                            size="sm"
+                            onClick={() => { setNewKeyName(""); setCreateKeyDialogOpen(true); }}
+                            className="h-9 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0"
+                          >
+                            <Key size={14} className="mr-2" />Create key
+                          </Button>
                         </div>
 
-                        <div className="space-y-4">
-                          {apiKey ? (
-                            <>
-                              <div className="flex items-center gap-3">
-                                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
-                                  <code className="text-sm text-[#040042] font-mono truncate block">
-                                    {apiKeyRevealed ? apiKey : apiKey.slice(0, 10) + "•".repeat(20)}
-                                  </code>
-                                </div>
-                                <Button size="sm" variant="ghost" onClick={() => setApiKeyRevealed(!apiKeyRevealed)} aria-label={apiKeyRevealed ? "Hide API key" : "Reveal API key"} className="h-10 px-3 bg-[#EDF2F7] hover:bg-[#E2E8F0] text-[#4A5568] rounded-lg transition-all">
-                                  {apiKeyRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
-                                </Button>
-                                <Button size="sm" onClick={handleCopyApiKey} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium transition-all">
-                                  {apiKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
-                                </Button>
-                              </div>
-                              {apiKeyWarning && (
-                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
-                                  <AlertTriangle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                                  <p className="text-xs text-amber-800 font-medium">
-                                    Your old API key is now invalid. Update any integrations before leaving this page.
-                                  </p>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                                <p className="text-xs text-gray-500">
-                                  <Shield size={12} className="inline mr-1 text-amber-500" />
-                                  Keep this key secret. Only use it in server-side code. Regenerating will invalidate the current key.
-                                </p>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button size="sm" disabled={isRegenerating} className="h-9 px-4 bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg font-medium transition-all">
-                                      {isRegenerating ? <><RefreshCw size={14} className="mr-2 animate-spin" />Regenerating...</> : <><RefreshCw size={14} className="mr-2" />Regenerate Key</>}
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-white">
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle className="flex items-center gap-2 text-[#040042]"><AlertTriangle size={20} className="text-amber-500" />Regenerate API Key?</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-gray-600">This will invalidate your current API key immediately. Any integrations using the old key will stop working.</AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={handleRegenerateApiKey} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Yes, Regenerate Key</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="text-center py-4">
-                              <p className="text-sm text-gray-500 mb-3">No API key generated yet.</p>
-                              <Button onClick={handleRegenerateApiKey} disabled={isRegenerating} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
-                                {isRegenerating ? <><Spinner size="sm" className="mr-2" />Generating...</> : <><Key size={14} className="mr-2" />Generate API Key</>}
-                              </Button>
-                            </div>
-                          )}
+                        {isLoadingKeys && apiKeys.length === 0 ? (
+                          <div className="text-center py-6"><Spinner size="md" className="text-gray-400" /></div>
+                        ) : apiKeys.length === 0 ? (
+                          <div className="text-center py-6 text-sm text-gray-500">
+                            No API keys yet. Click <span className="font-medium">Create key</span> to issue one.
+                          </div>
+                        ) : (
+                          <ul className="divide-y divide-slate-100">
+                            {apiKeys.map((k) => {
+                              const isRevoked = k.revoked_at !== null;
+                              const lastUsed = k.last_used_at
+                                ? new Date(k.last_used_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric" })
+                                : "Never used";
+                              const created = new Date(k.created_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric" });
+                              return (
+                                <li key={k.id} className="py-3 flex items-center gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <code className="text-sm text-[#040042] font-mono">{k.key_prefix}…</code>
+                                      {k.name && <span className="text-sm text-[#040042] truncate">{k.name}</span>}
+                                      {isRevoked && <Badge variant="secondary" className="text-[10px] uppercase">Revoked</Badge>}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-0.5">Created {created} · Last used {lastUsed}</p>
+                                  </div>
+                                  {!isRevoked && (
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          disabled={revokingKeyId === k.id}
+                                          className="h-8 px-3 text-xs border-red-200 text-red-600 hover:bg-red-50 flex-shrink-0"
+                                        >
+                                          {revokingKeyId === k.id ? <Spinner size="sm" /> : <>Revoke</>}
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent className="bg-white">
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle className="flex items-center gap-2 text-[#040042]"><AlertTriangle size={20} className="text-amber-500" />Revoke API key?</AlertDialogTitle>
+                                          <AlertDialogDescription className="text-gray-600">
+                                            This will invalidate <span className="font-mono">{k.key_prefix}…</span> immediately. Integrations using this key will stop working.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => handleRevokeApiKey(k.id)} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Yes, revoke</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                        <div className="flex items-center gap-2 pt-3 mt-3 border-t border-slate-100">
+                          <Shield size={12} className="text-amber-500 flex-shrink-0" />
+                          <p className="text-xs text-gray-500">Keep keys secret. Use them only in server-side code.</p>
                         </div>
                       </div>
                       </>}
@@ -1085,6 +1146,71 @@ export default function Settings() {
           )}
 
         </div>
+
+      {/* Create API Key Dialog */}
+      <Dialog open={createKeyDialogOpen} onOpenChange={(open) => { if (!isCreatingKey) setCreateKeyDialogOpen(open); }}>
+        <DialogContent hideCloseButton className="bg-white max-w-[420px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+          <DialogHeader className="space-y-0 mb-5">
+            <DialogTitle className="text-lg font-semibold text-[#040042]">Create API key</DialogTitle>
+            <DialogDescription className="text-sm text-[#040042]/50 mt-1.5 leading-relaxed">
+              Name it to keep track of where it's used (e.g. "production-server", "staging").
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mb-6">
+            <Label htmlFor="new-key-name" className="text-xs font-medium text-[#040042]/50">Name (optional)</Label>
+            <Input
+              id="new-key-name"
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              placeholder="Production server"
+              maxLength={100}
+              disabled={isCreatingKey}
+              className="bg-white border-slate-200 focus:border-[#4A26ED]/40 focus:ring-[#4A26ED]/10 h-10 rounded-lg text-sm"
+            />
+          </div>
+          <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setCreateKeyDialogOpen(false)} disabled={isCreatingKey} className="rounded-lg border-slate-200">Cancel</Button>
+            <Button onClick={handleCreateApiKey} disabled={isCreatingKey} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+              {isCreatingKey ? <><Spinner size="sm" className="mr-2" />Creating…</> : <>Create key</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fresh API Key Reveal Dialog (one-time plaintext) */}
+      <Dialog open={freshKey !== null} onOpenChange={(open) => { if (!open) setFreshKey(null); }}>
+        <DialogContent hideCloseButton className="bg-white max-w-[520px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+          <DialogHeader className="space-y-0 mb-4">
+            <DialogTitle className="text-lg font-semibold text-[#040042] flex items-center gap-2">
+              <Key size={18} className="text-[#4A26ED]" />Save your API key now
+            </DialogTitle>
+            <DialogDescription className="text-sm text-[#040042]/60 mt-1.5 leading-relaxed">
+              This is the only time the full key will be shown. Copy it and store it somewhere safe — we don't store it.
+            </DialogDescription>
+          </DialogHeader>
+          {freshKey && (
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
+                  <code className="text-sm text-[#040042] font-mono break-all">{freshKey.plaintext_key}</code>
+                </div>
+                <Button size="sm" onClick={handleCopyFreshKey} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0">
+                  {freshKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
+                </Button>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-800">After you close this dialog, only the prefix <span className="font-mono">{freshKey.key_prefix}…</span> will be visible. Lost keys must be revoked and re-issued.</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex-row justify-end">
+            <Button onClick={() => setFreshKey(null)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+              I've saved it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Account Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
