@@ -6,7 +6,6 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Webhook,
   Trash2,
   Loader2,
   Copy,
@@ -115,7 +114,6 @@ export default function Connectors() {
   const [webhookSecretCopied, setWebhookSecretCopied] = useState(false);
   const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
   const [isLoadingDeliveries, setIsLoadingDeliveries] = useState(false);
-  const [isSendingTest, setIsSendingTest] = useState(false);
   const [showDeliveries, setShowDeliveries] = useState(false);
   const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
   const [retryingDeliveryId, setRetryingDeliveryId] = useState<string | null>(null);
@@ -339,24 +337,6 @@ export default function Connectors() {
                         <p className="text-xs text-gray-500 font-mono mt-1 truncate max-w-md">{webhookStatus.url || "—"}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={async () => {
-                          setIsSendingTest(true);
-                          try {
-                            const result = await postAction("test_webhook");
-                            if (result.success) {
-                              toast({ title: "Test event delivered successfully", description: "Your endpoint returned a 2xx response." });
-                            } else {
-                              toast({ title: "Delivery failed", description: "Check your endpoint returns 2xx", variant: "destructive" });
-                            }
-                          } catch {
-                            toast({ title: "Delivery failed", description: "Check your endpoint returns 2xx", variant: "destructive" });
-                          } finally {
-                            setIsSendingTest(false);
-                          }
-                        }} disabled={isSendingTest} className="h-8 text-xs gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-                          {isSendingTest ? <Spinner size="sm" /> : <Webhook size={12} />}
-                          Send Test Event
-                        </Button>
                         <Button variant="outline" size="sm" onClick={handleViewDeliveries} disabled={isLoadingDeliveries} className="h-8 text-xs gap-1.5 border-oxford/30 text-oxford hover:bg-oxford/5">
                           {isLoadingDeliveries ? <Spinner size="sm" /> : <Eye size={12} />}
                           View Deliveries
