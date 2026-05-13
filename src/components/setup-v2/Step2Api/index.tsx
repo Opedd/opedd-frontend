@@ -70,7 +70,7 @@ export function Step2Api() {
         const token = await getAccessToken();
         const result = await publisherApi.listApiKeys(token);
         if (cancelled) return;
-        const matching = result.keys.find(
+        const matching = result.api_keys.find(
           (k) => k.id === setupDataAuth.api_key_id && k.revoked_at === null,
         );
         if (matching) {

@@ -800,7 +800,7 @@ export const publisherApi = {
 
   // POST /publishers-api-keys action=list_api_keys (session JWT)
   listApiKeys: (token: string | null) =>
-    edgeFetch<{ keys: PublisherApiKeyListItem[] }>(
+    edgeFetch<{ api_keys: PublisherApiKeyListItem[] }>(
       EDGE_FUNCTION_BASE + '/publishers-api-keys',
       {
         method: 'POST',

@@ -65,7 +65,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGetAccessToken.mockResolvedValue('test-jwt');
   mockHookReturn.mockReturnValue(defaultState());
-  mockListApiKeys.mockResolvedValue({ keys: [] });
+  mockListApiKeys.mockResolvedValue({ api_keys: [] });
   mockCreateApiKey.mockResolvedValue({
     plaintext_key: 'opedd_pub_abc123def456abc123def456abc123de78',
     key_prefix: 'opedd_pub_ab',
@@ -349,7 +349,7 @@ describe('Step2Api — mount-resume probe', () => {
       }),
     );
     mockListApiKeys.mockResolvedValue({
-      keys: [
+      api_keys: [
         {
           id: '00000000-0000-0000-0000-000000000099',
           key_prefix: 'opedd_pub_ab',
@@ -385,7 +385,7 @@ describe('Step2Api — mount-resume probe', () => {
       }),
     );
     mockListApiKeys.mockResolvedValue({
-      keys: [
+      api_keys: [
         {
           id: '00000000-0000-0000-0000-000000000099',
           key_prefix: 'opedd_pub_ab',
