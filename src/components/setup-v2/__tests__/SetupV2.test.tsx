@@ -39,6 +39,13 @@ vi.mock("@/components/setup-v2/Step2Api", () => ({
   Step2Api: () => <div data-testid="step2-api-marker" />,
 }));
 
+// Phase 11 M1.c — WowMomentStep uses useAuth + licensesApi.list; mock the
+// component to a heading marker for SetupV2 routing test (full WowMomentStep
+// behavior tested separately).
+vi.mock("@/components/setup-v2/WowMomentStep", () => ({
+  WowMomentStep: () => <h1>Your work, in the AI economy</h1>,
+}));
+
 import SetupV2 from "@/pages/SetupV2";
 
 function defaultState(
@@ -187,7 +194,7 @@ describe("SetupV2 — state-driven step routing", () => {
     expect(screen.getByTestId("step2-api-marker")).toBeTruthy();
   });
 
-  it("renders Step3 stub for in_setup,3", () => {
+  it("renders WowMomentStep for in_setup,3 (Phase 11 M1.c — replaces prior Model Perception placeholder)", () => {
     mockHookReturn.mockReturnValue(
       defaultState({
         setupState: "in_setup",
@@ -196,7 +203,8 @@ describe("SetupV2 — state-driven step routing", () => {
       }),
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
-    expect(screen.getByRole("heading", { name: /Model Perception preview/i })).toBeTruthy();
+    // WowMomentStep header copy:
+    expect(screen.getByRole("heading", { name: /Your work, in the AI economy/i })).toBeTruthy();
   });
 
   it("renders TerminalState 'connected' for setup_state='connected'", () => {

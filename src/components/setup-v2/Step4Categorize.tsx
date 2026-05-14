@@ -557,17 +557,30 @@ export function Step4Categorize() {
                 >
                   Annual catalog license (USD / year)
                 </label>
-                <Input
-                  id="annual-price"
-                  type="number"
-                  min="0"
-                  step="100"
-                  value={annualPrice}
-                  onChange={(e) => setAnnualPrice(e.target.value)}
-                  disabled={submitting}
-                  placeholder={String(PLACEHOLDER_ANNUAL)}
-                  className="mt-1"
-                />
+                {/* Phase 11 M1.c Correction 4 — Substack archive pricing
+                    is conditional on a ZIP upload step that happens
+                    post-onboarding. Substack publishers can't meaningfully
+                    price an archive they haven't uploaded yet; disable
+                    + explain. Other platforms (Beehiiv/Ghost/Custom API)
+                    have full content_body at verify-time so annual
+                    pricing is available immediately. */}
+                {(wizard.setupData?.platform_choice as string | undefined) === "substack" ? (
+                  <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+                    Upload your Substack archive to enable full-archive licensing. We'll guide you to this after onboarding.
+                  </div>
+                ) : (
+                  <Input
+                    id="annual-price"
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={annualPrice}
+                    onChange={(e) => setAnnualPrice(e.target.value)}
+                    disabled={submitting}
+                    placeholder={String(PLACEHOLDER_ANNUAL)}
+                    className="mt-1"
+                  />
+                )}
               </div>
               <div>
                 <label

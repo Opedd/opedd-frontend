@@ -11,6 +11,8 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { IngestionTracker } from "@/components/IngestionTracker";
 import { PartnershipHeader } from "@/components/dashboard/PartnershipHeader";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
+import { SubstackArchiveCTA } from "@/components/dashboard/SubstackArchiveCTA";
+import { RecentArticlesPanel } from "@/components/dashboard/RecentArticlesPanel";
 import { useWizardState } from "@/hooks/useWizardState";
 import { shouldRedirectToWelcome } from "./welcome-redirect";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
@@ -299,6 +301,15 @@ export default function Dashboard() {
             suspended; returns null for verified. Always rendered above
             the priority-banner switch so it can speak independently. */}
         <SetupBanner />
+
+        {/* Phase 11 M1.c Correction 3 — Substack archive upload CTA.
+            Substack RSS at onboarding is wow-factor-only; full-archive
+            licensing requires the publisher to upload their ZIP.
+            Component renders only for Substack platform; dismissable
+            per session; reappears until archive uploaded. */}
+        <SubstackArchiveCTA
+          platform={(wizardState.setupData?.platform_choice as string | undefined) ?? null}
+        />
 
         {/* Priority banner — only the highest-priority banner renders. */}
         {activeBanner === "stripe-kyc" && (
@@ -667,6 +678,12 @@ export default function Dashboard() {
             mounted on dashboard per Session 1.8 cleanup gate). Replaces
             the legacy ImportProgressBanner — see KNOWN_ISSUES #29. */}
         <IngestionTracker mode="dashboard" onComplete={fetchMetrics} />
+
+        {/* Phase 11 M1.c — Recently ingested articles ongoing-context
+            panel. Lower visual emphasis than the wizard wow-moment
+            animation; renders only when articles exist; gives returning
+            publishers visibility into their content pipeline. */}
+        <RecentArticlesPanel />
 
         {/* Sources Section — Phase 4.7.3: section-heading "Register content" button
             removed per OQ.4 (single CTA via PublicationCard's "Import content" inside

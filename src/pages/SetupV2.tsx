@@ -9,7 +9,7 @@ import { Step2Ghost } from "@/components/setup-v2/Step2Ghost";
 import { Step2Api } from "@/components/setup-v2/Step2Api";
 import { Step4Categorize } from "@/components/setup-v2/Step4Categorize";
 import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
-import { ResumeIntentCapture } from "@/components/setup-v2/ResumeIntentCapture";
+import { WowMomentStep } from "@/components/setup-v2/WowMomentStep";
 import { TerminalState } from "@/components/setup-v2/TerminalState";
 
 /**
@@ -102,21 +102,14 @@ export default function SetupV2() {
       // Unknown/legacy platform value — fall back to Step1 picker.
       return <Step1Platform />;
     case 3:
-      // Phase 4.6 (2026-04-30) — allowAdvance={true} closes the
-      // dead-end that blocked publishers from reaching Step 4 + 5
-      // + Dashboard. Step 3 Model Perception preview is a
-      // deliberately-deferred placeholder (Phase 2 enriched-indexing
-      // pipeline paused); skip path lets publishers complete
-      // onboarding while the real implementation ships. Closes
-      // KI #53 + Phase 4.5 frontend live-flow gate deferral.
-      return (
-        <ResumeIntentCapture
-          stepLabel="step3-model-perception"
-          title="Model Perception preview"
-          message="This step shows you what an LLM sees when buyers query your archive — title, body, named entities, expert authority claims, structured taxonomies. We're building the enrichment pipeline now; your archive is being indexed in the background and will be ready when this step ships."
-          allowAdvance={true}
-        />
-      );
+      // Phase 11 M1.c (2026-05-14) — WowMomentStep replaces the prior
+      // ResumeIntentCapture("Model Perception preview") placeholder
+      // (Phase 4.6 dead-end fix; Phase 2 enrichment-pipeline-paused
+      // stub). Article-to-AI-format transformation animation feeds off
+      // the M1.b inline first-batch fetch (Beehiiv/Ghost/Substack) OR
+      // a static sample (Custom API). Replaces dormant placeholder
+      // surface per founder Correction 5 + Adjustment 1 ratification.
+      return <WowMomentStep />;
     case 4:
       // Phase 5 Session 5.1 (2026-04-30) — Step4Categorize re-dispatched.
       // Vocabulary unification closed KI #54 + KI #56: backend
