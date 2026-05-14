@@ -6,44 +6,15 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Trash2,
-  Loader2,
   Copy,
   Check,
-  Eye,
-  EyeOff,
-  AlertTriangle,
   Shield,
-  Info,
-  Code2,
-  Download,
-  RotateCcw,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { WidgetCustomizer } from "@/components/integrations/WidgetCustomizer";
 import { WidgetEmbedCard } from "@/components/dashboard/WidgetEmbedCard";
 import { PublicationGate } from "@/components/dashboard/PublicationGate";
-import { Spinner } from "@/components/ui/Spinner";
 
 function deriveDomain(websiteUrl: string | null): string {
   if (!websiteUrl) return "";
@@ -79,23 +50,6 @@ function CodeBlock({ code }: CodeBlockProps) {
   );
 }
 
-interface WebhookStatus {
-  configured: boolean;
-  url: string | null;
-}
-
-interface WebhookDelivery {
-  id: string;
-  event_type: string;
-  status: "success" | "failed";
-  status_code: number;
-  timestamp: string;
-  attempts?: number;
-  max_attempts?: number;
-}
-
-
-
 export default function Connectors() {
   useDocumentTitle("Distribution — Opedd");
   const { user, getAccessToken } = useAuth();
@@ -103,20 +57,9 @@ export default function Connectors() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get("tab");
-    return tab === "widget" || tab === "webhooks" || tab === "ai-policy" ? tab : "widget";
+    return tab === "widget" || tab === "ai-policy" ? tab : "widget";
   });
 
-  // Webhook state
-  const [webhookStatus, setWebhookStatus] = useState<WebhookStatus | null>(null);
-  const [webhookUrl, setWebhookUrl] = useState("");
-  const [isSavingWebhook, setIsSavingWebhook] = useState(false);
-  const [webhookSecret, setWebhookSecret] = useState<string | null>(null);
-  const [webhookSecretCopied, setWebhookSecretCopied] = useState(false);
-  const [webhookDeliveries, setWebhookDeliveries] = useState<WebhookDelivery[]>([]);
-  const [isLoadingDeliveries, setIsLoadingDeliveries] = useState(false);
-  const [showDeliveries, setShowDeliveries] = useState(false);
-  const [isRemovingWebhook, setIsRemovingWebhook] = useState(false);
-  const [retryingDeliveryId, setRetryingDeliveryId] = useState<string | null>(null);
   const [publisherId, setPublisherId] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
@@ -162,11 +105,6 @@ export default function Connectors() {
           setPublicationVerified(!!profileResult.data.publication_verified);
           setPendingSources(profileResult.data.pending_sources || []);
           setPublisherIsAdmin(!!profileResult.data.is_admin);
-          if (profileResult.data.webhook) {
-            setWebhookStatus(profileResult.data.webhook);
-          } else {
-            setWebhookStatus({ configured: false, url: null });
-          }
           // If landing on widget tab and setup not yet complete, mark widget as viewed
           if (activeTab === "widget" && !profileResult.data.widget_added) {
             postAction("mark_widget_added").catch(() => {});
@@ -174,107 +112,12 @@ export default function Connectors() {
         }
       } catch (err) {
         console.warn("[Connectors] Load failed:", err);
-        setWebhookStatus({ configured: false, url: null });
       }
     };
     load();
   }, [apiHeaders]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!user) return null;
-
-  const handleSaveWebhook = async () => {
-    if (!webhookUrl.trim()) return;
-    setIsSavingWebhook(true);
-    try {
-      const result = await postAction("set_webhook", { webhook_url: webhookUrl.trim() });
-      if (result.success && result.data) {
-        setWebhookStatus({ configured: true, url: webhookUrl.trim() });
-        if (result.data.webhook_secret) setWebhookSecret(result.data.webhook_secret);
-        toast({ title: "Webhook Saved", description: "Your webhook endpoint has been configured." });
-      } else {
-        throw new Error(result.error?.message || "Failed to save webhook");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Save Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    } finally {
-      setIsSavingWebhook(false);
-    }
-  };
-
-  const handleRemoveWebhook = async () => {
-    setIsRemovingWebhook(true);
-    try {
-      const result = await postAction("remove_webhook");
-      if (result.success) {
-        setWebhookStatus({ configured: false, url: null });
-        setWebhookUrl("");
-        setWebhookSecret(null);
-        setShowDeliveries(false);
-        setWebhookDeliveries([]);
-        toast({ title: "Webhook Removed", description: "Your webhook endpoint has been removed." });
-      } else {
-        throw new Error(result.error?.message || "Failed to remove webhook");
-      }
-    } catch (err: unknown) {
-      toast({ title: "Remove Failed", description: err instanceof Error ? err.message : "Something went wrong", variant: "destructive" });
-    } finally {
-      setIsRemovingWebhook(false);
-    }
-  };
-
-  const handleViewDeliveries = async () => {
-    setIsLoadingDeliveries(true);
-    setShowDeliveries(true);
-    try {
-      const result = await postAction("webhook_deliveries");
-      if (result.success && result.data) {
-        setWebhookDeliveries(Array.isArray(result.data) ? result.data.slice(0, 20) : []);
-      }
-    } catch (err) {
-      console.warn("[Connectors] Deliveries fetch failed:", err);
-    } finally {
-      setIsLoadingDeliveries(false);
-    }
-  };
-
-  const handleRetryDelivery = async (deliveryId: string) => {
-    setRetryingDeliveryId(deliveryId);
-    try {
-      const result = await postAction("retry_webhook", { delivery_id: deliveryId });
-      if (result.success !== false && !result.error) {
-        toast({ title: "Webhook retried", description: "The delivery has been queued for retry." });
-        // Refresh deliveries list
-        handleViewDeliveries();
-      } else {
-        throw new Error(
-          typeof result.error === "string"
-            ? result.error
-            : result.error?.message || "Retry failed"
-        );
-      }
-    } catch (err: unknown) {
-      toast({
-        title: "Retry failed",
-        description: err instanceof Error ? err.message : "Something went wrong",
-        variant: "destructive",
-      });
-    } finally {
-      setRetryingDeliveryId(null);
-    }
-  };
-
-  const handleCopyWebhookSecret = async () => {
-    if (!webhookSecret) return;
-    try {
-      await navigator.clipboard.writeText(webhookSecret);
-      setWebhookSecretCopied(true);
-      setTimeout(() => setWebhookSecretCopied(false), 2000);
-    } catch {
-      toast({ title: "Copy Failed", variant: "destructive" });
-    }
-  };
-
-  const supportedWebhookEvents = ["license.issued", "license.paid", "license.verified", "license.revoked"];
 
   const refetchProfile = async () => {
     try {
@@ -303,7 +146,6 @@ export default function Connectors() {
             <TabsList className="bg-transparent h-auto p-0 rounded-none gap-0">
               {[
                 { value: "widget", label: "Widget" },
-                { value: "webhooks", label: "Webhooks" },
                 { value: "ai-policy", label: "AI Policy" },
               ].map((tab) => (
                 <TabsTrigger
@@ -324,163 +166,6 @@ export default function Connectors() {
               <WidgetEmbedCard publisherId={publisherId || user.id?.slice(0, 8) || "publisher"} />
             </div>
           </TabsContent>
-
-          {/* Webhooks Tab */}
-          <TabsContent value="webhooks" className="mt-6">
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-card space-y-5">
-                {webhookStatus?.configured ? (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-navy-deep">Endpoint URL</p>
-                        <p className="text-xs text-gray-500 font-mono mt-1 truncate max-w-md">{webhookStatus.url || "—"}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={handleViewDeliveries} disabled={isLoadingDeliveries} className="h-8 text-xs gap-1.5 border-oxford/30 text-oxford hover:bg-oxford/5">
-                          {isLoadingDeliveries ? <Spinner size="sm" /> : <Eye size={12} />}
-                          View Deliveries
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" disabled={isRemovingWebhook} className="h-8 text-xs gap-1.5 border-red-200 text-red-600 hover:bg-red-50">
-                              {isRemovingWebhook ? <Spinner size="sm" /> : <Trash2 size={12} />}
-                              Remove
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-white">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="flex items-center gap-2 text-navy-deep">
-                                <AlertTriangle size={20} className="text-amber-500" />Remove Webhook?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-600">
-                                This will permanently remove your webhook endpoint. You'll stop receiving event notifications.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleRemoveWebhook} className="bg-red-600 hover:bg-red-700 text-white rounded-lg">
-                                Yes, Remove
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-
-                    {showDeliveries && (
-                      <div className="border border-slate-100 rounded-xl overflow-hidden">
-                        <div className="bg-slate-50 px-4 py-2 border-b border-slate-100">
-                          <p className="text-xs font-semibold text-navy-deep">Recent Deliveries</p>
-                        </div>
-                        {isLoadingDeliveries ? (
-                          <div className="flex items-center justify-center py-8"><Spinner size="md" className="text-gray-400" /></div>
-                        ) : webhookDeliveries.length === 0 ? (
-                          <div className="text-center py-8 text-sm text-gray-400">No deliveries yet</div>
-                        ) : (
-                          <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                            <div className="grid grid-cols-[1fr_80px_60px_140px_36px] gap-2 px-4 py-2 text-[10px] uppercase tracking-wide text-gray-400 font-medium border-b border-slate-100">
-                              <span>Event</span>
-                              <span>Status</span>
-                              <span>Attempts</span>
-                              <span>Last attempt</span>
-                              <span></span>
-                            </div>
-                            {webhookDeliveries.map((d, i) => (
-                              <div key={d.id || i} className="grid grid-cols-[1fr_80px_60px_140px_36px] gap-2 items-center px-4 py-2.5 text-xs">
-                                <code className="text-navy-deep font-mono truncate">{d.event_type}</code>
-                                <Badge variant="outline" className={`text-[10px] w-fit ${d.status === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
-                                  {d.status === "success" ? "Success" : "Failed"}
-                                </Badge>
-                                <span className="text-gray-500">{d.attempts ?? "—"}/{d.max_attempts ?? 3}</span>
-                                <span className="text-gray-400">{new Date(d.timestamp).toLocaleString()}</span>
-                                <div className="flex items-center justify-end">
-                                  {d.status === "failed" && (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      disabled={retryingDeliveryId === d.id}
-                                      onClick={() => handleRetryDelivery(d.id)}
-                                      className="h-7 w-7 p-0 text-gray-400 hover:text-oxford hover:bg-oxford/10"
-                                      title="Retry delivery"
-                                    >
-                                      {retryingDeliveryId === d.id
-                                        ? <Spinner size="sm" />
-                                        : <RotateCcw size={12} />}
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-navy-deep mb-1">Webhook URL</p>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={webhookUrl}
-                          onChange={(e) => setWebhookUrl(e.target.value)}
-                          placeholder="https://yoursite.com/api/webhooks/opedd"
-                          className="bg-slate-50 border-slate-200 h-11 rounded-lg flex-1 focus:border-oxford focus:ring-oxford/20"
-                        />
-                        <Button
-                          onClick={handleSaveWebhook}
-                          disabled={isSavingWebhook || !webhookUrl.trim()}
-                          className="h-11 px-5 bg-oxford hover:bg-oxford-dark text-white rounded-lg font-medium"
-                        >
-                          {isSavingWebhook ? <Spinner size="sm" /> : "Save Webhook"}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {webhookSecret && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
-                        <div className="flex items-start gap-2">
-                          <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs text-amber-800 font-medium">Save this secret — it won't be shown again</p>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info size={12} className="text-amber-600 cursor-help flex-shrink-0" />
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-[220px] text-xs">
-                                  This secret signs all webhook payloads. Rotate it here if compromised.
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-white border border-amber-200 rounded-lg px-3 py-2 overflow-hidden">
-                            <code className="text-xs font-mono text-navy-deep truncate block">{webhookSecret}</code>
-                          </div>
-                          <Button size="sm" variant="outline" onClick={handleCopyWebhookSecret} aria-label="Copy webhook signing secret" className="h-9 px-3 border-amber-200 hover:bg-amber-100 rounded-lg">
-                            {webhookSecretCopied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">Supported Events</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {supportedWebhookEvents.map((evt) => (
-                          <Badge key={evt} variant="outline" className="text-[10px] font-mono bg-slate-50 text-gray-600 border-slate-200">{evt}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
 
           {/* AI Policy Tab */}
           <TabsContent value="ai-policy" className="mt-6">

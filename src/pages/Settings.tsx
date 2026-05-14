@@ -81,7 +81,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PublicationGate, LockedTabContent } from "@/components/dashboard/PublicationGate";
 import { Spinner } from "@/components/ui/Spinner";
-import { publisherApi, type PublisherApiKeyListItem } from "@/lib/api";
+import {
+  publisherApi,
+  type PublisherApiKeyListItem,
+  type PublisherWebhookListItem,
+  type PublisherWebhookTestResult,
+} from "@/lib/api";
+
+const WEBHOOK_EVENT_TYPES = [
+  "license.paid",
+  "license.issued",
+  "license.revoked",
+  "license.expired",
+  "archive.subscribed",
+] as const;
+type WebhookEventType = typeof WEBHOOK_EVENT_TYPES[number];
 
 interface StripeConnect {
   connected: boolean;
@@ -252,6 +266,19 @@ export default function Settings() {
   const [freshKeyCopied, setFreshKeyCopied] = useState(false);
   const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
 
+  // Webhooks state (canonical /publishers-webhooks; session-JWT carve-out)
+  const [webhooks, setWebhooks] = useState<PublisherWebhookListItem[]>([]);
+  const [isLoadingWebhooks, setIsLoadingWebhooks] = useState(false);
+  const [createWebhookDialogOpen, setCreateWebhookDialogOpen] = useState(false);
+  const [newWebhookUrl, setNewWebhookUrl] = useState("");
+  const [newWebhookEvents, setNewWebhookEvents] = useState<WebhookEventType[]>(["license.paid"]);
+  const [isCreatingWebhook, setIsCreatingWebhook] = useState(false);
+  const [freshWebhookSecret, setFreshWebhookSecret] = useState<{ id: string; url: string; secret: string } | null>(null);
+  const [freshWebhookSecretCopied, setFreshWebhookSecretCopied] = useState(false);
+  const [revokingWebhookId, setRevokingWebhookId] = useState<string | null>(null);
+  const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{ webhookId: string; result: PublisherWebhookTestResult } | { webhookId: string; error: string } | null>(null);
+
   // Logo state
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -390,6 +417,28 @@ export default function Settings() {
     if (activeTab !== "developers" || !profile) return;
     void loadApiKeys();
   }, [activeTab, profile, loadApiKeys]);
+
+  const loadWebhooks = useCallback(async () => {
+    setIsLoadingWebhooks(true);
+    try {
+      const token = await getAccessToken();
+      const result = await publisherApi.listWebhooks(token);
+      setWebhooks(result.webhooks ?? []);
+    } catch (err) {
+      toast({
+        title: "Couldn't load webhooks",
+        description: err instanceof Error ? err.message : "Please retry.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingWebhooks(false);
+    }
+  }, [getAccessToken, toast]);
+
+  useEffect(() => {
+    if (activeTab !== "developers" || !profile) return;
+    void loadWebhooks();
+  }, [activeTab, profile, loadWebhooks]);
 
   // Realtime: if THIS user is removed from the team, force redirect to home
   useEffect(() => {
@@ -602,6 +651,104 @@ export default function Settings() {
       await navigator.clipboard.writeText(freshKey.plaintext_key);
       setFreshKeyCopied(true);
       setTimeout(() => setFreshKeyCopied(false), 2000);
+      toast({ title: "Copied", description: "Save it now — it won't be shown again." });
+    } catch {
+      toast({ title: "Copy failed", description: "Select and copy manually.", variant: "destructive" });
+    }
+  };
+
+  const toggleNewWebhookEvent = (evt: WebhookEventType) => {
+    setNewWebhookEvents((prev) =>
+      prev.includes(evt) ? prev.filter((e) => e !== evt) : [...prev, evt],
+    );
+  };
+
+  const handleCreateWebhook = async () => {
+    if (isCreatingWebhook) return;
+    const trimmedUrl = newWebhookUrl.trim();
+    if (!trimmedUrl) {
+      toast({ title: "URL required", variant: "destructive" });
+      return;
+    }
+    if (!/^https:\/\//i.test(trimmedUrl)) {
+      toast({ title: "URL must use https://", variant: "destructive" });
+      return;
+    }
+    if (newWebhookEvents.length === 0) {
+      toast({ title: "Pick at least one event type", variant: "destructive" });
+      return;
+    }
+    setIsCreatingWebhook(true);
+    try {
+      const token = await getAccessToken();
+      const result = await publisherApi.createWebhook(
+        { url: trimmedUrl, event_types: newWebhookEvents },
+        token,
+      );
+      setFreshWebhookSecret({
+        id: result.id,
+        url: result.url,
+        secret: result.webhook_secret_plaintext,
+      });
+      setFreshWebhookSecretCopied(false);
+      setCreateWebhookDialogOpen(false);
+      setNewWebhookUrl("");
+      setNewWebhookEvents(["license.paid"]);
+      void loadWebhooks();
+    } catch (err) {
+      toast({
+        title: "Couldn't create webhook",
+        description: err instanceof Error ? err.message : "Please retry.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingWebhook(false);
+    }
+  };
+
+  const handleRevokeWebhook = async (id: string) => {
+    if (revokingWebhookId) return;
+    setRevokingWebhookId(id);
+    try {
+      const token = await getAccessToken();
+      await publisherApi.revokeWebhook(id, token);
+      toast({ title: "Webhook revoked" });
+      void loadWebhooks();
+    } catch (err) {
+      toast({
+        title: "Couldn't revoke",
+        description: err instanceof Error ? err.message : "Please retry.",
+        variant: "destructive",
+      });
+    } finally {
+      setRevokingWebhookId(null);
+    }
+  };
+
+  const handleTestWebhook = async (id: string) => {
+    if (testingWebhookId) return;
+    setTestingWebhookId(id);
+    setTestResult(null);
+    try {
+      const token = await getAccessToken();
+      const result = await publisherApi.testWebhook(id, token);
+      setTestResult({ webhookId: id, result });
+    } catch (err) {
+      setTestResult({
+        webhookId: id,
+        error: err instanceof Error ? err.message : "Test request failed.",
+      });
+    } finally {
+      setTestingWebhookId(null);
+    }
+  };
+
+  const handleCopyFreshWebhookSecret = async () => {
+    if (!freshWebhookSecret) return;
+    try {
+      await navigator.clipboard.writeText(freshWebhookSecret.secret);
+      setFreshWebhookSecretCopied(true);
+      setTimeout(() => setFreshWebhookSecretCopied(false), 2000);
       toast({ title: "Copied", description: "Save it now — it won't be shown again." });
     } catch {
       toast({ title: "Copy failed", description: "Select and copy manually.", variant: "destructive" });
@@ -1134,6 +1281,117 @@ export default function Settings() {
                           <p className="text-xs text-gray-500">Keep keys secret. Use them only in server-side code.</p>
                         </div>
                       </div>
+
+                      {/* Webhooks */}
+                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-sm">
+                        <div className="flex items-start justify-between gap-4 mb-6">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h2 className="font-bold text-[#040042]">Webhooks</h2>
+                            </div>
+                            <p className="text-[#6B7280] text-xs mt-0.5">
+                              Receive license lifecycle events at your HTTPS endpoint. Each webhook gets a signing secret (HMAC-SHA256, shown once).
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => { setNewWebhookUrl(""); setNewWebhookEvents(["license.paid"]); setCreateWebhookDialogOpen(true); }}
+                            className="h-9 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0"
+                          >
+                            <Send size={14} className="mr-2" />Add webhook
+                          </Button>
+                        </div>
+
+                        {isLoadingWebhooks && webhooks.length === 0 ? (
+                          <div className="text-center py-6"><Spinner size="md" className="text-gray-400" /></div>
+                        ) : webhooks.length === 0 ? (
+                          <div className="text-center py-6 text-sm text-gray-500">
+                            No webhooks yet. Click <span className="font-medium">Add webhook</span> to register one.
+                          </div>
+                        ) : (
+                          <ul className="divide-y divide-slate-100">
+                            {webhooks.map((w) => {
+                              const isRevoked = w.revoked_at !== null;
+                              const created = new Date(w.created_at).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric" });
+                              const banner = testResult && testResult.webhookId === w.id ? testResult : null;
+                              return (
+                                <li key={w.id} className="py-3 space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <code className="text-sm text-[#040042] font-mono truncate">{w.url}</code>
+                                        {isRevoked && <Badge variant="secondary" className="text-[10px] uppercase">Revoked</Badge>}
+                                      </div>
+                                      <p className="text-xs text-gray-500 mt-0.5">
+                                        Events: {w.event_types.join(", ")} · Created {created}
+                                      </p>
+                                    </div>
+                                    {!isRevoked && (
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => handleTestWebhook(w.id)}
+                                          disabled={testingWebhookId === w.id}
+                                          className="h-8 px-3 text-xs flex-shrink-0"
+                                        >
+                                          {testingWebhookId === w.id ? <Spinner size="sm" /> : <>Test</>}
+                                        </Button>
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              disabled={revokingWebhookId === w.id}
+                                              className="h-8 px-3 text-xs border-red-200 text-red-600 hover:bg-red-50 flex-shrink-0"
+                                            >
+                                              {revokingWebhookId === w.id ? <Spinner size="sm" /> : <>Revoke</>}
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent className="bg-white">
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle className="flex items-center gap-2 text-[#040042]">
+                                                <AlertTriangle size={20} className="text-amber-500" />Revoke webhook?
+                                              </AlertDialogTitle>
+                                              <AlertDialogDescription className="text-gray-600">
+                                                We'll stop delivering events to <span className="font-mono break-all">{w.url}</span>. This cannot be undone — register a new webhook to resume.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
+                                              <AlertDialogAction onClick={() => handleRevokeWebhook(w.id)} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Yes, revoke</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      </>
+                                    )}
+                                  </div>
+
+                                  {banner && "result" in banner && (
+                                    <div role="status" aria-live="polite" className={`rounded-md border px-3 py-2 text-xs ${banner.result.delivered ? "border-green-200 bg-green-50 text-green-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+                                      <strong className="font-semibold">
+                                        {banner.result.delivered ? "✓ Delivered" : "Delivery attempted"}
+                                      </strong>{" "}
+                                      ({banner.result.event})
+                                      {banner.result.status_code !== null && <> · HTTP {banner.result.status_code}</>}
+                                      {banner.result.reason && <> · {banner.result.reason}</>}
+                                    </div>
+                                  )}
+                                  {banner && "error" in banner && (
+                                    <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-900">
+                                      <strong className="font-semibold">Test failed.</strong> {banner.error}
+                                    </div>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                        <div className="flex items-center gap-2 pt-3 mt-3 border-t border-slate-100">
+                          <Shield size={12} className="text-amber-500 flex-shrink-0" />
+                          <p className="text-xs text-gray-500">Verify deliveries via HMAC-SHA256 of <code className="font-mono">rawBody + timestamp</code>; header <code className="font-mono">X-Opedd-Signature: sha256=&lt;hex&gt;, t=&lt;unix-ms&gt;</code>.</p>
+                        </div>
+                      </div>
                       </>}
                     </motion.div>
                   )}
@@ -1172,6 +1430,92 @@ export default function Settings() {
             <Button variant="outline" onClick={() => setCreateKeyDialogOpen(false)} disabled={isCreatingKey} className="rounded-lg border-slate-200">Cancel</Button>
             <Button onClick={handleCreateApiKey} disabled={isCreatingKey} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
               {isCreatingKey ? <><Spinner size="sm" className="mr-2" />Creating…</> : <>Create key</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Webhook Dialog */}
+      <Dialog open={createWebhookDialogOpen} onOpenChange={(open) => { if (!isCreatingWebhook) setCreateWebhookDialogOpen(open); }}>
+        <DialogContent hideCloseButton className="bg-white max-w-[480px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+          <DialogHeader className="space-y-0 mb-5">
+            <DialogTitle className="text-lg font-semibold text-[#040042]">Add webhook</DialogTitle>
+            <DialogDescription className="text-sm text-[#040042]/50 mt-1.5 leading-relaxed">
+              We'll deliver matching events to this HTTPS endpoint, signed with HMAC-SHA256.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mb-6">
+            <div className="space-y-2">
+              <Label htmlFor="new-webhook-url" className="text-xs font-medium text-[#040042]/50">Endpoint URL</Label>
+              <Input
+                id="new-webhook-url"
+                value={newWebhookUrl}
+                onChange={(e) => setNewWebhookUrl(e.target.value)}
+                placeholder="https://your-server.com/opedd-webhook"
+                disabled={isCreatingWebhook}
+                className="bg-white border-slate-200 focus:border-[#4A26ED]/40 focus:ring-[#4A26ED]/10 h-10 rounded-lg text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-[#040042]/50">Events</Label>
+              <div className="space-y-1.5">
+                {WEBHOOK_EVENT_TYPES.map((evt) => (
+                  <label key={evt} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newWebhookEvents.includes(evt)}
+                      onChange={() => toggleNewWebhookEvent(evt)}
+                      disabled={isCreatingWebhook}
+                      className="h-4 w-4 rounded border-gray-300 text-navy-deep focus:ring-navy-deep/30"
+                    />
+                    <code className="text-sm font-mono text-[#040042]">{evt}</code>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex-row justify-end gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setCreateWebhookDialogOpen(false)} disabled={isCreatingWebhook} className="rounded-lg border-slate-200">Cancel</Button>
+            <Button onClick={handleCreateWebhook} disabled={isCreatingWebhook} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+              {isCreatingWebhook ? <><Spinner size="sm" className="mr-2" />Creating…</> : <>Create webhook</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fresh Webhook Secret Reveal Dialog (one-time plaintext) */}
+      <Dialog open={freshWebhookSecret !== null} onOpenChange={(open) => { if (!open) setFreshWebhookSecret(null); }}>
+        <DialogContent hideCloseButton className="bg-white max-w-[520px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+          <DialogHeader className="space-y-0 mb-4">
+            <DialogTitle className="text-lg font-semibold text-[#040042] flex items-center gap-2">
+              <Send size={18} className="text-[#4A26ED]" />Save your webhook secret now
+            </DialogTitle>
+            <DialogDescription className="text-sm text-[#040042]/60 mt-1.5 leading-relaxed">
+              Use this secret to verify the HMAC-SHA256 signature on inbound deliveries. We can't show it again.
+            </DialogDescription>
+          </DialogHeader>
+          {freshWebhookSecret && (
+            <div className="space-y-3 mb-6">
+              <div className="text-xs text-gray-500">
+                Endpoint: <span className="font-mono break-all">{freshWebhookSecret.url}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
+                  <code className="text-sm text-[#040042] font-mono break-all">{freshWebhookSecret.secret}</code>
+                </div>
+                <Button size="sm" onClick={handleCopyFreshWebhookSecret} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0">
+                  {freshWebhookSecretCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
+                </Button>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-800">Lost secrets cannot be recovered. To rotate, revoke this webhook and create a new one.</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex-row justify-end">
+            <Button onClick={() => setFreshWebhookSecret(null)} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+              I've saved it
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -763,18 +763,45 @@ export interface PublisherApiKeyListItem {
   revoked_at: string | null;
 }
 
+// Matches the canonical /publishers-webhooks register response shape (flat,
+// not nested). Fields are spread at the top level of envelope.data: the row
+// columns + plaintext webhook secret (show-once) + a warning string.
 export interface PublisherWebhookCreated {
-  webhook: {
-    id: string;
-    url: string;
-    event_types: string[];
-    active: boolean;
-    platform: 'beehiiv' | 'ghost' | null;
-    signature_version: 'v2';
-    created_at: string;
-    revoked_at: string | null;
-  };
-  secret: string;
+  id: string;
+  publisher_id: string;
+  source_id: string | null;
+  platform: 'canonical' | 'beehiiv' | 'ghost' | null;
+  url: string;
+  event_types: string[];
+  active: boolean;
+  delivery_health: Record<string, unknown>;
+  signature_version: 'v2';
+  created_at: string;
+  webhook_secret_plaintext: string;
+  warning: string;
+}
+
+// Matches /publishers-webhooks list response row shape (NO plaintext secret).
+export interface PublisherWebhookListItem {
+  id: string;
+  source_id: string | null;
+  platform: 'canonical' | 'beehiiv' | 'ghost' | null;
+  url: string;
+  event_types: string[];
+  active: boolean;
+  delivery_health: Record<string, unknown>;
+  signature_version: 'v2';
+  created_at: string;
+  revoked_at: string | null;
+}
+
+export interface PublisherWebhookTestResult {
+  webhook_id: string;
+  event: string;
+  delivered: boolean;
+  status_code: number | null;
+  delivery_id: string | null;
+  reason: string | null;
 }
 
 export interface PublisherContentResult {
@@ -821,6 +848,66 @@ export const publisherApi = {
       {
         method: 'POST',
         body: JSON.stringify({ action: 'revoke_api_key', id }),
+      },
+      token,
+    ),
+
+  // POST /publishers-webhooks action=list (session JWT — dual-auth carve-out)
+  listWebhooks: (token: string | null) =>
+    edgeFetch<{ webhooks: PublisherWebhookListItem[] }>(
+      EDGE_FUNCTION_BASE + '/publishers-webhooks',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'list' }),
+      },
+      token,
+    ),
+
+  // POST /publishers-webhooks action=register (session JWT — dual-auth carve-out).
+  // Returns plaintext webhook_secret_plaintext ONCE; never re-surfaced.
+  createWebhook: (
+    body: {
+      url: string;
+      event_types: string[];
+      platform?: 'canonical' | 'beehiiv' | 'ghost';
+    },
+    token: string | null,
+  ) =>
+    edgeFetch<PublisherWebhookCreated>(
+      EDGE_FUNCTION_BASE + '/publishers-webhooks',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'register', ...body }),
+      },
+      token,
+    ),
+
+  // POST /publishers-webhooks action=revoke (session JWT — dual-auth carve-out).
+  // Idempotent: revoking already-revoked returns { id, already_revoked: true }.
+  revokeWebhook: (
+    id: string,
+    token: string | null,
+  ) =>
+    edgeFetch<{ id: string; url?: string; revoked_at?: string; already_revoked?: boolean }>(
+      EDGE_FUNCTION_BASE + '/publishers-webhooks',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'revoke', id }),
+      },
+      token,
+    ),
+
+  // POST /publishers-webhooks action=test (session JWT — dual-auth carve-out).
+  // Dispatches a synthetic event to the webhook row; returns delivery outcome.
+  testWebhook: (
+    id: string,
+    token: string | null,
+  ) =>
+    edgeFetch<PublisherWebhookTestResult>(
+      EDGE_FUNCTION_BASE + '/publishers-webhooks',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'test', id }),
       },
       token,
     ),
