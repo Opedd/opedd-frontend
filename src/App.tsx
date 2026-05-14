@@ -54,9 +54,12 @@ const SetupV2 = lazy(() => import("./pages/SetupV2"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 
 // Phase 5.2.2: buyer dashboard at /buyer/* (signup, account, keys)
+// Phase 10 M3: + /buyer/subscription (filter editor) + /buyer/audit (audit log)
 const BuyerSignup = lazy(() => import("./pages/buyer/BuyerSignup"));
 const BuyerAccount = lazy(() => import("./pages/buyer/BuyerAccount"));
 const BuyerKeys = lazy(() => import("./pages/buyer/BuyerKeys"));
+const BuyerSubscription = lazy(() => import("./pages/buyer/BuyerSubscription"));
+const BuyerAudit = lazy(() => import("./pages/buyer/BuyerAudit"));
 
 // Phase 5.4-β: dedicated /settings/pricing editor for the 4-vocab ×
 // 3-payment-model matrix. Reads/writes publishers.pricing_rules JSONB
@@ -139,6 +142,9 @@ const App = () => (
                 <Route path="/buyer/signup" element={<BuyerSignup />} />
                 <Route path="/buyer/account" element={<ProtectedRoute unauthedRedirect="/buyer/signup"><BuyerAccount /></ProtectedRoute>} />
                 <Route path="/buyer/keys" element={<ProtectedRoute unauthedRedirect="/buyer/signup"><BuyerKeys /></ProtectedRoute>} />
+                {/* Phase 10 M3: filter subscription management + audit log viewer */}
+                <Route path="/buyer/subscription" element={<ProtectedRoute unauthedRedirect="/buyer/signup"><BuyerSubscription /></ProtectedRoute>} />
+                <Route path="/buyer/audit" element={<ProtectedRoute unauthedRedirect="/buyer/signup"><BuyerAudit /></ProtectedRoute>} />
                 <Route path="/buyer" element={<Navigate to="/buyer/account" replace />} />
 
                 <Route path="/invite/:token" element={<AcceptInvite />} />

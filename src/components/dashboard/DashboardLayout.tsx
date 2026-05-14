@@ -45,10 +45,13 @@ const publisherNavItems = [
 // Phase 5.2.2: buyer dashboard nav. Hybrid routing per OQ-1 — Account
 // (Profile + Usage tabs) + Keys (separate top-level). Same shell as
 // publisher per OQ-4 (variant prop pattern).
+// Phase 10 M3: + Subscription (filter editor) + Audit log (Merkle-
+// inclusion-proof viewer; M5 lights up the proof column).
 const buyerNavItems = [
   { title: "Account", path: "/buyer/account", icon: User },
   { title: "API Keys", path: "/buyer/keys", icon: Key },
-  { title: "Usage", path: "/buyer/account?tab=usage", icon: Activity },
+  { title: "Subscription", path: "/buyer/subscription", icon: Activity },
+  { title: "Audit", path: "/buyer/audit", icon: Shield },
 ];
 
 interface Notification {

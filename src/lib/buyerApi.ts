@@ -219,3 +219,172 @@ export async function patchBuyer(accessToken: string, params: PatchBuyerParams):
     accessToken,
   );
 }
+
+// ─── Phase 10 M3 — filter subscription management ───────────────
+
+// Canonical 4-vocab license types (mirror of backend
+// _shared/pricing.ts:LicenseType).
+export const FILTER_LICENSE_TYPES = [
+  "ai_retrieval",
+  "ai_training",
+  "human_per_article",
+  "human_full_archive",
+] as const;
+export type FilterLicenseType = typeof FILTER_LICENSE_TYPES[number];
+
+export const FILTER_LICENSE_TYPE_LABELS: Record<FilterLicenseType, string> = {
+  ai_retrieval: "AI retrieval (RAG / inference)",
+  ai_training: "AI training",
+  human_per_article: "Human per-article",
+  human_full_archive: "Human full archive",
+};
+
+// Mirror of opedd-frontend/src/components/setup-v2/categories.ts curated list
+// (14 + Other). M3 buyer subscription filter editor uses the same set.
+export const FILTER_CATEGORIES = [
+  "Climate",
+  "Culture",
+  "Defense",
+  "Energy",
+  "Finance",
+  "Geopolitics",
+  "Health",
+  "Legal",
+  "Markets",
+  "Pharma",
+  "Politics",
+  "Science",
+  "Technology",
+] as const;
+
+export interface FilterRules {
+  categories?: string[];
+  license_types?: FilterLicenseType[];
+  max_price_per_event?: number;
+  excluded_publisher_ids?: string[];
+  per_publisher_monthly_cap?: number;
+  global_monthly_cap?: number;
+}
+
+export interface FilteredSubscription {
+  id: string;
+  status: "pending" | "active" | "expired" | "canceled";
+  scope: "filtered";
+  filter_rules: FilterRules;
+  valid_from: string;
+  valid_until: string;
+}
+
+export interface CreateFilteredSubscriptionResponse {
+  license_id: string;
+  access_key: string; // ent_filtered_<32-hex>; shown once
+  status: "pending" | "active";
+  scope: "filtered";
+  filter_rules: FilterRules;
+  valid_from: string;
+  valid_until: string;
+  duration_months: number;
+  webhook_secret: string | null; // one-time if buyer_webhook_url passed
+  pending_stripe_wiring: boolean; // true in M3; flips false in M4 ship
+  message: string;
+}
+
+const ENTERPRISE_LICENSE_URL = "https://api.opedd.com/enterprise-license";
+
+export interface CreateFilteredSubscriptionParams {
+  buyer_email: string;
+  buyer_name?: string;
+  buyer_org?: string;
+  filter_rules: FilterRules;
+  duration_months?: number;
+  buyer_webhook_url?: string;
+}
+
+/**
+ * Phase 10 M3 — POST /enterprise-license { scope: 'filtered', ... }.
+ * Creates the buyer's filter-based subscription. Returns access_key
+ * once; buyer must persist it. M3 ships with status='pending' until
+ * M4 Stripe Billing meter wiring lands.
+ *
+ * NOT JWT-authed — body-derived idempotency on buyer_email per
+ * withIdempotency contract at enterprise-license POST handler.
+ */
+export async function createFilteredSubscription(
+  params: CreateFilteredSubscriptionParams,
+): Promise<CreateFilteredSubscriptionResponse> {
+  return edgeFetch<CreateFilteredSubscriptionResponse>(
+    ENTERPRISE_LICENSE_URL,
+    {
+      method: "POST",
+      body: JSON.stringify({ scope: "filtered", ...params }),
+    },
+    // No JWT — enterprise-license POST is body-derived idempotency.
+  );
+}
+
+/**
+ * Phase 10 M3 — PATCH /buyer-account { filter_rules: {...} }.
+ * Updates filter_rules on the buyer's active filtered subscription.
+ * Returns 404 if no active subscription (caller must POST
+ * /enterprise-license first via createFilteredSubscription).
+ */
+export async function updateFilterRules(
+  accessToken: string,
+  filter_rules: FilterRules,
+): Promise<{ buyer: Buyer; filtered_subscription: FilteredSubscription }> {
+  return edgeFetch<{ buyer: Buyer; filtered_subscription: FilteredSubscription }>(
+    BUYER_ACCOUNT_URL,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ filter_rules }),
+    },
+    accessToken,
+  );
+}
+
+// ─── Phase 5.5 — buyer audit log retrieval (reused in Phase 10 M3) ─
+
+export interface AuditEvent {
+  event_id: string;
+  timestamp: string;
+  license_id: string | null;
+  article_id: string;
+  publisher_id: string;
+  action_type: string;
+  compliance_snapshot: Record<string, unknown> | null;
+  contract_version: string;
+  contract_hash: string;
+  // Phase 10 M5 will add attestation block with merkle_root +
+  // inclusion_proof + blockchain_tx_hash. Until M5 ships, field is
+  // absent and frontend renders a 'pending Merkle batch (M5)' badge.
+  attestation?: {
+    merkle_root: string;
+    inclusion_proof: string[];
+    blockchain_chain: string;
+    blockchain_tx_hash: string;
+    verified_on_chain_at: string;
+  } | null;
+}
+
+export interface AuditPage {
+  events: AuditEvent[];
+  pagination: {
+    next_cursor: string | null;
+    limit: number;
+  };
+}
+
+const BUYER_AUDIT_URL = "https://api.opedd.com/buyer-audit";
+
+export async function getBuyerAudit(
+  accessToken: string,
+  opts: { cursor?: string; limit?: number; from?: string; to?: string } = {},
+): Promise<AuditPage> {
+  const qs = new URLSearchParams();
+  if (opts.cursor) qs.set("cursor", opts.cursor);
+  if (opts.limit) qs.set("limit", String(opts.limit));
+  if (opts.from) qs.set("from", opts.from);
+  if (opts.to) qs.set("to", opts.to);
+  const url = qs.toString() ? `${BUYER_AUDIT_URL}?${qs.toString()}` : BUYER_AUDIT_URL;
+  return edgeFetch<AuditPage>(url, { method: "GET" }, accessToken);
+}
