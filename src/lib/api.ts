@@ -28,7 +28,7 @@
 // use `EXT_SUPABASE_REST` from constants.ts WITH the `/functions/v1/`
 // prefix — that's the explicitly-direct path that always needs the prefix.
 const EDGE_FUNCTION_BASE = 'https://api.opedd.com';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZHpjY2lheWVubnFjaGpneWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MTEyODIsImV4cCI6MjA4NDQ4NzI4Mn0.yy8AU2uOMMjqyGsjWLNlzsUp93Z9UQ7N-PRe90qDG3E';
+const SUPABASE_ANON_KEY = 'sb_publishable_Bo2IasJ3unV64SvulezW3A_QJPfdyhf';
 
 export const API = {
   baseUrl: EDGE_FUNCTION_BASE,
