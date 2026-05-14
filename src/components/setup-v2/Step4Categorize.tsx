@@ -5,8 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/Spinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWizardState } from "@/hooks/useWizardState";
-import { publisherProfileApi } from "@/lib/api";
+import { publisherProfileApi, type CategoryPriceBenchmarksResponse } from "@/lib/api";
 import { CATEGORIES, OTHER_CATEGORY_ID } from "./categories";
+
+// Phase 10 M7 — license-type → human label for benchmark display.
+const BENCHMARK_LICENSE_LABELS: Record<string, string> = {
+  ai_training: "AI training",
+  ai_retrieval: "AI retrieval / RAG",
+  human_per_article: "Per-article human",
+  human_full_archive: "Annual archive",
+};
 
 /**
  * Phase 3 Session 3.4 — Step 4 Categorize & Price (functional).
@@ -158,6 +166,14 @@ export function Step4Categorize() {
   const [humanResearchChecked, setHumanResearchChecked] = useState(true);
   const [blockMode, setBlockMode] = useState(false);
 
+  // Phase 10 M7 — Category benchmark panel state.
+  // Fetched lazily after a real category is selected. Cohort under floor
+  // returns `benchmarks: null`; render falls back to a "more data needed"
+  // hint without blocking the form.
+  const [benchmarks, setBenchmarks] =
+    useState<CategoryPriceBenchmarksResponse | null>(null);
+  const [benchmarksLoading, setBenchmarksLoading] = useState(false);
+
   // Initial load — hydrate form state from publishers row
   useEffect(() => {
     let cancelled = false;
@@ -238,6 +254,43 @@ export function Step4Categorize() {
     }
     return categoryId;
   })();
+
+  // Phase 10 M7 — fetch category benchmarks when a non-Other category is
+  // selected. Skipped for OTHER_CATEGORY_ID (free-text won't match any
+  // cohort) and skipped while user is still typing in the Other field.
+  // Debounced via the categoryId state change (browsers naturally batch
+  // select-element onChange events).
+  useEffect(() => {
+    if (!categoryId || categoryId === OTHER_CATEGORY_ID) {
+      setBenchmarks(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setBenchmarksLoading(true);
+      try {
+        const token = await getAccessToken();
+        const res = await publisherProfileApi.categoryPriceBenchmarks(
+          categoryId,
+          token,
+        );
+        if (!cancelled) setBenchmarks(res);
+      } catch (err) {
+        Sentry.addBreadcrumb({
+          category: "step4-categorize",
+          level: "info",
+          message: "category_price_benchmarks fetch failed",
+          data: { error: String(err).slice(0, 120) },
+        });
+        if (!cancelled) setBenchmarks(null);
+      } finally {
+        if (!cancelled) setBenchmarksLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId, getAccessToken]);
 
   const handleContinue = useCallback(async () => {
     if (submitting || wizard.isMutating) return;
@@ -410,6 +463,74 @@ export function Step4Categorize() {
               />
             )}
           </section>
+
+          {/* Phase 10 M7 — Category benchmark panel.
+              Renders only when a real (non-Other) category is selected AND the
+              backend returned a cohort meeting the privacy floor (≥5 publishers
+              with a configured price_metered for at least one license_type).
+              Suppressed entirely otherwise — silent fallback to placeholder
+              hints in the pricing inputs below (no error states, no "data
+              insufficient" copy that nags new publishers in small categories). */}
+          {categoryId && categoryId !== OTHER_CATEGORY_ID && (
+            <section
+              aria-labelledby="benchmarks-label"
+              className="bg-alice-gray border border-gray-200 rounded-xl p-5 space-y-3"
+            >
+              <h2
+                id="benchmarks-label"
+                className="text-sm font-semibold text-navy-deep"
+              >
+                What others in this category charge
+              </h2>
+              {benchmarksLoading ? (
+                <p className="text-xs text-gray-500">Loading benchmarks…</p>
+              ) : benchmarks?.benchmarks &&
+                Object.values(benchmarks.benchmarks).some((b) => b !== null) ? (
+                <>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Based on {benchmarks.cohort_size} publishers in this
+                    category. These are starting points — set what your audience
+                    is worth.
+                  </p>
+                  <div className="space-y-2">
+                    {Object.entries(benchmarks.benchmarks).map(
+                      ([licenseType, stats]) => {
+                        if (!stats) return null;
+                        const label =
+                          BENCHMARK_LICENSE_LABELS[licenseType] ?? licenseType;
+                        return (
+                          <div
+                            key={licenseType}
+                            className="flex items-baseline justify-between text-xs"
+                          >
+                            <span className="font-medium text-navy-deep">
+                              {label}
+                            </span>
+                            <span className="text-gray-600">
+                              <span className="font-semibold text-navy-deep">
+                                ${stats.median.toFixed(2)}
+                              </span>{" "}
+                              median{" "}
+                              <span className="text-gray-400">
+                                (p25 ${stats.p25.toFixed(2)} · p75 $
+                                {stats.p75.toFixed(2)} · n={stats.n})
+                              </span>
+                            </span>
+                          </div>
+                        );
+                      },
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Not enough publishers in this category yet to surface
+                  benchmarks. The placeholders below are general starting
+                  points — adjust to what fits your audience.
+                </p>
+              )}
+            </section>
+          )}
 
           {/* Pricing — v2 spec Refinement 1 */}
           <section aria-labelledby="pricing-label" className="space-y-4">

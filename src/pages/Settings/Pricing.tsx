@@ -53,6 +53,12 @@ interface PricingProfileSlice {
     license_types?: Partial<Record<LicenseType, LicenseTypeEntry>>;
     [k: string]: unknown;
   } | null;
+  // Phase 10 M7 — direct-licensing carveouts. JSONB on publishers row;
+  // shape `{ <license_type>: true }`. Absent keys default to opted-in
+  // (eligible for buyer-driven filtered subscriptions via /enterprise-license).
+  // Setting a key to `true` opts that license_type out — buyers can't
+  // include this publisher in a filtered subscription for that type.
+  direct_license_carveouts?: Partial<Record<LicenseType, boolean>> | null;
 }
 
 // Valid (license_type, payment_model) combinations — mirrors
@@ -96,7 +102,11 @@ const LICENSE_TYPE_DESC: Record<LicenseType, string> = {
 
 type LoadState =
   | { kind: "loading" }
-  | { kind: "ready"; pricing: PricingProfileSlice["pricing_rules"] }
+  | {
+      kind: "ready";
+      pricing: PricingProfileSlice["pricing_rules"];
+      carveouts: Partial<Record<LicenseType, boolean>>;
+    }
   | { kind: "error"; message: string };
 
 export default function PricingSettings() {
@@ -107,6 +117,11 @@ export default function PricingSettings() {
   // Per-(license_type, payment_model) input state. Stored as strings
   // so input controls behave naturally; converted to numbers at save.
   const [inputs, setInputs] = useState<Record<string, string>>({});
+  // Phase 10 M7 — per-license-type direct-license carveout toggle state.
+  // True = this license_type is opted OUT of Opedd direct licensing
+  // (buyers cannot include this publisher in filtered subscriptions
+  // for that license_type). False / undefined = opted in (default).
+  const [carveouts, setCarveouts] = useState<Partial<Record<LicenseType, boolean>>>({});
   // Soft-warning dialog state
   const [confirmDisableAll, setConfirmDisableAll] = useState(false);
 
@@ -126,8 +141,10 @@ export default function PricingSettings() {
         const body = await res.json();
         const profile = (body?.data ?? body) as PricingProfileSlice;
         const pricing = profile?.pricing_rules ?? {};
+        const carveoutsLoaded = (profile?.direct_license_carveouts ?? {}) as Partial<Record<LicenseType, boolean>>;
         if (cancelled) return;
-        setLoadState({ kind: "ready", pricing });
+        setLoadState({ kind: "ready", pricing, carveouts: carveoutsLoaded });
+        setCarveouts(carveoutsLoaded);
         // Pre-fill inputs from existing pricing_rules.license_types
         const lt = pricing?.license_types ?? {};
         const seed: Record<string, string> = {};
@@ -215,12 +232,23 @@ export default function PricingSettings() {
           }
         }
       }
+      // Phase 10 M7 — emit direct_license_carveouts only with explicit
+      // `true` keys (sparse JSONB); absent keys default to opted-in
+      // server-side. Backend allowlist on publisher-profile PATCH
+      // accepts the field (line 1061 allowlist extension shipping with
+      // M3 buyer-account work).
+      const carveoutsPayload: Partial<Record<LicenseType, boolean>> = {};
+      for (const [k, v] of Object.entries(carveouts)) {
+        if (v === true) carveoutsPayload[k as LicenseType] = true;
+      }
+
       await publisherProfileApi.patch(
         {
           pricing_rules: {
             ...existingNonLicenseTypes,
             license_types: payload,
           },
+          direct_license_carveouts: carveoutsPayload,
         },
         token,
       );
@@ -231,7 +259,9 @@ export default function PricingSettings() {
       });
       const body = await res.json();
       const profile = (body?.data ?? body) as PricingProfileSlice;
-      setLoadState({ kind: "ready", pricing: profile?.pricing_rules ?? {} });
+      const refreshedCarveouts = (profile?.direct_license_carveouts ?? {}) as Partial<Record<LicenseType, boolean>>;
+      setLoadState({ kind: "ready", pricing: profile?.pricing_rules ?? {}, carveouts: refreshedCarveouts });
+      setCarveouts(refreshedCarveouts);
     } catch (err) {
       toast({
         title: "Couldn't save pricing",
@@ -298,45 +328,75 @@ export default function PricingSettings() {
           Set per-license-type pricing across the supported payment models. Leave a field blank to disable that payment model. Per-call (metered) pricing supports sub-cent rates (e.g., $0.005/call); other models require a Stripe minimum of $0.50.
         </div>
 
-        {(Object.keys(VALID_FIELDS) as LicenseType[]).map((ltKey) => (
-          <div
-            key={ltKey}
-            data-testid={`pricing-card-${ltKey}`}
-            className="border border-gray-200 rounded-lg p-5 bg-white"
-          >
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-gray-900">{LICENSE_TYPE_LABEL[ltKey]}</h3>
-              <p className="text-sm text-gray-500">{LICENSE_TYPE_DESC[ltKey]}</p>
+        {(Object.keys(VALID_FIELDS) as LicenseType[]).map((ltKey) => {
+          const isCarvedOut = carveouts[ltKey] === true;
+          return (
+            <div
+              key={ltKey}
+              data-testid={`pricing-card-${ltKey}`}
+              className={`border border-gray-200 rounded-lg p-5 bg-white ${isCarvedOut ? "opacity-75" : ""}`}
+            >
+              <div className="mb-3 flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-gray-900">{LICENSE_TYPE_LABEL[ltKey]}</h3>
+                  <p className="text-sm text-gray-500">{LICENSE_TYPE_DESC[ltKey]}</p>
+                </div>
+                {/* Phase 10 M7 — direct-licensing carveout toggle.
+                    When ON, this publisher is excluded from buyer-driven
+                    filtered subscriptions for this license_type (per
+                    _shared/buyer-filter.ts Check 2 + metered-publisher-
+                    payouts skip-rule). Default OFF = opted-in. */}
+                <label className="inline-flex items-center gap-2 cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={isCarvedOut}
+                    onChange={(e) =>
+                      setCarveouts((c) => ({ ...c, [ltKey]: e.target.checked }))
+                    }
+                    disabled={saving}
+                    className="h-4 w-4 rounded border-gray-300 text-navy-deep focus:ring-navy-deep/30"
+                    data-testid={`carveout-toggle-${ltKey}`}
+                    aria-label={`Opt out of Opedd direct licensing for ${LICENSE_TYPE_LABEL[ltKey]}`}
+                  />
+                  <span className="text-xs text-gray-700">Opt out of direct licensing</span>
+                </label>
+              </div>
+              {isCarvedOut && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mb-3">
+                  Opted out of Opedd direct licensing for this type. Buyers can't include this content in filtered subscriptions for {LICENSE_TYPE_LABEL[ltKey]}. Per-article licensing via the publisher API is unaffected.
+                </p>
+              )}
+              <div className="space-y-3">
+                {VALID_FIELDS[ltKey].map((pm) => {
+                  const inputKey = `${ltKey}.${pm}`;
+                  const value = inputs[inputKey] ?? "";
+                  const valid = isValidInput(value);
+                  return (
+                    <div key={inputKey} className="flex items-center gap-3">
+                      <Label htmlFor={inputKey} className="w-64 text-sm text-gray-700">
+                        {PAYMENT_MODEL_LABEL[pm]}
+                      </Label>
+                      <Input
+                        id={inputKey}
+                        data-testid={`pricing-input-${ltKey}-${pm}`}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={value}
+                        onChange={(e) => setInputs((s) => ({ ...s, [inputKey]: e.target.value }))}
+                        className={`max-w-[160px] ${valid ? "" : "border-red-400"}`}
+                        disabled={isCarvedOut}
+                      />
+                      {!valid && (
+                        <span className="text-xs text-red-600">Must be a non-negative number</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="space-y-3">
-              {VALID_FIELDS[ltKey].map((pm) => {
-                const inputKey = `${ltKey}.${pm}`;
-                const value = inputs[inputKey] ?? "";
-                const valid = isValidInput(value);
-                return (
-                  <div key={inputKey} className="flex items-center gap-3">
-                    <Label htmlFor={inputKey} className="w-64 text-sm text-gray-700">
-                      {PAYMENT_MODEL_LABEL[pm]}
-                    </Label>
-                    <Input
-                      id={inputKey}
-                      data-testid={`pricing-input-${ltKey}-${pm}`}
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="0"
-                      value={value}
-                      onChange={(e) => setInputs((s) => ({ ...s, [inputKey]: e.target.value }))}
-                      className={`max-w-[160px] ${valid ? "" : "border-red-400"}`}
-                    />
-                    {!valid && (
-                      <span className="text-xs text-red-600">Must be a non-negative number</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         <div className="pt-2 flex justify-end">
           <Button

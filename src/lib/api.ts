@@ -649,11 +649,34 @@ export interface PublisherProfilePatchPayload {
   [key: string]: unknown;
 }
 
+// Phase 10 M7 — category price benchmarks response shape.
+// Backend at supabase/functions/publisher-profile/index.ts (action=category_price_benchmarks).
+// Cohort floor of 5 publishers per privacy guard; under-floor cohorts
+// return `benchmarks: null` with a `note` string.
+export interface CategoryPriceBenchmarksResponse {
+  category: string;
+  cohort_size: number;
+  benchmarks: Record<
+    string,
+    { median: number; p25: number; p75: number; n: number } | null
+  > | null;
+  note?: string;
+}
+
 export const publisherProfileApi = {
   patch: (payload: PublisherProfilePatchPayload, token: string | null) =>
     edgeFetch<Record<string, unknown>>(
       EDGE_FUNCTION_BASE + '/publisher-profile',
       { method: 'PATCH', body: JSON.stringify(payload) },
+      token,
+    ),
+  categoryPriceBenchmarks: (category: string, token: string | null) =>
+    edgeFetch<CategoryPriceBenchmarksResponse>(
+      EDGE_FUNCTION_BASE + '/publisher-profile',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'category_price_benchmarks', category }),
+      },
       token,
     ),
 };

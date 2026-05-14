@@ -32,6 +32,25 @@ interface PeriodComparison {
   percentChangeLicenses: number;
 }
 
+// Phase 10 M7 — metered revenue shape from get-insights backend extension.
+// Accrual estimates derived from publisher.pricing_rules.license_types[action].price_metered
+// (settled revenue continues to flow via enterprise_payouts).
+interface MeteredByBuyer { buyer_id: string; buyer_name: string | null; events: number; est_revenue_cents: number; }
+interface MeteredByArticle { article_id: string; title: string; events: number; est_revenue_cents: number; }
+interface MeteredRevenue {
+  total_events: number;
+  by_license_type: Record<string, { events: number; est_revenue_cents: number; price_metered: number | null }>;
+  by_buyer: MeteredByBuyer[];
+  by_article: MeteredByArticle[];
+}
+
+const METERED_LICENSE_LABELS: Record<string, string> = {
+  ai_training: "AI training",
+  ai_retrieval: "AI retrieval / RAG",
+  human_per_article: "Per-article human",
+  human_full_archive: "Annual archive",
+};
+
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const } } };
 const PIE_COLORS = ["#D1009A", "#4A26ED"];
@@ -48,6 +67,8 @@ export default function Insights() {
   const [licenseTypeSplit, setLicenseTypeSplit] = useState<LicenseTypeSplit>({ human: 0, ai: 0 });
   const [periodComparison, setPeriodComparison] = useState<PeriodComparison | null>(null);
   const [hasData, setHasData] = useState(false);
+  // Phase 10 M7 — metered revenue panels state.
+  const [meteredRevenue, setMeteredRevenue] = useState<MeteredRevenue | null>(null);
 
   // Phase 5.3-attribution: Licensees section state.
   const [licensees, setLicensees] = useState<Licensee[]>([]);
@@ -91,7 +112,11 @@ export default function Insights() {
         setTopArticles(topArts.slice(0, 5));
         setLicenseTypeSplit(split);
         setPeriodComparison(period);
-        setHasData(totalTx > 0 || revDay.length > 0);
+        // Phase 10 M7 — metered_revenue is additive; absent or zero-event
+        // shape from older backend builds renders no panels.
+        const metered = (d.metered_revenue ?? null) as MeteredRevenue | null;
+        setMeteredRevenue(metered && metered.total_events > 0 ? metered : null);
+        setHasData(totalTx > 0 || revDay.length > 0 || (metered?.total_events ?? 0) > 0);
       } else {
         setFetchError(true);
       }
@@ -306,6 +331,128 @@ export default function Insights() {
                 ) : <div className="text-center py-8 text-gray-400 text-sm">No license data yet</div>}
               </div>
             </motion.div>
+
+            {/* Phase 10 M7 — Metered revenue panels.
+                Renders only when usage_records with billed_at + meter:%
+                stripe_usage_record_id exist for this publisher (returned
+                via get-insights extension). Three sub-panels: by license
+                type, by buyer, top articles. All revenue numbers are
+                accrual estimates from price_metered config (settled
+                amounts continue to land in enterprise_payouts). */}
+            {meteredRevenue && (
+              <motion.div variants={itemVariants} className="space-y-4">
+                <div className="bg-white rounded-xl border border-gray-200 shadow-card p-6">
+                  <div className="flex items-baseline gap-3 mb-1">
+                    <Sparkles size={18} className="text-oxford" />
+                    <h2 className="font-bold text-gray-900 text-lg">Metered Usage</h2>
+                    <Badge variant="outline" className="text-xs">{meteredRevenue.total_events.toLocaleString()} events</Badge>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Pay-per-call revenue from filtered enterprise subscriptions. Amounts shown are accrual estimates from your current per-call pricing — settled payouts land monthly.
+                  </p>
+
+                  {/* By license type — table */}
+                  {Object.keys(meteredRevenue.by_license_type).length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">By license type</h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50 border-gray-200">
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Type</TableHead>
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Events</TableHead>
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Price / event</TableHead>
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Est. revenue</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.entries(meteredRevenue.by_license_type)
+                            .sort((a, b) => b[1].est_revenue_cents - a[1].est_revenue_cents)
+                            .map(([lt, stats]) => (
+                              <TableRow key={lt} className="border-gray-100">
+                                <TableCell className="font-medium text-gray-900 text-sm">
+                                  {METERED_LICENSE_LABELS[lt] ?? lt}
+                                </TableCell>
+                                <TableCell className="text-right text-gray-500 text-sm">
+                                  {stats.events.toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-gray-500 text-sm">
+                                  {stats.price_metered !== null ? formatUSD(stats.price_metered) : "—"}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-emerald-600 text-sm">
+                                  {formatUSD(stats.est_revenue_cents / 100)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+
+                {/* By buyer + top articles — two-column grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
+                    <div className="p-5 border-b border-gray-200">
+                      <h2 className="font-bold text-gray-900 text-lg">Top Metered Buyers</h2>
+                      <p className="text-sm text-gray-500">By estimated revenue</p>
+                    </div>
+                    {meteredRevenue.by_buyer.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50 border-gray-200">
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Buyer</TableHead>
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Events</TableHead>
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Est. revenue</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {meteredRevenue.by_buyer.map((b) => (
+                            <TableRow key={b.buyer_id} className="border-gray-100">
+                              <TableCell className="font-medium text-gray-900 text-sm max-w-[200px] truncate">
+                                {b.buyer_name ?? `Buyer ${b.buyer_id.slice(0, 8)}`}
+                              </TableCell>
+                              <TableCell className="text-right text-gray-500 text-sm">{b.events.toLocaleString()}</TableCell>
+                              <TableCell className="text-right font-bold text-emerald-600 text-sm">{formatUSD(b.est_revenue_cents / 100)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="p-8 text-center text-gray-400 text-sm">No buyer attribution yet</div>
+                    )}
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
+                    <div className="p-5 border-b border-gray-200">
+                      <h2 className="font-bold text-gray-900 text-lg">Top Metered Articles</h2>
+                      <p className="text-sm text-gray-500">By estimated revenue</p>
+                    </div>
+                    {meteredRevenue.by_article.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50 border-gray-200">
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Title</TableHead>
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Events</TableHead>
+                            <TableHead className="text-gray-500 text-xs font-semibold uppercase tracking-wider text-right">Est. revenue</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {meteredRevenue.by_article.map((a) => (
+                            <TableRow key={a.article_id} className="border-gray-100">
+                              <TableCell className="font-medium text-gray-900 text-sm max-w-[200px] truncate">{decodeText(a.title)}</TableCell>
+                              <TableCell className="text-right text-gray-500 text-sm">{a.events.toLocaleString()}</TableCell>
+                              <TableCell className="text-right font-bold text-emerald-600 text-sm">{formatUSD(a.est_revenue_cents / 100)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="p-8 text-center text-gray-400 text-sm">No metered article events yet</div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </>
         )}
 
