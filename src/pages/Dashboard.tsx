@@ -16,7 +16,9 @@ import { RecentArticlesPanel } from "@/components/dashboard/RecentArticlesPanel"
 import { AddAnotherNewsletterCard } from "@/components/dashboard/AddAnotherNewsletterCard";
 import type { PlatformId } from "@/components/setup-v2/Step1Platform";
 import { useWizardState } from "@/hooks/useWizardState";
-import { shouldRedirectToWelcome } from "./welcome-redirect";
+// Phase 11 UX-1 (2026-05-15): shouldRedirectToWelcome no longer wired into
+// Dashboard mount; helper preserved at welcome-redirect.ts for tests + future
+// opt-in re-engagement. Auto-redirect removed per founder ratification.
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { stripeApi } from "@/lib/api";
 import { derivePricingGaps, type PricingGap } from "@/lib/pricing-gaps";
@@ -207,27 +209,28 @@ export default function Dashboard() {
     Promise.all([checkPublications(), fetchMetrics(), loadProfile()]);
   }, [checkPublications, fetchMetrics, loadProfile]);
 
-  // Session 1.9 — Welcome trigger rewire. When the wizard hook AND the
+  // Phase 11 close-validation pass UX-1 (2026-05-15) — REMOVED auto-redirect
+  // to /welcome. Pre-fix: post-verification publishers were auto-redirected
+  // to the Welcome celebration page; new signups were auto-routed to the
+  // wizard. Founder ratification: "Wizard-first onboarding is the wrong
+  // default; Dashboard-first lets users see the product before committing
+  // to a 5-step flow." The SetupBanner component already handles the
+  // prospect-state "Get started" CTA visibly on Dashboard — no auto-redirect
+  // needed. shouldRedirectToWelcome helper preserved at welcome-redirect.ts
+  // for unit-test reference but no longer wired into Dashboard mount path.
+  // The `?new=1` query param routed from AuthCallback fires a welcome toast
+  // (separate effect below).
   useEffect(() => {
-    if (
-      shouldRedirectToWelcome({
-        isLoading: wizardState.isLoading,
-        hasError: !!wizardState.error,
-        setupState: wizardState.setupState,
-        profileLoaded,
-        welcomeCompletedAt,
-      })
-    ) {
-      navigate("/welcome", { replace: true });
+    if (searchParams.get("new") === "1") {
+      toast({
+        title: "Welcome to Opedd",
+        description: "Click \"Get started\" below when you're ready to connect your newsletter.",
+      });
+      const next = new URLSearchParams(searchParams);
+      next.delete("new");
+      setSearchParams(next, { replace: true });
     }
-  }, [
-    wizardState.isLoading,
-    wizardState.error,
-    wizardState.setupState,
-    profileLoaded,
-    welcomeCompletedAt,
-    navigate,
-  ]);
+  }, [searchParams, setSearchParams, toast]);
 
   // Fetch admin stats
   const fetchAdminStats = useCallback(async () => {

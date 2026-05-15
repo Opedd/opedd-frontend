@@ -91,7 +91,14 @@ export default function AuthCallback() {
       resolved = true;
       cleanup();
       setStatus("success");
-      const dest = safeNext ?? (isNewUser ? "/welcome" : "/dashboard");
+      // Phase 11 close-validation pass UX-1 (2026-05-15): magic-link signup
+      // routes to /dashboard?new=1 instead of /welcome. Founder ratification:
+      // "Wizard-first onboarding is the wrong default; Dashboard-first lets
+      // users see the product before committing to a 5-step flow." Dashboard
+      // renders a "Get started" banner for prospect-state publishers + the
+      // ?new=1 query param triggers a welcoming toast on first land. The
+      // wizard remains accessible as an opt-in CTA from the Dashboard banner.
+      const dest = safeNext ?? (isNewUser ? "/dashboard?new=1" : "/dashboard");
       setTimeout(() => navigate(dest, { replace: true }), 1500);
     };
 
