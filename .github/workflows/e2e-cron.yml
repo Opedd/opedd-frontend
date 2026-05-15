@@ -1,0 +1,102 @@
+name: E2E Behavioral Tests (every 6h)
+
+# Phase 11.5 Playwright E2E suite — continuous end-to-end behavioral validation
+# against production. Per CLAUDE.md Rule 14, milestone closure requires a fresh
+# test user completing the intended user flow end-to-end. This workflow runs
+# that test every 6 hours, alerting Sentry + auto-filing a GitHub issue on any
+# path failure.
+#
+# Test publisher cleanup: `+e2etest-` email prefix; rows older than 1 day
+# swept at the start of each run (idempotent recovery from prior failures).
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"  # Every 6 hours
+  workflow_dispatch:
+    inputs:
+      force_fail:
+        description: "Force a specific path to fail for alert-pipeline validation (beehiiv | ghost | substack | substack-cron | customapi). Leave blank for normal run."
+        required: false
+        default: ""
+
+concurrency:
+  group: e2e-${{ github.workflow }}
+  cancel-in-progress: false  # Let each run finish; don't cancel mid-test
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E suite against production
+        env:
+          PLAYWRIGHT_BASE_URL: https://opedd.com
+          OPEDD_API_BASE: https://api.opedd.com
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          TEST_BEEHIIV_API_KEY: ${{ secrets.TEST_BEEHIIV_API_KEY }}
+          TEST_BEEHIIV_PUB_ID: ${{ secrets.TEST_BEEHIIV_PUB_ID }}
+          TEST_GHOST_SITE_URL: ${{ secrets.TEST_GHOST_SITE_URL }}
+          TEST_GHOST_ADMIN_API_KEY: ${{ secrets.TEST_GHOST_ADMIN_API_KEY }}
+          TEST_SUBSTACK_URL: ${{ secrets.TEST_SUBSTACK_URL }}
+          # Force-fail mechanism for alert-pipeline validation:
+          # workflow_dispatch with input `force_fail: <path>` exercises the
+          # Sentry + GitHub-issue alerting end-to-end.
+          E2E_FORCE_FAIL: ${{ inputs.force_fail }}
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 30
+
+      - name: Notify Sentry on failure
+        if: failure()
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          if [ -n "$SENTRY_AUTH_TOKEN" ]; then
+            curl -X POST "https://sentry.io/api/0/organizations/opedd/monitors/e2e-cron/checkins/" \
+              -H "Authorization: DSN $SENTRY_AUTH_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"status":"error","message":"Phase 11.5 E2E suite failed — see GitHub Actions run ${{ github.run_id }}"}'
+          else
+            echo "::warning::SENTRY_AUTH_TOKEN not set; skipping Sentry alert"
+          fi
+
+      - name: Auto-file GitHub issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "E2E behavioral test failure — $(date +%Y-%m-%d)" \
+            --label "e2e-failure,priority:high" \
+            --body "Phase 11.5 E2E suite failed on scheduled cron run.
+
+          - **Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          - **Triggered by:** ${{ github.event_name }}
+          - **Workflow:** ${{ github.workflow }}
+
+          Artifacts (Playwright report + traces) uploaded to the run. Per CLAUDE.md Rule 14, milestone closure is invalid until E2E suite passes; this issue is a hard blocker.
+
+          Auto-filed by .github/workflows/e2e-cron.yml."
