@@ -12,6 +12,7 @@ import { HelmetProvider } from "react-helmet-async";
 
 // Core dashboard routes — eagerly loaded (always needed after login)
 import Dashboard from "./pages/Dashboard";
+import Import from "./pages/Import";
 import Content from "./pages/Content";
 import Licensing from "./pages/Licensing";
 import Ledger from "./pages/Ledger";
@@ -113,6 +114,7 @@ const App = () => (
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/update-password" element={<UpdatePassword />} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/import" element={<ProtectedRoute><Import /></ProtectedRoute>} />
                 <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
                 <Route path="/licensing" element={<ProtectedRoute><Licensing /></ProtectedRoute>} />
                 <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
