@@ -92,6 +92,24 @@ export default function Dashboard() {
     widgetDone: true,
   });
 
+  // Phase 11 M7.1 — surface a toast after the publisher returns from the
+  // add-newsletter wizard re-entry. Detect ?added_newsletter=1, fire the
+  // toast once, then strip the query param so a refresh doesn't re-fire.
+  // Hooks MUST live above the conditional `if (!user) return` early
+  // returns below per react-hooks/rules-of-hooks.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("added_newsletter") === "1") {
+      toast({
+        title: "Newsletter added",
+        description: "Your new newsletter is now connected. Archive sync starts shortly.",
+      });
+      const next = new URLSearchParams(searchParams);
+      next.delete("added_newsletter");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, toast]);
+
   const checkPublications = useCallback(async () => {
     if (!user) return;
     try {
@@ -263,25 +281,11 @@ export default function Dashboard() {
   // Session 1.9 commit 3: rewired from `setupComplete && totalAssets > 0`
   const showQuickActions = wizardState.setupState === "verified" && totalAssets > 0;
 
-  // Phase 11 M7.1 — surface a toast after the publisher returns from the
-  // add-newsletter wizard re-entry. Detect ?added_newsletter=1, fire the
-  // toast once, then strip the query param so a refresh doesn't re-fire.
-  const [searchParams, setSearchParams] = useSearchParams();
-  useEffect(() => {
-    if (searchParams.get("added_newsletter") === "1") {
-      toast({
-        title: "Newsletter added",
-        description: "Your new newsletter is now connected. Archive sync starts shortly.",
-      });
-      const next = new URLSearchParams(searchParams);
-      next.delete("added_newsletter");
-      setSearchParams(next, { replace: true });
-    }
-  }, [searchParams, setSearchParams, toast]);
-
-  // Current platform from setup_data — drives AddAnotherNewsletterCard
-  // visibility (only beehiiv/ghost/substack publishers see it; Custom
-  // API uses /dashboard/import per M7.2).
+  // Phase 11 M7.1 — current platform from setup_data drives the
+  // AddAnotherNewsletterCard visibility (only beehiiv/ghost/substack
+  // publishers see it; Custom API uses /dashboard/import per M7.2).
+  // This is NOT a hook (no useState/useEffect), so it can live below
+  // the early returns above.
   const currentPlatform = (wizardState.setupData?.platform as PlatformId | undefined) ?? null;
 
   // KI #114 fix: migrated from inline raw-fetch + legacy `json.url` access
