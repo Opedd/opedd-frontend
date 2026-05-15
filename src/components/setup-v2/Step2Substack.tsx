@@ -141,9 +141,15 @@ function messageFor(err: unknown, fallback: string): string {
   return fallback;
 }
 
-export function Step2Substack() {
+// Phase 11 M7.1 — optional add-newsletter mode. See Step2Beehiiv header.
+interface Step2SubstackProps {
+  onCompletionRedirect?: () => void;
+}
+
+export function Step2Substack({ onCompletionRedirect }: Step2SubstackProps = {}) {
   const wizard = useWizardState();
   const { getAccessToken } = useAuth();
+  const isAddNewsletterMode = Boolean(onCompletionRedirect);
 
   const [viewMode, setViewMode] = useState<ViewMode>("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -154,8 +160,11 @@ export function Step2Substack() {
   const [inboundEmail, setInboundEmail] = useState<string | null>(null);
 
   // Persisted URL via wizard step_data (mid-flow refresh resilience).
-  const persistedUrl =
-    typeof wizard.setupData.substack_url === "string"
+  // Phase 11 M7.1: skip pre-fill in add-newsletter mode (publisher is
+  // adding a NEW Substack pub, not resuming the prior one).
+  const persistedUrl = isAddNewsletterMode
+    ? ""
+    : typeof wizard.setupData.substack_url === "string"
       ? (wizard.setupData.substack_url as string)
       : "";
   const [urlInput, setUrlInput] = useState(persistedUrl);
@@ -200,6 +209,14 @@ export function Step2Substack() {
         if (cancelled) return;
 
         setInboundEmail(profile?.inbound_email ?? null);
+
+        // Phase 11 M7.1: in add-newsletter mode the publisher is
+        // already verified — the probe would auto-skip the form. Force
+        // url_entry view to collect the new Substack URL.
+        if (isAddNewsletterMode) {
+          setViewMode("url_entry");
+          return;
+        }
 
         if (ownership.is_verified) {
           setViewMode("success");
@@ -322,6 +339,12 @@ export function Step2Substack() {
       }
       if (warning) setWarningMessage(warning);
 
+      // Phase 11 M7.1: in add-newsletter mode, redirect to Dashboard
+      // instead of advancing wizard step.
+      if (onCompletionRedirect) {
+        onCompletionRedirect();
+        return;
+      }
       await wizard.advance({});
     } catch (err) {
       setSubmitting(null);
@@ -332,7 +355,7 @@ export function Step2Substack() {
         tags: { component: "Step2Substack", phase: "finalize" },
       });
     }
-  }, [getAccessToken, resolvedUrl, wizard]);
+  }, [getAccessToken, resolvedUrl, wizard, onCompletionRedirect]);
 
   useEffect(() => {
     if (viewMode === "success" && autoFinalizeRef.current) {
@@ -359,7 +382,11 @@ export function Step2Substack() {
       const token = await getAccessToken();
       // Persist URL before the network call so a mid-flight refresh
       // preserves it.
-      await wizard.saveStepData({ substack_url: url });
+      // Phase 11 M7.1: skip in add-newsletter mode to preserve original
+      // substack_url in setup_data.
+      if (!isAddNewsletterMode) {
+        await wizard.saveStepData({ substack_url: url });
+      }
       const result: VerifyOwnershipResult =
         await verifyOwnershipApi.issueVisibleTextToken(url, token);
 

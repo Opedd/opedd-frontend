@@ -91,16 +91,23 @@ type SuccessData =
       publicationName: string | null;
     };
 
-export function Step2Ghost() {
+// Phase 11 M7.1 — optional add-newsletter mode. See Step2Beehiiv header.
+interface Step2GhostProps {
+  onCompletionRedirect?: () => void;
+}
+
+export function Step2Ghost({ onCompletionRedirect }: Step2GhostProps = {}) {
   const wizard = useWizardState();
   const { getAccessToken } = useAuth();
+  const isAddNewsletterMode = Boolean(onCompletionRedirect);
 
   const [viewMode, setViewMode] = useState<ViewMode>('url_entry');
-  const [siteUrl, setSiteUrl] = useState(() =>
-    typeof wizard.setupData.ghost_site_url === 'string'
+  const [siteUrl, setSiteUrl] = useState(() => {
+    if (isAddNewsletterMode) return '';
+    return typeof wizard.setupData.ghost_site_url === 'string'
       ? (wizard.setupData.ghost_site_url as string)
-      : '',
-  );
+      : '';
+  });
   const [adminApiKey, setAdminApiKey] = useState('');
   const [failure, setFailure] = useState<UIFailure | null>(null);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
@@ -125,6 +132,8 @@ export function Step2Ghost() {
   // to SUCCESS in resume_stale mode → SuccessView immediately auto-
   // advances. Probe failure is non-blocking.
   useEffect(() => {
+    // Phase 11 M7.1: skip mount-resume probe in add-newsletter mode.
+    if (isAddNewsletterMode) return;
     let cancelled = false;
     (async () => {
       try {
@@ -147,7 +156,7 @@ export function Step2Ghost() {
     return () => {
       cancelled = true;
     };
-  }, [getAccessToken]);
+  }, [getAccessToken, isAddNewsletterMode]);
 
   // ─── Submit handler ─────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
@@ -168,15 +177,19 @@ export function Step2Ghost() {
 
     // Persist site_url (not admin_api_key) for resume on browser
     // refresh / back-navigation. Best-effort; failure breadcrumb only.
-    try {
-      await wizard.saveStepData({ ghost_site_url: trimmedSiteUrl });
-    } catch (err) {
-      Sentry.addBreadcrumb({
-        category: 'step2-ghost',
-        level: 'warning',
-        message: 'saveStepData failed',
-        data: { error: String(err).slice(0, 120) },
-      });
+    // Phase 11 M7.1: skip in add-newsletter mode to preserve original
+    // site_url in setup_data.
+    if (!isAddNewsletterMode) {
+      try {
+        await wizard.saveStepData({ ghost_site_url: trimmedSiteUrl });
+      } catch (err) {
+        Sentry.addBreadcrumb({
+          category: 'step2-ghost',
+          level: 'warning',
+          message: 'saveStepData failed',
+          data: { error: String(err).slice(0, 120) },
+        });
+      }
     }
 
     const requestId = ++requestIdRef.current;
@@ -275,6 +288,12 @@ export function Step2Ghost() {
 
   // ─── Wizard advance handler ─────────────────────────────────────
   const handleAdvance = useCallback(async () => {
+    // Phase 11 M7.1: in add-newsletter mode, redirect to Dashboard
+    // instead of advancing wizard step.
+    if (onCompletionRedirect) {
+      onCompletionRedirect();
+      return;
+    }
     try {
       await wizard.advance({});
     } catch (err) {
@@ -282,7 +301,7 @@ export function Step2Ghost() {
         tags: { component: 'Step2Ghost', phase: 'wizard_advance' },
       });
     }
-  }, [wizard]);
+  }, [wizard, onCompletionRedirect]);
 
   // ─── DNS fallback handler ───────────────────────────────────────
   // Phase 7.5 v1 placeholder — logs intent to Sentry without

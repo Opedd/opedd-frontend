@@ -52,17 +52,30 @@ type SuccessData =
       publicationName: string | null;
     };
 
-export function Step2Beehiiv() {
+// Phase 11 M7.1 — optional add-newsletter mode (Dashboard re-entry path).
+// When `onCompletionRedirect` is provided, the component (a) skips the
+// mount-resume probe so already-verified publishers see the form, (b) skips
+// pre-fill from wizard.setupData so the input starts fresh, (c) skips
+// saveStepData (don't overwrite original pub_id), and (d) calls
+// onCompletionRedirect on success instead of wizard.advance. Verification
+// state-machine logic is unchanged.
+interface Step2BeehiivProps {
+  onCompletionRedirect?: () => void;
+}
+
+export function Step2Beehiiv({ onCompletionRedirect }: Step2BeehiivProps = {}) {
   const wizard = useWizardState();
   const { getAccessToken } = useAuth();
+  const isAddNewsletterMode = Boolean(onCompletionRedirect);
 
   const [viewMode, setViewMode] = useState<ViewMode>('url_entry');
   const [apiKey, setApiKey] = useState('');
-  const [pubId, setPubId] = useState(() =>
-    typeof wizard.setupData.beehiiv_pub_id === 'string'
+  const [pubId, setPubId] = useState(() => {
+    if (isAddNewsletterMode) return '';
+    return typeof wizard.setupData.beehiiv_pub_id === 'string'
       ? (wizard.setupData.beehiiv_pub_id as string)
-      : '',
-  );
+      : '';
+  });
   const [failure, setFailure] = useState<UIFailure | null>(null);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
 
@@ -90,6 +103,9 @@ export function Step2Beehiiv() {
   // advances. Probe failure is non-blocking; publisher can still
   // submit normally.
   useEffect(() => {
+    // Phase 11 M7.1: in add-newsletter mode the publisher is already
+    // verified — the probe would auto-skip the form. Skip the probe.
+    if (isAddNewsletterMode) return;
     let cancelled = false;
     (async () => {
       try {
@@ -112,7 +128,7 @@ export function Step2Beehiiv() {
     return () => {
       cancelled = true;
     };
-  }, [getAccessToken]);
+  }, [getAccessToken, isAddNewsletterMode]);
 
   // ─── Submit handler ─────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
@@ -133,15 +149,19 @@ export function Step2Beehiiv() {
 
     // Persist pub_id (not api_key) for resume on browser refresh /
     // back-navigation. Best-effort; failure breadcrumb only.
-    try {
-      await wizard.saveStepData({ beehiiv_pub_id: trimmedPubId });
-    } catch (err) {
-      Sentry.addBreadcrumb({
-        category: 'step2-beehiiv',
-        level: 'warning',
-        message: 'saveStepData failed',
-        data: { error: String(err).slice(0, 120) },
-      });
+    // Phase 11 M7.1: in add-newsletter mode, skip saveStepData so the
+    // original pub_id in setup_data is preserved.
+    if (!isAddNewsletterMode) {
+      try {
+        await wizard.saveStepData({ beehiiv_pub_id: trimmedPubId });
+      } catch (err) {
+        Sentry.addBreadcrumb({
+          category: 'step2-beehiiv',
+          level: 'warning',
+          message: 'saveStepData failed',
+          data: { error: String(err).slice(0, 120) },
+        });
+      }
     }
 
     const requestId = ++requestIdRef.current;
@@ -227,6 +247,12 @@ export function Step2Beehiiv() {
 
   // ─── Wizard advance handler ─────────────────────────────────────
   const handleAdvance = useCallback(async () => {
+    // Phase 11 M7.1: in add-newsletter mode, redirect to Dashboard
+    // instead of advancing wizard step.
+    if (onCompletionRedirect) {
+      onCompletionRedirect();
+      return;
+    }
     try {
       await wizard.advance({});
     } catch (err) {
@@ -234,7 +260,7 @@ export function Step2Beehiiv() {
         tags: { component: 'Step2Beehiiv', phase: 'wizard_advance' },
       });
     }
-  }, [wizard]);
+  }, [wizard, onCompletionRedirect]);
 
   // ─── View dispatch ──────────────────────────────────────────────
   if (viewMode === 'success' && successData) {

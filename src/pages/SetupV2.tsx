@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Spinner } from "@/components/ui/Spinner";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Step1Platform, type PlatformId } from "@/components/setup-v2/Step1Platform";
@@ -11,6 +11,21 @@ import { Step4Categorize } from "@/components/setup-v2/Step4Categorize";
 import { Step5Stripe } from "@/components/setup-v2/Step5Stripe";
 import { WowMomentStep } from "@/components/setup-v2/WowMomentStep";
 import { TerminalState } from "@/components/setup-v2/TerminalState";
+
+// Phase 11 M7.1 — add-newsletter mode. Verified publishers re-enter the
+// wizard via Dashboard "+ Add another newsletter" deep-link. URL shape:
+// /setup-v2?mode=add-newsletter&platform=<beehiiv|ghost|substack>.
+// SetupV2 in this mode (a) bypasses the verified-publisher redirect,
+// (b) skips Step1 platform selection (already supplied via ?platform=),
+// (c) renders Step2<Platform> with onCompletionRedirect prop, and (d) on
+// completion navigates to /dashboard?added_newsletter=1 (Dashboard reads
+// this and surfaces a toast).
+const ADD_NEWSLETTER_PLATFORMS = ["beehiiv", "ghost", "substack"] as const;
+type AddNewsletterPlatform = (typeof ADD_NEWSLETTER_PLATFORMS)[number];
+
+function isAddNewsletterPlatform(value: string | null): value is AddNewsletterPlatform {
+  return value !== null && (ADD_NEWSLETTER_PLATFORMS as readonly string[]).includes(value);
+}
 
 /**
  * Phase 3 Session 3.1 — SetupV2 wizard orchestrator.
@@ -40,13 +55,25 @@ import { TerminalState } from "@/components/setup-v2/TerminalState";
 export default function SetupV2() {
   const wizard = useWizardState();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Verified publishers don't belong on the wizard. Redirect quietly.
+  // Phase 11 M7.1 — add-newsletter mode detection.
+  const addNewsletterMode = searchParams.get("mode") === "add-newsletter";
+  const queryPlatform = searchParams.get("platform");
+  const addNewsletterPlatform: AddNewsletterPlatform | null =
+    addNewsletterMode && isAddNewsletterPlatform(queryPlatform) ? queryPlatform : null;
+
+  const handleAddNewsletterComplete = useCallback(() => {
+    navigate("/dashboard?added_newsletter=1", { replace: true });
+  }, [navigate]);
+
+  // Verified publishers don't belong on the wizard — unless they are
+  // re-entering via the add-newsletter deep-link (Phase 11 M7.1).
   useEffect(() => {
-    if (wizard.setupState === "verified") {
+    if (wizard.setupState === "verified" && !addNewsletterPlatform) {
       navigate("/dashboard", { replace: true });
     }
-  }, [wizard.setupState, navigate]);
+  }, [wizard.setupState, navigate, addNewsletterPlatform]);
 
   // ─── Loading + error gates ─────────────────────────────────────
   if (wizard.isLoading) return <FullPageSpinner />;
@@ -54,6 +81,23 @@ export default function SetupV2() {
     return <ErrorView message={wizard.error.message} />;
   }
   if (!wizard.state) return <FullPageSpinner />;
+
+  // ─── Phase 11 M7.1 — add-newsletter mode dispatch ──────────────
+  // Verified publisher + valid query string → render Step2<Platform>
+  // directly with onCompletionRedirect. Bypasses Step1 (platform
+  // pre-selected) + Step3 WowMoment (already seen).
+  if (addNewsletterPlatform && wizard.setupState === "verified") {
+    if (addNewsletterPlatform === "substack") {
+      return <Step2Substack onCompletionRedirect={handleAddNewsletterComplete} />;
+    }
+    if (addNewsletterPlatform === "beehiiv") {
+      return <Step2Beehiiv onCompletionRedirect={handleAddNewsletterComplete} />;
+    }
+    return <Step2Ghost onCompletionRedirect={handleAddNewsletterComplete} />;
+  }
+  // Invalid add-newsletter query (mode=add-newsletter but bad/missing
+  // platform OR publisher not yet verified) — fall through to normal
+  // wizard dispatch silently. Bad UX but defensive.
 
   // Phase 4.7.2 (2026-04-30): the legacy `?add=1` branch was removed
   // per OQ.3 (no add-source flow in v1). `/setup-v2?add=1` URLs now

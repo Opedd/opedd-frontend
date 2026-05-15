@@ -13,12 +13,14 @@ import { PartnershipHeader } from "@/components/dashboard/PartnershipHeader";
 import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { SubstackArchiveCTA } from "@/components/dashboard/SubstackArchiveCTA";
 import { RecentArticlesPanel } from "@/components/dashboard/RecentArticlesPanel";
+import { AddAnotherNewsletterCard } from "@/components/dashboard/AddAnotherNewsletterCard";
+import type { PlatformId } from "@/components/setup-v2/Step1Platform";
 import { useWizardState } from "@/hooks/useWizardState";
 import { shouldRedirectToWelcome } from "./welcome-redirect";
 import { EXT_SUPABASE_URL, EXT_ANON_KEY } from "@/lib/constants";
 import { stripeApi } from "@/lib/api";
 import { derivePricingGaps, type PricingGap } from "@/lib/pricing-gaps";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SourcesView } from "@/components/dashboard/SourcesView";
 // PublicationSetupFlow removed — "Add content" now routes to /setup
@@ -261,6 +263,27 @@ export default function Dashboard() {
   // Session 1.9 commit 3: rewired from `setupComplete && totalAssets > 0`
   const showQuickActions = wizardState.setupState === "verified" && totalAssets > 0;
 
+  // Phase 11 M7.1 — surface a toast after the publisher returns from the
+  // add-newsletter wizard re-entry. Detect ?added_newsletter=1, fire the
+  // toast once, then strip the query param so a refresh doesn't re-fire.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("added_newsletter") === "1") {
+      toast({
+        title: "Newsletter added",
+        description: "Your new newsletter is now connected. Archive sync starts shortly.",
+      });
+      const next = new URLSearchParams(searchParams);
+      next.delete("added_newsletter");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, toast]);
+
+  // Current platform from setup_data — drives AddAnotherNewsletterCard
+  // visibility (only beehiiv/ghost/substack publishers see it; Custom
+  // API uses /dashboard/import per M7.2).
+  const currentPlatform = (wizardState.setupData?.platform as PlatformId | undefined) ?? null;
+
   // KI #114 fix: migrated from inline raw-fetch + legacy `json.url` access
   const handleConnectStripe = async () => {
     try {
@@ -310,6 +333,15 @@ export default function Dashboard() {
         <SubstackArchiveCTA
           platform={(wizardState.setupData?.platform_choice as string | undefined) ?? null}
         />
+
+        {/* Phase 11 M7.1 — Add Another Newsletter card. Verified publishers
+            on beehiiv/ghost/substack platforms can connect additional
+            newsletters; each becomes a separate content_sources row under
+            the same publishers row. Card hides itself for unverified
+            publishers and Custom API platform. */}
+        {wizardState.setupState === "verified" && (
+          <AddAnotherNewsletterCard platform={currentPlatform} />
+        )}
 
         {/* Priority banner — only the highest-priority banner renders. */}
         {activeBanner === "stripe-kyc" && (
