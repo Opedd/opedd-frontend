@@ -278,8 +278,14 @@ export default function Dashboard() {
     return null;
   })();
 
-  // Session 1.9 commit 3: rewired from `setupComplete && totalAssets > 0`
-  const showQuickActions = wizardState.setupState === "verified" && totalAssets > 0;
+  // Session 1.9 commit 3: rewired from `setupComplete && totalAssets > 0`.
+  // Phase 11 M7.1.1 hotfix (2026-05-15): outer gate relaxed from
+  // `setupState === "verified"` (Stripe-coupled) to `verificationStatus === "verified"`.
+  // Individual actions gate on Stripe at the per-action level (Issue archive
+  // disables when !stripeConnected; Invite team + View public page need only
+  // verification_status). Founder ratification: setup_state and content_source
+  // verification are distinct concerns and must not be conflated.
+  const showQuickActions = verificationStatus === "verified" && totalAssets > 0;
 
   // Phase 11 M7.1 — current platform from setup_data drives the
   // AddAnotherNewsletterCard visibility (only beehiiv/ghost/substack
@@ -338,12 +344,19 @@ export default function Dashboard() {
           platform={(wizardState.setupData?.platform_choice as string | undefined) ?? null}
         />
 
-        {/* Phase 11 M7.1 — Add Another Newsletter card. Verified publishers
-            on beehiiv/ghost/substack platforms can connect additional
-            newsletters; each becomes a separate content_sources row under
-            the same publishers row. Card hides itself for unverified
-            publishers and Custom API platform. */}
-        {wizardState.setupState === "verified" && (
+        {/* Phase 11 M7.1.1 hotfix (2026-05-15) — Add Another Newsletter card.
+            Pre-fix gated on `wizardState.setupState === "verified"` which
+            requires publisher.setup_state="verified", which itself requires
+            Stripe Connect completion (stripe_account_id populated). This
+            artificially coupled multi-newsletter management to payout setup.
+            Founder ratification: "multi-newsletter management is NOT gated
+            on payout setup. setup_state and content_source verification are
+            distinct concerns and must not be conflated." Correct gate: any
+            publisher with `verification_status === "verified"` (ownership-
+            verified at least one content_source) can add another newsletter.
+            Card hides itself for unverified publishers + Custom API platform
+            (Custom API uses /dashboard/import per M7.2). */}
+        {verificationStatus === "verified" && (
           <AddAnotherNewsletterCard platform={currentPlatform} />
         )}
 
@@ -536,7 +549,18 @@ export default function Dashboard() {
         {showQuickActions && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { icon: Handshake, label: "Issue archive license", onClick: () => setArchiveModalOpen(true) },
+              // Phase 11 M7.1.1 hotfix: Issue archive license retains
+              // Stripe-coupling at per-action level (publisher needs Stripe
+              // Connect to receive payouts). Disabled with hover-tooltip
+              // surfacing the gate when !stripeConnected, instead of being
+              // hidden entirely from the strip.
+              {
+                icon: Handshake,
+                label: "Issue archive license",
+                onClick: () => setArchiveModalOpen(true),
+                disabled: !stripeConnected,
+                disabledHint: "Complete Stripe Connect to issue paid licenses",
+              },
               // Phase 5.1 (2026-04-30): "Update pricing" quick action
               { icon: UserPlus, label: "Invite team", onClick: () => navigate("/settings?tab=team") },
               {
@@ -554,6 +578,7 @@ export default function Dashboard() {
                 onClick={a.onClick}
                 disabled={a.disabled}
                 aria-label={a.label}
+                title={a.disabled && (a as { disabledHint?: string }).disabledHint ? (a as { disabledHint?: string }).disabledHint : undefined}
                 className="group flex items-center gap-3 bg-white rounded-xl border border-gray-200 hover:border-oxford/40 hover:shadow-popover shadow-popover transition-all px-4 py-3 text-left disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-9 h-9 rounded-lg bg-oxford-light text-oxford flex items-center justify-center shrink-0 group-hover:bg-oxford group-hover:text-white transition-colors">
