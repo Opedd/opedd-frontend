@@ -42,6 +42,39 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      # Pre-flight: assert all required secrets are non-empty BEFORE running
+      # the suite. Phase 11 close-validation Wave 3 fix — pre-Wave-3 the
+      # fixture's `getAdminClient()` threw at test-runtime when SUPABASE_URL /
+      # SUPABASE_SERVICE_ROLE_KEY were unset, which produced 4× retried
+      # cryptic failures + auto-filed misleading GitHub issues. Failing here
+      # surfaces "secret X is missing" as the literal error message.
+      - name: Pre-flight env check
+        env:
+          PLAYWRIGHT_BASE_URL: https://opedd.com
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          TEST_BEEHIIV_API_KEY: ${{ secrets.TEST_BEEHIIV_API_KEY }}
+          TEST_BEEHIIV_PUB_ID: ${{ secrets.TEST_BEEHIIV_PUB_ID }}
+          TEST_GHOST_SITE_URL: ${{ secrets.TEST_GHOST_SITE_URL }}
+          TEST_GHOST_ADMIN_API_KEY: ${{ secrets.TEST_GHOST_ADMIN_API_KEY }}
+          TEST_SUBSTACK_URL: ${{ secrets.TEST_SUBSTACK_URL }}
+        run: |
+          missing=()
+          for var in PLAYWRIGHT_BASE_URL SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY \
+                     SUPABASE_ANON_KEY TEST_BEEHIIV_API_KEY TEST_BEEHIIV_PUB_ID \
+                     TEST_GHOST_SITE_URL TEST_GHOST_ADMIN_API_KEY TEST_SUBSTACK_URL; do
+            if [ -z "${!var}" ]; then
+              missing+=("$var")
+            fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::E2E pre-flight: the following GitHub Actions secrets are unset (or empty): ${missing[*]}"
+            echo "::error::Set them at https://github.com/${{ github.repository }}/settings/secrets/actions and re-run."
+            exit 1
+          fi
+          echo "Pre-flight OK — all 9 required secrets present."
+
       - name: Run E2E suite against production
         env:
           PLAYWRIGHT_BASE_URL: https://opedd.com
@@ -87,10 +120,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Note: --label intentionally omitted. Pre-Wave-3 used
+          # `--label "e2e-failure,priority:high"` but those labels don't exist
+          # in the repo, which caused `gh issue create` to error out and the
+          # issue was never filed. If founder wants labels, pre-create them
+          # via `gh label create e2e-failure --color B60205` and re-add the
+          # --label flag here.
           gh issue create \
             --repo "${{ github.repository }}" \
-            --title "E2E behavioral test failure — $(date +%Y-%m-%d)" \
-            --label "e2e-failure,priority:high" \
+            --title "[E2E][BLOCKER] Behavioral test failure — $(date +%Y-%m-%d)" \
             --body "Phase 11.5 E2E suite failed on scheduled cron run.
 
           - **Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
