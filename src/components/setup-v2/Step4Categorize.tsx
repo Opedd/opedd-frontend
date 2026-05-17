@@ -572,10 +572,29 @@ export function Step4Categorize() {
                   <Input
                     id="annual-price"
                     type="number"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    data-form-type="other"
+                    name="opedd-price-annual"
                     min="0"
                     step="100"
                     value={annualPrice}
-                    onChange={(e) => setAnnualPrice(e.target.value)}
+                    onChange={(e) => {
+                      // Phase 11 close-validation pass UX-3 (2026-05-17):
+                      // diagnostic breadcrumb to catch any external mutation
+                      // source (browser autofill, password manager,
+                      // accessibility extension) replacing user input.
+                      if (e.target.value !== annualPrice && annualPrice && e.target.value !== "" &&
+                          Math.abs(Number(e.target.value) - Number(annualPrice)) / (Number(annualPrice) || 1) > 0.02) {
+                        Sentry.addBreadcrumb({
+                          category: "step4-categorize",
+                          level: "warning",
+                          message: "annualPrice changed by >2%; possible autofill/extension injection",
+                          data: { from: annualPrice, to: e.target.value },
+                        });
+                      }
+                      setAnnualPrice(e.target.value);
+                    }}
                     disabled={submitting}
                     placeholder={String(PLACEHOLDER_ANNUAL)}
                     className="mt-1"
@@ -592,10 +611,25 @@ export function Step4Categorize() {
                 <Input
                   id="ai-per-article"
                   type="number"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  data-form-type="other"
+                  name="opedd-price-ai"
                   min="0"
                   step="0.01"
                   value={aiPerArticle}
-                  onChange={(e) => setAiPerArticle(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value !== aiPerArticle && aiPerArticle && e.target.value !== "" &&
+                        Math.abs(Number(e.target.value) - Number(aiPerArticle)) / (Number(aiPerArticle) || 1) > 0.02) {
+                      Sentry.addBreadcrumb({
+                        category: "step4-categorize",
+                        level: "warning",
+                        message: "aiPerArticle changed by >2%; possible autofill/extension injection",
+                        data: { from: aiPerArticle, to: e.target.value },
+                      });
+                    }
+                    setAiPerArticle(e.target.value);
+                  }}
                   disabled={submitting}
                   placeholder={String(PLACEHOLDER_AI_PER_ARTICLE)}
                   className="mt-1"
@@ -611,10 +645,25 @@ export function Step4Categorize() {
                 <Input
                   id="human-per-article"
                   type="number"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  data-form-type="other"
+                  name="opedd-price-human"
                   min="0"
                   step="0.01"
                   value={humanPerArticle}
-                  onChange={(e) => setHumanPerArticle(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value !== humanPerArticle && humanPerArticle && e.target.value !== "" &&
+                        Math.abs(Number(e.target.value) - Number(humanPerArticle)) / (Number(humanPerArticle) || 1) > 0.02) {
+                      Sentry.addBreadcrumb({
+                        category: "step4-categorize",
+                        level: "warning",
+                        message: "humanPerArticle changed by >2%; possible autofill/extension injection",
+                        data: { from: humanPerArticle, to: e.target.value },
+                      });
+                    }
+                    setHumanPerArticle(e.target.value);
+                  }}
                   disabled={submitting}
                   placeholder={String(PLACEHOLDER_HUMAN_PER_ARTICLE)}
                   className="mt-1"
