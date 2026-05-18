@@ -89,41 +89,33 @@ test.describe.serial("Bug #1 — empty-file import false-success regression guar
       buffer: Buffer.from(emptyCsv),
     });
 
-    // Wait for the upload to complete and SOME result to render. The
-    // surface is one of:
-    //   - amber: "No rows found" heading
-    //   - green: "Import complete" heading (pre-fix bug shape)
-    //   - red:   "Import failed" banner (network or auth failure)
-    await expect(async () => {
-      const hasAnyResult = await page.evaluate(() => {
-        const text = document.body.innerText;
-        return (
-          text.includes("No rows found") ||
-          text.includes("Import complete") ||
-          text.includes("Import failed")
-        );
-      });
-      expect(hasAnyResult).toBe(true);
-    }).toPass({ timeout: 15_000 });
+    // Use data-testid-anchored locators for the result banners to avoid
+    // strict-mode ambiguity with the toast notifications, which contain
+    // the same copy text. Toast + banner co-exist briefly on render; the
+    // banner is the permanent UI surface this test guards.
+    const emptyBanner = page.locator('[data-testid="import-result-banner-empty"]');
+    const completeBanner = page.locator('[data-testid="import-result-banner-complete"]');
 
-    // Positive assertion: amber "No rows found" banner present.
+    // Positive assertion: amber empty banner present (permanent UI surface).
     await expect(
-      page.getByText(/No rows found/i),
-      "Empty CSV must render the distinct 'No rows found' empty state — " +
-        "the three-state invariant (complete / empty / failed) requires " +
-        "0/0/0 to be visually distinct from non-empty success.",
-    ).toBeVisible({ timeout: 5_000 });
+      emptyBanner,
+      "Empty CSV must render the distinct 'No rows found' empty state " +
+        "(data-testid='import-result-banner-empty') — the three-state " +
+        "invariant (complete / empty / failed) requires 0/0/0 to be " +
+        "visually distinct from non-empty success.",
+    ).toBeVisible({ timeout: 15_000 });
 
-    // Negative assertion: green "Import complete" banner ABSENT.
+    // Negative assertion: green complete banner ABSENT.
     // This is the load-bearing regression guard — pre-fix this assertion
     // fails because the green banner renders unconditionally when
     // `result` is truthy.
     await expect(
-      page.getByText(/Import complete/i),
-      "Empty CSV must NOT render the green 'Import complete' banner. " +
-        "Pre-fix bug: Import.tsx:204-223 (and SubstackImportCard.tsx:199-213) " +
-        "render success state unconditionally on a truthy result envelope, " +
-        "even when imported+skipped+errors=0.",
+      completeBanner,
+      "Empty CSV must NOT render the green 'Import complete' banner " +
+        "(data-testid='import-result-banner-complete'). Pre-fix bug: " +
+        "Import.tsx:204-223 (and SubstackImportCard.tsx:199-213) render " +
+        "success state unconditionally on a truthy result envelope, even " +
+        "when imported+skipped+errors=0.",
     ).not.toBeVisible();
   });
 });

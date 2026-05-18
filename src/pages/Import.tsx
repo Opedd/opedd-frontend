@@ -233,7 +233,10 @@ export default function Import() {
             // future regression cannot quietly re-introduce the
             // false-success state.
             return (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+              <div
+                data-testid="import-result-banner-empty"
+                className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3"
+              >
                 <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div className="text-sm text-amber-900">
                   <p className="font-medium">No rows found</p>
@@ -257,7 +260,10 @@ export default function Import() {
           // COMPLETE state — at least one row was processed (imported,
           // skipped with reason, OR errored). Existing green banner.
           return (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+            <div
+              data-testid="import-result-banner-complete"
+              className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3"
+            >
               <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
               <div className="text-sm text-green-900">
                 <p className="font-medium">Import complete</p>
