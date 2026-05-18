@@ -83,10 +83,27 @@ export default function SetupV2() {
   if (!wizard.state) return <FullPageSpinner />;
 
   // ─── Phase 11 M7.1 — add-newsletter mode dispatch ──────────────
-  // Verified publisher + valid query string → render Step2<Platform>
-  // directly with onCompletionRedirect. Bypasses Step1 (platform
-  // pre-selected) + Step3 WowMoment (already seen).
-  if (addNewsletterPlatform && wizard.setupState === "verified") {
+  // Verified-content-source publisher + valid query string → render
+  // Step2<Platform> directly with onCompletionRedirect. Bypasses Step1
+  // (platform pre-selected) + Step3 WowMoment (already seen).
+  //
+  // Phase 11 M7.1.1 follow-on fix (2026-05-18 — Rule 18 sweep):
+  // gate broadened from `setupState === "verified"` (Stripe-coupled)
+  // to "any state that has at least one verified content_source" —
+  // i.e., any non-prospect non-suspended state. The Dashboard card's
+  // visibility gate (Dashboard.tsx:362) uses `verificationStatus ===
+  // "verified"` per the M7.1.1 invariant; this dispatch's gate must
+  // honor the same semantic. Pre-fix bug: a `connected` publisher
+  // (post-Stripe, pre-auto-verify cron) clicking the card hit the
+  // TerminalState fall-through at :112 and bounced back to Dashboard.
+  // See INVARIANTS.md:764 "Multi-newsletter management is NOT gated
+  // on payout setup" + m7.1-audit-retrospective.md "M7.1.1 follow-on
+  // miss" section for the origin story.
+  if (
+    addNewsletterPlatform &&
+    wizard.setupState !== "prospect" &&
+    wizard.setupState !== "suspended"
+  ) {
     if (addNewsletterPlatform === "substack") {
       return <Step2Substack onCompletionRedirect={handleAddNewsletterComplete} />;
     }
