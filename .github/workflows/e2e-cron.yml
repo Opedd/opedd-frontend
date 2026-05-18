@@ -50,6 +50,32 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      # Capture the PRIOR completed run's conclusion so we can gate alerting
+      # on green→red transitions (not every red continuation). Without this
+      # gate, every failed cron tick auto-files a fresh `[E2E][BLOCKER]`
+      # issue + emails the founder, even when the current red is just a
+      # continuation of an already-known broken state. Phase 11.5 founder
+      # ratification 2026-05-18: alerting should fire on initial failure
+      # and recovery only — silence the steady-state red.
+      #
+      # `--status completed` excludes this in-progress run; `--limit 1`
+      # returns the most-recent completed run on main. Fallback "none"
+      # for the bootstrap case (workflow has no prior runs).
+      - name: Capture prior run conclusion (for alert-gating)
+        id: prior_run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRIOR=$(gh run list \
+            --workflow="${{ github.workflow }}" \
+            --branch main \
+            --status completed \
+            --limit 1 \
+            --json conclusion \
+            --jq '.[0].conclusion // "none"')
+          echo "conclusion=$PRIOR" >> "$GITHUB_OUTPUT"
+          echo "Prior run conclusion: $PRIOR (will gate alerting on this)"
+
       # Pre-flight: assert all required secrets are non-empty BEFORE running
       # the suite. Phase 11 close-validation Wave 3 fix — pre-Wave-3 the
       # fixture's `getAdminClient()` threw at test-runtime when SUPABASE_URL /
@@ -122,8 +148,16 @@ jobs:
       # channel with fragile DSN-shape dependency adds maintenance cost
       # without adding signal (Phase 11.5 first-real-run diagnosis).
 
-      - name: Auto-file GitHub issue on failure
-        if: failure()
+      # Alerting policy (2026-05-18):
+      #   green→red (initial failure):       file new issue + notify founder
+      #   red→red   (steady-state failure):  silent — existing issue covers it
+      #   red→green (recovery):              close any open `[E2E][BLOCKER]`
+      #                                      issues with a recovery comment
+      #   green→green:                       no alerting work
+      # This matches the founder's "stop emailing for runs already superseded"
+      # request and surfaces real transitions only.
+      - name: Auto-file GitHub issue on failure (green→red transition only)
+        if: failure() && steps.prior_run.outputs.conclusion == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -145,3 +179,29 @@ jobs:
           Artifacts (Playwright report + traces) uploaded to the run. Per CLAUDE.md Rule 14, milestone closure is invalid until E2E suite passes; this issue is a hard blocker.
 
           Auto-filed by .github/workflows/e2e-cron.yml."
+
+      - name: Close open E2E blocker issues on recovery (red→green transition)
+        if: success() && steps.prior_run.outputs.conclusion == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Recovery signal — if the prior run was red and this run is green,
+          # close any open `[E2E][BLOCKER]` issues with a comment pointing at
+          # the green run that resolved the state. Founder gets a positive
+          # "closed" notification instead of silence-then-confusion.
+          OPEN_NUMS=$(gh issue list \
+            --repo "${{ github.repository }}" \
+            --state open \
+            --search "E2E BLOCKER in:title" \
+            --json number \
+            --jq '.[].number')
+          if [ -z "$OPEN_NUMS" ]; then
+            echo "No open [E2E][BLOCKER] issues to close."
+            exit 0
+          fi
+          for num in $OPEN_NUMS; do
+            echo "Closing issue #$num (resolved by green run ${{ github.run_id }})"
+            gh issue close "$num" \
+              --repo "${{ github.repository }}" \
+              --comment "Resolved by green run ${{ github.run_id }}: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          done
