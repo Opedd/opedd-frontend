@@ -39,10 +39,16 @@ export default function Import() {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  // Bug #2.3 (2026-05-18) — errors is string[], not number. Backend
+  // returns per-row skip-reason strings in data.errors[] (e.g.
+  // "Row 3: invalid published_at format", "Row 7: duplicate source_url").
+  // Pre-fix we collapsed errors into a length count, so the publisher
+  // saw "0 errors" but had no signal on WHY rows were skipped. The
+  // banner now surfaces the strings inline.
   const [result, setResult] = useState<{
     imported: number;
     skipped: number;
-    errors: number;
+    errors: string[];
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -78,25 +84,30 @@ export default function Import() {
           );
         }
 
-        const imported =
-          typeof (body as { imported?: number }).imported === "number"
-            ? (body as { imported: number }).imported
-            : 0;
-        const skipped =
-          typeof (body as { skipped?: number }).skipped === "number"
-            ? (body as { skipped: number }).skipped
-            : 0;
-        const errorsLen = Array.isArray((body as { errors?: unknown[] }).errors)
-          ? (body as { errors: unknown[] }).errors.length
-          : 0;
+        // Bug #2.2 fix (2026-05-18) — substack-upload returns a
+        // {success, data} envelope per the response-envelope helper
+        // contract; counts live at body.data.X, NOT body.X. Pre-fix we
+        // read body.imported (undefined) → fallback 0 → Bug #1's
+        // three-state pattern rendered amber "No rows found" even
+        // when the backend had successfully inserted N rows.
+        const envelope = body as { data?: Record<string, unknown> };
+        const data = (envelope.data ?? body) as Record<string, unknown>;
 
-        setResult({ imported, skipped, errors: errorsLen });
+        const imported = typeof data.imported === "number" ? data.imported : 0;
+        const skipped = typeof data.skipped === "number" ? data.skipped : 0;
+        const errors = Array.isArray(data.errors)
+          ? (data.errors as unknown[]).filter(
+              (e): e is string => typeof e === "string",
+            )
+          : [];
+
+        setResult({ imported, skipped, errors });
         // Bug #1 fix (2026-05-18) — three-state toast: complete / empty /
         // failed. When the backend returns 200 but with 0/0/0 counts, the
         // request succeeded but no user-meaningful work happened. Surface
         // a distinct empty-state copy instead of "Import complete" which
         // implies success.
-        const totalProcessed = imported + skipped + errorsLen;
+        const totalProcessed = imported + skipped + errors.length;
         if (totalProcessed === 0) {
           toast({
             title: "No rows found",
@@ -106,7 +117,7 @@ export default function Import() {
         } else {
           toast({
             title: "Import complete",
-            description: `${imported} imported, ${skipped} skipped, ${errorsLen} errors.`,
+            description: `${imported} imported, ${skipped} skipped, ${errors.length} errors.`,
           });
         }
       } catch (err) {
@@ -223,7 +234,7 @@ export default function Import() {
           // the green success state otherwise. Failed state (red) is
           // surfaced separately via errorMessage at this surface's
           // catch branch.
-          const totalProcessed = result.imported + result.skipped + result.errors;
+          const totalProcessed = result.imported + result.skipped + result.errors.length;
 
           if (totalProcessed === 0) {
             // EMPTY state — request succeeded but file produced no rows.
@@ -258,7 +269,9 @@ export default function Import() {
           }
 
           // COMPLETE state — at least one row was processed (imported,
-          // skipped with reason, OR errored). Existing green banner.
+          // skipped with reason, OR errored). Bug #2.3: surface
+          // per-row skip-reason strings under the counts so the
+          // publisher can see WHY rows didn't import.
           return (
             <div
               data-testid="import-result-banner-complete"
@@ -270,8 +283,18 @@ export default function Import() {
                 <p className="mt-1">
                   <strong>{result.imported}</strong> imported,{" "}
                   <strong>{result.skipped}</strong> skipped,{" "}
-                  <strong>{result.errors}</strong> errors.
+                  <strong>{result.errors.length}</strong> errors.
                 </p>
+                {result.errors.length > 0 && (
+                  <ul
+                    data-testid="import-result-errors-list"
+                    className="mt-2 list-disc pl-5 text-xs text-green-800 space-y-0.5 max-h-40 overflow-y-auto"
+                  >
+                    {result.errors.map((errMsg, i) => (
+                      <li key={i}>{errMsg}</li>
+                    ))}
+                  </ul>
+                )}
                 <Button
                   variant="link"
                   className="px-0 mt-1 text-green-900 underline"
