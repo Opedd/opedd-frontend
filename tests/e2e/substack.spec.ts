@@ -88,11 +88,10 @@ test.describe.serial("Substack onboarding E2E", () => {
     if (FORCE_FAIL === "substack-cron") expect(false, "E2E_FORCE_FAIL=substack-cron").toBe(true);
 
     // Validates Migration 124 was applied — Bug #6 closure check.
-    const admin = getAdminClient();
-    const { data, error } = await admin.rpc("audit_schema_inventory").catch(() => ({ data: null, error: null }));
-    // If RPC unavailable, fall back to direct cron.job query via a service-role wrapper
-    // (Supabase REST doesn't expose cron schema; query via supabase-js SQL not avail
-    // either — best-effort check by ensuring the edge function responds 200/401).
+    // Supabase REST doesn't expose the cron schema and supabase-js can't run
+    // arbitrary SQL, so we probe the edge function's deployment state directly:
+    // a 200/401/4xx response confirms the function is deployed; a 404 means
+    // Migration 124 either didn't apply or the function was retired.
     const probe = await fetch(`${API_BASE}/process-substack-rss-poll`, {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""}` },

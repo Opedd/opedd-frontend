@@ -163,7 +163,13 @@ export async function createTestPublisher(
       name: `E2E ${spec} ${timestamp}`,
       contact_email: email,
       plan: "free",
-      setup_state: "prospect",
+      // setup_state must be "in_setup" — verify-ownership/index.ts:221
+      // hard-fails with 422 WIZARD_STATE_INCOMPATIBLE on any other state.
+      // "prospect" is the pre-wizard state; the wizard transitions to
+      // "in_setup" after step 1 (platform selection). E2E specs skip the
+      // wizard UI and call /verify-ownership directly, so the fixture must
+      // pre-place state where verify-ownership expects it.
+      setup_state: "in_setup",
       setup_step: 1,
       setup_complete: false,
       setup_data: setupData,

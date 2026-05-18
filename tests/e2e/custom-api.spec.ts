@@ -35,16 +35,31 @@ test.describe.serial("Custom API onboarding E2E", () => {
     await cleanupStaleE2EPublishers();
     publisher = await createTestPublisher("customapi", { platform: "api" });
 
-    // Issue an opedd_pub_* API key via service-role direct insert
-    // (mimics publishers-api-keys create_api_key action).
+    // Issue an opedd_pub_* API key via service-role direct insert into
+    // publisher_api_keys. /publishers-content authenticates via
+    // authenticatePublisherApiKey (_shared/auth.ts:108+) which requires
+    // a token starting with "opedd_pub_" — session JWTs are explicitly
+    // rejected (line 116 returns "Invalid token format"). The hash shape
+    // (SHA-256 hex) and key_prefix shape (first 12 chars) match the
+    // canonical pattern in _shared/auth.ts:120-128 + migration 101.
     const admin = getAdminClient();
     const keyToken = `opedd_pub_test_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
-    // We'll use SUPABASE_SERVICE_ROLE_KEY directly for the POST since the
-    // E2E path doesn't strictly need a real opedd_pub_* — the publisher
-    // row IS authorized via auth user. But to test the full Custom API
-    // surface, we use the publisher's session JWT.
-    publisherApiKey = publisher.accessToken; // session JWT works at /publishers-content auth boundary
-    void keyToken; // reserved for future real-key path
+    const encoder = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(keyToken));
+    const keyHashHex = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    const { error: keyErr } = await admin.from("publisher_api_keys").insert({
+      publisher_id: publisher.publisherId,
+      key_prefix: keyToken.slice(0, 12),
+      key_hash: keyHashHex,
+      environment: "test",
+      name: `E2E customapi ${Date.now()}`,
+    });
+    if (keyErr) {
+      throw new Error(`[e2e customapi] publisher_api_keys insert failed: ${keyErr.message}`);
+    }
+    publisherApiKey = keyToken;
   });
 
   test.afterAll(async () => {
