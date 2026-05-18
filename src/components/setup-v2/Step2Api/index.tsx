@@ -58,11 +58,29 @@ export function Step2Api() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
   const submittingRef = useRef(false);
+  // Phase 11.5 Step 9 Q3 follow-on (2026-05-18) — probe-race guard.
+  // Set to true inside handleSubmit AFTER createApiKey succeeds and
+  // BEFORE wizard.saveStepData propagates the api_key_id into setup_data.
+  // The mount-resume probe below depends on setupDataAuth.api_key_id;
+  // without this guard, saveStepData populating api_key_id mid-render
+  // would fire the probe, which would overwrite successData mode='fresh'
+  // with mode='resume_stale' → SuccessView.tsx:73-77 auto-triggerAdvance
+  // → wizard advances Step 2 → Step 3 → SuccessView unmounts before the
+  // publisher copies the key. Sibling-of-Fix-B miss (M7.1.1 invariant
+  // class: don't conflate "key exists in setup_data" with "publisher
+  // is in resume mode"). See INVARIANTS.md Phase 9.4 reversion entry
+  // for the cross-reference.
+  const justSubmittedInSessionRef = useRef(false);
 
   // Mount-resume probe: if setup_data.api_key_id is present, verify a
   // matching non-revoked key still exists. If so, skip to SuccessView
   // mode='resume_stale' (no plaintext available).
   useEffect(() => {
+    // Skip the probe entirely when the publisher just submitted in this
+    // session — they're looking at the fresh-reveal SuccessView with
+    // their plaintext key; the saveStepData call that populated api_key_id
+    // is what triggered this useEffect, not a genuine resume case.
+    if (justSubmittedInSessionRef.current) return;
     if (!setupDataAuth.api_key_id) return;
     let cancelled = false;
     (async () => {
@@ -116,6 +134,12 @@ export function Step2Api() {
       );
 
       if (requestId !== requestIdRef.current) return;
+
+      // Probe-race guard (see useRef declaration above). Must be set
+      // BEFORE saveStepData runs — saveStepData's wizard-hook cache
+      // update propagates synchronously into setupDataAuth.api_key_id
+      // and would otherwise fire the mount-resume probe mid-render.
+      justSubmittedInSessionRef.current = true;
 
       try {
         await wizard.saveStepData({
