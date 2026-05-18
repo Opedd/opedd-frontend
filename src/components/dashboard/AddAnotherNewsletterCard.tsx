@@ -5,8 +5,10 @@ import type { PlatformId } from "@/components/setup-v2/Step1Platform";
 /**
  * Phase 11 M7.1 — Add Another Newsletter card.
  *
- * Visible on Dashboard for verified publishers on beehiiv / ghost /
- * substack platforms. Each button deep-links to:
+ * Visible on Dashboard for verified publishers across all 4 onboarding
+ * paths (Beehiiv / Ghost / Substack / Custom API). The card always shows
+ * THREE platform-native buttons: + Beehiiv / + Ghost / + Substack. Each
+ * deep-links to:
  *   /setup-v2?mode=add-newsletter&platform=<beehiiv|ghost|substack>
  *
  * SetupV2 reads the query string and renders Step2<Platform> directly,
@@ -21,26 +23,53 @@ import type { PlatformId } from "@/components/setup-v2/Step1Platform";
  * correctly when called with a different pub_id / site_url / URL. Each
  * new newsletter creates a new content_sources row + new
  * platform_archive_jobs row under the SAME publishers row. No backend
- * changes shipped in M7.1.
+ * changes shipped in M7.1. verify-ownership has NO gate on the
+ * publisher's initial `setup_data.platform` — any verified publisher
+ * can submit a `method=platform_native_api` call for any of the 3
+ * platforms, regardless of which path they originally onboarded with.
+ *
+ * No "+ Custom API" button by design (2026-05-18 Q1 verdict): Custom
+ * API is an account-level ingestion METHOD, not a per-publication
+ * content_source. There's no `content_source_id` column on the
+ * `licenses` table; `publishers-content` keys articles on
+ * `publisher_id + source_url`. A "+ Custom API" button would have no
+ * honest target action — Custom API publishers already have an
+ * account-level API key from Step2Api / Settings → Developer and
+ * push more content via existing surfaces (raw HTTP / CSV upload /
+ * Opedd-team migration script). See `opedd-docs/managed-ingestion.md`
+ * for the canonical Custom API surface design + the three v1 ingestion
+ * surfaces.
  *
  * Display rules:
- *   - Custom API platform → no card (Custom API publishers use
- *     /dashboard/import for additional content streams; M7.2 surface).
+ *   - Verified publisher on ANY of the 4 onboarding paths
+ *     (beehiiv/ghost/substack/api) → render card with 3 platform-native
+ *     buttons. Phase 11.5 inverse-asymmetry fix (2026-05-18 Q2):
+ *     api-origin publishers previously had the card hidden entirely.
+ *     Founder ratification: a Custom-API-origin publisher should be
+ *     able to add a Beehiiv newsletter via Dashboard (cross-category
+ *     onboarding). Backend already supports it.
  *   - Unverified publisher → no card (handled by parent guard in
- *     Dashboard.tsx).
+ *     Dashboard.tsx:362, `verificationStatus === "verified"`).
  *   - Unknown platform value → no card (defensive).
  */
 interface AddAnotherNewsletterCardProps {
-  /** Current platform per setup_data.platform — drives which buttons
-   * surface. Custom API ("api") hides the card. */
+  /** Current platform per setup_data.platform — present for visibility
+   * defensive-check only. All 4 onboarding paths render the same 3
+   * platform-native buttons. */
   platform: PlatformId | null;
 }
 
 export function AddAnotherNewsletterCard({ platform }: AddAnotherNewsletterCardProps) {
-  // Card only meaningful for the 3 platform-native paths. Custom API
-  // publishers add additional content streams via /dashboard/import
-  // (M7.2 surface), not via the wizard re-entry pattern.
-  if (platform !== "beehiiv" && platform !== "ghost" && platform !== "substack") {
+  // Defensive: render only for the 4 known onboarding paths. Unknown
+  // platform values (legacy data, future paths not yet wizard-supported)
+  // hide the card. The parent gate at Dashboard.tsx:362 already enforces
+  // `verificationStatus === "verified"` — this is the secondary defense.
+  if (
+    platform !== "beehiiv" &&
+    platform !== "ghost" &&
+    platform !== "substack" &&
+    platform !== "api"
+  ) {
     return null;
   }
 
