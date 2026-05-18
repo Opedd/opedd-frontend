@@ -128,11 +128,19 @@ test.describe.serial("Bug #3 — directory paginate-then-filter regression guard
       `/publisher-directory must respond 200; got ${response.status}`,
     ).toBe(200);
 
-    const body = (await response.json()) as {
-      publishers?: Array<{ id: string; name: string; article_count: number }>;
-      full_count?: number;
-      total?: number;
+    // Envelope unwrap: backend returns { success: true, data: { publishers, total, full_count, ... } }.
+    // Same envelope shape as Bug #2's substack-upload response — Bug #2.2's
+    // fix taught us to never read body.X when the canonical _shared/cors.ts
+    // successResponse wraps in body.data.X.
+    const envelope = (await response.json()) as {
+      success: boolean;
+      data?: {
+        publishers?: Array<{ id: string; name: string; article_count: number }>;
+        full_count?: number;
+        total?: number;
+      };
     };
+    const body = envelope.data ?? {};
 
     // Assertion #1 — articled publisher MUST appear in the response.
     // Pre-fix this fails: empty publishers dominate positions 0..4 in
