@@ -91,10 +91,24 @@ export default function Import() {
           : 0;
 
         setResult({ imported, skipped, errors: errorsLen });
-        toast({
-          title: "Import complete",
-          description: `${imported} imported, ${skipped} skipped, ${errorsLen} errors.`,
-        });
+        // Bug #1 fix (2026-05-18) — three-state toast: complete / empty /
+        // failed. When the backend returns 200 but with 0/0/0 counts, the
+        // request succeeded but no user-meaningful work happened. Surface
+        // a distinct empty-state copy instead of "Import complete" which
+        // implies success.
+        const totalProcessed = imported + skipped + errorsLen;
+        if (totalProcessed === 0) {
+          toast({
+            title: "No rows found",
+            description:
+              "We received your file but found no data rows. Check that your CSV has a header row plus at least one data row.",
+          });
+        } else {
+          toast({
+            title: "Import complete",
+            description: `${imported} imported, ${skipped} skipped, ${errorsLen} errors.`,
+          });
+        }
       } catch (err) {
         Sentry.captureException(err, { tags: { surface: "dashboard-import" } });
         const msg = err instanceof Error ? err.message : "Upload failed.";
@@ -201,26 +215,68 @@ export default function Import() {
           </div>
         </div>
 
-        {result && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
-            <div className="text-sm text-green-900">
-              <p className="font-medium">Import complete</p>
-              <p className="mt-1">
-                <strong>{result.imported}</strong> imported,{" "}
-                <strong>{result.skipped}</strong> skipped,{" "}
-                <strong>{result.errors}</strong> errors.
-              </p>
-              <Button
-                variant="link"
-                className="px-0 mt-1 text-green-900 underline"
-                onClick={() => navigate("/dashboard")}
-              >
-                Return to Dashboard
-              </Button>
+        {result && (() => {
+          // Bug #1 fix (2026-05-18) — three-state invariant. A truthy
+          // result envelope means "HTTP request succeeded," which is
+          // distinct from "user-meaningful work happened." Render the
+          // amber empty state when all three counts are zero; render
+          // the green success state otherwise. Failed state (red) is
+          // surfaced separately via errorMessage at this surface's
+          // catch branch.
+          const totalProcessed = result.imported + result.skipped + result.errors;
+
+          if (totalProcessed === 0) {
+            // EMPTY state — request succeeded but file produced no rows.
+            // Common causes: header-only file, no data rows, parser
+            // skipped all rows for upstream reasons (Bug #2 territory).
+            // The amber banner must NOT show the green checkmark, so a
+            // future regression cannot quietly re-introduce the
+            // false-success state.
+            return (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-900">
+                  <p className="font-medium">No rows found</p>
+                  <p className="mt-1">
+                    We received your file but found no data rows to import.
+                    Check that your CSV has a header row plus at least one
+                    data row.
+                  </p>
+                  <Button
+                    variant="link"
+                    className="px-0 mt-1 text-amber-900 underline"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    Return to Dashboard
+                  </Button>
+                </div>
+              </div>
+            );
+          }
+
+          // COMPLETE state — at least one row was processed (imported,
+          // skipped with reason, OR errored). Existing green banner.
+          return (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
+              <div className="text-sm text-green-900">
+                <p className="font-medium">Import complete</p>
+                <p className="mt-1">
+                  <strong>{result.imported}</strong> imported,{" "}
+                  <strong>{result.skipped}</strong> skipped,{" "}
+                  <strong>{result.errors}</strong> errors.
+                </p>
+                <Button
+                  variant="link"
+                  className="px-0 mt-1 text-green-900 underline"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  Return to Dashboard
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {errorMessage && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">

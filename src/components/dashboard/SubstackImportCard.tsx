@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { EXT_SUPABASE_REST, EXT_ANON_KEY } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Upload, CheckCircle, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import substackLogo from "@/assets/platforms/substack.svg";
 import { Spinner } from "@/components/ui/Spinner";
@@ -125,14 +125,29 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
 
+      // Bug #1 fix (2026-05-18) — three-state toast: complete / empty /
+      // failed. Substack ZIP imports can also yield 0/0/0 (ZIP without
+      // posts.csv data rows, or all rows skipped by parser). Show
+      // distinct empty-state copy rather than "Import complete: 0
+      // articles" which implies success.
       const totalProcessed = successData.imported + successData.updated;
-      toast({
-        title: `Import complete: ${totalProcessed} article${totalProcessed === 1 ? "" : "s"}`,
-        description:
-          successData.errored > 0
-            ? `${successData.errored} article${successData.errored === 1 ? "" : "s"} couldn't be imported.`
-            : undefined,
-      });
+      const totalAccounted =
+        totalProcessed + successData.errored;
+      if (totalAccounted === 0) {
+        toast({
+          title: "No posts found",
+          description:
+            "We received your file but found no posts to import. Check that your Substack ZIP contains posts.csv + at least one HTML body.",
+        });
+      } else {
+        toast({
+          title: `Import complete: ${totalProcessed} article${totalProcessed === 1 ? "" : "s"}`,
+          description:
+            successData.errored > 0
+              ? `${successData.errored} article${successData.errored === 1 ? "" : "s"} couldn't be imported.`
+              : undefined,
+        });
+      }
 
       onImportComplete?.();
     } catch (err) {
@@ -195,22 +210,47 @@ export function SubstackImportCard({ onImportComplete }: SubstackImportCardProps
         </div>
       )}
 
-      {/* Success banner */}
-      {result && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-3">
-          <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
-            <CheckCircle size={14} className="text-emerald-600 flex-shrink-0" />
-            ✓ Import complete: {result.imported + result.updated} article
-            {result.imported + result.updated === 1 ? "" : "s"} processed
-            {result.imported > 0 && ` (${result.imported} new)`}
+      {/* Result banner — three-state per Bug #1 fix (2026-05-18) */}
+      {result && (() => {
+        const totalProcessed = result.imported + result.updated;
+        const totalAccounted = totalProcessed + result.errored;
+
+        if (totalAccounted === 0) {
+          // EMPTY state — ZIP processed but no posts found
+          return (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+              <div className="flex items-start gap-2 text-sm text-amber-900">
+                <AlertTriangle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">No posts found</p>
+                  <p className="text-xs mt-1">
+                    We received your file but found no posts to import. Check
+                    that your Substack ZIP contains <code className="font-mono text-[10px] bg-amber-100 px-1 py-0.5 rounded">posts.csv</code> + at least one
+                    HTML body.
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // COMPLETE state — at least one row processed (imported, updated, or errored)
+        return (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-3">
+            <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
+              <CheckCircle size={14} className="text-emerald-600 flex-shrink-0" />
+              ✓ Import complete: {totalProcessed} article
+              {totalProcessed === 1 ? "" : "s"} processed
+              {result.imported > 0 && ` (${result.imported} new)`}
+            </div>
+            {result.errored > 0 && (
+              <p className="text-xs text-amber-600 mt-1 ml-6">
+                {result.errored} article{result.errored === 1 ? "" : "s"} couldn't be imported.
+              </p>
+            )}
           </div>
-          {result.errored > 0 && (
-            <p className="text-xs text-amber-600 mt-1 ml-6">
-              {result.errored} article{result.errored === 1 ? "" : "s"} couldn't be imported.
-            </p>
-          )}
-        </div>
-      )}
+        );
+      })()}
 
       {/* File picker + Import button */}
       <div className="flex items-center gap-3">
