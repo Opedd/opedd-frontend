@@ -160,3 +160,101 @@ test.describe.parallel("Multi-newsletter add-newsletter deep-link", () => {
     });
   }
 });
+
+/**
+ * Phase 11 M7.1 inverse-asymmetry coverage fix (2026-05-18, Q2):
+ *
+ * A Custom-API-origin publisher must also see the AddAnotherNewsletterCard
+ * on Dashboard with the 3 platform-native buttons (+ Beehiiv / + Ghost /
+ * + Substack). The card has NO "+ Custom API" button by design (Q1 verdict:
+ * Custom API is account-level, no per-publication content_source identity,
+ * a "+ Custom API" button would have no honest target action). But hiding
+ * the entire card for `platform="api"` publishers was an over-narrow gate.
+ *
+ * Backend invariants supporting cross-category multi-newsletter:
+ *   - content_sources is 1:N per publisher (INVARIANTS.md:752+); a publisher
+ *     can hold source_type='custom' AND source_type='beehiiv' rows
+ *     simultaneously without schema conflict.
+ *   - verify-ownership/index.ts has no gate on the publisher's initial
+ *     setup_data.platform — any verified publisher can submit a
+ *     `method=platform_native_api` for any of the 3 platforms.
+ *   - _shared/platform_native_api.ts upserts on (user_id, url); inserting
+ *     a new beehiiv row alongside an existing api row is a fresh insert.
+ *
+ * This test exercises the Dashboard-level rendering gate change (the
+ * frontend-only fix). Pre-fix: card hidden for api publishers → heading
+ * not visible. Post-fix: card visible with 3 buttons → all 4 assertions
+ * pass.
+ *
+ * NOT exercised here (deferred per active-deferrals.md "add-newsletter
+ * form-submit E2E"): actually clicking + Beehiiv as an api-origin
+ * publisher, submitting the Step2Beehiiv form, and asserting a 2nd
+ * content_sources row of source_type=beehiiv lands alongside the
+ * existing source_type=custom row. The routing dispatch is covered
+ * by the existing parametrized cases above (SetupV2.tsx:89 already
+ * accepts non-prospect/non-suspended publishers regardless of initial
+ * platform per today's Step 8 fix).
+ */
+test.describe.serial("Custom-API-origin publisher add-newsletter card visibility", () => {
+  let publisher: TestPublisher;
+
+  test.beforeAll(async () => {
+    await cleanupStaleE2EPublishers();
+    publisher = await createTestPublisher("multinewsletter-api-origin", {
+      platform: "api",
+    });
+    // Promote to verified state. For api-origin publishers, the "verified
+    // content_source" is a source_type='custom' row (mirrors what Phase 8.7
+    // verification-flip cascade produces when a real publisher issues their
+    // first opedd_pub_* key + ingests their first article).
+    const admin = getAdminClient();
+    await admin
+      .from("publishers")
+      .update({
+        setup_state: "verified",
+        setup_complete: true,
+        verification_status: "verified",
+        stripe_account_id: `acct_e2e_api_${Date.now()}`,
+        stripe_onboarding_complete: true,
+      })
+      .eq("id", publisher.publisherId);
+    await admin.from("content_sources").insert({
+      user_id: publisher.userId,
+      source_type: "custom",
+      url: `custom:e2e-api-origin-${Date.now()}`,
+      name: `E2E custom API source`,
+      is_active: true,
+      sync_status: "active",
+      verification_status: "verified",
+    });
+  });
+
+  test.afterAll(async () => {
+    if (publisher) await cleanupTestPublisher(publisher);
+  });
+
+  test("Dashboard renders AddAnotherNewsletterCard with 3 platform-native buttons for api-origin publisher", async ({
+    page,
+  }) => {
+    if (FORCE_FAIL === "multinewsletter-api-origin") {
+      expect(false, "E2E_FORCE_FAIL=multinewsletter-api-origin").toBe(true);
+    }
+
+    await injectSession(page, publisher);
+    await page.goto("/dashboard");
+
+    // Card heading visible — pre-fix this assertion fails because the
+    // component returns null for platform="api".
+    await expect(
+      page.getByRole("heading", { name: /Add another newsletter/i }),
+      "AddAnotherNewsletterCard must be visible to Custom-API-origin " +
+        "verified publishers per Phase 11 M7.1 inverse-asymmetry fix.",
+    ).toBeVisible({ timeout: 6000 });
+
+    // All 3 platform-native add-newsletter buttons present + clickable.
+    // No "+ Custom API" button — Q1 verdict: deliberate, no honest target.
+    await expect(page.getByRole("link", { name: /Beehiiv/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Ghost/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Substack/i })).toBeVisible();
+  });
+});
