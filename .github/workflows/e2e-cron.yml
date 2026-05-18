@@ -23,6 +23,14 @@ concurrency:
   group: e2e-${{ github.workflow }}
   cancel-in-progress: false  # Let each run finish; don't cancel mid-test
 
+# Required for the auto-file-GitHub-issue-on-failure step. Default GITHUB_TOKEN
+# lacks issues:write — without this, `gh issue create` returns
+# `GraphQL: Resource not accessible by integration (createIssue)` and the
+# failure channel is silent (Phase 11.5 first-real-run diagnosis 2026-05-18).
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -60,10 +68,15 @@ jobs:
           TEST_GHOST_ADMIN_API_KEY: ${{ secrets.TEST_GHOST_ADMIN_API_KEY }}
           TEST_SUBSTACK_URL: ${{ secrets.TEST_SUBSTACK_URL }}
         run: |
+          # TEST_SUBSTACK_URL intentionally omitted — substack.spec.ts:30
+          # defaults to "https://chinatalk.media" when the env var is unset,
+          # so empty is a valid configuration (use the default). Gating on it
+          # would reject the founder's intended "use the default" state
+          # (Phase 11.5 first-real-run diagnosis 2026-05-18).
           missing=()
           for var in PLAYWRIGHT_BASE_URL SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY \
                      SUPABASE_ANON_KEY TEST_BEEHIIV_API_KEY TEST_BEEHIIV_PUB_ID \
-                     TEST_GHOST_SITE_URL TEST_GHOST_ADMIN_API_KEY TEST_SUBSTACK_URL; do
+                     TEST_GHOST_SITE_URL TEST_GHOST_ADMIN_API_KEY; do
             if [ -z "${!var}" ]; then
               missing+=("$var")
             fi
@@ -73,7 +86,7 @@ jobs:
             echo "::error::Set them at https://github.com/${{ github.repository }}/settings/secrets/actions and re-run."
             exit 1
           fi
-          echo "Pre-flight OK — all 9 required secrets present."
+          echo "Pre-flight OK — all 8 required secrets present (TEST_SUBSTACK_URL optional, spec self-defaults)."
 
       - name: Run E2E suite against production
         env:
@@ -101,19 +114,13 @@ jobs:
           path: playwright-report
           retention-days: 30
 
-      - name: Notify Sentry on failure
-        if: failure()
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          if [ -n "$SENTRY_AUTH_TOKEN" ]; then
-            curl -X POST "https://sentry.io/api/0/organizations/opedd/monitors/e2e-cron/checkins/" \
-              -H "Authorization: DSN $SENTRY_AUTH_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d '{"status":"error","message":"Phase 11.5 E2E suite failed — see GitHub Actions run ${{ github.run_id }}"}'
-          else
-            echo "::warning::SENTRY_AUTH_TOKEN not set; skipping Sentry alert"
-          fi
+      # Sentry monitor check-in step removed 2026-05-18 — the auto-filed
+      # GitHub issue below is the single failure-alert channel. The Sentry
+      # monitors API requires a project DSN (not a personal auth token); the
+      # `Authorization: DSN <token>` shape was returning 401 every failure run
+      # ("Authentication credentials were not provided"). A second alert
+      # channel with fragile DSN-shape dependency adds maintenance cost
+      # without adding signal (Phase 11.5 first-real-run diagnosis).
 
       - name: Auto-file GitHub issue on failure
         if: failure()
