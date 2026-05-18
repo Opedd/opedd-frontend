@@ -265,6 +265,14 @@ export default function Settings() {
   const [freshKey, setFreshKey] = useState<{ plaintext_key: string; key_prefix: string; name?: string } | null>(null);
   const [freshKeyCopied, setFreshKeyCopied] = useState(false);
   const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
+  // Phase 11.5 Step 9 Q3 (2026-05-18) — revealed-key state for the
+  // re-display flow. Separate from `freshKey` so the dialog copy can
+  // accurately reflect "this key is encrypted-at-rest and you can
+  // re-reveal it any time" rather than the show-once warning.
+  const [revealedKey, setRevealedKey] = useState<{ plaintext_key: string; key_prefix: string } | null>(null);
+  const [revealedKeyCopied, setRevealedKeyCopied] = useState(false);
+  const [revealingKeyId, setRevealingKeyId] = useState<string | null>(null);
+  const [revealError, setRevealError] = useState<string | null>(null);
 
   // Webhooks state (canonical /publishers-webhooks; session-JWT carve-out)
   const [webhooks, setWebhooks] = useState<PublisherWebhookListItem[]>([]);
@@ -652,6 +660,60 @@ export default function Settings() {
       setFreshKeyCopied(true);
       setTimeout(() => setFreshKeyCopied(false), 2000);
       toast({ title: "Copied", description: "Save it now — it won't be shown again." });
+    } catch {
+      toast({ title: "Copy failed", description: "Select and copy manually.", variant: "destructive" });
+    }
+  };
+
+  // Phase 11.5 Step 9 Q3 (2026-05-18) — reveal an existing opedd_pub_ key.
+  // Backend decrypts via PUBLISHER_API_KEY_MASTER_KEY and returns plaintext.
+  // Surfaces a different dialog from `freshKey` (different copy: encrypted-
+  // at-rest framing instead of show-once warning).
+  const handleRevealApiKey = async (id: string) => {
+    if (revealingKeyId) return;
+    setRevealingKeyId(id);
+    setRevealError(null);
+    try {
+      const token = await getAccessToken();
+      const result = await publisherApi.revealApiKey(id, token);
+      setRevealedKey({
+        plaintext_key: result.plaintext_key,
+        key_prefix: result.key_prefix,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Please retry.";
+      // KEY_NOT_REVEALABLE → legacy pre-migration-126 key; surface the
+      // canonical guidance ("revoke + reissue to enable reveal").
+      if (/KEY_NOT_REVEALABLE/i.test(msg)) {
+        setRevealError(
+          "This key was created before encrypted-at-rest storage was enabled. Revoke and re-issue this key to enable reveal in Settings.",
+        );
+        toast({
+          title: "Legacy key",
+          description: "Revoke and re-issue to enable reveal.",
+        });
+      } else if (/KEY_REVOKED/i.test(msg)) {
+        setRevealError("This key has been revoked.");
+        toast({ title: "Key revoked", description: "Revoked keys cannot be revealed." });
+      } else {
+        toast({
+          title: "Couldn't reveal",
+          description: msg,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setRevealingKeyId(null);
+    }
+  };
+
+  const handleCopyRevealedKey = async () => {
+    if (!revealedKey) return;
+    try {
+      await navigator.clipboard.writeText(revealedKey.plaintext_key);
+      setRevealedKeyCopied(true);
+      setTimeout(() => setRevealedKeyCopied(false), 2000);
+      toast({ title: "Copied" });
     } catch {
       toast({ title: "Copy failed", description: "Select and copy manually.", variant: "destructive" });
     }
@@ -1246,30 +1308,47 @@ export default function Settings() {
                                     <p className="text-xs text-gray-500 mt-0.5">Created {created} · Last used {lastUsed}</p>
                                   </div>
                                   {!isRevoked && (
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          disabled={revokingKeyId === k.id}
-                                          className="h-8 px-3 text-xs border-red-200 text-red-600 hover:bg-red-50 flex-shrink-0"
-                                        >
-                                          {revokingKeyId === k.id ? <Spinner size="sm" /> : <>Revoke</>}
-                                        </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent className="bg-white">
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle className="flex items-center gap-2 text-[#040042]"><AlertTriangle size={20} className="text-amber-500" />Revoke API key?</AlertDialogTitle>
-                                          <AlertDialogDescription className="text-gray-600">
-                                            This will invalidate <span className="font-mono">{k.key_prefix}…</span> immediately. Integrations using this key will stop working.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => handleRevokeApiKey(k.id)} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Yes, revoke</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
+                                    <>
+                                      {/* Phase 11.5 Step 9 Q3 (2026-05-18) — Reveal button.
+                                          Re-displays plaintext from encrypted-at-rest storage.
+                                          For pre-migration-126 keys the backend returns
+                                          KEY_NOT_REVEALABLE and the handler surfaces the legacy-
+                                          key guidance via setRevealError. */}
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={revealingKeyId === k.id || revokingKeyId === k.id}
+                                        onClick={() => handleRevealApiKey(k.id)}
+                                        className="h-8 px-3 text-xs border-slate-200 text-[#040042] hover:bg-slate-50 flex-shrink-0"
+                                        data-testid={`reveal-key-${k.id}`}
+                                      >
+                                        {revealingKeyId === k.id ? <Spinner size="sm" /> : <>Reveal</>}
+                                      </Button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={revokingKeyId === k.id || revealingKeyId === k.id}
+                                            className="h-8 px-3 text-xs border-red-200 text-red-600 hover:bg-red-50 flex-shrink-0"
+                                          >
+                                            {revokingKeyId === k.id ? <Spinner size="sm" /> : <>Revoke</>}
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="bg-white">
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle className="flex items-center gap-2 text-[#040042]"><AlertTriangle size={20} className="text-amber-500" />Revoke API key?</AlertDialogTitle>
+                                            <AlertDialogDescription className="text-gray-600">
+                                              This will invalidate <span className="font-mono">{k.key_prefix}…</span> immediately. Integrations using this key will stop working.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel className="rounded-lg border-slate-200">Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleRevokeApiKey(k.id)} className="bg-[#E53E3E] hover:bg-[#C53030] text-white rounded-lg">Yes, revoke</AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </>
                                   )}
                                 </li>
                               );
@@ -1555,6 +1634,52 @@ export default function Settings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Phase 11.5 Step 9 Q3 (2026-05-18) — Revealed Key Dialog.
+          Distinct from the fresh-key dialog above: this displays an
+          already-issued opedd_pub_ key decrypted from encrypted-at-rest
+          storage. Copy reflects "this key is encrypted-at-rest, you can
+          re-reveal it any time" rather than the show-once warning. */}
+      <Dialog open={revealedKey !== null} onOpenChange={(open) => { if (!open) { setRevealedKey(null); setRevealError(null); } }}>
+        <DialogContent hideCloseButton className="bg-white max-w-[520px] rounded-xl border border-[#E5E7EB] p-6 shadow-sm gap-0">
+          <DialogHeader className="space-y-0 mb-4">
+            <DialogTitle className="text-lg font-semibold text-[#040042] flex items-center gap-2">
+              <Key size={18} className="text-[#4A26ED]" />Your API key
+            </DialogTitle>
+            <DialogDescription className="text-sm text-[#040042]/60 mt-1.5 leading-relaxed">
+              This key is encrypted-at-rest. You can return to this Settings page at any time to view it again.
+            </DialogDescription>
+          </DialogHeader>
+          {revealedKey && (
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 overflow-hidden">
+                  <code className="text-sm text-[#040042] font-mono break-all" data-testid="revealed-key-plaintext">{revealedKey.plaintext_key}</code>
+                </div>
+                <Button size="sm" onClick={handleCopyRevealedKey} className="h-11 px-4 bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg font-medium flex-shrink-0">
+                  {revealedKeyCopied ? <><Check size={14} className="mr-2" />Copied</> : <><Copy size={14} className="mr-2" />Copy</>}
+                </Button>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 flex items-start gap-2">
+                <Shield size={14} className="text-slate-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-slate-700">Keep it secret. Use it only in server-side code. To rotate, revoke this key and create a new one.</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex-row justify-end">
+            <Button onClick={() => { setRevealedKey(null); setRevealError(null); }} className="bg-[#4A26ED] hover:bg-[#3B1ED1] text-white rounded-lg">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reveal error toast surface — surfaced inline above the API keys
+          panel when reveal fails for a legacy key (KEY_NOT_REVEALABLE) or
+          a revoked key (KEY_REVOKED). The handler also fires a toast. */}
+      {revealError && (
+        <div role="alert" aria-live="polite" className="sr-only">{revealError}</div>
+      )}
 
       {/* Delete Account Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

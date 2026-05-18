@@ -875,6 +875,26 @@ export const publisherApi = {
       token,
     ),
 
+  // POST /publishers-api-keys action=reveal_api_key (session JWT)
+  // Phase 11.5 Step 9 Q3 (2026-05-18) — re-display the plaintext of an
+  // existing opedd_pub_ key. Server decrypts key_encrypted (AES-GCM-256,
+  // PUBLISHER_API_KEY_MASTER_KEY) and returns plaintext. Errors:
+  //   - 404 NOT_FOUND: key id doesn't exist or isn't owned by this publisher
+  //   - 410 KEY_REVOKED: key has been revoked
+  //   - 409 KEY_NOT_REVEALABLE: pre-migration-126 row, no ciphertext stored
+  revealApiKey: (
+    id: string,
+    token: string | null,
+  ) =>
+    edgeFetch<{ id: string; key_prefix: string; plaintext_key: string }>(
+      EDGE_FUNCTION_BASE + '/publishers-api-keys',
+      {
+        method: 'POST',
+        body: JSON.stringify({ action: 'reveal_api_key', id }),
+      },
+      token,
+    ),
+
   // POST /publishers-webhooks action=list (session JWT — dual-auth carve-out)
   listWebhooks: (token: string | null) =>
     edgeFetch<{ webhooks: PublisherWebhookListItem[] }>(
