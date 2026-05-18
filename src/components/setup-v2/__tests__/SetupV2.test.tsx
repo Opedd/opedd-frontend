@@ -213,10 +213,18 @@ describe("SetupV2 — state-driven step routing", () => {
     );
     render(<Wrapper><SetupV2 /></Wrapper>);
     expect(screen.getByRole("heading", { name: /Your setup is complete/i })).toBeTruthy();
-    // Phase 4.7.4 (OQ.2): "Review pending" copy removed; the heading + Go to
-    // dashboard CTA are the only TerminalState content for connected state.
+    // Phase 4.7.4 (OQ.2): "Review pending" copy removed.
     expect(screen.queryByText(/Review pending/i)).toBeNull();
-    expect(screen.getByRole("link", { name: /Go to dashboard/i })).toBeTruthy();
+    // Phase 11 UX-2 (2026-05-15): TerminalState's manual "Go to dashboard"
+    // link was replaced with a 2.5s auto-redirect + toast. The static
+    // copy left is the heading above + the description below ("Taking
+    // you to your dashboard…"). The actual navigate() fires from a
+    // useEffect that this synchronous render assertion intentionally
+    // does NOT exercise — that path is covered by the multi-newsletter-
+    // deep-link.spec.ts E2E run (which asserts the auto-redirect target
+    // path differs from /setup-v2 after add-newsletter mode dispatches).
+    expect(screen.getByText(/Taking you to your dashboard/i)).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /Go to dashboard/i })).toBeNull();
   });
 
   it("renders TerminalState 'suspended' for setup_state='suspended'", () => {

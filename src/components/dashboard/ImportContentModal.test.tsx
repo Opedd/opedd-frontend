@@ -1,9 +1,36 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { ImportContentModal } from "./ImportContentModal";
 
-// Mock SubstackImportCard — it requires AuthContext + Supabase client which we don't
-// need to exercise for the modal-shell tests.
+// The Custom API body uses react-router-dom's <Link> (cookbook link).
+// Wrap all renders in MemoryRouter so that branch doesn't blow up on
+// missing router context. Other platform bodies render fine without
+// the wrapper, but the wrapper is a no-op cost for them.
+function renderWithRouter(ui: React.ReactElement) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+}
+
+/**
+ * Phase 11 UX-4 (2026-05-15) rewrote this modal from a 3-tab Radix Tabs
+ * shape (Upload archive / Connect RSS / API) into a context-aware
+ * single-body shape that branches on `platform`:
+ *
+ *   - "beehiiv" | "ghost" → "Sync now + last-synced + webhook posture" body
+ *   - "substack"          → SubstackImportCard (ZIP upload)
+ *   - "api"               → CSV upload + cookbook link
+ *   - unknown / null      → legacy generic placeholder
+ *
+ * Pre-UX-4 tests asserted on tab elements + the Radix tab role; those
+ * assertions are no-ops now (no tabs exist). This file replaces them
+ * with per-platform body assertions that match the current rendered
+ * shape (UX-4 follow-on sweep 2026-05-18 — Rules 16/17/18 sweep that
+ * surfaced 4 stale unit tests blocking CI green).
+ */
+
+// Mock SubstackImportCard — exercising AuthContext + Supabase is out of
+// scope for the modal-shell tests. The mock exposes a trigger button so
+// the import-complete callback chain can be tested.
 vi.mock("@/components/dashboard/SubstackImportCard", () => ({
   SubstackImportCard: ({ onImportComplete }: { onImportComplete?: () => void }) => (
     <div data-testid="substack-import-card">
@@ -15,29 +42,49 @@ vi.mock("@/components/dashboard/SubstackImportCard", () => ({
 }));
 
 describe("ImportContentModal", () => {
-  it("renders with three tabs when open", () => {
-    render(<ImportContentModal open={true} onOpenChange={() => {}} />);
-    expect(screen.getByRole("tab", { name: /Upload archive/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Connect RSS/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /API/i })).toBeInTheDocument();
+  it("renders modal title and description (every platform)", () => {
+    renderWithRouter(<ImportContentModal open={true} onOpenChange={() => {}} />);
+    expect(screen.getByRole("heading", { name: /Import content/i })).toBeInTheDocument();
+    // Description varies by platform; the fallback path renders the
+    // "Pick a mechanism below" copy.
+    expect(screen.getByText(/Pick a mechanism below/i)).toBeInTheDocument();
   });
 
   it("does not render content when closed", () => {
-    render(<ImportContentModal open={false} onOpenChange={() => {}} />);
-    expect(screen.queryByRole("tab", { name: /Upload archive/i })).not.toBeInTheDocument();
+    renderWithRouter(<ImportContentModal open={false} onOpenChange={() => {}} />);
+    expect(screen.queryByRole("heading", { name: /Import content/i })).not.toBeInTheDocument();
   });
 
-  it("defaults to Upload archive tab — SubstackImportCard mounted", () => {
-    render(<ImportContentModal open={true} onOpenChange={() => {}} />);
+  it("renders the Substack body when platform='substack'", () => {
+    renderWithRouter(<ImportContentModal open={true} onOpenChange={() => {}} platform="substack" />);
+    // SubstackImportCard (mocked) is the canonical substack body.
     expect(screen.getByTestId("substack-import-card")).toBeInTheDocument();
+    // Description swaps to platform-specific copy.
+    expect(screen.getByText(/Substack publication/i)).toBeInTheDocument();
   });
 
-  // Click-to-switch tab assertions removed: Radix Tabs in jsdom doesn't reliably
-  // re-render TabsContent on fireEvent.click (a known interaction gap with
-  // Radix's pointer-event model). Tab triggers + default-tab content are tested
-  // above; runtime behavior verified via live-flow gate.
+  it("renders the Beehiiv 'Sync now' body when platform='beehiiv'", () => {
+    renderWithRouter(<ImportContentModal open={true} onOpenChange={() => {}} platform="beehiiv" lastSyncedAt={null} />);
+    // Beehiiv body shows the "Last synced" line + webhook posture, NOT
+    // the SubstackImportCard.
+    expect(screen.queryByTestId("substack-import-card")).not.toBeInTheDocument();
+    expect(screen.getByText(/Beehiiv publication/i)).toBeInTheDocument();
+    expect(screen.getByText(/Last synced/i)).toBeInTheDocument();
+  });
 
-  it("onImportComplete callback fires immediately; modal auto-closes after 2.5s delay (PFQ-C)", () => {
+  it("renders the Ghost 'Sync now' body when platform='ghost'", () => {
+    renderWithRouter(<ImportContentModal open={true} onOpenChange={() => {}} platform="ghost" lastSyncedAt={null} />);
+    expect(screen.queryByTestId("substack-import-card")).not.toBeInTheDocument();
+    expect(screen.getByText(/Ghost publication/i)).toBeInTheDocument();
+  });
+
+  it("renders the Custom API body when platform='api'", () => {
+    renderWithRouter(<ImportContentModal open={true} onOpenChange={() => {}} platform="api" />);
+    expect(screen.queryByTestId("substack-import-card")).not.toBeInTheDocument();
+    expect(screen.getByText(/Custom API publication/i)).toBeInTheDocument();
+  });
+
+  it("Substack body — onImportComplete callback fires immediately; modal auto-closes after 2.5s delay (PFQ-C)", () => {
     vi.useFakeTimers();
     try {
       const onOpenChange = vi.fn();
@@ -47,6 +94,7 @@ describe("ImportContentModal", () => {
           open={true}
           onOpenChange={onOpenChange}
           onImportComplete={onImportComplete}
+          platform="substack"
         />,
       );
       fireEvent.click(screen.getByText("mock-trigger-import-complete"));
@@ -61,11 +109,5 @@ describe("ImportContentModal", () => {
     } finally {
       vi.useRealTimers();
     }
-  });
-
-  it("renders modal title and description", () => {
-    render(<ImportContentModal open={true} onOpenChange={() => {}} />);
-    expect(screen.getByRole("heading", { name: /Import content/i })).toBeInTheDocument();
-    expect(screen.getByText(/Pick a mechanism below/i)).toBeInTheDocument();
   });
 });

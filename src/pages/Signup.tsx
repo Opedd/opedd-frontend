@@ -50,9 +50,16 @@ export default function Signup() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         clearInterval(interval);
-        // New users go through /welcome — referral capture + sets
-        // welcome_completed_at so the gate closes after this trip.
-        window.location.href = "/welcome";
+        // Phase 11 UX-1 (2026-05-15) follow-on sweep 2026-05-18: route
+        // post-magic-link sessions to /dashboard?new=1, mirroring the
+        // canonical AuthCallback path (src/pages/AuthCallback.tsx:101).
+        // Pre-fix this routed to /welcome; UX-1 fixed AuthCallback but
+        // missed this sibling site — same Rule-18 violation class as
+        // the M7.1.1 follow-on miss (one gate fixed, sibling missed).
+        // Dashboard renders the "Get started" banner + welcome toast on
+        // ?new=1 — wizard becomes opt-in via banner click, not
+        // auto-redirect.
+        window.location.href = "/dashboard?new=1";
       }
     }, 3000);
     return () => clearInterval(interval);
@@ -99,7 +106,9 @@ export default function Signup() {
         toast({ title: "Account Created", description: "Please check your email to verify your account" });
       } else if (data.session) {
         toast({ title: "Welcome!", description: "Your account has been created successfully" });
-        window.location.href = "/welcome";
+        // UX-1 follow-on sweep 2026-05-18 — match AuthCallback.tsx:101
+        // canonical destination. See sibling comment above (line 53+).
+        window.location.href = "/dashboard?new=1";
       }
     } catch (error) {
       toast({ title: "Signup Failed", description: error instanceof Error ? error.message : "An error occurred", variant: "destructive" });
