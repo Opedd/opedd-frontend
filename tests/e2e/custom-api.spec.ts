@@ -49,11 +49,14 @@ test.describe.serial("Custom API onboarding E2E", () => {
     const keyHashHex = Array.from(new Uint8Array(hashBuffer))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
+    // Schema note: migration 114 (drop_sandbox_columns) removed
+    // publisher_api_keys.environment. The canonical create_api_key path
+    // in publishers-api-keys/index.ts:151-159 omits it. Schema-cache will
+    // 400 the insert if environment is present.
     const { error: keyErr } = await admin.from("publisher_api_keys").insert({
       publisher_id: publisher.publisherId,
       key_prefix: keyToken.slice(0, 12),
       key_hash: keyHashHex,
-      environment: "test",
       name: `E2E customapi ${Date.now()}`,
     });
     if (keyErr) {
