@@ -151,15 +151,15 @@ test.describe.serial("Custom API key-reveal + Skip-finish-later", () => {
       await page.getByLabel(/I've saved this key/i).check();
       await page.getByRole("button", { name: /^Continue$/i }).click();
 
-      // Navigate to Settings → Developer. Settings has a tab; the API Keys
-      // panel lives under the Developer tab.
-      await page.goto("/settings");
-      // Click the Developer tab if present; otherwise the API keys table
-      // is already on the default Settings landing.
-      const developerTab = page.getByRole("tab", { name: /Developer/i });
-      if (await developerTab.isVisible().catch(() => false)) {
-        await developerTab.click();
-      }
+      // Navigate to Settings → Developers tab directly via the ?tab=developers
+      // URL param. Settings.tsx:213-226 reads the query param on mount and
+      // initializes activeTab to "developers", skipping the default "profile"
+      // landing. Avoids a flaky conditional-tab-click race where isVisible()
+      // returned falsy at the page-goto resolution moment (before React mounted
+      // the TabsList), leaving activeTab="profile" and the API keys panel
+      // unmounted. Captured 2026-05-18 from run 26045521047 page-snapshot
+      // showing `tab "Profile" [selected]` post-test-navigation.
+      await page.goto("/settings?tab=developers");
 
       // Find the "Reveal" button for the just-issued key. The button has
       // data-testid={`reveal-key-${k.id}`} per Settings.tsx (Phase 11.5
